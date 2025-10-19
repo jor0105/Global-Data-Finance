@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Set
 
-from src.brasil.dados_cvm.dados_fundamentalistas.domain.urls_docs import UrlDocs
+from .urls_docs import UrlDocs
 
 
 @dataclass
