@@ -1,0 +1,30 @@
+cookies = {
+    "dtCookie": "v_4_srv_33_sn_17B592B62036A7067872EA6857535E20_perc_100000_ol_0_mul_1_app-3Afd69ce40c52bd20e_1_rcs-3Acss_0",
+    "TS0134a800": "011d592ce188928acc96fe03664dc74fef21dd58a8c445d53cf7329d3da1dcbc455c030a4d87d11f657e7b2c85da330d834ffc95dd",
+    "rxVisitor": "1735680845134OSGQPHTUFKDSMTB9CICE00JATV9O7E1K",
+    "cf_clearance": "Tud_CQAMIpLIbffQCZzBc2YMyjV.vQUPINit0om.gMs-1735680845-1.2.1.1-L693Sy3eWok9MGRyXLgImavwPW._DBVSRb.SVM3.DECpSs4PoUDLMR7_AMm6uIKNjBUhiVGMhoheVjftI8dp7obKbKIst2TE7amG.95NZHSvJQDFfUHhjRMvG8VRHnnXq1ItueeFpA1kLX2HECYiUWTCq.ugdzjvU8MWwoTA29wkGudoYjCUIdOTkq9XxCKFInBub447wnXGbi1dgHsN7xi9ybLf9_y7nlpv2JoQ7OSjoSqx4KhORigs0xFvUteuFCasKk.LfvKBZBetopjj0KyqTbNL_VDRxubiRsBpnQXlNngahOTRt94raUxOSEgamczGvnxhBPIxlrk9F.mcr4lvpwP11Td8Iz.hP.djedjaTuOgTv0ijAXhRIDbvlgaMSBSawT5VoWt6xZDDu553Q",
+    "_gid": "GA1.3.60031499.1735680916",
+    "dtSa": "-",
+    "_ga_CNJN5WQC5G": "GS1.1.1735680916.1.1.1735681115.59.0.0",
+    "_ga": "GA1.1.2142084760.1735680916",
+    "mp_ec0f5c39312fa476b16b86e4f6a1c9dd_mixpanel": "%7B%22distinct_id%22%3A%20%22%24device%3A1941ea3e63526a-0dc80dca333e4f-26011851-c0000-1941ea3e63526a%22%2C%22%24device_id%22%3A%20%221941ea3e63526a-0dc80dca333e4f-26011851-c0000-1941ea3e63526a%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D",
+    "BIGipServerpool_sistemaswebb3-listados_8443_WAF": "1329145866.64288.0000",
+    "rxvt": "1735684701633|1735680845136",
+    "dtPC": "33$481115070_318h107vBAGHGNHFUBUUBTEPALDACNOJRQRFKRPR-0e0",
+}
+
+headers = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "priority": "u=1, i",
+    "referer": "https://sistemaswebb3-listados.b3.com.br/",
+    "sec-ch-ua": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "sec-gpc": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+    "x-dtpc": "33$481115070_318h107vBAGHGNHFUBUUBTEPALDACNOJRQRFKRPR-0e0",
+}

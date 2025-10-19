@@ -1,0 +1,32 @@
+cookies_percentual_ibov = {
+    "OptanonAlertBoxClosed": "2025-05-09T11:23:33.817Z",
+    "_gid": "GA1.3.1347494326.1746789823",
+    "dtCookie": "v_4_srv_24_sn_8799694CEC7A1A83B6C3741FADFA6827_perc_100000_ol_0_mul_1_app-3Afd69ce40c52bd20e_0_rcs-3Acss_0",
+    "__cf_bm": "vFH54OMNsOh.a0fBy.l14V.n3ZpVzWP25NMqSYVZSOI-1746797314-1.0.1.1-pQXUcTEzG_U4dY41firP7jfFfvycLBMrZvpeNWM450sdN3HuKsFjTzKJZ1ZZx3w98T6R_2Fy3C8p_fGdw3eqm3UeTFSaA7OGEAHOjNs4m_k",
+    "cf_clearance": "svws1AVZVKi_yBo1Tx5.Wa81FffcqkYg6eiApIGmP_k-1746797317-1.2.1.1-4rZqKxoWoH1DqH_RhzpZTs49HeJzNak9ODd4Cc9c4SqEELqH2mkPpMu4hxD7_Z.tvRnE.gtXlMAmvoy8qa.9dVWz2Q1dhLQxsdOpzK3BB4_okmIDBrAIxBUJxL3zb4edQHIHXOY1A2YE5FA6Rtefo6xhPShdA_AhG8lfGrfMQ2vawbhOqOoW6BFKM_7imrF1Cmz3N7VQNzOsifuGcTJH6zRqwk1VIs21LiAlUBLlgCf8e9419yehneArjldO.dUClK8wqMPA6H0qgQmoA_hh8knlDZkG8Nbc8JYEAmZOGYfZsRLpVY9fUeL2jLuTCjIJe7lh3Oxxx41gUwwXn72Fote4VmYRIxuk1NtUVVQ5X58",
+    "_ga_FTT9L7SR7B": "GS2.1.s1746797714$o1$g1$t1746797732$j42$l0$h0",
+    "OptanonConsent": "isGpcEnabled=1&datestamp=Fri+May+09+2025+10%3A36%3A54+GMT-0300+(Hor%C3%A1rio+Padr%C3%A3o+de+Bras%C3%ADlia)&version=6.21.0&isIABGlobal=false&hosts=&landingPath=NotLandingPage&groups=C0003%3A1%2CC0001%3A1%2CC0004%3A1%2CC0002%3A1&geolocation=%3B&AwaitingReconsent=false",
+    "_ga_CNJN5WQC5G": "GS2.1.s1746797776$o3$g1$t1746797814$j22$l0$h0",
+    "_ga": "GA1.1.1461950100.1746789810",
+    "TS0171d45d": "016e3b076f2a02f1e99db6183657e8ef09c2badb2b5f504b49952fe5357d6f3f97dce60e37e3dec27c9d591423bf58f28f02661fca",
+    "mp_ec0f5c39312fa476b16b86e4f6a1c9dd_mixpanel": "%7B%22distinct_id%22%3A%20%22%24device%3A196b4c93df81d81-0a49d11684d8238-26011f51-c0000-196b4c93df81d81%22%2C%22%24device_id%22%3A%20%22196b4c93df81d81-0a49d11684d8238-26011f51-c0000-196b4c93df81d81%22%2C%22%24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%7D",
+    "BIGipServerpool_sistemaswebb3-listados_8443_WAF": "1329145866.64288.0000",
+    "TS01f22489": "011d592ce19ea797cf229a612ad9373b9eb6b84dcd03110e9cc7cfa9e40c6e959c802c0c3117aaf49bd513a193775ffb8997f0ab7e",
+    "TS01871345": "016e3b076ffb5142e5963fae0a22b28d322dd8b8e38de9cc1f2d7de61e949a0e541138093f75e04d946ffb4e6ecc175a973fce62be",
+    "_ga_SS7FXRTPP3": "GS2.1.s1746797317$o2$g1$t1746798124$j60$l0$h0",
+}
+
+headers_percentual_ibov = {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "priority": "u=1, i",
+    "referer": "https://sistemaswebb3-listados.b3.com.br/",
+    "sec-ch-ua": '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "sec-gpc": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+}
