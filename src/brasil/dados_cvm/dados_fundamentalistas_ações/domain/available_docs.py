@@ -48,6 +48,7 @@ class UrlDocs:
             raise TypeError("List_docs must be a built-in list of strings or None")
 
         list_urls: List[str] = []
+        seen_docs: set = set()
 
         if not list_docs:
             for _, item in self.__DICT_URL_DOCS.items():
@@ -61,6 +62,8 @@ class UrlDocs:
             if doc_key not in self.__DICT_URL_DOCS:
                 raise ValueError(f"No URL available for doc '{doc}'")
 
-            list_urls.append(self.__DICT_URL_DOCS[doc_key])
+            if doc_key not in seen_docs:
+                list_urls.append(self.__DICT_URL_DOCS[doc_key])
+                seen_docs.add(doc_key)
 
         return list_urls
