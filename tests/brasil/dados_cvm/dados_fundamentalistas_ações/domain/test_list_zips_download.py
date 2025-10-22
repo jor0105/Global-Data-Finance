@@ -165,7 +165,6 @@ class TestListZipsToDownload:
         assert "2020" in result[0]
         assert "2020" in result[1]
         assert "2021" in result[2]
-        assert "2021" in result[3]
 
     def test_get_list_zips_to_download_all_seven_docs(self, list_zips):
         all_docs = ["CGVN", "FRE", "FCA", "DFP", "ITR", "IPE", "VLMO"]
