@@ -30,6 +30,9 @@ Example:
 import logging
 from typing import Dict, List, Optional
 
+from ...brazil.dados_cvm.fundamental_stocks_data.application.interfaces import (
+    DownloadDocsCVMRepository,
+)
 from ...brazil.dados_cvm.fundamental_stocks_data.application.use_cases import (
     DownloadDocumentsUseCase,
     GetAvailableDocsUseCase,
@@ -37,6 +40,7 @@ from ...brazil.dados_cvm.fundamental_stocks_data.application.use_cases import (
 )
 from ...brazil.dados_cvm.fundamental_stocks_data.domain import DownloadResult
 from ...brazil.dados_cvm.fundamental_stocks_data.infra.adapters import (
+    ThreadPoolDownloadAdapter,
     WgetDownloadAdapter,
 )
 
@@ -78,18 +82,29 @@ class FundamentalStocksData:
     def __init__(self):
         """Initialize the CVM data client.
 
+        By default uses ThreadPoolDownloadAdapter for good performance.
+        To use a different adapter, pass it to the constructor or use
+        the use case directly.
+
         Example:
+            >>> # Default (ThreadPool with 8 workers)
             >>> cvm = FundamentalStocksData()
+            >>> 
+            >>> # Custom adapter example (see examples/adapter_examples.py):
+            >>> from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+            >>> adapter = Aria2cAdapter(max_concurrent_downloads=16)
+            >>> cvm._download_adapter = adapter
+            >>> cvm._download_use_case = DownloadDocumentsUseCase(adapter)
         """
-        # Initialize the download adapter with default configuration
-        self._download_adapter = WgetDownloadAdapter()
+        # Initialize the download adapter with ThreadPool (better than wget by default)
+        self._download_adapter = ThreadPoolDownloadAdapter(max_workers=8)
 
         # Initialize use cases
         self._download_use_case = DownloadDocumentsUseCase(self._download_adapter)
         self._available_docs_use_case = GetAvailableDocsUseCase()
         self._available_years_use_case = GetAvailableYearsUseCase()
 
-        logger.info("FundamentalStocksData client initialized")
+        logger.info("FundamentalStocksData client initialized with ThreadPoolDownloadAdapter")
 
     def download(
         self,
