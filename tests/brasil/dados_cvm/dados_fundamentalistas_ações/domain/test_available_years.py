@@ -6,7 +6,7 @@ import pytest
 from src.brasil.dados_cvm.dados_fundamentalistas_ações.domain.available_years import (
     AvailableYears,
 )
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.exceptions.exceptions import (
+from src.brasil.dados_cvm.dados_fundamentalistas_ações.exceptions.exceptions_domain import (
     InvalidFirstYear,
     InvalidLastYear,
 )

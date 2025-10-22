@@ -1,9 +1,18 @@
 from typing import Dict, List, Optional
 
-from ..exceptions.exceptions import InvalidDocName, InvalidTypeDoc
+from ..exceptions.exceptions_domain import InvalidDocName, InvalidTypeDoc
 
 
 class AvailableDocs:
+    """Manages information about available CVM document types.
+
+    This class maintains a registry of valid CVM document codes and provides
+    validation and retrieval methods.
+
+    Attributes:
+        __DICT_AVAILABLE_DOCS: Private dictionary mapping document codes to descriptions.
+    """
+
     __DICT_AVAILABLE_DOCS: Dict[str, str] = {
         "CGVN": "(Informe do Código de Governança) informações sobre práticas de governança corporativa adotadas pela companhia, políticas e indicadores.",
         "FRE": "(Formulário de Referência) documento cadastral e descritivo amplo sobre a companhia (atividades, estrutura, administração, remuneração, auditoria).",
@@ -15,12 +24,32 @@ class AvailableDocs:
     }
 
     def get_available_docs(self) -> Dict[str, str]:
+        """Get dictionary of all available documents.
+
+        Returns:
+            Dictionary mapping document codes to their descriptions.
+            Returns a copy to prevent external modification.
+        """
         return self.__DICT_AVAILABLE_DOCS.copy()
 
     def __get_available_docs_keys(self) -> List[str]:
+        """Get list of available document codes.
+
+        Returns:
+            List of valid document codes.
+        """
         return list(self.__DICT_AVAILABLE_DOCS.keys())
 
     def validate_docs_name(self, docs_name: str) -> None:
+        """Validate that a document name is valid and of correct type.
+
+        Args:
+            docs_name: Document code to validate.
+
+        Raises:
+            InvalidTypeDoc: If docs_name is not a string.
+            InvalidDocName: If docs_name is not in the list of valid documents.
+        """
         if not isinstance(docs_name, str):
             raise InvalidTypeDoc(docs_name)
 
@@ -30,7 +59,18 @@ class AvailableDocs:
 
 
 class UrlDocs:
+    """Generates URLs for CVM document downloads.
+
+    This class maintains URLs for each document type and provides methods
+    to retrieve them based on document selection.
+
+    Attributes:
+        _available_docs: Instance of AvailableDocs for validation.
+        __DICT_URL_DOCS: Private dictionary mapping documents to base URLs.
+    """
+
     def __init__(self):
+        """Initialize with AvailableDocs validator."""
         self._available_docs = AvailableDocs()
 
     __DICT_URL_DOCS: Dict[str, str] = {
@@ -44,6 +84,19 @@ class UrlDocs:
     }
 
     def get_url_docs(self, list_docs: Optional[List[str]] = None) -> Dict[str, str]:
+        """Get URLs for specified documents or all documents if none specified.
+
+        Args:
+            list_docs: Optional list of document codes. If None or empty, returns URLs for all documents.
+
+        Returns:
+            Dictionary mapping document codes to their base URLs.
+
+        Raises:
+            TypeError: If list_docs is not a list or None.
+            InvalidDocName: If any document code in list_docs is invalid.
+            InvalidTypeDoc: If any element in list_docs is not a string.
+        """
         if list_docs and not isinstance(list_docs, list):
             raise TypeError("List_docs must be a built-in list of strings or None")
 
