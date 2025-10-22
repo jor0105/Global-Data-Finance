@@ -43,17 +43,16 @@ class UrlDocs:
         "VLMO": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/vlmo_cia_aberta_",
     }
 
-    def get_url_docs(self, list_docs: Optional[List[str]] = None) -> List[str]:
+    def get_url_docs(self, list_docs: Optional[List[str]] = None) -> Dict[str, str]:
         if list_docs and not isinstance(list_docs, list):
             raise TypeError("List_docs must be a built-in list of strings or None")
 
-        list_urls: List[str] = []
+        dict_urls: Dict[str, str] = {}
         seen_docs: set = set()
 
         if not list_docs:
-            for _, item in self.__DICT_URL_DOCS.items():
-                list_urls.append(item)
-            return list_urls
+            dict_urls = self.__DICT_URL_DOCS.copy()
+            return dict_urls
 
         for doc in list_docs:
             self._available_docs.validate_docs_name(doc)
@@ -63,7 +62,7 @@ class UrlDocs:
                 raise ValueError(f"No URL available for doc '{doc}'")
 
             if doc_key not in seen_docs:
-                list_urls.append(self.__DICT_URL_DOCS[doc_key])
+                dict_urls[doc_key] = self.__DICT_URL_DOCS[doc_key]
                 seen_docs.add(doc_key)
 
-        return list_urls
+        return dict_urls

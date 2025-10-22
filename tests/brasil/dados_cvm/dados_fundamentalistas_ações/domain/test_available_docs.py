@@ -127,52 +127,58 @@ class TestUrlDocs:
     def test_get_url_docs_without_parameters_returns_all_urls(self, url_docs):
         urls = url_docs.get_url_docs()
 
-        assert isinstance(urls, list)
+        assert isinstance(urls, dict)
         assert len(urls) == 7
 
     def test_get_url_docs_returns_list_of_strings(self, url_docs):
         urls = url_docs.get_url_docs()
 
-        for url in urls:
+        for url in urls.values():
             assert isinstance(url, str)
 
     def test_get_url_docs_urls_start_with_https(self, url_docs):
         urls = url_docs.get_url_docs()
 
-        for url in urls:
+        for url in urls.values():
             assert url.startswith("https://")
 
     def test_get_url_docs_urls_contain_cvm_domain(self, url_docs):
         urls = url_docs.get_url_docs()
 
-        for url in urls:
+        for url in urls.values():
             assert "dados.cvm.gov.br" in url
 
     def test_get_url_docs_with_single_doc(self, url_docs):
         urls = url_docs.get_url_docs(["DFP"])
 
         assert len(urls) == 1
-        assert "dfp_cia_aberta_" in urls[0]
+        assert "DFP" in urls
+        assert "dfp_cia_aberta_" in urls["DFP"]
 
     def test_get_url_docs_with_multiple_docs(self, url_docs):
         urls = url_docs.get_url_docs(["DFP", "ITR", "FRE"])
 
         assert len(urls) == 3
-        assert any("dfp_cia_aberta_" in url for url in urls)
-        assert any("itr_cia_aberta_" in url for url in urls)
-        assert any("fre_cia_aberta_" in url for url in urls)
+        assert "DFP" in urls
+        assert "ITR" in urls
+        assert "FRE" in urls
+        assert "dfp_cia_aberta_" in urls["DFP"]
+        assert "itr_cia_aberta_" in urls["ITR"]
+        assert "fre_cia_aberta_" in urls["FRE"]
 
     def test_get_url_docs_with_lowercase_doc_name(self, url_docs):
         urls = url_docs.get_url_docs(["dfp"])
 
         assert len(urls) == 1
-        assert "dfp_cia_aberta_" in urls[0]
+        assert "DFP" in urls
+        assert "dfp_cia_aberta_" in urls["DFP"]
 
     def test_get_url_docs_with_mixed_case_doc_name(self, url_docs):
         urls = url_docs.get_url_docs(["DfP"])
 
         assert len(urls) == 1
-        assert "dfp_cia_aberta_" in urls[0]
+        assert "DFP" in urls
+        assert "dfp_cia_aberta_" in urls["DFP"]
 
     def test_get_url_docs_with_invalid_doc_name(self, url_docs):
         with pytest.raises(InvalidDocName):
@@ -195,7 +201,7 @@ class TestUrlDocs:
     def test_get_url_docs_with_empty_list(self, url_docs):
         urls = url_docs.get_url_docs([])
 
-        assert isinstance(urls, list)
+        assert isinstance(urls, dict)
         assert len(urls) == 7
 
     def test_get_url_docs_with_all_available_docs(self, url_docs):
@@ -208,7 +214,8 @@ class TestUrlDocs:
         urls = url_docs.get_url_docs(["DFP", "DFP"])
 
         assert len(urls) == 1
-        assert "dfp_cia_aberta_" in urls[0]
+        assert "DFP" in urls
+        assert "dfp_cia_aberta_" in urls["DFP"]
 
     def test_get_url_docs_with_non_string_in_list(self, url_docs):
         with pytest.raises(InvalidTypeDoc):
@@ -220,40 +227,49 @@ class TestUrlDocs:
 
     def test_get_url_docs_specific_urls_for_each_doc(self, url_docs):
         urls_cgvn = url_docs.get_url_docs(["CGVN"])
-        assert "cgvn_cia_aberta_" in urls_cgvn[0]
+        assert "CGVN" in urls_cgvn
+        assert "cgvn_cia_aberta_" in urls_cgvn["CGVN"]
 
         urls_fre = url_docs.get_url_docs(["FRE"])
-        assert "fre_cia_aberta_" in urls_fre[0]
+        assert "FRE" in urls_fre
+        assert "fre_cia_aberta_" in urls_fre["FRE"]
 
         urls_fca = url_docs.get_url_docs(["FCA"])
-        assert "fca_cia_aberta_" in urls_fca[0]
+        assert "FCA" in urls_fca
+        assert "fca_cia_aberta_" in urls_fca["FCA"]
 
         urls_dfp = url_docs.get_url_docs(["DFP"])
-        assert "dfp_cia_aberta_" in urls_dfp[0]
+        assert "DFP" in urls_dfp
+        assert "dfp_cia_aberta_" in urls_dfp["DFP"]
 
         urls_itr = url_docs.get_url_docs(["ITR"])
-        assert "itr_cia_aberta_" in urls_itr[0]
+        assert "ITR" in urls_itr
+        assert "itr_cia_aberta_" in urls_itr["ITR"]
 
         urls_ipe = url_docs.get_url_docs(["IPE"])
-        assert "ipe_cia_aberta_" in urls_ipe[0]
+        assert "IPE" in urls_ipe
+        assert "ipe_cia_aberta_" in urls_ipe["IPE"]
 
         urls_vlmo = url_docs.get_url_docs(["VLMO"])
-        assert "vlmo_cia_aberta_" in urls_vlmo[0]
+        assert "VLMO" in urls_vlmo
+        assert "vlmo_cia_aberta_" in urls_vlmo["VLMO"]
 
     def test_get_url_docs_urls_end_correctly(self, url_docs):
         urls = url_docs.get_url_docs(["DFP"])
 
-        assert urls[0].endswith("_")
+        assert urls["DFP"].endswith("_")
 
     def test_get_url_docs_order_preserved(self, url_docs):
         docs_list = ["ITR", "DFP", "FRE"]
         urls = url_docs.get_url_docs(docs_list)
 
-        assert "itr_cia_aberta_" in urls[0]
-        assert "dfp_cia_aberta_" in urls[1]
-        assert "fre_cia_aberta_" in urls[2]
+        keys = list(urls.keys())
+        assert keys[0] == "ITR"
+        assert keys[1] == "DFP"
+        assert keys[2] == "FRE"
 
     def test_get_url_docs_with_none_returns_all(self, url_docs):
         urls = url_docs.get_url_docs(None)
 
         assert len(urls) == 7
+        assert isinstance(urls, dict)

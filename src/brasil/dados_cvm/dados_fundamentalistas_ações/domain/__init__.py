@@ -1,10 +1,10 @@
 from .available_docs import AvailableDocs, UrlDocs
 from .available_years import AvailableYears
-from .list_zips_download import ListZipsToDownload
+from .dict_zips_download import DictZipsToDownload
 
 __all__ = [
     "AvailableDocs",
     "UrlDocs",
     "AvailableYears",
-    "ListZipsToDownload",
+    "DictZipsToDownload",
 ]
