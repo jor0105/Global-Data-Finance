@@ -5,11 +5,13 @@
 Implementei **3 adapters de download** para sua biblioteca:
 
 1. **ThreadPoolDownloadAdapter** ⭐ (Padrão recomendado)
+
    - 3-5x mais rápido que wget
    - Sem dependências externas
    - Usa `requests` + threads paralelas
 
 2. **Aria2cAdapter** 🚀 (Máxima velocidade)
+
    - 5-10x mais rápido que wget
    - Requer instalar `aria2`
    - Multipart por arquivo (ideal para arquivos grandes)
@@ -23,6 +25,7 @@ Implementei **3 adapters de download** para sua biblioteca:
 ## O que Mudou?
 
 ### Antes (seu código original):
+
 ```python
 from src.presentation.cvm_docs import FundamentalStocksData
 cvm = FundamentalStocksData()
@@ -30,6 +33,7 @@ cvm = FundamentalStocksData()
 ```
 
 ### Agora (novo padrão):
+
 ```python
 from src.presentation.cvm_docs import FundamentalStocksData
 cvm = FundamentalStocksData()
@@ -42,6 +46,7 @@ cvm = FundamentalStocksData()
 ## Como Usar
 
 ### 1. Usar o padrão (ThreadPool)
+
 ```python
 from src.presentation.cvm_docs import FundamentalStocksData
 
@@ -56,6 +61,7 @@ print(f"Downloaded {result.success_count} files")
 ```
 
 ### 2. Customizar ThreadPool
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import ThreadPoolDownloadAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -75,6 +81,7 @@ result = use_case.execute(
 ### 3. Usar aria2c (máxima velocidade)
 
 **Passo 1: Instalar aria2**
+
 ```bash
 # Linux:
 sudo apt-get install aria2
@@ -86,6 +93,7 @@ brew install aria2
 ```
 
 **Passo 2: Usar em Python**
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -106,17 +114,21 @@ print(f"Downloaded {result.success_count} files")
 ## Arquivos Criados/Modificados
 
 ### Novos Adapters:
+
 - ✅ `src/brazil/.../infra/adapters/threadpool_download_adapter.py` (NEW)
 - ✅ `src/brazil/.../infra/adapters/aria2c_adapter.py` (NEW)
 
 ### Documentação:
+
 - ✅ `docs/ADAPTERS.md` — Referência de adapters
 - ✅ `docs/ARIA2_GUIDE.md` — Guia completo sobre aria2
 
 ### Exemplos:
+
 - ✅ `examples/adapter_examples.py` — Exemplos de uso
 
 ### Modificado:
+
 - ✅ `src/presentation/cvm_docs/fundamental_stocks_data.py` — Agora usa ThreadPool por padrão
 
 ---
@@ -125,11 +137,11 @@ print(f"Downloaded {result.success_count} files")
 
 Downloading 50 arquivos DFP (~500MB) em conexão 10Mbps:
 
-| Método | Tempo | Speedup |
-|--------|-------|---------|
-| wget (sequencial) | 10 min | 1x (baseline) |
-| ThreadPool (8 workers) | 2-3 min | **3-5x** ✅ |
-| aria2c (8 conn) | 1-2 min | **5-10x** 🚀 |
+| Método                 | Tempo   | Speedup       |
+| ---------------------- | ------- | ------------- |
+| wget (sequencial)      | 10 min  | 1x (baseline) |
+| ThreadPool (8 workers) | 2-3 min | **3-5x** ✅   |
+| aria2c (8 conn)        | 1-2 min | **5-10x** 🚀  |
 
 ---
 
@@ -143,6 +155,7 @@ Downloading 50 arquivos DFP (~500MB) em conexão 10Mbps:
 - **Leve**: Usa pouca memória (ao contrário de browsers)
 
 ### Exemplo CLI:
+
 ```bash
 # Baixar lista de arquivos em paralelo com split:
 aria2c -i urls.txt \
@@ -159,12 +172,15 @@ aria2c -i urls.txt \
 ## Troubleshooting
 
 ### ThreadPool é lento?
+
 → Aumentar `max_workers` para 16-32
 
 ### Muitos erros de conexão?
+
 → Reduzir `max_workers` para 2-4 (servidor pode estar bloqueando)
 
 ### aria2c não encontrado?
+
 → Instale: `sudo apt-get install aria2` (Linux) ou `brew install aria2` (Mac)
 
 ---
@@ -174,11 +190,13 @@ aria2c -i urls.txt \
 **Para sua biblioteca (Python, usuários variados):**
 
 1. **Use ThreadPoolDownloadAdapter como padrão** ✅
+
    - Rápido (3-5x mais que wget)
    - Sem dependências externas
    - Funciona em qualquer lugar
 
 2. **Documente aria2c como opção avançada**
+
    - Para usuários com grandes volumes
    - Com instruções de instalação claras
 
@@ -210,13 +228,13 @@ Se quiser ainda mais performance:
 
 ## Sumário de Mudanças
 
-| O que | Status | Impacto |
-|------|--------|---------|
-| ThreadPoolDownloadAdapter | ✅ Implementado | +3-5x velocidade |
-| Aria2cAdapter | ✅ Implementado | +5-10x velocidade |
-| FundamentalStocksData (ThreadPool padrão) | ✅ Atualizado | Melhoria automática |
-| Documentação aria2 | ✅ Completa | Orientação clara |
-| Exemplos de uso | ✅ Criados | Fácil adoção |
+| O que                                     | Status          | Impacto             |
+| ----------------------------------------- | --------------- | ------------------- |
+| ThreadPoolDownloadAdapter                 | ✅ Implementado | +3-5x velocidade    |
+| Aria2cAdapter                             | ✅ Implementado | +5-10x velocidade   |
+| FundamentalStocksData (ThreadPool padrão) | ✅ Atualizado   | Melhoria automática |
+| Documentação aria2                        | ✅ Completa     | Orientação clara    |
+| Exemplos de uso                           | ✅ Criados      | Fácil adoção        |
 
 ---
 

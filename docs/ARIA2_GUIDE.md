@@ -17,47 +17,53 @@
 
 ### Comparação com wget/requests:
 
-| Aspecto | wget | requests (ThreadPool) | aria2 |
-|--------|------|----------------------|-------|
-| Conexões por arquivo | 1 | 1 | N (paralelas) |
-| Múltiplos arquivos | Sequencial | Paralelo (threads) | Paralelo (nativo) |
-| Overhead de memória | Baixo | Médio | Baixo |
-| Velocidade (muitos arquivos) | Lenta | Média | Muito rápida |
-| Velocidade (arquivos grandes) | Lenta | Média | Muito rápida |
-| Complexity | Baixa | Média | Média |
-| Dependência | Binário | Python (built-in) | Binário externo |
+| Aspecto                       | wget       | requests (ThreadPool) | aria2             |
+| ----------------------------- | ---------- | --------------------- | ----------------- |
+| Conexões por arquivo          | 1          | 1                     | N (paralelas)     |
+| Múltiplos arquivos            | Sequencial | Paralelo (threads)    | Paralelo (nativo) |
+| Overhead de memória           | Baixo      | Médio                 | Baixo             |
+| Velocidade (muitos arquivos)  | Lenta      | Média                 | Muito rápida      |
+| Velocidade (arquivos grandes) | Lenta      | Média                 | Muito rápida      |
+| Complexity                    | Baixa      | Média                 | Média             |
+| Dependência                   | Binário    | Python (built-in)     | Binário externo   |
 
 ---
 
 ## Instalação
 
 ### Linux (Ubuntu/Debian):
+
 ```bash
 sudo apt-get update
 sudo apt-get install aria2
 ```
 
 ### Linux (Fedora/RHEL):
+
 ```bash
 sudo dnf install aria2
 ```
 
 ### macOS:
+
 ```bash
 brew install aria2
 ```
 
 ### Windows:
+
 1. Baixe o instalador em: https://github.com/aria2/aria2/releases
 2. Ou use Chocolatey: `choco install aria2`
 3. Ou use Scoop: `scoop install aria2`
 
 ### Docker:
+
 ```bash
 docker run -it aria2/aria2 aria2c --version
 ```
 
 ### Verificar instalação:
+
 ```bash
 aria2c --version
 ```
@@ -69,11 +75,13 @@ aria2c --version
 ### Sintaxe básica:
 
 #### Download simples:
+
 ```bash
 aria2c "http://example.com/file.zip"
 ```
 
 #### Download com opções:
+
 ```bash
 aria2c \
   "http://example.com/file1.zip" \
@@ -85,6 +93,7 @@ aria2c \
 ```
 
 #### Download de lista (arquivo com URLs):
+
 ```bash
 # Criar arquivo urls.txt com uma URL por linha:
 cat > urls.txt << EOF
@@ -99,26 +108,27 @@ aria2c -i urls.txt --dir=/path/to/dest
 
 ### Opções principais:
 
-| Opção | Descrição | Padrão |
-|-------|-----------|--------|
-| `-d, --dir` | Diretório de destino | `.` (atual) |
-| `-i, --input-file` | Arquivo com lista de URLs | - |
-| `--max-concurrent-downloads` | Max downloads simultâneos | 5 |
-| `--max-connection-per-server` | Conexões por servidor | 1 |
-| `--split` | Número de segmentos por arquivo | 5 |
-| `--min-split-size` | Tamanho mínimo para segmentação | 20M |
-| `--connect-timeout` | Timeout de conexão (segundos) | 60 |
-| `--max-tries` | Tentativas máximas | 5 |
-| `--retry-wait` | Espera entre tentativas (segundos) | 0 |
-| `--continue` | Retomar downloads interrompidos | true |
-| `--allow-overwrite` | Sobrescrever arquivos existentes | false |
-| `--auto-file-renaming` | Renomear se existir | true |
-| `--quiet` | Modo silencioso | false |
-| `--show-console-readout` | Mostrar progresso | true |
+| Opção                         | Descrição                          | Padrão      |
+| ----------------------------- | ---------------------------------- | ----------- |
+| `-d, --dir`                   | Diretório de destino               | `.` (atual) |
+| `-i, --input-file`            | Arquivo com lista de URLs          | -           |
+| `--max-concurrent-downloads`  | Max downloads simultâneos          | 5           |
+| `--max-connection-per-server` | Conexões por servidor              | 1           |
+| `--split`                     | Número de segmentos por arquivo    | 5           |
+| `--min-split-size`            | Tamanho mínimo para segmentação    | 20M         |
+| `--connect-timeout`           | Timeout de conexão (segundos)      | 60          |
+| `--max-tries`                 | Tentativas máximas                 | 5           |
+| `--retry-wait`                | Espera entre tentativas (segundos) | 0           |
+| `--continue`                  | Retomar downloads interrompidos    | true        |
+| `--allow-overwrite`           | Sobrescrever arquivos existentes   | false       |
+| `--auto-file-renaming`        | Renomear se existir                | true        |
+| `--quiet`                     | Modo silencioso                    | false       |
+| `--show-console-readout`      | Mostrar progresso                  | true        |
 
 ### Exemplos práticos:
 
 **1. Baixar 1000 arquivos em paralelo:**
+
 ```bash
 aria2c -i urls.txt \
   -d /data/downloads \
@@ -128,6 +138,7 @@ aria2c -i urls.txt \
 ```
 
 **2. Baixar com retry agressivo:**
+
 ```bash
 aria2c "http://unstable-server.com/file.zip" \
   --max-tries=10 \
@@ -136,6 +147,7 @@ aria2c "http://unstable-server.com/file.zip" \
 ```
 
 **3. Baixar com limite de bandwidth:**
+
 ```bash
 aria2c \
   --dir=/data \
@@ -145,6 +157,7 @@ aria2c \
 ```
 
 **4. Continuar download interrompido:**
+
 ```bash
 # Primer comando (pode ser interrompido com Ctrl+C):
 aria2c -i urls.txt --dir=/data
@@ -251,6 +264,7 @@ aria2c \
 ## Performance Tuning
 
 ### Para muitos arquivos pequenos (< 10MB):
+
 ```bash
 aria2c -i urls.txt \
   --max-concurrent-downloads=32 \
@@ -259,6 +273,7 @@ aria2c -i urls.txt \
 ```
 
 ### Para alguns arquivos grandes (> 100MB):
+
 ```bash
 aria2c -i urls.txt \
   --max-concurrent-downloads=4 \
@@ -268,6 +283,7 @@ aria2c -i urls.txt \
 ```
 
 ### Para servidores com limite de conexões:
+
 ```bash
 aria2c -i urls.txt \
   --max-concurrent-downloads=2 \
@@ -277,6 +293,7 @@ aria2c -i urls.txt \
 ```
 
 ### Para rede instável:
+
 ```bash
 aria2c -i urls.txt \
   --connect-timeout=60 \
@@ -292,7 +309,9 @@ aria2c -i urls.txt \
 ## Troubleshooting
 
 ### Erro: "aria2c: command not found"
+
 **Solução**: Instale aria2
+
 ```bash
 # Ubuntu/Debian:
 sudo apt-get install aria2
@@ -302,12 +321,15 @@ aria2c --version
 ```
 
 ### Erro: "403 Forbidden" ou "401 Unauthorized"
+
 **Possíveis causas**:
+
 - URL expirada ou sem permissão
 - Servidor bloqueando múltiplas conexões
 - User-Agent bloqueado
 
 **Soluções**:
+
 ```bash
 aria2c \
   "http://example.com/file.zip" \
@@ -317,8 +339,10 @@ aria2c \
 ```
 
 ### Erro: "Connection reset by peer"
+
 **Causa**: Servidor rejeitando múltiplas conexões simultâneas
 **Solução**:
+
 ```bash
 aria2c \
   "http://example.com/file.zip" \
@@ -327,15 +351,19 @@ aria2c \
 ```
 
 ### Download muito lento
+
 **Soluções**:
+
 1. Aumentar workers: `--max-concurrent-downloads=16`
 2. Aumentar split: `--split=8`
 3. Verificar banda: `speedtest-cli` ou `iperf3`
 4. Testar servidor diferente
 
 ### Download para após uns arquivos
+
 **Causa**: Timeout ou limite de servidor
 **Solução**:
+
 ```bash
 aria2c -i urls.txt \
   --connect-timeout=60 \
@@ -349,6 +377,7 @@ aria2c -i urls.txt \
 ## Comparação: ThreadPool vs Aria2c
 
 ### Quando usar ThreadPoolDownloadAdapter:
+
 - ✅ Ambiente restrito (sem permissão para instalar)
 - ✅ Arquivos pequenos/médios (< 100MB)
 - ✅ Simplicidade é prioritária
@@ -356,6 +385,7 @@ aria2c -i urls.txt \
 - ✅ Precisa de integração fácil em Python
 
 ### Quando usar Aria2cAdapter:
+
 - ✅ Volumes muito grandes (1000+ arquivos)
 - ✅ Arquivos grandes (> 100MB)
 - ✅ Quer máxima velocidade
@@ -376,15 +406,15 @@ aria2c -i urls.txt \
 
 ## Resumo
 
-| Aspecto | ThreadPool | Aria2c |
-|--------|-----------|--------|
+| Aspecto                      | ThreadPool    | Aria2c               |
+| ---------------------------- | ------------- | -------------------- |
 | **Facilidade de instalação** | ✅ Já incluso | ⚠️ Requer instalação |
-| **Velocidade** | ✅ Boa | ✅✅ Excelente |
-| **Multipart por arquivo** | ❌ Não | ✅ Sim |
-| **Retoma downloads** | ⚠️ Parcial | ✅ Completo |
-| **Integração Python** | ✅ Nativa | ✅ Via subprocess |
-| **Portabilidade** | ✅ Alta | ⚠️ Requer binário |
-| **Uso de memória** | ✅ Eficiente | ✅✅ Muito eficiente |
-| **Controle fino** | ⚠️ Médio | ✅ Excelente |
+| **Velocidade**               | ✅ Boa        | ✅✅ Excelente       |
+| **Multipart por arquivo**    | ❌ Não        | ✅ Sim               |
+| **Retoma downloads**         | ⚠️ Parcial    | ✅ Completo          |
+| **Integração Python**        | ✅ Nativa     | ✅ Via subprocess    |
+| **Portabilidade**            | ✅ Alta       | ⚠️ Requer binário    |
+| **Uso de memória**           | ✅ Eficiente  | ✅✅ Muito eficiente |
+| **Controle fino**            | ⚠️ Médio      | ✅ Excelente         |
 
 **Recomendação**: Comece com **ThreadPool**. Se precisar de mais velocidade e puder instalar aria2, migre para **Aria2c**.

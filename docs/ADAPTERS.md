@@ -4,11 +4,11 @@
 
 DataFinance oferece 3 adapters para download de documentos CVM, cada um otimizado para diferentes cenários:
 
-| Adapter | Velocidade | Facilidade | Dependências | Melhor Para |
-|---------|-----------|-----------|-----------|-----------|
-| **WgetDownloadAdapter** | ⭐ Lenta | ⭐⭐⭐ Fácil | wget | Compatibilidade máxima |
-| **ThreadPoolDownloadAdapter** | ⭐⭐⭐ Rápida | ⭐⭐⭐ Fácil | requests | **Maioria dos casos** ✅ |
-| **Aria2cAdapter** | ⭐⭐⭐⭐⭐ Muito rápida | ⭐⭐ Médio | aria2 | Máxima velocidade, muitos arquivos |
+| Adapter                       | Velocidade              | Facilidade   | Dependências | Melhor Para                        |
+| ----------------------------- | ----------------------- | ------------ | ------------ | ---------------------------------- |
+| **WgetDownloadAdapter**       | ⭐ Lenta                | ⭐⭐⭐ Fácil | wget         | Compatibilidade máxima             |
+| **ThreadPoolDownloadAdapter** | ⭐⭐⭐ Rápida           | ⭐⭐⭐ Fácil | requests     | **Maioria dos casos** ✅           |
+| **Aria2cAdapter**             | ⭐⭐⭐⭐⭐ Muito rápida | ⭐⭐ Médio   | aria2        | Máxima velocidade, muitos arquivos |
 
 ---
 
@@ -23,12 +23,14 @@ adapter = WgetDownloadAdapter()
 result = adapter.download_docs("/path", {"DFP": ["url1", "url2"]})
 ```
 
-**Prós**: 
+**Prós**:
+
 - ✅ Simples
 - ✅ Nenhuma dependência Python extra (wget é padrão em Linux)
 - ✅ Comportamento previsível
 
 **Contras**:
+
 - ❌ Lento (sequencial)
 - ❌ Sem multipart
 - ❌ Sem paralelismo
@@ -42,6 +44,7 @@ result = adapter.download_docs("/path", {"DFP": ["url1", "url2"]})
 **Uso**: Padrão para FundamentalStocksData. Rápido, portável, sem dependências externas.
 
 ### Uso simples (padrão):
+
 ```python
 from src.presentation.cvm_docs import FundamentalStocksData
 
@@ -55,6 +58,7 @@ result = cvm.download(
 ```
 
 ### Configuração customizada:
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import ThreadPoolDownloadAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -78,6 +82,7 @@ result = use_case.execute(
 ```
 
 **Prós**:
+
 - ✅ Rápido (8x mais rápido que wget tipicamente)
 - ✅ Fácil de configurar
 - ✅ Sem dependências externas
@@ -86,10 +91,12 @@ result = use_case.execute(
 - ✅ Compatível com qualquer servidor HTTP
 
 **Contras**:
+
 - ❌ Sem multipart por arquivo (cada arquivo é uma conexão)
 - ⚠️ Usa threads (overhead comparado a async)
 
 **Parametros importantes**:
+
 - `max_workers`: 4-16 (mais alto = mais rápido, mas mais carga no servidor)
 - `timeout`: 30-60 segundos (depende da rede)
 - `max_retries`: 3-5 (mais tentativas em redes instáveis)
@@ -105,25 +112,30 @@ result = use_case.execute(
 ### Instalação de aria2:
 
 **Ubuntu/Debian**:
+
 ```bash
 sudo apt-get install aria2
 ```
 
 **macOS**:
+
 ```bash
 brew install aria2
 ```
 
 **Windows**:
+
 - Download: https://github.com/aria2/aria2/releases
 - Ou: `choco install aria2`
 
 **Verificar**:
+
 ```bash
 aria2c --version
 ```
 
 ### Uso simples:
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -139,6 +151,7 @@ result = use_case.execute(
 ```
 
 ### Configuração customizada:
+
 ```python
 adapter = Aria2cAdapter(
     max_concurrent_downloads=8,  # Downloads simultâneos
@@ -151,6 +164,7 @@ adapter = Aria2cAdapter(
 ```
 
 **Prós**:
+
 - ✅ Muito rápido (2-10x mais rápido que ThreadPool em casos ideais)
 - ✅ Multipart por arquivo (divide grandes files)
 - ✅ Retoma downloads interrompidos
@@ -158,11 +172,13 @@ adapter = Aria2cAdapter(
 - ✅ Controle fino sobre paralelismo
 
 **Contras**:
+
 - ❌ Requer instalação de aria2
 - ❌ Não é puro Python (subprocess)
 - ⚠️ Mais complexo de configurar
 
-**Quando usar**: 
+**Quando usar**:
+
 - ✅ Volumes muitos grandes (1000+ arquivos)
 - ✅ Arquivos muito grandes (> 500MB)
 - ✅ Máxima velocidade é crítica
@@ -199,15 +215,16 @@ Qual é seu caso?
 
 Downloading 50 DFP files (~500MB total) da CVM em conexão de 10Mbps:
 
-| Adapter | Tempo | Comentário |
-|---------|-------|-----------|
-| wget | 10 min | Sequencial, lento |
-| ThreadPool (4 workers) | 3-4 min | 2.5x mais rápido |
-| ThreadPool (8 workers) | 2-3 min | 3-5x mais rápido |
-| aria2c (8 conexões) | 1-2 min | 5-10x mais rápido |
-| aria2c (16 conexões, split) | 1 min | 10x mais rápido |
+| Adapter                     | Tempo   | Comentário        |
+| --------------------------- | ------- | ----------------- |
+| wget                        | 10 min  | Sequencial, lento |
+| ThreadPool (4 workers)      | 3-4 min | 2.5x mais rápido  |
+| ThreadPool (8 workers)      | 2-3 min | 3-5x mais rápido  |
+| aria2c (8 conexões)         | 1-2 min | 5-10x mais rápido |
+| aria2c (16 conexões, split) | 1 min   | 10x mais rápido   |
 
 **Nota**: Resultados dependem de:
+
 - Velocidade da conexão
 - Tamanho dos arquivos
 - Servidor (limite de conexões)
@@ -218,6 +235,7 @@ Downloading 50 DFP files (~500MB total) da CVM em conexão de 10Mbps:
 ## Exemplos Rápidos
 
 ### Exemplo 1: Download básico (padrão)
+
 ```python
 from src.presentation.cvm_docs import FundamentalStocksData
 
@@ -232,6 +250,7 @@ print(f"Downloaded: {result.success_count}")
 ```
 
 ### Exemplo 2: ThreadPool customizado
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import ThreadPoolDownloadAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -247,6 +266,7 @@ result = use_case.execute(
 ```
 
 ### Exemplo 3: Aria2c (máxima velocidade)
+
 ```python
 from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
 from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
@@ -266,6 +286,7 @@ except RuntimeError as e:
 ```
 
 ### Exemplo 4: Tratamento de erros
+
 ```python
 result = cvm.download(
     destination_path="/data",
@@ -290,10 +311,12 @@ if result.has_successes():
 ## Troubleshooting
 
 ### ThreadPool é lento
+
 - **Solução**: Aumente `max_workers` (ex: 16, 32)
 - **Cuidado**: Servidores podem bloquear muitas conexões
 
 ### aria2c não encontrado
+
 ```bash
 # Instale:
 sudo apt-get install aria2  # Linux
@@ -304,10 +327,12 @@ aria2c --version
 ```
 
 ### Download fails com "connection timeout"
+
 - **ThreadPool**: Aumente `timeout` (ex: 60 ao invés de 30)
 - **aria2c**: Use `--connect-timeout=60`
 
 ### Muitos erros "connection refused"
+
 - **Causa**: Servidor bloqueando múltiplas conexões
 - **Solução**: Reduzir `max_workers` ou `connections_per_server` para 1-2
 
@@ -327,4 +352,3 @@ aria2c --version
 - **Exemplos completos**: [examples/adapter_examples.py](../examples/adapter_examples.py)
 - **Guia aria2**: [docs/ARIA2_GUIDE.md](./ARIA2_GUIDE.md)
 - **Source**: [src/brazil/dados_cvm/fundamental_stocks_data/infra/adapters/](../src/brazil/dados_cvm/fundamental_stocks_data/infra/adapters/)
-

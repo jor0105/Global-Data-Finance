@@ -2,11 +2,12 @@
 
 This adapter provides faster downloads by parallelizing requests across
 multiple threads, with automatic retry, exponential backoff, and streaming
-to disk for memory efficiency.
+to disk for memory efficiency. Includes a simple progress bar (no external deps).
 """
 
 import logging
 import os
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Tuple
@@ -27,6 +28,67 @@ from src.macro_exceptions.exception_network_errors import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class SimpleProgressBar:
+    """Simple progress bar without external dependencies (uses only sys/time).
+
+    Thread-safe progress tracking for terminal output.
+    """
+
+    def __init__(self, total: int, desc: str = "", width: int = 40):
+        """Initialize progress bar.
+
+        Args:
+            total: Total number of items
+            desc: Description prefix
+            width: Width of progress bar in characters
+        """
+        self.total = total
+        self.desc = desc
+        self.width = width
+        self.current = 0
+        self.start_time = time.time()
+        self.last_print_time = 0
+
+        # Print initial message
+        if total > 0:
+            print(f"\n{desc}: Starting download of {total} files...")
+            sys.stdout.flush()
+
+    def update(self, amount: int = 1):
+        """Update progress by amount."""
+        self.current += amount
+
+        # Rate limit printing (max once per 0.1 seconds to avoid flickering)
+        current_time = time.time()
+        if current_time - self.last_print_time >= 0.1 or self.current == self.total:
+            self._print()
+            self.last_print_time = current_time
+
+    def _print(self):
+        """Print progress bar to terminal."""
+        if self.total == 0:
+            return
+
+        percent = self.current / self.total
+        filled = int(self.width * percent)
+        bar = "█" * filled + "░" * (self.width - filled)
+
+        # Clear line and print progress
+        sys.stdout.write(
+            f"\r{self.desc} [{bar}] {self.current}/{self.total} ({percent*100:.0f}%)"
+        )
+        sys.stdout.flush()
+
+    def close(self):
+        """Finalize progress bar."""
+        if self.total > 0:
+            # Ensure final state is printed
+            self._print()
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
 
 # Default configuration constants
 DEFAULT_MAX_WORKERS = 8
@@ -102,22 +164,31 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         if isinstance(exception, non_retryable):
             return False
 
-        retryable = (NetworkError, TimeoutError, requests.exceptions.Timeout,
-                    requests.exceptions.ConnectionError)
+        retryable = (
+            NetworkError,
+            TimeoutError,
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+        )
         if isinstance(exception, retryable):
             return True
 
         # Check error message for retryable keywords
         error_msg = str(exception).lower()
         retryable_keywords = [
-            "timeout", "connection refused", "connection reset",
-            "connection aborted", "temporarily", "unavailable", "try again"
+            "timeout",
+            "connection refused",
+            "connection reset",
+            "connection aborted",
+            "temporarily",
+            "unavailable",
+            "try again",
         ]
         return any(kw in error_msg for kw in retryable_keywords)
 
     def _calculate_backoff(self, retry_count: int) -> float:
         """Calculate exponential backoff: initial * (multiplier ^ count)."""
-        backoff = self.initial_backoff * (self.backoff_multiplier ** retry_count)
+        backoff = self.initial_backoff * (self.backoff_multiplier**retry_count)
         return min(backoff, self.max_backoff)
 
     def _extract_filename_from_url(self, url: str) -> str:
@@ -131,11 +202,7 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
             return "download"
 
     def _download_single_file(
-        self,
-        url: str,
-        destination_path: str,
-        doc_name: str,
-        year: str
+        self, url: str, destination_path: str, doc_name: str, year: str
     ) -> Tuple[bool, Optional[str]]:
         """Download a single file with retry logic.
 
@@ -160,10 +227,7 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
 
                 # Stream download to disk in chunks
                 response = requests.get(
-                    url,
-                    stream=True,
-                    timeout=self.timeout,
-                    allow_redirects=True
+                    url, stream=True, timeout=self.timeout, allow_redirects=True
                 )
                 response.raise_for_status()
 
@@ -227,7 +291,11 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
                 pass
 
         if last_exception:
-            error_type = "retryable" if self._is_retryable_error(last_exception) else "non-retryable"
+            error_type = (
+                "retryable"
+                if self._is_retryable_error(last_exception)
+                else "non-retryable"
+            )
             error_msg = f"{type(last_exception).__name__} ({error_type}): {doc_name}_{year} - {last_exception}"
         else:
             error_msg = f"Unknown error: {doc_name}_{year}"
@@ -236,9 +304,7 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         return False, error_msg
 
     def download_docs(
-        self,
-        your_path: str,
-        dict_zip_to_download: Dict[str, List[str]]
+        self, your_path: str, dict_zip_to_download: Dict[str, List[str]]
     ) -> DownloadResult:
         """Download documents in parallel using ThreadPoolExecutor.
 
@@ -257,6 +323,11 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
             f"using {self.max_workers} workers to {your_path}"
         )
 
+        # Initialize progress bar (simple, no external deps)
+        progress_bar = SimpleProgressBar(
+            total=total_files, desc="Downloading", width=30
+        )
+
         # Prepare list of download tasks: (url, doc_name, year, filepath)
         tasks = []
         for doc_name, url_list in dict_zip_to_download.items():
@@ -269,27 +340,31 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
                 tasks.append((url, doc_name, year))
 
         # Execute downloads in parallel
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = {
-                executor.submit(
-                    self._download_single_file,
-                    url, your_path, doc_name, year
-                ): (doc_name, year, url)
-                for url, doc_name, year in tasks
-            }
+        try:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = {
+                    executor.submit(
+                        self._download_single_file, url, your_path, doc_name, year
+                    ): (doc_name, year, url)
+                    for url, doc_name, year in tasks
+                }
 
-            for future in as_completed(futures):
-                doc_name, year, url = futures[future]
-                try:
-                    success, error_msg = future.result()
-                    if success:
-                        result.add_success(doc_name, year)
-                    else:
-                        assert error_msg is not None
-                        result.add_error(error_msg)
-                except Exception as e:
-                    logger.error(f"Task failed for {doc_name}_{year}: {e}")
-                    result.add_error(f"TaskError: {doc_name}_{year} - {e}")
+                for future in as_completed(futures):
+                    doc_name, year, url = futures[future]
+                    try:
+                        success, error_msg = future.result()
+                        if success:
+                            result.add_success(doc_name, year)
+                        else:
+                            assert error_msg is not None
+                            result.add_error(error_msg)
+                    except Exception as e:
+                        logger.error(f"Task failed for {doc_name}_{year}: {e}")
+                        result.add_error(f"TaskError: {doc_name}_{year} - {e}")
+                    finally:
+                        progress_bar.update(1)
+        finally:
+            progress_bar.close()
 
         logger.info(
             f"Download completed: {result.success_count} successful, "

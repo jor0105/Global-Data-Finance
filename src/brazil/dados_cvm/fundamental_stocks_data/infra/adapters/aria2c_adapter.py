@@ -20,9 +20,9 @@ See: https://aria2.github.io/
 import logging
 import os
 import subprocess
+import sys
 import tempfile
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from src.brazil.dados_cvm.fundamental_stocks_data.application.interfaces import (
     DownloadDocsCVMRepository,
@@ -108,10 +108,7 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
         """Locate aria2c in system PATH."""
         try:
             result = subprocess.run(
-                ["which", "aria2c"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["which", "aria2c"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0:
                 path = result.stdout.strip()
@@ -122,11 +119,7 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
 
         # Try direct execution
         try:
-            subprocess.run(
-                ["aria2c", "--version"],
-                capture_output=True,
-                timeout=5
-            )
+            subprocess.run(["aria2c", "--version"], capture_output=True, timeout=5)
             return "aria2c"
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
@@ -134,16 +127,16 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
         return None
 
     def _build_aria2c_command(
-        self,
-        input_file: str,
-        destination_path: str
+        self, input_file: str, destination_path: str
     ) -> List[str]:
         """Build aria2c command line."""
         assert self.aria2c_path is not None, "aria2c_path must be set"
         return [
             self.aria2c_path,
-            "-i", input_file,  # Read URLs from file
-            "-d", destination_path,  # Output directory
+            "-i",
+            input_file,  # Read URLs from file
+            "-d",
+            destination_path,  # Output directory
             f"--max-concurrent-downloads={self.max_concurrent_downloads}",
             f"--max-connection-per-server={self.connections_per_server}",
             f"--split={self.connections_per_server}",  # Split downloads
@@ -166,9 +159,7 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
             return "download"
 
     def download_docs(
-        self,
-        your_path: str,
-        dict_zip_to_download: Dict[str, List[str]]
+        self, your_path: str, dict_zip_to_download: Dict[str, List[str]]
     ) -> DownloadResult:
         """Download documents using aria2c.
 
@@ -182,19 +173,14 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
         result = DownloadResult()
         total_files = sum(len(urls) for urls in dict_zip_to_download.values())
 
-        logger.info(
-            f"Starting aria2c download of {total_files} files to {your_path}"
-        )
+        logger.info(f"Starting aria2c download of {total_files} files to {your_path}")
 
         # Create destination if doesn't exist
         os.makedirs(your_path, exist_ok=True)
 
         # Create a temporary file with all URLs
         with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".txt",
-            delete=False,
-            encoding="utf-8"
+            mode="w", suffix=".txt", delete=False, encoding="utf-8"
         ) as f:
             input_file = f.name
             for doc_name, url_list in dict_zip_to_download.items():
@@ -214,11 +200,14 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
             cmd = self._build_aria2c_command(input_file, your_path)
             logger.debug(f"Running: {' '.join(cmd[:5])}...")
 
+            print(f"\nStarting aria2c download of {total_files} files...")
+            print("(aria2c will show its own progress below)\n")
+            sys.stdout.flush()
+
+            # Run aria2c WITHOUT capturing output so user sees progress
             process = subprocess.run(
                 cmd,
-                capture_output=True,
-                text=True,
-                timeout=None  # No timeout; aria2 handles its own timeouts
+                timeout=None,  # No timeout; aria2 handles its own timeouts
             )
 
             logger.debug(f"aria2c exit code: {process.returncode}")
@@ -227,7 +216,8 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
             if process.returncode == 0:
                 # Success: count files in destination
                 downloaded_files = [
-                    f for f in os.listdir(your_path)
+                    f
+                    for f in os.listdir(your_path)
                     if os.path.isfile(os.path.join(your_path, f))
                 ]
                 for doc_name, url_list in dict_zip_to_download.items():
@@ -246,8 +236,8 @@ class Aria2cAdapter(DownloadDocsCVMRepository):
                                 f"File not found after download: {filename}"
                             )
             else:
-                # aria2c failed; parse stderr for errors
-                logger.error(f"aria2c stderr: {process.stderr}")
+                # aria2c failed
+                logger.error(f"aria2c exited with code {process.returncode}")
                 for doc_name, url_list in dict_zip_to_download.items():
                     for url in url_list:
                         try:

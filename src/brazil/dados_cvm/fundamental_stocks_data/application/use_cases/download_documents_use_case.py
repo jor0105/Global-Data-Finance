@@ -19,7 +19,7 @@ class DownloadDocumentsUseCase:
     - Logging and error handling
 
     Example:
-        >>> repository = WgetDownloadAdapter()
+        >>> repository = ThreadPoolDownloadAdapter()  # Recommended for performance
         >>> use_case = DownloadDocumentsUseCase(repository)
         >>> result = use_case.execute(
         ...     destination_path="/path/to/download",
@@ -35,7 +35,9 @@ class DownloadDocumentsUseCase:
 
         Args:
             repository: Implementation of DownloadDocsCVMRepository.
-                       Typically WgetDownloadAdapter or another adapter.
+                       Options: ThreadPoolDownloadAdapter (recommended),
+                               Aria2cAdapter (maximum speed),
+                               WgetDownloadAdapter (compatibility)
         """
         if not isinstance(repository, DownloadDocsCVMRepository):
             raise TypeError(

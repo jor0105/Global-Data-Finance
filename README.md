@@ -113,6 +113,88 @@ A biblioteca suporta os seguintes tipos de documentos CVM:
 
 ## Uso Avançado
 
+### ⚡ Download Adapters (Performance)
+
+DataFinance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
+
+#### 1. **ThreadPoolDownloadAdapter** (Recomendado) ⭐
+
+- **Velocidade**: 3-5x mais rápido que wget
+- **Características**: Paralelo (8 workers), sem dependências externas
+- **Melhor para**: Maioria dos casos, performance vs facilidade
+- **Status**: Padrão em `FundamentalStocksData`
+
+```python
+from src.presentation.cvm_docs import FundamentalStocksData
+
+cvm = FundamentalStocksData()  # Usa ThreadPool por padrão
+result = cvm.download(
+    destination_path="/data",
+    doc_types=["DFP", "ITR"],
+    start_year=2020,
+    end_year=2023
+)
+print(f"Downloaded {result.success_count} files")  # 3-5x mais rápido!
+```
+
+#### 2. **Aria2cAdapter** (Máxima Velocidade) 🚀
+
+- **Velocidade**: 5-10x mais rápido que wget
+- **Características**: Multipart por arquivo, retome automático
+- **Requer**: `aria2c` instalado
+- **Melhor para**: Grandes volumes, máxima performance
+
+**Instalação de aria2c**:
+
+```bash
+# Linux
+sudo apt-get install aria2
+
+# macOS
+brew install aria2
+
+# Windows: https://github.com/aria2/aria2/releases
+```
+
+**Uso**:
+
+```python
+from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
+
+adapter = Aria2cAdapter(max_concurrent_downloads=16)
+use_case = DownloadDocumentsUseCase(adapter)
+result = use_case.execute(
+    destination_path="/data",
+    doc_types=["DFP", "ITR"],
+    start_year=2020,
+    end_year=2023
+)
+```
+
+#### 3. **WgetDownloadAdapter** (Original)
+
+- **Velocidade**: Baseline (1x)
+- **Características**: Simples, single-threaded
+- **Melhor para**: Compatibilidade máxima
+
+### Comparação de Performance
+
+| Adapter                       | Velocidade       | Dependências | Melhor Para        |
+| ----------------------------- | ---------------- | ------------ | ------------------ |
+| **WgetDownloadAdapter**       | ⭐ 1x (baseline) | wget         | Compatibilidade    |
+| **ThreadPoolDownloadAdapter** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
+| **Aria2cAdapter**             | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
+
+### Documentação Detalhada de Adapters
+
+- 📖 [docs/ADAPTERS.md](./docs/ADAPTERS.md) - Referência rápida
+- 📖 [docs/ARIA2_GUIDE.md](./docs/ARIA2_GUIDE.md) - Guia completo sobre aria2
+- 📖 [docs/PERFORMANCE_GUIDE.md](./docs/PERFORMANCE_GUIDE.md) - Guia de performance
+- 💻 [examples/adapter_examples.py](./examples/adapter_examples.py) - Exemplos de código
+
+## Uso Avançado
+
 ### Validação de Inputs
 
 ```python
