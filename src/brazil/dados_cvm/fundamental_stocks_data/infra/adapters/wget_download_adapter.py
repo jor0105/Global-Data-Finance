@@ -4,11 +4,13 @@ from typing import Dict, List, Optional, Tuple
 
 import wget
 
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.application import (
+from src.brazil.dados_cvm.fundamental_stocks_data.application.interfaces import (
     DownloadDocsCVMRepository,
 )
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.domain import DownloadResult
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.exceptions import (
+from src.brazil.dados_cvm.fundamental_stocks_data.domain.download_result import (
+    DownloadResult,
+)
+from src.brazil.dados_cvm.fundamental_stocks_data.exceptions.exceptions_infra import (
     WgetLibraryError,
     WgetValueError,
 )
