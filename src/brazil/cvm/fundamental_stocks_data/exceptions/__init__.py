@@ -1,4 +1,10 @@
+from .....macro_exceptions import (
+    InvalidDestinationPathError,
+    PathIsNotDirectoryError,
+    PathPermissionError,
+)
 from .exceptions_domain import (
+    EmptyDocumentListError,
     InvalidDocName,
     InvalidFirstYear,
     InvalidLastYear,
@@ -13,6 +19,7 @@ __all__ = [
     "InvalidDocName",
     "InvalidTypeDoc",
     "InvalidRepositoryTypeError",
+    "EmptyDocumentListError",
     "WgetLibraryError",
     "WgetValueError",
 ]

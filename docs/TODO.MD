@@ -1,4 +1,4 @@
-- Sanitizar para deixar tudo em ingles
+- Criar validação se path realmente é path
 - Criar pastas para cada doc princiapal da cvm. Ex: DFP e ITR. Todos os docs desses zips devem estar nessas pastas
 
 

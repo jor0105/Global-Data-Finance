@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
-from ...domain import DownloadResult
+from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 
 
 class DownloadDocsCVMRepository(ABC):

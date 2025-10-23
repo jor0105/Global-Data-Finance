@@ -2,8 +2,8 @@ from datetime import date
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.domain.available_years import AvailableYears
-from src.brazil.cvm.fundamental_stocks_data.exceptions.exceptions_domain import (
+from src.brazil.cvm.fundamental_stocks_data import (
+    AvailableYears,
     InvalidFirstYear,
     InvalidLastYear,
 )

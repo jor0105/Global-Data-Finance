@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 from ..exceptions.exceptions_domain import InvalidDocName, InvalidTypeDoc
 
@@ -83,7 +83,9 @@ class UrlDocs:
             "VLMO": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/vlmo_cia_aberta_",
         }
 
-    def get_url_docs(self, list_docs: Optional[List[str]] = None) -> Dict[str, str]:
+    def get_url_docs(
+        self, list_docs: Optional[List[str]] = None
+    ) -> Tuple[Dict[str, str], Set[str]]:
         """Get URLs for specified documents or all documents if none specified.
 
         Args:
@@ -101,11 +103,12 @@ class UrlDocs:
             raise TypeError("List_docs must be a built-in list of strings or None")
 
         dict_urls: Dict[str, str] = {}
-        seen_docs: set = set()
+        set_docs: set = set()
 
         if not list_docs:
             dict_urls = self.__dict_url_docs.copy()
-            return dict_urls
+            set_docs.update(self.__dict_url_docs.keys())
+            return dict_urls, set_docs
 
         for doc in list_docs:
             self.__available_docs.validate_docs_name(doc)
@@ -114,8 +117,8 @@ class UrlDocs:
             if doc_key not in self.__dict_url_docs:
                 raise ValueError(f"No URL available for doc '{doc}'")
 
-            if doc_key not in seen_docs:
+            if doc_key not in set_docs:
                 dict_urls[doc_key] = self.__dict_url_docs[doc_key]
-                seen_docs.add(doc_key)
+                set_docs.add(doc_key)
 
-        return dict_urls
+        return dict_urls, set_docs

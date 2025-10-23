@@ -42,14 +42,19 @@ class LoggingSettings(BaseSettings):
     )
 
     class Config:
+        """Logging configuration class."""
+
         env_prefix = "DATAFIN_LOG_"
         case_sensitive = False
 
-    @field_validator("level")
+    @field_validator("level", mode="before")
     @classmethod
-    def validate_level(cls, v: str) -> str:
-        """Validate log level."""
-        return v.upper()
+    def validate_level(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 
 class NetworkSettings(BaseSettings):
@@ -82,6 +87,8 @@ class NetworkSettings(BaseSettings):
     )
 
     class Config:
+        """Network configuration class."""
+
         env_prefix = "DATAFIN_NETWORK_"
         case_sensitive = False
 
@@ -99,6 +106,8 @@ class Settings(BaseSettings):
     debug: bool = Field(default=False, description="Enable debug mode globally")
 
     class Config:
+        """Settings configuration class."""
+
         env_prefix = "DATAFIN_"
         case_sensitive = False
         env_file = ".env"
@@ -107,8 +116,9 @@ class Settings(BaseSettings):
     def configure_logging(self) -> None:
         """Configure Python logging based on settings."""
         import sys
+        from logging import Handler
 
-        handlers = [logging.StreamHandler(sys.stdout)]
+        handlers: list[Handler] = [logging.StreamHandler(sys.stdout)]
 
         if self.logging.log_file:
             handlers.append(logging.FileHandler(self.logging.log_file))

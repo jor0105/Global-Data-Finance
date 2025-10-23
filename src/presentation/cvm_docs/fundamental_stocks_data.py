@@ -20,9 +20,9 @@ Example:
     >>> # Download documents
     >>> result = cvm.download(
     ...     destination_path="/path/to/save",
-    ...     doc_types=["DFP", "ITR"],
-    ...     start_year=2020,
-    ...     end_year=2023
+    ...     list_docs=["DFP", "ITR"],
+    ...     initial_year=2020,
+    ...     last_year=2023
     ... )
     >>> print(f"Downloaded {result.success_count} files successfully")
 """
@@ -30,15 +30,13 @@ Example:
 import logging
 from typing import Dict, List, Optional
 
-from ...brazil.cvm.fundamental_stocks_data.application.use_cases import (
+from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCase,
     GetAvailableDocsUseCase,
     GetAvailableYearsUseCase,
-)
-from ...brazil.cvm.fundamental_stocks_data.domain import DownloadResult
-from ...brazil.cvm.fundamental_stocks_data.infra.adapters import (
     ThreadPoolDownloadAdapter,
 )
+from src.presentation.cvm_docs.download_result_formatter import DownloadResultFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -65,15 +63,15 @@ class FundamentalStocksData:
         >>> # Download all document types for recent years
         >>> result = cvm.download(
         ...     destination_path="/home/user/cvm_data",
-        ...     start_year=2022
+        ...     initial_year=2022
         ... )
         >>>
         >>> # Download specific documents
         >>> result = cvm.download(
         ...     destination_path="/home/user/cvm_data",
-        ...     doc_types=["DFP"],
-        ...     start_year=2020,
-        ...     end_year=2023
+        ...     list_docs=["DFP"],
+        ...     initial_year=2020,
+        ...     last_year=2023
         ... )
         >>>
         >>> if result.has_errors():
@@ -81,29 +79,11 @@ class FundamentalStocksData:
     """
 
     def __init__(self):
-        """Initialize the CVM data client.
-
-        By default uses ThreadPoolDownloadAdapter for good performance.
-        To use a different adapter, pass it to the constructor or use
-        the use case directly.
-
-        Example:
-            >>> # Default (ThreadPool with 8 workers)
-            >>> cvm = FundamentalStocksData()
-            >>>
-            >>> # Custom adapter example (see examples/adapter_examples.py):
-            >>> from src.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
-            >>> adapter = Aria2cAdapter(max_concurrent_downloads=16)
-            >>> cvm._download_adapter = adapter
-            >>> cvm._download_use_case = DownloadDocumentsUseCase(adapter)
-        """
-        # Initialize the download adapter with ThreadPool (better than wget by default)
-        self._download_adapter = ThreadPoolDownloadAdapter(max_workers=8)
-
-        # Initialize use cases
-        self._download_use_case = DownloadDocumentsUseCase(self._download_adapter)
-        self._available_docs_use_case = GetAvailableDocsUseCase()
-        self._available_years_use_case = GetAvailableYearsUseCase()
+        self.download_adapter = ThreadPoolDownloadAdapter()
+        self.__download_use_case = DownloadDocumentsUseCase(self._download_adapter)
+        self.__available_docs_use_case = GetAvailableDocsUseCase()
+        self.__available_years_use_case = GetAvailableYearsUseCase()
+        self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
             "FundamentalStocksData client initialized with ThreadPoolDownloadAdapter"
@@ -112,30 +92,30 @@ class FundamentalStocksData:
     def download(
         self,
         destination_path: str,
-        doc_types: Optional[List[str]] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
-    ) -> DownloadResult:
+        list_docs: Optional[List[str]] = None,
+        initial_year: Optional[int] = None,
+        last_year: Optional[int] = None,
+    ) -> None:
         """Download CVM financial documents to a specified location.
 
         This method handles the complete download process, including:
         - Creating the destination directory if needed
         - Validating document types and year ranges
         - Downloading all requested documents with automatic retry
-        - Providing detailed results and error information
+        - Providing organized and easy-to-understand result display
 
         Args:
             destination_path: Directory path where files will be saved.
                              The directory will be created if it doesn't exist.
                              Example: "/home/user/cvm_data"
-            doc_types: List of document type codes to download.
+            list_docs: List of document type codes to download.
                       If None, downloads all available types.
                       Valid types: DFP, ITR, FCA, FRE, etc.
                       Example: ["DFP", "ITR"]
-            start_year: Starting year for downloads (inclusive).
+            initial_year: Starting year for downloads (inclusive).
                        If None, uses the minimum available year for each document type.
                        Example: 2020
-            end_year: Ending year for downloads (inclusive).
+            last_year: Ending year for downloads (inclusive).
                      If None, uses the current year.
                      Example: 2023
 
@@ -143,14 +123,14 @@ class FundamentalStocksData:
             DownloadResult object containing:
             - success_count: Number of successfully downloaded files
             - error_count: Number of failed downloads
-            - successful_downloads: List of (doc_type, year) tuples
-            - errors: List of error messages
-            - Methods: has_errors(), has_successes(), get_summary()
+            - successful_downloads: List of successfully downloaded files
+            - failed_downloads: Dictionary mapping files to error messages
+            - Methods: add_success(), add_error()
 
         Raises:
             InvalidDocName: If an invalid document type is specified.
-            InvalidFirstYear: If start_year is outside valid range.
-            InvalidLastYear: If end_year is outside valid range.
+            InvalidFirstYear: If initial_year is outside valid range.
+            InvalidLastYear: If last_year is outside valid range.
             ValueError: If destination_path is invalid.
             OSError: If directory cannot be created due to permissions.
 
@@ -160,38 +140,31 @@ class FundamentalStocksData:
             >>> # Download all document types from 2022 onwards
             >>> result = cvm.download(
             ...     destination_path="/home/user/cvm_data",
-            ...     start_year=2022
+            ...     initial_year=2022
             ... )
-            >>> print(f"Success: {result.success_count}, Errors: {result.error_count}")
             >>>
             >>> # Download specific documents for a year range
             >>> result = cvm.download(
             ...     destination_path="/home/user/dfp_data",
-            ...     doc_types=["DFP"],
-            ...     start_year=2020,
-            ...     end_year=2023
+            ...     list_docs=["DFP"],
+            ...     initial_year=2020,
+            ...     last_year=2023
             ... )
             >>>
-            >>> # Check for errors
-            >>> if result.has_errors():
-            ...     print("Failed downloads:")
-            ...     for error in result.errors:
-            ...         print(f"  - {error}")
-            >>>
-            >>> # View successful downloads
-            >>> for doc_type, year in result.successful_downloads:
-            ...     print(f"Downloaded: {doc_type} {year}")
+            >>> # Check results programmatically
+            >>> if result.error_count > 0:
+            ...     print(f"Some downloads failed: {result.failed_downloads}")
         """
         logger.info(
             f"Download requested: path={destination_path}, "
-            f"docs={doc_types}, years={start_year}-{end_year}"
+            f"docs={list_docs}, years={initial_year}-{last_year}"
         )
 
-        result = self._download_use_case.execute(
+        result = self.__download_use_case.execute(
             destination_path=destination_path,
-            doc_types=doc_types,
-            start_year=start_year,
-            end_year=end_year,
+            list_docs=list_docs,
+            initial_year=initial_year,
+            last_year=last_year,
         )
 
         logger.info(
@@ -199,7 +172,8 @@ class FundamentalStocksData:
             f"{result.error_count} errors"
         )
 
-        return result
+        # Display formatted output
+        self.__result_formatter.print_result(result)
 
     def get_available_docs(self) -> Dict[str, str]:
         """Get all available CVM document types with descriptions.
@@ -229,7 +203,7 @@ class FundamentalStocksData:
             ...     print(f"DFP available: {docs['DFP']}")
         """
         logger.debug("Retrieving available document types")
-        return self._available_docs_use_case.execute()
+        return self.__available_docs_use_case.execute()
 
     def get_available_years(self) -> Dict[str, int]:
         """Get information about available years for CVM documents.
@@ -258,13 +232,13 @@ class FundamentalStocksData:
             >>> max_year = years['Current Year']
             >>> result = cvm.download(
             ...     destination_path="/data",
-            ...     doc_types=["DFP"],
-            ...     start_year=min_year,
-            ...     end_year=max_year
+            ...     list_docs=["DFP"],
+            ...     initial_year=min_year,
+            ...     last_year=max_year
             ... )
         """
         logger.debug("Retrieving available years information")
-        return self._available_years_use_case.execute()
+        return self.__available_years_use_case.execute()
 
     def __repr__(self) -> str:
         """Return a string representation of the client."""

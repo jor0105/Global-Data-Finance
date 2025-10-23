@@ -1,251 +1,268 @@
-"""Tests for DownloadResult domain model.
+import pytest
 
-This module tests the DownloadResult class which encapsulates the outcome
-of download operations.
-"""
-
-from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
+from src.brazil.cvm.fundamental_stocks_data import DownloadResult
 
 
+@pytest.mark.unit
 class TestDownloadResultInitialization:
-    """Tests for DownloadResult initialization."""
-
     def test_init_with_defaults(self):
-        """Should initialize with empty collections when no args provided."""
         result = DownloadResult()
 
-        assert result.successful_downloads == {}
-        assert result.errors == []
+        assert result.successful_downloads == []
+        assert result.failed_downloads == {}
         assert result.success_count == 0
         assert result.error_count == 0
 
-    def test_init_with_successful_downloads(self):
-        """Should initialize with provided successful downloads."""
-        downloads = {"DFP": ["2020", "2021"]}
+    def test_init_with_successful_downloads_list(self):
+        downloads = ["DFP_2020", "DFP_2021"]
         result = DownloadResult(successful_downloads=downloads)
 
         assert result.successful_downloads == downloads
         assert result.success_count == 2
 
-    def test_init_with_errors(self):
-        """Should initialize with provided errors."""
-        errors = ["Error 1", "Error 2"]
-        result = DownloadResult(errors=errors)
+    def test_init_with_failed_downloads(self):
+        failures = {"DFP_2020": "Connection timeout", "ITR_2021": "File not found"}
+        result = DownloadResult(failed_downloads=failures)
 
-        assert result.errors == errors
+        assert result.failed_downloads == failures
         assert result.error_count == 2
 
     def test_init_with_both_parameters(self):
-        """Should initialize with both downloads and errors."""
-        downloads = {"DFP": ["2020"]}
-        errors = ["Error"]
-        result = DownloadResult(successful_downloads=downloads, errors=errors)
+        downloads = ["DFP_2020"]
+        failures = {"ITR_2020": "Error message"}
+        result = DownloadResult(
+            successful_downloads=downloads, failed_downloads=failures
+        )
 
         assert result.successful_downloads == downloads
-        assert result.errors == errors
+        assert result.failed_downloads == failures
 
 
+@pytest.mark.unit
 class TestDownloadResultProperties:
-    """Tests for DownloadResult properties."""
-
-    def test_has_errors_when_false(self):
-        """Should return False when no errors."""
+    def test_success_count_with_empty_result(self):
         result = DownloadResult()
-        assert result.has_errors is False
-
-    def test_has_errors_when_true(self):
-        """Should return True when errors exist."""
-        result = DownloadResult(errors=["Error"])
-        assert result.has_errors is True
+        assert result.success_count == 0
 
     def test_success_count_calculation(self):
-        """Should correctly calculate total successful downloads."""
-        downloads = {
-            "DFP": ["2020", "2021"],
-            "ITR": ["2020"],
-            "FRE": ["2019", "2020", "2021"],
-        }
+        downloads = ["DFP_2020", "DFP_2021", "ITR_2020"]
         result = DownloadResult(successful_downloads=downloads)
 
-        assert result.success_count == 6
+        assert result.success_count == 3
 
-    def test_error_count(self):
-        """Should correctly count errors."""
-        errors = ["Error 1", "Error 2", "Error 3"]
-        result = DownloadResult(errors=errors)
+    def test_error_count_with_empty_result(self):
+        result = DownloadResult()
+        assert result.error_count == 0
+
+    def test_error_count_calculation(self):
+        failures = {"DFP_2020": "Error 1", "ITR_2021": "Error 2", "FRE_2020": "Error 3"}
+        result = DownloadResult(failed_downloads=failures)
 
         assert result.error_count == 3
 
+    def test_success_count_is_readonly_property(self):
+        result = DownloadResult(successful_downloads=["DFP"])
+        assert result.success_count == 1
+        # Trying to set would raise AttributeError
+        with pytest.raises(AttributeError):
+            result.success_count = 5
 
+    def test_error_count_is_readonly_property(self):
+        result = DownloadResult(failed_downloads={"DFP": "Error"})
+        assert result.error_count == 1
+        # Trying to set would raise AttributeError
+        with pytest.raises(AttributeError):
+            result.error_count = 5
+
+
+@pytest.mark.unit
 class TestDownloadResultAddSuccess:
-    """Tests for adding successful downloads."""
-
     def test_add_success_to_empty_result(self):
-        """Should add success to empty result."""
         result = DownloadResult()
-        result.add_success("DFP", "2020")
+        result.add_success("DFP_2020")
 
-        assert "DFP" in result.successful_downloads
-        assert "2020" in result.successful_downloads["DFP"]
+        assert "DFP_2020" in result.successful_downloads
         assert result.success_count == 1
 
-    def test_add_success_to_existing_document(self):
-        """Should add year to existing document."""
-        result = DownloadResult(successful_downloads={"DFP": ["2020"]})
-        result.add_success("DFP", "2021")
+    def test_add_success_to_existing_result(self):
+        result = DownloadResult(successful_downloads=["DFP_2020"])
+        result.add_success("DFP_2021")
 
-        assert result.successful_downloads["DFP"] == ["2020", "2021"]
+        assert result.successful_downloads == ["DFP_2020", "DFP_2021"]
         assert result.success_count == 2
 
     def test_add_success_prevents_duplicates(self):
-        """Should not add duplicate years."""
-        result = DownloadResult(successful_downloads={"DFP": ["2020"]})
-        result.add_success("DFP", "2020")
+        result = DownloadResult(successful_downloads=["DFP_2020"])
+        result.add_success("DFP_2020")
 
-        assert result.successful_downloads["DFP"].count("2020") == 1
+        assert result.successful_downloads.count("DFP_2020") == 1
         assert result.success_count == 1
 
-    def test_add_success_multiple_documents(self):
-        """Should support multiple documents."""
+    def test_add_success_multiple_items(self):
         result = DownloadResult()
-        result.add_success("DFP", "2020")
-        result.add_success("ITR", "2020")
+        result.add_success("DFP_2020")
+        result.add_success("ITR_2020")
+        result.add_success("FRE_2020")
 
-        assert "DFP" in result.successful_downloads
-        assert "ITR" in result.successful_downloads
-        assert result.success_count == 2
+        assert result.success_count == 3
+        assert "DFP_2020" in result.successful_downloads
+        assert "ITR_2020" in result.successful_downloads
+        assert "FRE_2020" in result.successful_downloads
 
 
+@pytest.mark.unit
 class TestDownloadResultAddError:
-    """Tests for adding errors."""
-
     def test_add_error_to_empty_result(self):
-        """Should add error to empty result."""
         result = DownloadResult()
-        result.add_error("NetworkError: connection failed")
+        result.add_error("DFP_2020", "Connection timeout")
 
-        assert "NetworkError: connection failed" in result.errors
+        assert result.failed_downloads["DFP_2020"] == "Connection timeout"
+        assert result.error_count == 1
+
+    def test_add_error_to_existing_result(self):
+        result = DownloadResult(failed_downloads={"DFP_2020": "Error 1"})
+        result.add_error("ITR_2021", "Error 2")
+
+        assert result.failed_downloads["DFP_2020"] == "Error 1"
+        assert result.failed_downloads["ITR_2021"] == "Error 2"
+        assert result.error_count == 2
+
+    def test_add_error_overwrites_previous_error(self):
+        result = DownloadResult(failed_downloads={"DFP_2020": "Error 1"})
+        result.add_error("DFP_2020", "Error 2")
+
+        assert result.failed_downloads["DFP_2020"] == "Error 2"
         assert result.error_count == 1
 
     def test_add_multiple_errors(self):
-        """Should accumulate errors."""
         result = DownloadResult()
-        result.add_error("Error 1")
-        result.add_error("Error 2")
-        result.add_error("Error 3")
+        result.add_error("DFP_2020", "Error 1")
+        result.add_error("ITR_2021", "Error 2")
+        result.add_error("FRE_2022", "Error 3")
 
         assert result.error_count == 3
-        assert "Error 1" in result.errors
-        assert "Error 2" in result.errors
-        assert "Error 3" in result.errors
-
-    def test_add_error_allows_duplicates(self):
-        """Should allow duplicate error messages."""
-        result = DownloadResult()
-        result.add_error("Same error")
-        result.add_error("Same error")
-
-        assert result.error_count == 2
 
 
-class TestDownloadResultClear:
-    """Tests for clearing results."""
-
-    def test_clear_successful_downloads(self):
-        """Should clear successful downloads."""
-        result = DownloadResult(successful_downloads={"DFP": ["2020"]})
-        result.clear()
-
-        assert result.successful_downloads == {}
-        assert result.success_count == 0
-
-    def test_clear_errors(self):
-        """Should clear errors."""
-        result = DownloadResult(errors=["Error 1", "Error 2"])
-        result.clear()
-
-        assert result.errors == []
-        assert result.error_count == 0
-
-    def test_clear_both(self):
-        """Should clear both downloads and errors."""
+@pytest.mark.unit
+class TestDownloadResultStringRepresentation:
+    def test_str_format_with_data(self):
         result = DownloadResult(
-            successful_downloads={"DFP": ["2020"]}, errors=["Error"]
+            successful_downloads=["DFP_2020", "DFP_2021"],
+            failed_downloads={"ITR_2020": "Error"},
         )
-        result.clear()
+        str_repr = str(result)
 
-        assert result.successful_downloads == {}
-        assert result.errors == []
-        assert result.has_errors is False
+        assert "success=2" in str_repr
+        assert "errors=1" in str_repr
 
-
-class TestDownloadResultRepr:
-    """Tests for string representation."""
-
-    def test_repr_format(self):
-        """Should have correct repr format."""
-        result = DownloadResult(
-            successful_downloads={"DFP": ["2020", "2021"]}, errors=["Error"]
-        )
-        repr_str = repr(result)
-
-        assert "DownloadResult" in repr_str
-        assert "success_count=2" in repr_str
-        assert "error_count=1" in repr_str
-
-    def test_repr_with_empty_result(self):
-        """Should have correct repr for empty result."""
+    def test_str_format_with_empty_result(self):
         result = DownloadResult()
-        repr_str = repr(result)
+        str_repr = str(result)
 
-        assert "DownloadResult" in repr_str
-        assert "success_count=0" in repr_str
-        assert "error_count=0" in repr_str
+        assert "success=0" in str_repr
+        assert "errors=0" in str_repr
+
+    def test_str_format_only_successes(self):
+        result = DownloadResult(
+            successful_downloads=["DFP_2020", "DFP_2021", "ITR_2020"]
+        )
+        str_repr = str(result)
+
+        assert "success=3" in str_repr
+        assert "errors=0" in str_repr
+
+    def test_str_format_only_errors(self):
+        result = DownloadResult(failed_downloads={"DFP_2020": "E1", "ITR_2020": "E2"})
+        str_repr = str(result)
+
+        assert "success=0" in str_repr
+        assert "errors=2" in str_repr
 
 
+@pytest.mark.unit
 class TestDownloadResultIntegration:
-    """Integration tests for DownloadResult."""
-
     def test_mixed_operations(self):
-        """Should handle a mix of operations correctly."""
         result = DownloadResult()
 
         # Add successes
-        result.add_success("DFP", "2020")
-        result.add_success("DFP", "2021")
-        result.add_success("ITR", "2020")
+        result.add_success("DFP_2020")
+        result.add_success("DFP_2021")
+        result.add_success("ITR_2020")
 
         # Add errors
-        result.add_error("Error 1")
-        result.add_error("Error 2")
+        result.add_error("FRE_2020", "Connection timeout")
+        result.add_error("VLMO_2020", "File not found")
 
         # Verify state
         assert result.success_count == 3
         assert result.error_count == 2
-        assert result.has_errors is True
-
-        # Clear
-        result.clear()
-        assert result.success_count == 0
-        assert result.error_count == 0
+        assert "DFP_2020" in result.successful_downloads
+        assert "FRE_2020" in result.failed_downloads
 
     def test_result_as_return_value(self):
-        """Should work well as a function return value."""
-
-        def simulate_download(should_succeed: bool) -> DownloadResult:
+        def simulate_download(should_succeed: bool, item: str) -> DownloadResult:
             result = DownloadResult()
 
             if should_succeed:
-                result.add_success("DFP", "2020")
+                result.add_success(item)
             else:
-                result.add_error("Download failed")
+                result.add_error(item, "Download failed")
 
             return result
 
-        success_result = simulate_download(True)
+        success_result = simulate_download(True, "DFP_2020")
         assert success_result.success_count == 1
         assert success_result.error_count == 0
 
-        failure_result = simulate_download(False)
+        failure_result = simulate_download(False, "DFP_2020")
         assert failure_result.success_count == 0
         assert failure_result.error_count == 1
+
+    def test_complete_workflow(self):
+        result = DownloadResult()
+
+        # Simulate downloading multiple documents and years
+        documents = ["DFP", "ITR", "FRE"]
+        years = [2020, 2021, 2022]
+
+        for doc in documents:
+            for year in years:
+                item = f"{doc}_{year}"
+                if year == 2021 and doc == "ITR":
+                    # Simulate one failure
+                    result.add_error(item, "Network error")
+                else:
+                    result.add_success(item)
+
+        # Verify counts
+        assert result.success_count == 8  # 3 docs * 3 years - 1 failure
+        assert result.error_count == 1
+
+        # Verify specific items
+        assert "DFP_2020" in result.successful_downloads
+        assert "ITR_2021" in result.failed_downloads
+        assert "FRE_2022" in result.successful_downloads
+
+    def test_error_messages_are_preserved(self):
+        result = DownloadResult()
+        error_msg = "Network error: Connection timeout after 30 seconds"
+        result.add_error("DFP_2020", error_msg)
+
+        assert result.failed_downloads["DFP_2020"] == error_msg
+
+    def test_large_scale_operations(self):
+        result = DownloadResult()
+
+        # Add 100 successes
+        for i in range(100):
+            result.add_success(f"DOC_{i}")
+
+        assert result.success_count == 100
+        assert result.error_count == 0
+
+        # Add 50 errors
+        for i in range(50):
+            result.add_error(f"ERR_{i}", f"Error message {i}")
+
+        assert result.success_count == 100
+        assert result.error_count == 50

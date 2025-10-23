@@ -1,7 +1,7 @@
 import logging
 from typing import Dict
 
-from ...domain import AvailableDocs
+from src.brazil.cvm.fundamental_stocks_data.domain import AvailableDocs
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class GetAvailableDocsUseCase:
 
     def __init__(self) -> None:
         """Initialize the use case with available documents data source."""
-        self._available_docs = AvailableDocs()
+        self.__available_docs = AvailableDocs()
         logger.debug("GetAvailableDocsUseCase initialized")
 
     def execute(self) -> Dict[str, str]:
@@ -37,7 +37,7 @@ class GetAvailableDocsUseCase:
         logger.info("Retrieving available document types")
 
         try:
-            docs = self._available_docs.get_available_docs()
+            docs = self.__available_docs.get_available_docs()
             logger.debug(f"Retrieved {len(docs)} document types")
             return docs
         except Exception as e:

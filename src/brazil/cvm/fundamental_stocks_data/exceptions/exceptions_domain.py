@@ -32,3 +32,10 @@ class InvalidTypeDoc(Exception):
         super().__init__(
             f"Invalid type document: {doc_name}. Documents must be a string."
         )
+
+
+class EmptyDocumentListError(Exception):
+    """Exception raised when document list is empty."""
+
+    def __init__(self, message: str = "Document list cannot be empty."):
+        super().__init__(message)

@@ -1,7 +1,7 @@
 import logging
 from typing import Dict
 
-from ...domain import AvailableYears
+from src.brazil.cvm.fundamental_stocks_data.domain import AvailableYears
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class GetAvailableYearsUseCase:
 
     def __init__(self) -> None:
         """Initialize the use case with available years data source."""
-        self._available_years = AvailableYears()
+        self.__available_years = AvailableYears()
         logger.debug("GetAvailableYearsUseCase initialized")
 
     def execute(self) -> Dict[str, int]:
@@ -42,10 +42,10 @@ class GetAvailableYearsUseCase:
 
         try:
             years_info = {
-                "general_minimum": self._available_years.get_minimal_geral_year(),
-                "itr_minimum": self._available_years.get_minimal_itr_year(),
-                "cgvn_vlmo_minimum": self._available_years.get_minimal_cgvn_vlmo_year(),
-                "current_year": self._available_years.get_atual_year(),
+                "General Document Years": self.__available_years.get_minimal_geral_year(),
+                "ITR Document Years": self.__available_years.get_minimal_itr_year(),
+                "CGVN and VMLO Document Years": self.__available_years.get_minimal_cgvn_vlmo_year(),
+                "Current Year": self.__available_years.get_atual_year(),
             }
             logger.debug(f"Retrieved years information: {years_info}")
             return years_info

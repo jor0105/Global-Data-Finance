@@ -1,17 +1,15 @@
-from ...domain import DownloadResult
-from ..interfaces import DownloadDocsCVMRepository
 from .download_documents_use_case import DownloadDocumentsUseCase
-from .generate_download_urls_use_case import GenerateDownloadUrlsUseCase
+from .generate_range_years_use_cases import GenerateRangeYearsUseCases
+from .generate_urls_use_case import GenerateUrlsUseCase
 from .get_available_docs_use_case import GetAvailableDocsUseCase
 from .get_available_years_use_case import GetAvailableYearsUseCase
-from .validate_download_request_use_case import ValidateDownloadRequestUseCase
+from .verify_paths_use_cases import VerifyPathsUseCases
 
 __all__ = [
-    "DownloadDocsCVMRepository",
-    "DownloadResult",
     "DownloadDocumentsUseCase",
-    "GenerateDownloadUrlsUseCase",
+    "GenerateUrlsUseCase",
+    "GenerateRangeYearsUseCases",
     "GetAvailableDocsUseCase",
     "GetAvailableYearsUseCase",
-    "ValidateDownloadRequestUseCase",
+    "VerifyPathsUseCases",
 ]

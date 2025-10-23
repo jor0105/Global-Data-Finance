@@ -1,10 +1,9 @@
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases import (
-    GetAvailableYearsUseCase,
-)
+from src.brazil.cvm.fundamental_stocks_data import GetAvailableYearsUseCase
 
 
+@pytest.mark.unit
 class TestGetAvailableYearsUseCase:
     def test_execute_returns_years_info(self):
         use_case = GetAvailableYearsUseCase()
@@ -18,10 +17,10 @@ class TestGetAvailableYearsUseCase:
         result = use_case.execute()
 
         required_keys = {
-            "general_minimum",
-            "itr_minimum",
-            "cgvn_vlmo_minimum",
-            "current_year",
+            "General Document Years",
+            "ITR Document Years",
+            "CGVN and VMLO Document Years",
+            "Current Year",
         }
         assert set(result.keys()) == required_keys
 
@@ -36,10 +35,9 @@ class TestGetAvailableYearsUseCase:
         use_case = GetAvailableYearsUseCase()
         result = use_case.execute()
 
-        # Minimum years should be before current year
-        assert result["general_minimum"] < result["current_year"]
-        assert result["itr_minimum"] < result["current_year"]
-        assert result["cgvn_vlmo_minimum"] < result["current_year"]
+        assert result["General Document Years"] < result["Current Year"]
+        assert result["ITR Document Years"] < result["Current Year"]
+        assert result["CGVN and VMLO Document Years"] < result["Current Year"]
 
     def test_current_year_is_reasonable(self):
         use_case = GetAvailableYearsUseCase()
@@ -49,8 +47,7 @@ class TestGetAvailableYearsUseCase:
 
         current_year = datetime.now().year
 
-        # Current year should be current or close
-        assert abs(result["current_year"] - current_year) <= 1
+        assert abs(result["Current Year"] - current_year) <= 1
 
     def test_initialization_does_not_raise(self):
         try:

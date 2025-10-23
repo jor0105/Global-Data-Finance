@@ -1,18 +1,20 @@
-"""Use case for orchestrating CVM document downloads.
-
-This module contains the main orchestrator use case that coordinates
-the validation, URL generation, and download execution following
-the Single Responsibility Principle.
-"""
-
 import logging
 from typing import List, Optional
 
-from ...domain import DownloadResult
-from ...exceptions import InvalidRepositoryTypeError
-from ..interfaces import DownloadDocsCVMRepository
-from .generate_download_urls_use_case import GenerateDownloadUrlsUseCase
-from .validate_download_request_use_case import ValidateDownloadRequestUseCase
+from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+    DownloadDocsCVMRepository,
+)
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases.generate_range_years_use_cases import (
+    GenerateRangeYearsUseCases,
+)
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases.generate_urls_use_case import (
+    GenerateUrlsUseCase,
+)
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases.verify_paths_use_cases import (
+    VerifyPathsUseCases,
+)
+from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
+from src.brazil.cvm.fundamental_stocks_data.exceptions import InvalidRepositoryTypeError
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,8 @@ class DownloadDocumentsUseCase:
 
     This use case orchestrates the complete download workflow by coordinating
     multiple smaller, focused use cases following the Single Responsibility Principle:
-    - Validation of request parameters
+    - Verify and Create Paths
+    - Generation of range of years
     - Generation of download URLs
     - Execution of downloads via repository
 
@@ -36,9 +39,9 @@ class DownloadDocumentsUseCase:
         >>> use_case = DownloadDocumentsUseCase(repository)
         >>> result = use_case.execute(
         ...     destination_path="/path/to/download",
-        ...     doc_types=["DFP", "ITR"],
-        ...     start_year=2020,
-        ...     end_year=2023
+        ...     list_docs=["DFP", "ITR"],
+        ...     initial_year=2020,
+        ...     last_year=2023
         ... )
         >>> print(f"Downloaded {result.success_count} files")
     """
@@ -54,13 +57,12 @@ class DownloadDocumentsUseCase:
         """
         if not isinstance(repository, DownloadDocsCVMRepository):
             raise InvalidRepositoryTypeError(
-                expected_type="DownloadDocsCVMRepository",
                 actual_type=type(repository).__name__,
             )
 
-        self._repository = repository
-        self._validator = ValidateDownloadRequestUseCase()
-        self._url_generator = GenerateDownloadUrlsUseCase()
+        self.__repository = repository
+        self.__url_generator = GenerateUrlsUseCase()
+        self.__range_years_generator = GenerateRangeYearsUseCases()
 
         logger.debug(
             f"DownloadDocumentsUseCase initialized with "
@@ -70,26 +72,22 @@ class DownloadDocumentsUseCase:
     def execute(
         self,
         destination_path: str,
-        doc_types: Optional[List[str]] = None,
-        start_year: Optional[int] = None,
-        end_year: Optional[int] = None,
+        list_docs: Optional[List[str]] = None,
+        initial_year: Optional[int] = None,
+        last_year: Optional[int] = None,
     ) -> DownloadResult:
         """Execute the download operation by orchestrating sub-use cases.
 
         This method coordinates the complete workflow:
-        1. Validates input parameters (ValidateDownloadRequestUseCase)
-        2. Generates download URLs (GenerateDownloadUrlsUseCase)
-        3. Executes downloads via repository
-        4. Returns combined results
 
         Args:
             destination_path: Directory path where files will be saved.
                              Will be created if it doesn't exist.
-            doc_types: List of document type codes (e.g., ["DFP", "ITR"]).
+            list_docs: List of document type codes (e.g., ["DFP", "ITR"]).
                       If None, downloads all available document types.
-            start_year: Starting year for downloads (inclusive).
+            initial_year: Starting year for downloads (inclusive).
                        If None, uses minimum available year for each document type.
-            end_year: Ending year for downloads (inclusive).
+            last_year: Ending year for downloads (inclusive).
                      If None, uses current year.
 
         Returns:
@@ -100,46 +98,60 @@ class DownloadDocumentsUseCase:
             InvalidDestinationPathError: If path is invalid (empty, whitespace, or wrong type).
             PathIsNotDirectoryError: If path exists but is a file.
             PathPermissionError: If path lacks write permissions.
-            EmptyDocumentListError: If doc_types is an empty list.
+            EmptyDocumentListError: If list_docs is an empty list.
             InvalidDocName: If invalid document type is specified.
             InvalidTypeDoc: If document type is not a string.
-            InvalidFirstYear: If start_year is outside valid range.
-            InvalidLastYear: If end_year is outside valid range.
+            InvalidFirstYear: If initial_year is outside valid range.
+            InvalidLastYear: If last_year is outside valid range.
             OSError: If directory cannot be created.
         """
         logger.info(
             f"Starting download orchestration: "
             f"path={destination_path}, "
-            f"docs={doc_types}, "
-            f"years={start_year}-{end_year}"
+            f"docs={list_docs}, "
+            f"years={initial_year}-{last_year}"
         )
 
-        # Step 1: Validate request (fills defaults for None values)
-        request_dto = self._validator.execute(
+        range_years = self.__range_years_generator.execute(
+            initial_year=initial_year,
+            last_year=last_year,
+        )
+
+        dict_urls_zips, new_set_docs = self.__url_generator.execute(
+            list_docs=list_docs,
+            initial_year=initial_year,
+            last_year=last_year,
+        )
+
+        verify_paths = VerifyPathsUseCases(
             destination_path=destination_path,
-            doc_types=doc_types,
-            start_year=start_year,
-            end_year=end_year,
+            new_set_docs=new_set_docs,
+            range_years=range_years,
         )
+        verify_paths.execute()
 
-        # Step 2: Generate URLs
-        dict_zips = self._url_generator.execute(
-            doc_types=request_dto.doc_types,
-            start_year=request_dto.start_year,
-            end_year=request_dto.end_year,
-        )
-
-        # Step 3: Execute downloads
         try:
-            result = self._repository.download_docs(
-                request_dto.destination_path, dict_zips
-            )
+            result = self.__repository.download_docs(destination_path, dict_urls_zips)
 
             logger.info(
                 f"Download completed: "
-                f"{result.success_count} successful, "
-                f"{result.error_count} errors"
+                f"✓ {result.success_count} successful, "
+                f"✗ {result.error_count} errors"
             )
+
+            if result.successful_downloads:
+                logger.debug(
+                    f"Successfully downloaded: {', '.join(result.successful_downloads)}"
+                )
+
+            if result.failed_downloads:
+                failed_info = "; ".join(
+                    [
+                        f"{doc}: {error}"
+                        for doc, error in result.failed_downloads.items()
+                    ]
+                )
+                logger.warning(f"Failed downloads: {failed_info}")
 
             return result
 

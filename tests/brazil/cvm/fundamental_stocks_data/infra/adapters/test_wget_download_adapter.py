@@ -1,45 +1,48 @@
-"""Tests for WgetDownloadAdapter infrastructure component."""
+from unittest.mock import MagicMock, patch
 
-from unittest.mock import patch
-
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocsCVMRepository,
-)
-from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter import (
+    DownloadResult,
     WgetDownloadAdapter,
+    WgetLibraryError,
+    WgetValueError,
 )
 
 
 class TestWgetDownloadAdapterInit:
-    """Tests for WgetDownloadAdapter initialization."""
-
     def test_init_creates_instance(self):
-        """Should create an instance of the adapter."""
         adapter = WgetDownloadAdapter()
         assert isinstance(adapter, WgetDownloadAdapter)
 
     def test_adapter_implements_repository_interface(self):
-        """Should implement the DownloadDocsCVMRepository interface."""
         adapter = WgetDownloadAdapter()
         assert isinstance(adapter, DownloadDocsCVMRepository)
 
     def test_adapter_has_download_docs_method(self):
-        """Should have the download_docs method."""
         adapter = WgetDownloadAdapter()
         assert hasattr(adapter, "download_docs")
         assert callable(adapter.download_docs)
 
+    def test_init_with_custom_retry_parameters(self):
+        adapter = WgetDownloadAdapter(
+            max_retries=5,
+            initial_backoff=2.0,
+            max_backoff=120.0,
+            backoff_multiplier=3.0,
+        )
+        assert adapter.max_retries == 5
+
 
 class TestWgetDownloadAdapterSuccessfulDownloads:
-    """Tests for successful download scenarios."""
-
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
-    def test_download_single_document_single_year(self, mock_wget):
-        """Should successfully download a single document and year."""
+    def test_download_single_document_single_year(self, mock_wget, mock_progress):
         adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
         your_path = "/path/to/save"
@@ -47,16 +50,19 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         result = adapter.download_docs(your_path, dict_zip)
 
         assert isinstance(result, DownloadResult)
-        mock_wget.assert_called_once_with(
-            "https://example.com/DRE_2020.zip", out=your_path
-        )
+        assert result.success_count == 1
+        assert result.error_count == 0
+        mock_wget.assert_called_once()
 
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
-    def test_download_single_document_multiple_years(self, mock_wget):
-        """Should successfully download a single document with multiple years."""
+    def test_download_single_document_multiple_years(self, mock_wget, mock_progress):
         adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
 
         dict_zip = {
             "DRE": [
@@ -70,14 +76,19 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         result = adapter.download_docs(your_path, dict_zip)
 
         assert isinstance(result, DownloadResult)
+        assert result.success_count == 3
+        assert result.error_count == 0
         assert mock_wget.call_count == 3
 
     @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
-    def test_download_multiple_documents_single_year(self, mock_wget):
-        """Should successfully download multiple documents for a single year."""
+    def test_download_multiple_documents_single_year(self, mock_wget, mock_progress):
         adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
 
         dict_zip = {
             "DRE": ["https://example.com/DRE_2020.zip"],
@@ -89,26 +100,120 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         result = adapter.download_docs(your_path, dict_zip)
 
         assert isinstance(result, DownloadResult)
+        assert result.success_count == 3
+        assert result.error_count == 0
         assert mock_wget.call_count == 3
 
 
-class TestWgetDownloadAdapterFailedDownloads:
-    """Tests for failed download scenarios."""
-
+class TestWgetDownloadAdapterEmptyDownloads:
     @patch(
-        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
     )
-    def test_download_with_wget_error(self, mock_wget):
-        """Should handle wget download errors gracefully."""
+    def test_download_empty_dict(self, mock_progress):
         adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
 
-        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        dict_zip = {}
         your_path = "/path/to/save"
-
-        mock_wget.side_effect = Exception("wget download failed")
 
         result = adapter.download_docs(your_path, dict_zip)
 
         assert isinstance(result, DownloadResult)
-        assert result.has_errors
+        assert result.success_count == 0
+        assert result.error_count == 0
+
+
+class TestWgetDownloadAdapterFailedDownloads:
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+    )
+    def test_download_with_generic_exception(self, mock_wget, mock_progress):
+        adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
+        mock_wget.side_effect = Exception("wget download failed")
+
+        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        your_path = "/path/to/save"
+
+        result = adapter.download_docs(your_path, dict_zip)
+
+        assert isinstance(result, DownloadResult)
         assert result.error_count > 0
+
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+    )
+    def test_download_with_wget_value_error(self, mock_wget, mock_progress):
+        adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
+        mock_wget.side_effect = WgetValueError("Invalid URL")
+
+        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        your_path = "/path/to/save"
+
+        result = adapter.download_docs(your_path, dict_zip)
+
+        assert result.error_count == 1
+        assert "DRE_2020" in result.failed_downloads
+
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+    )
+    def test_download_with_wget_library_error(self, mock_wget, mock_progress):
+        adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
+        mock_wget.side_effect = WgetLibraryError("wget error")
+
+        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        your_path = "/path/to/save"
+
+        result = adapter.download_docs(your_path, dict_zip)
+
+        assert result.error_count > 0
+
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+    )
+    def test_download_with_permission_error(self, mock_wget, mock_progress):
+        adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
+        mock_wget.side_effect = PermissionError("Permission denied")
+
+        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        your_path = "/path/to/save"
+
+        result = adapter.download_docs(your_path, dict_zip)
+
+        assert result.error_count > 0
+        assert "DRE_2020" in result.failed_downloads
+
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.SimpleProgressBar"
+    )
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
+    )
+    def test_download_with_disk_full_error(self, mock_wget, mock_progress):
+        adapter = WgetDownloadAdapter()
+        mock_progress.return_value = MagicMock()
+        mock_wget.side_effect = OSError("No space left on device")
+
+        dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
+        your_path = "/path/to/save"
+
+        result = adapter.download_docs(your_path, dict_zip)
+
+        assert result.error_count == 1
+        assert "DRE_2020" in result.failed_downloads
