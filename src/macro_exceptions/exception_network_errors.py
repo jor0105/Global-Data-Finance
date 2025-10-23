@@ -1,6 +1,25 @@
 from typing import Optional
 
 
+class InvalidDestinationPathError(ValueError):
+    def __init__(self, reason: str):
+        super().__init__(f"Invalid destination path: {reason}")
+
+
+class PathIsNotDirectoryError(ValueError):
+    def __init__(self, path: str):
+        super().__init__(
+            f"Destination path must be a directory, but '{path}' is a file."
+        )
+
+
+class PathPermissionError(OSError):
+    def __init__(self, path: str):
+        super().__init__(
+            f"Permission denied: No write permission for destination path '{path}'"
+        )
+
+
 class NetworkError(Exception):
     def __init__(self, doc_name: str, message: Optional[str] = None):
         super().__init__(
@@ -14,16 +33,6 @@ class TimeoutError(Exception):
         if timeout:
             msg += f" Timeout: {timeout}s."
         super().__init__(msg)
-
-
-class PermissionError(Exception):
-    def __init__(self, path: str):
-        super().__init__(f"Permission denied when saving to '{path}'.")
-
-
-class FileNotFoundError(Exception):
-    def __init__(self, path: str):
-        super().__init__(f"Destination path not found: '{path}'.")
 
 
 class DiskFullError(Exception):
