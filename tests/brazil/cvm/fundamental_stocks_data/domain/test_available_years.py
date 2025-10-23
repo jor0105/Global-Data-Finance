@@ -1,5 +1,4 @@
 from datetime import date
-from unittest.mock import patch
 
 import pytest
 
@@ -157,13 +156,23 @@ class TestAvailableYears:
 
         assert current_year in list(years_range)
 
-    @patch("src.brazil.cvm.fundamental_stocks_data.domain.available_years.date")
     def test_return_range_years_respects_mocked_current_year(
-        self, mock_date, available_years
+        self, available_years, monkeypatch
     ):
-        mock_date.today.return_value.year = 2023
+        # The AvailableYears class captures the current year at class-definition time
+        # so patching the datetime.date symbol after import won't change it. Here we
+        # monkeypatch the attribute that holds the current year so the test
+        # can control the value used by the class. Use raising=False to allow
+        # setting even if the exact mangled name differs across Python versions.
+        monkeypatch.setattr(
+            AvailableYears, "_AvailableYears__ATUAL_YEAR", 2023, raising=False
+        )
 
+        # Also set on the instance in case the implementation uses an instance attr
         available_years_mocked = AvailableYears()
+        monkeypatch.setattr(
+            available_years_mocked, "_AvailableYears__ATUAL_YEAR", 2023, raising=False
+        )
 
         years_range = available_years_mocked.return_range_years()
         assert isinstance(years_range, range)

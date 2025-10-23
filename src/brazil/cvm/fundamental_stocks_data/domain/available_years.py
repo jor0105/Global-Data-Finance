@@ -5,13 +5,12 @@ from ..exceptions.exceptions_domain import InvalidFirstYear, InvalidLastYear
 
 
 class AvailableYears:
-    __ATUAL_YEAR: int = date.today().year
     __MIN_GERAL_YEAR: int = 2010
     __MIN_ITR_YEAR: int = 2011
     __MIN_CGVN_VLMO_YEAR: int = 2018
 
     def get_atual_year(self) -> int:
-        return self.__ATUAL_YEAR
+        return date.today().year
 
     def get_minimal_geral_year(self) -> int:
         return self.__MIN_GERAL_YEAR

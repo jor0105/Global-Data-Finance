@@ -122,7 +122,7 @@ class TestUrlDocs:
     def test_url_docs_initialization(self, url_docs):
         assert url_docs is not None
         assert hasattr(url_docs, "_UrlDocs__available_docs")
-        assert isinstance(url_docs._UrlDocs__available_docs, AvailableDocs)
+        assert isinstance(getattr(url_docs, "_UrlDocs__available_docs"), AvailableDocs)
 
     def test_get_url_docs_without_parameters_returns_all_urls(self, url_docs):
         urls = url_docs.get_url_docs()
