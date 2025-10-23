@@ -49,7 +49,7 @@ class SimpleProgressBar:
         self.width = width
         self.current = 0
         self.start_time = time.time()
-        self.last_print_time = 0
+        self.last_print_time = 0.0
 
         # Print initial message
         if total > 0:
