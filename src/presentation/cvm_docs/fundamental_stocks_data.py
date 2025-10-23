@@ -30,13 +30,13 @@ Example:
 import logging
 from typing import Dict, List, Optional
 
-from ...brazil.dados_cvm.fundamental_stocks_data.application.use_cases import (
+from ...brazil.cvm.fundamental_stocks_data.application.use_cases import (
     DownloadDocumentsUseCase,
     GetAvailableDocsUseCase,
     GetAvailableYearsUseCase,
 )
-from ...brazil.dados_cvm.fundamental_stocks_data.domain import DownloadResult
-from ...brazil.dados_cvm.fundamental_stocks_data.infra.adapters import (
+from ...brazil.cvm.fundamental_stocks_data.domain import DownloadResult
+from ...brazil.cvm.fundamental_stocks_data.infra.adapters import (
     ThreadPoolDownloadAdapter,
 )
 
@@ -92,7 +92,7 @@ class FundamentalStocksData:
             >>> cvm = FundamentalStocksData()
             >>>
             >>> # Custom adapter example (see examples/adapter_examples.py):
-            >>> from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+            >>> from src.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
             >>> adapter = Aria2cAdapter(max_concurrent_downloads=16)
             >>> cvm._download_adapter = adapter
             >>> cvm._download_use_case = DownloadDocumentsUseCase(adapter)

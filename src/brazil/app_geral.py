@@ -17,7 +17,7 @@ from .Opcoes_B3.app_ops import dados_opcoes_b3
 from .Status_Invest_Acoes.Dados_Atuais_Status.funcao import dados_status_atuais
 from .Status_Invest_Acoes.Dados_Hist_Status.funcao1 import *  # mantido se usado em comentários
 from .Status_Invest_Acoes.Dados_Hist_Status.funcao2 import *  # mantido se usado em comentários
-from .Status_Invest_Acoes.Dados_Hist_Status.Hist_Unicos.baixar_dados_cvm_status import (
+from .Status_Invest_Acoes.Dados_Hist_Status.Hist_Unicos.baixar_cvm_status import (
     baixar_dados_isentos_cvm,
 )
 from .Status_Invest_Acoes.Divs_Status_Invest.funcao import divs_status_invest

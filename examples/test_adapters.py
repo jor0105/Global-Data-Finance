@@ -1,9 +1,9 @@
 import time
 
-from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import (
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases import (
     DownloadDocumentsUseCase,
 )
-from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import (
+from src.brazil.cvm.fundamental_stocks_data.infra.adapters import (
     ThreadPoolDownloadAdapter,
 )
 
