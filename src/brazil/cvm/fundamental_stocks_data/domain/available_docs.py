@@ -44,7 +44,7 @@ class AvailableDocs:
         """Validate that a document name is valid and of correct type.
 
         Args:
-            docs_name: Document code to validate.
+            docs_name: Document name to validate.
 
         Raises:
             InvalidTypeDoc: If docs_name is not a string.
@@ -66,22 +66,22 @@ class UrlDocs:
 
     Attributes:
         _available_docs: Instance of AvailableDocs for validation.
-        __DICT_URL_DOCS: Private dictionary mapping documents to base URLs.
+        __dict_url_docs: Private dictionary mapping documents to base URLs.
     """
 
     def __init__(self):
         """Initialize with AvailableDocs validator."""
-        self._available_docs = AvailableDocs()
+        self.__available_docs = AvailableDocs()
 
-    __DICT_URL_DOCS: Dict[str, str] = {
-        "CGVN": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/CGVN/DADOS/cgvn_cia_aberta_",
-        "FRE": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FRE/DADOS/fre_cia_aberta_",
-        "FCA": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FCA/DADOS/fca_cia_aberta_",
-        "DFP": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_",
-        "ITR": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/ITR/DADOS/itr_cia_aberta_",
-        "IPE": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_",
-        "VLMO": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/vlmo_cia_aberta_",
-    }
+        self.__dict_url_docs = {
+            "CGVN": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/CGVN/DADOS/cgvn_cia_aberta_",
+            "FRE": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FRE/DADOS/fre_cia_aberta_",
+            "FCA": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FCA/DADOS/fca_cia_aberta_",
+            "DFP": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_",
+            "ITR": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/ITR/DADOS/itr_cia_aberta_",
+            "IPE": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_",
+            "VLMO": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/vlmo_cia_aberta_",
+        }
 
     def get_url_docs(self, list_docs: Optional[List[str]] = None) -> Dict[str, str]:
         """Get URLs for specified documents or all documents if none specified.
@@ -104,18 +104,18 @@ class UrlDocs:
         seen_docs: set = set()
 
         if not list_docs:
-            dict_urls = self.__DICT_URL_DOCS.copy()
+            dict_urls = self.__dict_url_docs.copy()
             return dict_urls
 
         for doc in list_docs:
-            self._available_docs.validate_docs_name(doc)
+            self.__available_docs.validate_docs_name(doc)
 
             doc_key = doc.upper()
-            if doc_key not in self.__DICT_URL_DOCS:
+            if doc_key not in self.__dict_url_docs:
                 raise ValueError(f"No URL available for doc '{doc}'")
 
             if doc_key not in seen_docs:
-                dict_urls[doc_key] = self.__DICT_URL_DOCS[doc_key]
+                dict_urls[doc_key] = self.__dict_url_docs[doc_key]
                 seen_docs.add(doc_key)
 
         return dict_urls
