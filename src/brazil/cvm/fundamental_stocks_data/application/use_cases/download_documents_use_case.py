@@ -1,20 +1,13 @@
 import logging
 from typing import List, Optional
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-    DownloadDocsCVMRepository,
-)
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases.generate_range_years_use_cases import (
-    GenerateRangeYearsUseCases,
-)
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases.generate_urls_use_case import (
-    GenerateUrlsUseCase,
-)
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases.verify_paths_use_cases import (
-    VerifyPathsUseCases,
-)
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.brazil.cvm.fundamental_stocks_data.exceptions import InvalidRepositoryTypeError
+
+from ..interfaces import DownloadDocsCVMRepository
+from .generate_range_years_use_cases import GenerateRangeYearsUseCases
+from .generate_urls_use_case import GenerateUrlsUseCase
+from .verify_paths_use_cases import VerifyPathsUseCases
 
 logger = logging.getLogger(__name__)
 
