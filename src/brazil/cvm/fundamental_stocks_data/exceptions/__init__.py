@@ -1,8 +1,3 @@
-from .....macro_exceptions import (
-    InvalidDestinationPathError,
-    PathIsNotDirectoryError,
-    PathPermissionError,
-)
 from .exceptions_domain import (
     EmptyDocumentListError,
     InvalidDocName,

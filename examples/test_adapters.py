@@ -1,9 +1,7 @@
 import time
 
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases import (
+from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCase,
-)
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters import (
     ThreadPoolDownloadAdapter,
 )
 
@@ -14,9 +12,9 @@ start_time = time.time()
 use_case = DownloadDocumentsUseCase(adapter1)
 result = use_case.execute(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
-    doc_types=["DFP", "ITR", "FRE"],
-    start_year=2010,
-    end_year=2023,
+    list_docs=["DFP", "ITR", "FRE"],
+    initial_year=2010,
+    last_year=2023,
 )
 download_time_minutes = (time.time() - start_time) / 60
 

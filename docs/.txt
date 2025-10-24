@@ -1,6 +1,0 @@
-eu quero criar, depois de estar criada a path principal, outras paths, para cada doc_types se não existir. se existir todas, nao fazer nada. por exemplo: passei esses argumentos na minha biblioteca: result = cvm.download(
-    destination_path="/home/jordan/Downloads/Docs_Cvm",
-    doc_types=["DFP", "ITR", "FRE"],
-    start_year=2010,
-    end_year=2023,
-). terá que verificar o destination_path. depois de criar ou validar ele, validar se existe path para casda doc_types. para isso, crie um novo validador, dentro da pasta dto e adicione ele

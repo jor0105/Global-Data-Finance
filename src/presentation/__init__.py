@@ -1,3 +1,3 @@
-from . import cvm_docs
+from .cvm_docs import FundamentalStocksData
 
-__all__ = ["cvm_docs"]
+__all__ = ["FundamentalStocksData"]
