@@ -5,11 +5,9 @@ from typing import Dict, List, Optional
 
 import wget  # type: ignore
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-    DownloadDocsCVMRepository,
-)
-from src.brazil.cvm.fundamental_stocks_data.domain.download_result import DownloadResult
-from src.brazil.cvm.fundamental_stocks_data.exceptions.exceptions_infra import (
+from src.brazil.cvm.fundamental_stocks_data.application import DownloadDocsCVMRepository
+from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
+from src.brazil.cvm.fundamental_stocks_data.exceptions import (
     WgetLibraryError,
     WgetValueError,
 )
@@ -17,7 +15,7 @@ from src.brazil.cvm.fundamental_stocks_data.utils import (
     RetryStrategy,
     SimpleProgressBar,
 )
-from src.macro_exceptions.macro_exceptions import PathPermissionError
+from src.macro_exceptions import PathPermissionError
 
 logger = logging.getLogger(__name__)
 

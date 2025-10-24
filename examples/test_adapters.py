@@ -3,10 +3,14 @@ import time
 from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCase,
     ThreadPoolDownloadAdapter,
+    WgetDownloadAdapter,
 )
 
 # Mais workers = mais rápido (mas mais carga no servidor)
 adapter1 = ThreadPoolDownloadAdapter(max_workers=16)
+adapter2 = ThreadPoolDownloadAdapter()
+adapter3 = WgetDownloadAdapter()
+
 
 start_time = time.time()
 use_case = DownloadDocumentsUseCase(adapter1)

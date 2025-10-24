@@ -6,10 +6,8 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-    DownloadDocsCVMRepository,
-)
-from src.brazil.cvm.fundamental_stocks_data.domain.download_result import DownloadResult
+from src.brazil.cvm.fundamental_stocks_data.application import DownloadDocsCVMRepository
+from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.brazil.cvm.fundamental_stocks_data.utils import (
     RetryStrategy,
     SimpleProgressBar,
