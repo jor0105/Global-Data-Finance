@@ -47,13 +47,16 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         )
 
     def download_docs(
-        self, your_path: str, dict_zip_to_download: Dict[str, List[str]]
+        self,
+        dict_zip_to_download: Dict[str, List[str]],
+        docs_paths: Dict[str, Dict[int, str]],
     ) -> DownloadResult:
         """Download documents in parallel.
 
         Args:
-            your_path: Destination directory path
             dict_zip_to_download: Dict mapping doc types to URL lists
+            docs_paths: Dict with structure {doc: {year: path}} containing
+                       the specific destination path for each document and year
 
         Returns:
             DownloadResult with aggregated success/error information
@@ -70,11 +73,11 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
             f"using {self.max_workers} workers"
         )
 
-        tasks = self._prepare_download_tasks(dict_zip_to_download)
+        tasks = self._prepare_download_tasks(dict_zip_to_download, docs_paths)
         progress_bar = SimpleProgressBar(total=total_files, desc="Downloading")
 
         try:
-            self._execute_parallel_downloads(tasks, your_path, result, progress_bar)
+            self._execute_parallel_downloads(tasks, result, progress_bar)
         finally:
             progress_bar.close()
 
@@ -86,24 +89,30 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         return result
 
     def _prepare_download_tasks(
-        self, dict_zip_to_download: Dict[str, List[str]]
-    ) -> List[Tuple[str, str, str]]:
+        self,
+        dict_zip_to_download: Dict[str, List[str]],
+        docs_paths: Dict[str, Dict[int, str]],
+    ) -> List[Tuple[str, str, str, str]]:
         """Prepare download tasks from input dictionary.
 
         Returns:
-            List of (url, doc_name, year) tuples
+            List of (url, doc_name, year, destination_path) tuples
         """
         tasks = []
         for doc_name, url_list in dict_zip_to_download.items():
             for url in url_list:
-                year = self.file_downloader._get_year(url)
-                tasks.append((url, doc_name, year))
+                year_str = self.file_downloader._get_year(url)
+                year_int = int(year_str)
+
+                # Get the specific path for this document and year
+                destination_path = docs_paths[doc_name][year_int]
+
+                tasks.append((url, doc_name, year_str, destination_path))
         return tasks
 
     def _execute_parallel_downloads(
         self,
-        tasks: List[Tuple[str, str, str]],
-        destination_path: str,
+        tasks: List[Tuple[str, str, str, str]],
         result: DownloadResult,
         progress_bar: SimpleProgressBar,
     ) -> None:
@@ -111,9 +120,13 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {
                 executor.submit(
-                    self.file_downloader.download, url, destination_path, doc_name, year
+                    self.file_downloader.download,
+                    url,
+                    destination_path,
+                    doc_name,
+                    year,
                 ): (doc_name, year)
-                for url, doc_name, year in tasks
+                for url, doc_name, year, destination_path in tasks
             }
 
             for future in as_completed(futures):

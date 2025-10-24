@@ -33,32 +33,34 @@ class VerifyPathsUseCases:
             f"docs={self.new_set_docs}"
         )
 
-    def execute(self) -> None:
+    def execute(self) -> Dict[str, Dict[int, str]]:
         """Create and verify directory structure for documents and years.
 
         Returns:
             Dictionary with structure: {doc: {year: path}}
         """
         # Create subdirectories for each document type
-        self.docs_paths: Dict[str, Dict[int, str]] = {}
+        docs_paths: Dict[str, Dict[int, str]] = {}
         for doc in self.new_set_docs:
             doc_path = os.path.join(self.destination_path, doc)
             validated_doc_path = self.__validate_and_create_paths(doc_path)
 
             # Create subdirectories for each year within document path
-            self.docs_paths[doc] = {}
+            docs_paths[doc] = {}
             for year in self.range_years:
                 year_path = os.path.join(validated_doc_path, str(year))
                 validated_year_path = self.__validate_and_create_paths(year_path)
-                self.docs_paths[doc][year] = validated_year_path
+                docs_paths[doc][year] = validated_year_path
 
         logger.info(
             f"Directory structure created successfully. "
-            f"Documents: {len(self.docs_paths)}, "
+            f"Documents: {len(docs_paths)}, "
             f"Years per document: {len(self.range_years)}"
         )
 
         print("Folders for installation checked/created. Starting installations...")
+
+        return docs_paths
 
     @staticmethod
     def __validate_and_create_paths(path: str) -> str:

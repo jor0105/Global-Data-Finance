@@ -197,7 +197,7 @@ class TestVerifyPathsUseCasesExecute:
                 path = os.path.join(tmp_path, doc, str(year))
                 assert os.path.exists(path)
 
-    def test_execute_populates_docs_paths_attribute(self, tmp_path):
+    def test_execute_returns_docs_paths(self, tmp_path):
         new_set_docs = {"DFP", "ITR"}
         range_years = range(2020, 2022)
 
@@ -207,15 +207,14 @@ class TestVerifyPathsUseCasesExecute:
             range_years=range_years,
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
-        assert hasattr(use_case, "docs_paths")
-        assert isinstance(use_case.docs_paths, dict)
-        assert len(use_case.docs_paths) == 2
+        assert isinstance(docs_paths, dict)
+        assert len(docs_paths) == 2
 
         for doc in new_set_docs:
-            assert doc in use_case.docs_paths
-            assert isinstance(use_case.docs_paths[doc], dict)
+            assert doc in docs_paths
+            assert isinstance(docs_paths[doc], dict)
 
     def test_execute_docs_paths_has_correct_structure(self, tmp_path):
         new_set_docs = {"DFP"}
@@ -227,13 +226,13 @@ class TestVerifyPathsUseCasesExecute:
             range_years=range_years,
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
-        assert "DFP" in use_case.docs_paths
+        assert "DFP" in docs_paths
         for year in range_years:
-            assert year in use_case.docs_paths["DFP"]
-            assert isinstance(use_case.docs_paths["DFP"][year], str)
-            assert os.path.isabs(use_case.docs_paths["DFP"][year])
+            assert year in docs_paths["DFP"]
+            assert isinstance(docs_paths["DFP"][year], str)
+            assert os.path.isabs(docs_paths["DFP"][year])
 
     def test_execute_handles_existing_directories(self, tmp_path):
         new_set_docs = {"DFP"}
@@ -293,11 +292,11 @@ class TestVerifyPathsUseCasesExecute:
             range_years=range(2023, 2024),
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
         assert os.path.exists(os.path.join(tmp_path, "DFP", "2023"))
-        assert len(use_case.docs_paths) == 1
-        assert len(use_case.docs_paths["DFP"]) == 1
+        assert len(docs_paths) == 1
+        assert len(docs_paths["DFP"]) == 1
 
     def test_execute_with_many_docs_and_years(self, tmp_path):
         new_set_docs = {"DFP", "ITR", "FRE", "FCA", "CGVN"}
@@ -309,7 +308,7 @@ class TestVerifyPathsUseCasesExecute:
             range_years=range_years,
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
         # Should create all directories
         total_dirs = len(new_set_docs) * len(range_years)
@@ -321,6 +320,7 @@ class TestVerifyPathsUseCasesExecute:
         )
 
         assert created_dirs == total_dirs
+        assert len(docs_paths) == len(new_set_docs)
 
 
 @pytest.mark.unit
@@ -398,10 +398,10 @@ class TestVerifyPathsUseCasesEdgeCases:
             range_years=range(2000, 2025),
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
         # All years should be created
-        assert len(use_case.docs_paths["DFP"]) == 25
+        assert len(docs_paths["DFP"]) == 25
 
     def test_execute_with_multiple_docs_different_structures(self, tmp_path):
         new_set_docs = {"DFP", "ITR", "FRE"}
@@ -413,11 +413,11 @@ class TestVerifyPathsUseCasesEdgeCases:
             range_years=range_years,
         )
 
-        use_case.execute()
+        docs_paths = use_case.execute()
 
         # Each doc should have same year structure
         for doc in new_set_docs:
-            assert len(use_case.docs_paths[doc]) == len(range_years)
+            assert len(docs_paths[doc]) == len(range_years)
 
     def test_execute_is_idempotent(self, tmp_path):
         use_case = VerifyPathsUseCases(
@@ -427,11 +427,8 @@ class TestVerifyPathsUseCasesEdgeCases:
         )
 
         # Execute multiple times
-        use_case.execute()
-        first_paths = use_case.docs_paths.copy()
-
-        use_case.execute()
-        second_paths = use_case.docs_paths
+        first_paths = use_case.execute()
+        second_paths = use_case.execute()
 
         # Results should be identical
         assert first_paths == second_paths
@@ -450,16 +447,16 @@ class TestVerifyPathsUseCasesIntegration:
             range_years=range_years,
         )
 
-        verify_paths_instance.execute()
+        docs_paths = verify_paths_instance.execute()
 
         # Should have structure ready for downloads
-        assert hasattr(verify_paths_instance, "docs_paths")
+        assert isinstance(docs_paths, dict)
         assert verify_paths_instance.destination_path == str(tmp_path)
 
         # All paths should be usable
         for doc in new_set_docs:
             for year in range_years:
-                path = verify_paths_instance.docs_paths[doc][year]
+                path = docs_paths[doc][year]
                 assert os.path.exists(path)
                 assert os.access(path, os.W_OK)
 
@@ -474,9 +471,9 @@ class TestVerifyPathsUseCasesIntegration:
             range_years=range_years,
         )
 
-        use_case_instance.execute()
+        docs_paths = use_case_instance.execute()
 
-        assert len(use_case_instance.docs_paths) == 3
+        assert len(docs_paths) == 3
 
     def test_verify_paths_accepts_range_from_generate_range_years(self, tmp_path):
         # Simulate receiving range from GenerateRangeYearsUseCases
@@ -488,6 +485,6 @@ class TestVerifyPathsUseCasesIntegration:
             range_years=range_years,
         )
 
-        use_case_instance.execute()
+        docs_paths = use_case_instance.execute()
 
-        assert len(use_case_instance.docs_paths["DFP"]) == 4
+        assert len(docs_paths["DFP"]) == 4

@@ -576,11 +576,17 @@ class TestThreadPoolDownloadAdapterPrepare:
                 "https://example.com/dre_2022.zip",
             ]
         }
+        docs_paths = {
+            "DRE": {
+                2023: "/tmp/DRE/2023",
+                2022: "/tmp/DRE/2022",
+            }
+        }
 
-        tasks = adapter._prepare_download_tasks(dict_zip)
+        tasks = adapter._prepare_download_tasks(dict_zip, docs_paths)
 
         assert len(tasks) == 2
-        assert all(len(task) == 3 for task in tasks)
+        assert all(len(task) == 4 for task in tasks)
 
     def test_prepare_tasks_multiple_docs(self):
         adapter = ThreadPoolDownloadAdapter()
@@ -589,35 +595,44 @@ class TestThreadPoolDownloadAdapterPrepare:
             "ITR": ["https://example.com/itr_2023.zip"],
             "BPARMS": ["https://example.com/bparms_2023.zip"],
         }
+        docs_paths = {
+            "DRE": {2023: "/tmp/DRE/2023"},
+            "ITR": {2023: "/tmp/ITR/2023"},
+            "BPARMS": {2023: "/tmp/BPARMS/2023"},
+        }
 
-        tasks = adapter._prepare_download_tasks(dict_zip)
+        tasks = adapter._prepare_download_tasks(dict_zip, docs_paths)
 
         assert len(tasks) == 3
 
     def test_prepare_tasks_empty_dict(self):
         adapter = ThreadPoolDownloadAdapter()
         dict_zip = {}
+        docs_paths = {}
 
-        tasks = adapter._prepare_download_tasks(dict_zip)
+        tasks = adapter._prepare_download_tasks(dict_zip, docs_paths)
 
         assert len(tasks) == 0
 
     def test_prepare_tasks_extracts_year(self):
         adapter = ThreadPoolDownloadAdapter()
         dict_zip = {"DRE": ["https://example.com/dre_2024.zip"]}
+        docs_paths = {"DRE": {2024: "/tmp/DRE/2024"}}
 
-        tasks = adapter._prepare_download_tasks(dict_zip)
+        tasks = adapter._prepare_download_tasks(dict_zip, docs_paths)
 
-        url, doc_name, year = tasks[0]
+        url, doc_name, year, destination_path = tasks[0]
         assert year == "2024"
         assert doc_name == "DRE"
+        assert destination_path == "/tmp/DRE/2024"
 
 
 @pytest.mark.unit
 class TestThreadPoolDownloadAdapterDownloadDocs:
     def test_download_docs_empty_dict(self):
         adapter = ThreadPoolDownloadAdapter()
-        result = adapter.download_docs("/tmp", {})
+        docs_paths = {}
+        result = adapter.download_docs({}, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.success_count == 0
@@ -633,12 +648,21 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
                     "https://example.com/dre_2022.zip",
                 ]
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                }
+            }
+            # Create directories
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
+            os.makedirs(docs_paths["DRE"][2022], exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 2
             assert result.error_count == 0
@@ -653,13 +677,21 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
                     "https://example.com/dre_2022.zip",
                 ]
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                }
+            }
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
+            os.makedirs(docs_paths["DRE"][2022], exist_ok=True)
 
             success_response = MagicMock()
             success_response.iter_content = Mock(return_value=[b"data"])
             error = requests.exceptions.ConnectionError("Failed")
 
             with patch("requests.get", side_effect=[success_response, error]):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 1
             assert result.error_count == 1
@@ -674,11 +706,19 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
                     "https://example.com/dre_2022.zip",
                 ]
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                }
+            }
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
+            os.makedirs(docs_paths["DRE"][2022], exist_ok=True)
 
             error = requests.exceptions.ConnectionError("Failed")
 
             with patch("requests.get", side_effect=error):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 0
             assert result.error_count == 2
@@ -692,12 +732,20 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
                 "ITR": ["https://example.com/itr_2023.zip"],
                 "BPARMS": ["https://example.com/bparms_2023.zip"],
             }
+            docs_paths = {
+                "DRE": {2023: os.path.join(tmpdir, "DRE", "2023")},
+                "ITR": {2023: os.path.join(tmpdir, "ITR", "2023")},
+                "BPARMS": {2023: os.path.join(tmpdir, "BPARMS", "2023")},
+            }
+            for doc in docs_paths:
+                for year_path in docs_paths[doc].values():
+                    os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 3
             assert result.error_count == 0
@@ -706,17 +754,21 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
         adapter = ThreadPoolDownloadAdapter(max_workers=4)
 
         with tempfile.TemporaryDirectory() as tmpdir:
+            years = list(range(2010, 2025))
             dict_zip = {
-                "DRE": [
-                    f"https://example.com/dre_{year}.zip" for year in range(2010, 2025)
-                ]
+                "DRE": [f"https://example.com/dre_{year}.zip" for year in years]
             }
+            docs_paths = {
+                "DRE": {year: os.path.join(tmpdir, "DRE", str(year)) for year in years}
+            }
+            for year_path in docs_paths["DRE"].values():
+                os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 15
             assert result.error_count == 0
@@ -729,12 +781,19 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
                 "DRE": ["https://example.com/dre_2023.zip"],
                 "ITR": ["https://example.com/itr_2023.zip"],
             }
+            docs_paths = {
+                "DRE": {2023: os.path.join(tmpdir, "DRE", "2023")},
+                "ITR": {2023: os.path.join(tmpdir, "ITR", "2023")},
+            }
+            for doc in docs_paths:
+                for year_path in docs_paths[doc].values():
+                    os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert len(result.successful_downloads) == 2
             assert "DRE_2023" in result.successful_downloads
@@ -752,6 +811,12 @@ class TestThreadPoolDownloadAdapterParallelism:
                     "https://example.com/dre_2023.zip",
                     "https://example.com/dre_2022.zip",
                 ]
+            }
+            _ = {
+                "DRE": {
+                    2023: "/tmp/DRE/2023",
+                    2022: "/tmp/DRE/2022",
+                }
             }
 
             mock_response = MagicMock()
@@ -783,13 +848,15 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             dict_zip = {
                 "DRE": ["https://example.com/dre_2023.zip"],
             }
+            docs_paths = {"DRE": {2023: os.path.join(tmpdir, "DRE", "2023")}}
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
 
             http_error = requests.exceptions.HTTPError()
             http_error.response = MagicMock()
             http_error.response.status_code = 404
 
             with patch("requests.get", side_effect=http_error):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.error_count == 1
             assert "DRE_2023" in result.failed_downloads
@@ -801,11 +868,13 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             dict_zip = {
                 "BPARMS": ["https://example.com/bparms_2023.zip"],
             }
+            docs_paths = {"BPARMS": {2023: os.path.join(tmpdir, "BPARMS", "2023")}}
+            os.makedirs(docs_paths["BPARMS"][2023], exist_ok=True)
 
             network_error = requests.exceptions.ConnectionError("Connection failed")
 
             with patch("requests.get", side_effect=network_error):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.error_count == 1
 
@@ -816,11 +885,13 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             dict_zip = {
                 "ITR": ["https://example.com/itr_2023.zip"],
             }
+            docs_paths = {"ITR": {2023: os.path.join(tmpdir, "ITR", "2023")}}
+            os.makedirs(docs_paths["ITR"][2023], exist_ok=True)
 
             timeout_error = requests.exceptions.Timeout("Request timed out")
 
             with patch("requests.get", side_effect=timeout_error):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.error_count == 1
 
@@ -831,9 +902,11 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             dict_zip = {
                 "DRE": ["https://example.com/dre_2023.zip"],
             }
+            docs_paths = {"DRE": {2023: os.path.join(tmpdir, "DRE", "2023")}}
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
 
             with patch("requests.get", side_effect=ValueError("Unexpected error")):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.error_count == 1
 
@@ -849,6 +922,16 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
                     "https://example.com/dre_2020.zip",
                 ],
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                    2021: os.path.join(tmpdir, "DRE", "2021"),
+                    2020: os.path.join(tmpdir, "DRE", "2020"),
+                }
+            }
+            for year_path in docs_paths["DRE"].values():
+                os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
@@ -857,7 +940,7 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             responses = [mock_response, error, mock_response, error]
 
             with patch("requests.get", side_effect=responses):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 2
             assert result.error_count == 2
@@ -870,6 +953,8 @@ class TestThreadPoolDownloadAdapterProgressBar:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {"DRE": ["https://example.com/dre_2023.zip"]}
+            docs_paths = {"DRE": {2023: os.path.join(tmpdir, "DRE", "2023")}}
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
@@ -878,7 +963,7 @@ class TestThreadPoolDownloadAdapterProgressBar:
                 with patch(
                     "src.brazil.cvm.fundamental_stocks_data.infra.adapters.threadpool_download_adapter.SimpleProgressBar"
                 ) as mock_progress:
-                    adapter.download_docs(tmpdir, dict_zip)
+                    adapter.download_docs(dict_zip, docs_paths)
                     mock_progress.assert_called_once()
 
     def test_progress_bar_update_called(self):
@@ -891,6 +976,14 @@ class TestThreadPoolDownloadAdapterProgressBar:
                     "https://example.com/dre_2022.zip",
                 ]
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                }
+            }
+            for year_path in docs_paths["DRE"].values():
+                os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
@@ -901,7 +994,7 @@ class TestThreadPoolDownloadAdapterProgressBar:
                     "src.brazil.cvm.fundamental_stocks_data.infra.adapters.threadpool_download_adapter.SimpleProgressBar",
                     return_value=mock_progress,
                 ):
-                    adapter.download_docs(tmpdir, dict_zip)
+                    adapter.download_docs(dict_zip, docs_paths)
                     assert mock_progress.update.call_count == 2
 
 
@@ -918,12 +1011,22 @@ class TestThreadPoolDownloadAdapterIntegration:
                 ],
                 "ITR": ["https://example.com/itr_2023.zip"],
             }
+            docs_paths = {
+                "DRE": {
+                    2023: os.path.join(tmpdir, "DRE", "2023"),
+                    2022: os.path.join(tmpdir, "DRE", "2022"),
+                },
+                "ITR": {2023: os.path.join(tmpdir, "ITR", "2023")},
+            }
+            for doc in docs_paths:
+                for year_path in docs_paths[doc].values():
+                    os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"test_data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 3
             assert result.error_count == 0
@@ -934,6 +1037,8 @@ class TestThreadPoolDownloadAdapterIntegration:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {"DRE": ["https://example.com/dre_2023.zip"]}
+            docs_paths = {"DRE": {2023: os.path.join(tmpdir, "DRE", "2023")}}
+            os.makedirs(docs_paths["DRE"][2023], exist_ok=True)
 
             timeout_error = requests.exceptions.Timeout("Timeout")
             mock_response = MagicMock()
@@ -941,7 +1046,7 @@ class TestThreadPoolDownloadAdapterIntegration:
 
             with patch("requests.get", side_effect=[timeout_error, mock_response]):
                 with patch.object(adapter.file_downloader, "_apply_backoff"):
-                    result = adapter.download_docs(tmpdir, dict_zip)
+                    result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 1
 
@@ -949,20 +1054,29 @@ class TestThreadPoolDownloadAdapterIntegration:
         adapter = ThreadPoolDownloadAdapter(max_workers=4)
 
         with tempfile.TemporaryDirectory() as tmpdir:
+            years_dre = list(range(2010, 2025))
+            years_itr = list(range(2015, 2025))
             dict_zip = {
-                "DRE": [
-                    f"https://example.com/dre_{year}.zip" for year in range(2010, 2025)
-                ],
-                "ITR": [
-                    f"https://example.com/itr_{year}.zip" for year in range(2015, 2025)
-                ],
+                "DRE": [f"https://example.com/dre_{year}.zip" for year in years_dre],
+                "ITR": [f"https://example.com/itr_{year}.zip" for year in years_itr],
             }
+            docs_paths = {
+                "DRE": {
+                    year: os.path.join(tmpdir, "DRE", str(year)) for year in years_dre
+                },
+                "ITR": {
+                    year: os.path.join(tmpdir, "ITR", str(year)) for year in years_itr
+                },
+            }
+            for doc in docs_paths:
+                for year_path in docs_paths[doc].values():
+                    os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 25
             assert result.error_count == 0
@@ -976,12 +1090,20 @@ class TestThreadPoolDownloadAdapterIntegration:
                 "ITR": ["https://example.com/itr_2023.zip"],
                 "BPARMS": ["https://example.com/bparms_2023.zip"],
             }
+            docs_paths = {
+                "DRE": {2023: os.path.join(tmpdir, "DRE", "2023")},
+                "ITR": {2023: os.path.join(tmpdir, "ITR", "2023")},
+                "BPARMS": {2023: os.path.join(tmpdir, "BPARMS", "2023")},
+            }
+            for doc in docs_paths:
+                for year_path in docs_paths[doc].values():
+                    os.makedirs(year_path, exist_ok=True)
 
             mock_response = MagicMock()
             mock_response.iter_content = Mock(return_value=[b"data"])
 
             with patch("requests.get", return_value=mock_response):
-                result = adapter.download_docs(tmpdir, dict_zip)
+                result = adapter.download_docs(dict_zip, docs_paths)
 
             assert result.success_count == 3
             assert result.error_count == 0

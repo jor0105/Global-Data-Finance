@@ -45,9 +45,9 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         mock_progress.return_value = MagicMock()
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.success_count == 1
@@ -71,9 +71,15 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
                 "https://example.com/DRE_2022.zip",
             ]
         }
-        your_path = "/path/to/save"
+        docs_paths = {
+            "DRE": {
+                2020: "/path/to/save/DRE/2020",
+                2021: "/path/to/save/DRE/2021",
+                2022: "/path/to/save/DRE/2022",
+            }
+        }
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.success_count == 3
@@ -95,9 +101,13 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
             "ITR": ["https://example.com/ITR_2020.zip"],
             "FRE": ["https://example.com/FRE_2020.zip"],
         }
-        your_path = "/path/to/save"
+        docs_paths = {
+            "DRE": {2020: "/path/to/save/DRE/2020"},
+            "ITR": {2020: "/path/to/save/ITR/2020"},
+            "FRE": {2020: "/path/to/save/FRE/2020"},
+        }
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.success_count == 3
@@ -114,9 +124,9 @@ class TestWgetDownloadAdapterEmptyDownloads:
         mock_progress.return_value = MagicMock()
 
         dict_zip = {}
-        your_path = "/path/to/save"
+        docs_paths = {}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.success_count == 0
@@ -136,9 +146,9 @@ class TestWgetDownloadAdapterFailedDownloads:
         mock_wget.side_effect = Exception("wget download failed")
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert isinstance(result, DownloadResult)
         assert result.error_count > 0
@@ -155,9 +165,9 @@ class TestWgetDownloadAdapterFailedDownloads:
         mock_wget.side_effect = WgetValueError("Invalid URL")
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert result.error_count == 1
         assert "DRE_2020" in result.failed_downloads
@@ -174,9 +184,9 @@ class TestWgetDownloadAdapterFailedDownloads:
         mock_wget.side_effect = WgetLibraryError("wget error")
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert result.error_count > 0
 
@@ -192,9 +202,9 @@ class TestWgetDownloadAdapterFailedDownloads:
         mock_wget.side_effect = PermissionError("Permission denied")
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert result.error_count > 0
         assert "DRE_2020" in result.failed_downloads
@@ -211,9 +221,9 @@ class TestWgetDownloadAdapterFailedDownloads:
         mock_wget.side_effect = OSError("No space left on device")
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
-        your_path = "/path/to/save"
+        docs_paths = {"DRE": {2020: "/path/to/save/DRE/2020"}}
 
-        result = adapter.download_docs(your_path, dict_zip)
+        result = adapter.download_docs(dict_zip, docs_paths)
 
         assert result.error_count == 1
         assert "DRE_2020" in result.failed_downloads

@@ -13,7 +13,7 @@ adapter3 = WgetDownloadAdapter()
 
 
 start_time = time.time()
-use_case = DownloadDocumentsUseCase(adapter1)
+use_case = DownloadDocumentsUseCase(adapter3)
 result = use_case.execute(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
     list_docs=["DFP", "ITR", "FRE"],

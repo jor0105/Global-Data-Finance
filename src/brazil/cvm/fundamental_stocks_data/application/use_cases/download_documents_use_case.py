@@ -121,10 +121,10 @@ class DownloadDocumentsUseCase:
             new_set_docs=new_set_docs,
             range_years=range_years,
         )
-        verify_paths.execute()
+        docs_paths = verify_paths.execute()
 
         try:
-            result = self.__repository.download_docs(destination_path, dict_urls_zips)
+            result = self.__repository.download_docs(dict_urls_zips, docs_paths)
 
             logger.info(
                 f"Download completed: "

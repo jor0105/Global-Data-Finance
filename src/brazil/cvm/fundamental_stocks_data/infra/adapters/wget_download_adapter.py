@@ -39,9 +39,20 @@ class WgetDownloadAdapter(DownloadDocsCVMRepository):
         logger.debug(f"WgetDownloadAdapter: max_retries={max_retries}")
 
     def download_docs(
-        self, your_path: str, dict_zip_to_download: Dict[str, List[str]]
+        self,
+        dict_zip_to_download: Dict[str, List[str]],
+        docs_paths: Dict[str, Dict[int, str]],
     ) -> DownloadResult:
-        """Download documents sequentially with retry logic."""
+        """Download documents sequentially with retry logic.
+
+        Args:
+            dict_zip_to_download: Dict mapping doc types to URL lists
+            docs_paths: Dict with structure {doc: {year: path}} containing
+                       the specific destination path for each document and year
+
+        Returns:
+            DownloadResult with aggregated success/error information
+        """
         result = DownloadResult()
         total_files = sum(len(urls) for urls in dict_zip_to_download.values())
 
@@ -55,8 +66,15 @@ class WgetDownloadAdapter(DownloadDocsCVMRepository):
         try:
             for doc_name, url_list in dict_zip_to_download.items():
                 for url in url_list:
-                    year = self._extract_year(url)
-                    self._download_with_retry(url, your_path, doc_name, year, result)
+                    year_str = self._extract_year(url)
+                    year_int = int(year_str)
+
+                    # Get the specific path for this document and year
+                    dest_path = docs_paths[doc_name][year_int]
+
+                    self._download_with_retry(
+                        url, dest_path, doc_name, year_str, result
+                    )
                     progress_bar.update(1)
         finally:
             progress_bar.close()
