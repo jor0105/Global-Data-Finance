@@ -1,15 +1,17 @@
-from .exception_network_errors import (
+from .macro_exceptions import (
     DiskFullError,
-    FileNotFoundError,
+    InvalidDestinationPathError,
     NetworkError,
-    PermissionError,
+    PathIsNotDirectoryError,
+    PathPermissionError,
     TimeoutError,
 )
 
 __all__ = [
+    "InvalidDestinationPathError",
+    "PathIsNotDirectoryError",
+    "PathPermissionError",
     "NetworkError",
     "TimeoutError",
-    "PermissionError",
-    "FileNotFoundError",
     "DiskFullError",
 ]

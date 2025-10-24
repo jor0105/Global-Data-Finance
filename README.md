@@ -20,9 +20,9 @@ DataFinance é uma biblioteca modular e extensível que facilita a coleta automa
 ```
 DataFinance/
 ├── src/
-│   ├── brasil/
-│   │   └── dados_cvm/
-│   │       └── dados_fundamentalistas_ações/
+│   ├── brazil/
+│   │   └── cvm/
+│   │       └── fundamental_stocks_data/
 │   │           ├── application/           # Camada de aplicação
 │   │           │   ├── interfaces/        # Interfaces (Repository Pattern)
 │   │           │   └── use_cases/         # Casos de uso (orquestração)
@@ -68,8 +68,8 @@ wget >= 3.2
 ### Exemplo Básico
 
 ```python
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.domain import DictZipsToDownload
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.infra.adapters import WgetDownloadAdapter
+from src.brazil.cvm.fundamental_stocks_data.domain import DictZipsToDownload
+from src.brazil.cvm.fundamental_stocks_data.infra.adapters import WgetDownloadAdapter
 
 # 1. Gerar URLs de download
 dict_generator = DictZipsToDownload()
@@ -159,8 +159,8 @@ brew install aria2
 **Uso**:
 
 ```python
-from src.brazil.dados_cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
-from src.brazil.dados_cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
+from src.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
 
 adapter = Aria2cAdapter(max_concurrent_downloads=16)
 use_case = DownloadDocumentsUseCase(adapter)
@@ -198,7 +198,7 @@ result = use_case.execute(
 ### Validação de Inputs
 
 ```python
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.domain import (
+from src.brazil.cvm.fundamental_stocks_data.domain import (
     AvailableDocs,
     AvailableYears
 )
@@ -218,6 +218,7 @@ print(list(year_range))  # [2020, 2021, 2022, 2023]
 
 ### Tratamento de Erros
 
+````python
 ```python
 from src.macro_exceptions.exception_network_errors import (
     NetworkError,
@@ -225,7 +226,7 @@ from src.macro_exceptions.exception_network_errors import (
     PermissionError,
     DiskFullError
 )
-from src.brasil.dados_cvm.dados_fundamentalistas_ações.exceptions import (
+from src.brazil.cvm.fundamental_stocks_data.exceptions import (
     WgetLibraryError,
     InvalidDocName,
     InvalidFirstYear
@@ -243,9 +244,9 @@ except PermissionError as e:
     print(f"Permissão negada: {e}")
 except DiskFullError as e:
     print(f"Disco cheio: {e}")
-except Exception as e:
-    print(f"Erro desconhecido: {e}")
-```
+````
+
+````
 
 ### Logging
 
@@ -261,7 +262,7 @@ logger.info("Iniciando download de documentos")
 # O adapter registrará automaticamente informações sobre o download
 adapter = WgetDownloadAdapter()
 result = adapter.download_docs(path, dict_zips)
-```
+````
 
 ## Arquitetura
 
@@ -350,7 +351,7 @@ pytest --cov=src
 pytest -m unit
 
 # Apenas um arquivo
-pytest tests/brasil/dados_cvm/dados_fundamentalistas_ações/domain/test_available_docs.py
+pytest tests/brazil/cvm/fundamental_stocks_data/domain/test_available_docs.py
 
 # Com output detalhado
 pytest -v
@@ -360,9 +361,9 @@ pytest -v
 
 ```
 tests/
-├── brasil/
-│   ├── dados_cvm/
-│   │   └── dados_fundamentalistas_ações/
+├── brazil/
+│   ├── cvm/
+│   │   └── fundamental_stocks_data/
 │   │       ├── domain/              # Testes de entidades
 │   │       ├── application/         # Testes de casos de uso
 │   │       ├── exceptions/          # Testes de exceções
@@ -386,7 +387,7 @@ pytest -m "not requires_network"  # Pular testes que precisam de rede
 1. **Criar exceção específica** (se necessário)
 
    ```python
-   # src/brasil/dados_cvm/dados_fundamentalistas_ações/exceptions/
+   # src/brazil/cvm/fundamental_stocks_data/exceptions/
    class MyCustomError(Exception):
        pass
    ```
@@ -394,7 +395,7 @@ pytest -m "not requires_network"  # Pular testes que precisam de rede
 2. **Implementar lógica no domain** (entidades puras)
 
    ```python
-   # src/brasil/dados_cvm/dados_fundamentalistas_ações/domain/
+   # src/brazil/cvm/fundamental_stocks_data/domain/
    class MyEntity:
        pass
    ```
@@ -402,7 +403,7 @@ pytest -m "not requires_network"  # Pular testes que precisam de rede
 3. **Criar interface** (se precisar de múltiplas implementações)
 
    ```python
-   # src/brasil/dados_cvm/dados_fundamentalistas_ações/application/interfaces/
+   # src/brazil/cvm/fundamental_stocks_data/application/interfaces/
    class MyInterface(ABC):
        @abstractmethod
        def my_method(self):
@@ -412,7 +413,7 @@ pytest -m "not requires_network"  # Pular testes que precisam de rede
 4. **Implementar adapter** (infraestrutura)
 
    ```python
-   # src/brasil/dados_cvm/dados_fundamentalistas_ações/infra/adapters/
+   # src/brazil/cvm/fundamental_stocks_data/infra/adapters/
    class MyAdapter(MyInterface):
        def my_method(self):
            pass
@@ -420,7 +421,53 @@ pytest -m "not requires_network"  # Pular testes que precisam de rede
 
 5. **Criar testes** (cobertura completa)
    ```python
-   # tests/brasil/dados_cvm/dados_fundamentalistas_ações/.../
+   # tests/brazil/cvm/fundamental_stocks_data/.../
+   class TestMyFeature:
+       def test_something(self):
+   ```
+
+````
+
+### Adicionar Novas Features
+
+1. **Criar exceção específica** (se necessário)
+
+   ```python
+   # src/brazil/cvm/fundamental_stocks_data/exceptions/
+   class MyCustomError(Exception):
+       pass
+````
+
+2. **Implementar lógica no domain** (entidades puras)
+
+   ```python
+   # src/brazil/cvm/fundamental_stocks_data/domain/
+   class MyEntity:
+       pass
+   ```
+
+3. **Criar interface** (se precisar de múltiplas implementações)
+
+   ```python
+   # src/brazil/cvm/fundamental_stocks_data/application/interfaces/
+   class MyInterface(ABC):
+       @abstractmethod
+       def my_method(self):
+           pass
+   ```
+
+4. **Implementar adapter** (infraestrutura)
+
+   ```python
+   # src/brazil/cvm/fundamental_stocks_data/infra/adapters/
+   class MyAdapter(MyInterface):
+       def my_method(self):
+           pass
+   ```
+
+5. **Criar testes** (cobertura completa)
+   ```python
+   # tests/brazil/cvm/fundamental_stocks_data/.../
    class TestMyFeature:
        def test_something(self):
            pass
