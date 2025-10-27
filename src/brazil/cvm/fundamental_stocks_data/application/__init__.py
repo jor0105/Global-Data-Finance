@@ -1,4 +1,5 @@
-from .interfaces import DownloadDocsCVMRepository
+from .extractors import ParquetExtractor
+from .interfaces import DownloadDocsCVMRepository, FileExtractor
 from .use_cases import (
     DownloadDocumentsUseCase,
     GenerateRangeYearsUseCases,
@@ -10,6 +11,8 @@ from .use_cases import (
 
 __all__ = [
     "DownloadDocsCVMRepository",
+    "FileExtractor",
+    "ParquetExtractor",
     "DownloadDocumentsUseCase",
     "GenerateUrlsUseCase",
     "GenerateRangeYearsUseCases",

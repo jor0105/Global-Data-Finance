@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Dict, Set
 
 from src.brazil.cvm.fundamental_stocks_data.exceptions import EmptyDocumentListError
@@ -42,13 +43,13 @@ class VerifyPathsUseCases:
         # Create subdirectories for each document type
         docs_paths: Dict[str, Dict[int, str]] = {}
         for doc in self.new_set_docs:
-            doc_path = os.path.join(self.destination_path, doc)
+            doc_path = str(Path(self.destination_path) / doc)
             validated_doc_path = self.__validate_and_create_paths(doc_path)
 
             # Create subdirectories for each year within document path
             docs_paths[doc] = {}
             for year in self.range_years:
-                year_path = os.path.join(validated_doc_path, str(year))
+                year_path = str(Path(validated_doc_path) / str(year))
                 validated_year_path = self.__validate_and_create_paths(year_path)
                 docs_paths[doc][year] = validated_year_path
 
@@ -74,22 +75,22 @@ class VerifyPathsUseCases:
         if not path or path.isspace():
             raise InvalidDestinationPathError("path cannot be empty or whitespace")
 
-        normalized_path = os.path.abspath(os.path.expanduser(path))
+        normalized_path = Path(path).expanduser().resolve()
 
-        if os.path.exists(normalized_path):
-            if not os.path.isdir(normalized_path):
-                raise PathIsNotDirectoryError(normalized_path)
+        if normalized_path.exists():
+            if not normalized_path.is_dir():
+                raise PathIsNotDirectoryError(str(normalized_path))
 
-            if not os.access(normalized_path, os.W_OK):
-                raise PathPermissionError(normalized_path)
+            if not os.access(str(normalized_path), os.W_OK):
+                raise PathPermissionError(str(normalized_path))
 
             logger.debug(f"Destination directory already exists: {normalized_path}")
         else:
             try:
-                os.makedirs(normalized_path, exist_ok=True)
+                normalized_path.mkdir(parents=True, exist_ok=True)
                 logger.info(f"Created destination directory: {normalized_path}")
             except PermissionError as e:
-                raise PathPermissionError(normalized_path) from e
+                raise PathPermissionError(str(normalized_path)) from e
             except OSError as e:
                 raise OSError(
                     f"Failed to create directory {normalized_path}: {e}"
@@ -98,4 +99,4 @@ class VerifyPathsUseCases:
         logger.debug(
             f"Princiapl destination path validated and ready: {normalized_path}"
         )
-        return normalized_path
+        return str(normalized_path)

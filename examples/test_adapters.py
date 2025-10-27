@@ -13,11 +13,11 @@ adapter3 = WgetDownloadAdapter()
 
 
 start_time = time.time()
-use_case = DownloadDocumentsUseCase(adapter3)
+use_case = DownloadDocumentsUseCase(adapter2)
 result = use_case.execute(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
     list_docs=["DFP", "ITR", "FRE"],
-    initial_year=2010,
+    initial_year=2020,
     last_year=2023,
 )
 download_time_minutes = (time.time() - start_time) / 60

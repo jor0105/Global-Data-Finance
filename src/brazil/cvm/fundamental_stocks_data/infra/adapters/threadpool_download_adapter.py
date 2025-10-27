@@ -1,26 +1,38 @@
 import logging
-import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from src.brazil.cvm.fundamental_stocks_data.application import DownloadDocsCVMRepository
+from src.brazil.cvm.fundamental_stocks_data.application import (
+    DownloadDocsCVMRepository,
+    FileExtractor,
+)
+from src.brazil.cvm.fundamental_stocks_data.application.extractors import (
+    ParquetExtractor,
+)
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.brazil.cvm.fundamental_stocks_data.utils import (
     RetryStrategy,
     SimpleProgressBar,
 )
+from src.macro_exceptions.macro_exceptions import DiskFullError, ExtractionError
 
 logger = logging.getLogger(__name__)
 
 
 class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
-    """Parallel document downloader using thread pool executor."""
+    """Parallel document downloader using thread pool executor.
+
+    This adapter implements asynchronous download+extraction pipeline where
+    each file is downloaded, extracted, and cleaned up in parallel threads.
+    """
 
     def __init__(
         self,
+        file_extractor: Optional[FileExtractor] = None,
         max_workers: int = 8,
         chunk_size: int = 8192,
         timeout: int = 30,
@@ -29,6 +41,20 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         max_backoff: float = 60.0,
         backoff_multiplier: float = 2.0,
     ):
+        """Initialize the adapter with injected dependencies.
+
+        Args:
+            file_extractor: FileExtractor implementation to use for post-download extraction.
+                          Defaults to ParquetExtractor if not provided.
+            max_workers: Maximum number of parallel download threads
+            chunk_size: Size of chunks for streaming downloads
+            timeout: Request timeout in seconds
+            max_retries: Maximum number of retry attempts for failed downloads
+            initial_backoff: Initial backoff delay in seconds
+            max_backoff: Maximum backoff delay in seconds
+            backoff_multiplier: Multiplier for exponential backoff
+        """
+        self.file_extractor = file_extractor or ParquetExtractor()
         self.max_workers = max_workers
         self.retry_strategy = RetryStrategy(
             initial_backoff=initial_backoff,
@@ -43,7 +69,8 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
         )
 
         logger.debug(
-            f"ThreadPoolDownloadAdapter initialized with {max_workers} workers"
+            f"ThreadPoolDownloadAdapter initialized with {max_workers} workers "
+            f"and {file_extractor.__class__.__name__}"
         )
 
     def download_docs(
@@ -125,24 +152,83 @@ class ThreadPoolDownloadAdapter(DownloadDocsCVMRepository):
                     destination_path,
                     doc_name,
                     year,
-                ): (doc_name, year)
+                ): (url, doc_name, year, destination_path)
                 for url, doc_name, year, destination_path in tasks
             }
 
             for future in as_completed(futures):
-                doc_name, year = futures[future]
+                url, doc_name, year, destination_path = futures[future]
                 try:
                     success, error_msg = future.result()
                     if success:
-                        result.add_success(f"{doc_name}_{year}")
+                        filename = self.file_downloader._get_filename(url)
+                        zip_path = str(Path(destination_path) / filename)
+                        output_dir = destination_path
+
+                        try:
+                            logger.info(f"Starting extraction for {doc_name}_{year}")
+                            # Use injected file_extractor instead of hard-coded Extractor
+                            self.file_extractor.extract(zip_path, output_dir)
+
+                            # Mark as success only after extraction completes
+                            result.add_success(f"{doc_name}_{year}")
+                            logger.info(f"Extraction completed for {doc_name}_{year}")
+
+                            # Clean up ZIP file after successful extraction
+                            self._cleanup_zip_file(zip_path)
+
+                        except DiskFullError as disk_err:
+                            logger.error(
+                                f"Disk full during extraction {zip_path}: {disk_err}"
+                            )
+                            result.add_error(
+                                f"{doc_name}_{year}", f"DiskFull: {disk_err}"
+                            )
+                            # Attempt cleanup of ZIP
+                            self._cleanup_zip_file(zip_path)
+
+                        except ExtractionError as extract_exc:
+                            logger.error(
+                                f"Extraction error for {zip_path}: {extract_exc}"
+                            )
+                            result.add_error(
+                                f"{doc_name}_{year}",
+                                f"Extraction failed: {extract_exc}",
+                            )
+
+                        except Exception as extract_exc:
+                            logger.error(
+                                f"Unexpected extraction error for {zip_path}: "
+                                f"{type(extract_exc).__name__}: {extract_exc}"
+                            )
+                            result.add_error(
+                                f"{doc_name}_{year}",
+                                f"Unexpected extraction error: {extract_exc}",
+                            )
                     else:
                         assert error_msg is not None
                         result.add_error(f"{doc_name}_{year}", error_msg)
+
                 except Exception as e:
-                    logger.error(f"Task failed for {doc_name}_{year}: {e}")
-                    result.add_error(f"{doc_name}_{year}", str(e))
+                    logger.error(
+                        f"Task failed for {doc_name}_{year}: {type(e).__name__}: {e}"
+                    )
+                    result.add_error(f"{doc_name}_{year}", f"Task failed: {str(e)}")
                 finally:
                     progress_bar.update(1)
+
+    @staticmethod
+    def _cleanup_zip_file(zip_path: str) -> None:
+        """Attempt to delete ZIP file after extraction.
+
+        Args:
+            zip_path: Path to ZIP file to delete
+        """
+        try:
+            Path(zip_path).unlink()
+            logger.debug(f"Deleted ZIP file: {zip_path}")
+        except Exception as cleanup_err:
+            logger.warning(f"Failed to delete ZIP file {zip_path}: {cleanup_err}")
 
 
 class SingleFileDownloader:
@@ -185,7 +271,7 @@ class SingleFileDownloader:
             Tuple of (success, error_message)
         """
         filename = self._get_filename(url)
-        filepath = os.path.join(destination_path, filename)
+        filepath = str(Path(destination_path) / filename)
         last_exception: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
@@ -309,8 +395,9 @@ class SingleFileDownloader:
 
     @staticmethod
     def _cleanup_failed_file(filepath: str) -> None:
-        if os.path.exists(filepath):
+        path_obj = Path(filepath)
+        if path_obj.exists():
             try:
-                os.remove(filepath)
+                path_obj.unlink()
             except Exception:
                 pass

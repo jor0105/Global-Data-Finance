@@ -1,11 +1,17 @@
 import logging
-import os
 import time
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import wget  # type: ignore
 
-from src.brazil.cvm.fundamental_stocks_data.application import DownloadDocsCVMRepository
+from src.brazil.cvm.fundamental_stocks_data.application import (
+    DownloadDocsCVMRepository,
+    FileExtractor,
+)
+from src.brazil.cvm.fundamental_stocks_data.application.extractors import (
+    ParquetExtractor,
+)
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.brazil.cvm.fundamental_stocks_data.exceptions import (
     WgetLibraryError,
@@ -16,27 +22,47 @@ from src.brazil.cvm.fundamental_stocks_data.utils import (
     SimpleProgressBar,
 )
 from src.macro_exceptions import PathPermissionError
+from src.macro_exceptions.macro_exceptions import DiskFullError, ExtractionError
 
 logger = logging.getLogger(__name__)
 
 
 class WgetDownloadAdapter(DownloadDocsCVMRepository):
-    """Sequential document downloader using wget with retry logic."""
+    """Sequential document downloader using wget with retry logic.
+
+    This adapter implements sequential download+extraction pipeline where
+    each file is downloaded, extracted, and cleaned up one at a time.
+    """
 
     def __init__(
         self,
+        file_extractor: Optional[FileExtractor] = None,
         max_retries: int = 3,
         initial_backoff: float = 1.0,
         max_backoff: float = 60.0,
         backoff_multiplier: float = 2.0,
     ):
+        """Initialize the adapter with injected dependencies.
+
+        Args:
+            file_extractor: FileExtractor implementation to use for post-download extraction.
+                          Defaults to ParquetExtractor if not provided.
+            max_retries: Maximum number of retry attempts for failed downloads
+            initial_backoff: Initial backoff delay in seconds
+            max_backoff: Maximum backoff delay in seconds
+            backoff_multiplier: Multiplier for exponential backoff
+        """
+        self.file_extractor = file_extractor or ParquetExtractor()
         self.retry_strategy = RetryStrategy(
             initial_backoff=initial_backoff,
             max_backoff=max_backoff,
             multiplier=backoff_multiplier,
         )
         self.max_retries = max_retries
-        logger.debug(f"WgetDownloadAdapter: max_retries={max_retries}")
+        logger.debug(
+            f"WgetDownloadAdapter initialized with max_retries={max_retries} "
+            f"and {file_extractor.__class__.__name__}"
+        )
 
     def download_docs(
         self,
@@ -88,9 +114,9 @@ class WgetDownloadAdapter(DownloadDocsCVMRepository):
     def _download_with_retry(
         self, url: str, dest_path: str, doc_name: str, year: str, result: DownloadResult
     ) -> None:
-        """Download with retry logic."""
+        """Download with retry logic and post-download extraction."""
         filename = self._extract_filename(url)
-        filepath = os.path.join(dest_path, filename)
+        filepath = str(Path(dest_path) / filename)
         last_error: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
@@ -98,14 +124,48 @@ class WgetDownloadAdapter(DownloadDocsCVMRepository):
                 if attempt > 0:
                     backoff = self.retry_strategy.calculate_backoff(attempt - 1)
                     logger.info(
-                        f"Retry {attempt}/{self.max_retries} after {backoff:.1f}s"
+                        f"Retry {attempt}/{self.max_retries} for {doc_name}_{year} "
+                        f"after {backoff:.1f}s"
                     )
                     time.sleep(backoff)
 
                 logger.debug(f"Downloading {doc_name}_{year}")
                 wget.download(url, out=filepath)
                 logger.info(f"Successfully downloaded {doc_name}_{year}")
-                result.add_success(f"{doc_name}_{year}")
+
+                # Extract after successful download
+                try:
+                    logger.info(f"Starting extraction for {doc_name}_{year}")
+                    self.file_extractor.extract(filepath, dest_path)
+
+                    # Mark as success only after extraction completes
+                    result.add_success(f"{doc_name}_{year}")
+                    logger.info(f"Extraction completed for {doc_name}_{year}")
+
+                    # Clean up ZIP file after successful extraction
+                    self._cleanup_zip_file(filepath)
+
+                except DiskFullError as disk_err:
+                    logger.error(f"Disk full during extraction {filepath}: {disk_err}")
+                    result.add_error(f"{doc_name}_{year}", f"DiskFull: {disk_err}")
+                    self._cleanup_zip_file(filepath)
+
+                except ExtractionError as extract_exc:
+                    logger.error(f"Extraction error for {filepath}: {extract_exc}")
+                    result.add_error(
+                        f"{doc_name}_{year}", f"Extraction failed: {extract_exc}"
+                    )
+
+                except Exception as extract_exc:
+                    logger.error(
+                        f"Unexpected extraction error for {filepath}: "
+                        f"{type(extract_exc).__name__}: {extract_exc}"
+                    )
+                    result.add_error(
+                        f"{doc_name}_{year}",
+                        f"Unexpected extraction error: {extract_exc}",
+                    )
+
                 return
 
             except WgetValueError as e:
@@ -170,7 +230,21 @@ class WgetDownloadAdapter(DownloadDocsCVMRepository):
     def _cleanup_file(filepath: str) -> None:
         """Remove file on failure."""
         try:
-            if os.path.exists(filepath):
-                os.remove(filepath)
+            path_obj = Path(filepath)
+            if path_obj.exists():
+                path_obj.unlink()
         except Exception:
             pass
+
+    @staticmethod
+    def _cleanup_zip_file(zip_path: str) -> None:
+        """Attempt to delete ZIP file after extraction.
+
+        Args:
+            zip_path: Path to ZIP file to delete
+        """
+        try:
+            Path(zip_path).unlink()
+            logger.debug(f"Deleted ZIP file: {zip_path}")
+        except Exception as cleanup_err:
+            logger.warning(f"Failed to delete ZIP file {zip_path}: {cleanup_err}")
