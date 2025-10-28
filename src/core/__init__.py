@@ -3,6 +3,6 @@
 This module contains shared configurations, utilities and cross-cutting concerns.
 """
 
-from .config import settings
+from .config import settings, setup_logging
 
-__all__ = ["settings"]
+__all__ = ["settings", "setup_logging"]

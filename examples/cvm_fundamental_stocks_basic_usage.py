@@ -2,6 +2,11 @@ import time
 
 from src.presentation import FundamentalStocksData
 
+# OPCIONAL: Descomente a linha abaixo se quiser ver mensagens de log
+# from src.core import setup_logging
+# setup_logging(level="INFO")
+
+
 cvm = FundamentalStocksData()
 
 docs = cvm.get_available_docs()
