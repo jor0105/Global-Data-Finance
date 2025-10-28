@@ -639,7 +639,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
         assert result.error_count == 0
 
     def test_download_docs_all_success(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -668,7 +674,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
             assert result.error_count == 0
 
     def test_download_docs_partial_failure(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -697,7 +709,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
             assert result.error_count == 1
 
     def test_download_docs_all_failure(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -724,7 +742,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
             assert result.error_count == 2
 
     def test_download_docs_multiple_documents(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=4)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=4, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -751,7 +775,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
             assert result.error_count == 0
 
     def test_download_docs_with_many_files(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=4)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=4, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             years = list(range(2010, 2025))
@@ -774,7 +804,13 @@ class TestThreadPoolDownloadAdapterDownloadDocs:
             assert result.error_count == 0
 
     def test_download_docs_result_accumulation(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -911,7 +947,13 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
             assert result.error_count == 1
 
     def test_download_docs_mixed_errors_and_success(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=4)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=4, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -949,7 +991,11 @@ class TestThreadPoolDownloadAdapterExceptionHandling:
 @pytest.mark.unit
 class TestThreadPoolDownloadAdapterProgressBar:
     def test_progress_bar_initialization(self):
-        adapter = ThreadPoolDownloadAdapter()
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(file_extractor=mock_extractor)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {"DRE": ["https://example.com/dre_2023.zip"]}
@@ -967,7 +1013,13 @@ class TestThreadPoolDownloadAdapterProgressBar:
                     mock_progress.assert_called_once()
 
     def test_progress_bar_update_called(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=1)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=1, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -1001,7 +1053,13 @@ class TestThreadPoolDownloadAdapterProgressBar:
 @pytest.mark.unit
 class TestThreadPoolDownloadAdapterIntegration:
     def test_full_download_workflow_success(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {
@@ -1033,7 +1091,13 @@ class TestThreadPoolDownloadAdapterIntegration:
             assert len(result.successful_downloads) == 3
 
     def test_full_download_workflow_with_retries(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=1, max_retries=2)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=1, max_retries=2, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {"DRE": ["https://example.com/dre_2023.zip"]}
@@ -1051,7 +1115,13 @@ class TestThreadPoolDownloadAdapterIntegration:
             assert result.success_count == 1
 
     def test_large_batch_download(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=4)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=4, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             years_dre = list(range(2010, 2025))
@@ -1082,7 +1152,13 @@ class TestThreadPoolDownloadAdapterIntegration:
             assert result.error_count == 0
 
     def test_result_accumulation_over_time(self):
-        adapter = ThreadPoolDownloadAdapter(max_workers=1)
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = Mock(return_value=None)
+
+        adapter = ThreadPoolDownloadAdapter(
+            max_workers=1, file_extractor=mock_extractor
+        )
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dict_zip = {

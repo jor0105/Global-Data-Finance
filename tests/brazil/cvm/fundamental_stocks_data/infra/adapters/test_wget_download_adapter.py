@@ -41,7 +41,11 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
     def test_download_single_document_single_year(self, mock_wget, mock_progress):
-        adapter = WgetDownloadAdapter()
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = MagicMock(return_value=None)
+
+        adapter = WgetDownloadAdapter(file_extractor=mock_extractor)
         mock_progress.return_value = MagicMock()
 
         dict_zip = {"DRE": ["https://example.com/DRE_2020.zip"]}
@@ -61,7 +65,11 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
     def test_download_single_document_multiple_years(self, mock_wget, mock_progress):
-        adapter = WgetDownloadAdapter()
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = MagicMock(return_value=None)
+
+        adapter = WgetDownloadAdapter(file_extractor=mock_extractor)
         mock_progress.return_value = MagicMock()
 
         dict_zip = {
@@ -93,7 +101,11 @@ class TestWgetDownloadAdapterSuccessfulDownloads:
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.wget_download_adapter.wget.download"
     )
     def test_download_multiple_documents_single_year(self, mock_wget, mock_progress):
-        adapter = WgetDownloadAdapter()
+        # Create a mock extractor that does nothing (no extraction)
+        mock_extractor = MagicMock()
+        mock_extractor.extract = MagicMock(return_value=None)
+
+        adapter = WgetDownloadAdapter(file_extractor=mock_extractor)
         mock_progress.return_value = MagicMock()
 
         dict_zip = {

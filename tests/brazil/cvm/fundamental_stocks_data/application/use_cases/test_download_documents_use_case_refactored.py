@@ -17,12 +17,14 @@ from src.macro_exceptions import InvalidDestinationPathError
 class MockRepository(DownloadDocsCVMRepository):
     def __init__(self):
         self.download_docs_called = False
-        self.last_path = None
+        self.last_docs_paths = None
         self.last_dict_zips = None
 
-    def download_docs(self, path: str, dict_zip_to_download: dict) -> DownloadResult:
+    def download_docs(
+        self, dict_zip_to_download: dict, docs_paths: dict
+    ) -> DownloadResult:
         self.download_docs_called = True
-        self.last_path = path
+        self.last_docs_paths = docs_paths
         self.last_dict_zips = dict_zip_to_download
 
         return DownloadResult(successful_downloads=["DFP_2020", "DFP_2021"])
@@ -43,7 +45,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         # Repository should be called
         assert mock_repo.download_docs_called
-        assert mock_repo.last_path == str(tmp_path)
+        assert mock_repo.last_docs_paths is not None
         assert isinstance(mock_repo.last_dict_zips, dict)
 
     def test_orchestrator_passes_validated_data_to_repository(self, tmp_path):
@@ -322,7 +324,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
         assert isinstance(result, DownloadResult)
 
         # Repository should receive correct data
-        assert mock_repo.last_path == str(tmp_path)
+        assert mock_repo.last_docs_paths is not None
         assert "DFP" in mock_repo.last_dict_zips
         assert len(mock_repo.last_dict_zips["DFP"]) == 2  # 2022, 2023
 
