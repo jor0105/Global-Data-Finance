@@ -1,5 +1,5 @@
-- deixa codigo em pt-br
-- Tirar obrigatoriedade de extrair arquivos e somente baixar os arquivos zips do dados da cvm
+- deixa codigo em ingles
+- arrumar testes
 
 ### 6. **Logging Strategy Precisa Evolução**
 

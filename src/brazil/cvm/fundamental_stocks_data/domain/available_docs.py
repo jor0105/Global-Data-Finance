@@ -14,13 +14,13 @@ class AvailableDocs:
     """
 
     __DICT_AVAILABLE_DOCS: Dict[str, str] = {
-        "CGVN": "(Informe do Código de Governança) informações sobre práticas de governança corporativa adotadas pela companhia, políticas e indicadores.",
-        "FRE": "(Formulário de Referência) documento cadastral e descritivo amplo sobre a companhia (atividades, estrutura, administração, remuneração, auditoria).",
-        "FCA": "(Formulário Cadastral) dados cadastrais básicos e atualizações da companhia (CNPJ, razão social, endereço, situação cadastral, segmento, código CVM).",
-        "DFP": "(Demonstrações Financeiras Padronizadas) demonstrações financeiras anuais padronizadas (BP, DRE, DFC, MPA, notas).",
-        "ITR": "(Informações Trimestrais) demonstrações e notas trimestrais padronizadas para análises intra-ano.",
-        "IPE": "(Documentos periódicos e eventuais) documentos não totalmente estruturados como atas, comunicados, laudos e relatórios, com metadados e links.",
-        "VLMO": "(Valores Mobiliários) informações sobre valores mobiliários negociados e detidos relacionados à companhia (posições, quantidades e valores).",
+        "CGVN": "(Informe do Código de Governança) documento periódico que registra informações sobre adesão/compatibilidade às práticas do Código de Governança de Companhias Abertas — estrutura de governança, comitês, políticas e indicadores relevantes.",
+        "FRE": "(Formulário de Referência) documento eletrônico (periódico/eventual) que reúne informações cadastrais e descritivas exigidas pela CVM: atividades, fatores de risco, estrutura societária e de capital, administração, políticas de remuneração, informações sobre valores mobiliários, auditoria e demais divulgações regulatórias.",
+        "FCA": "(Formulário Cadastral) formulário eletrônico (periódico/eventual) com os dados cadastrais oficiais da companhia e suas atualizações: identificação (CNPJ, razão social), endereço, situação cadastral, segmento, códigos identificadores e informações de registro/contato.",
+        "DFP": "(Demonstrações Financeiras Padronizadas) formulário eletrônico periódico (relativo ao exercício social encerrado) com as demonstrações financeiras padronizadas exigidas pela CVM: Balanço Patrimonial (BPA/BPP), Demonstração do Resultado (DRE), Demonstração dos Fluxos de Caixa (DFC — métodos direto/indireto conforme aplicável), Demonstração do Valor Adicionado (DVA), notas explicativas, relatório do auditor independente e anexos padronizados.",
+        "ITR": "(Informações Trimestrais) formulário eletrônico periódico com as demonstrações e divulgações relativas a cada trimestre — BPA/BPP, DRE, DFC (quando aplicável), e notas/divulgações trimestrais exigidas pela regulamentação aplicável.",
+        "IPE": "(Periódicos e Eventuais) conjunto de documentos não-estruturados (atas, fatos relevantes, comunicados, laudos, prospectos, ofícios etc.) disponibilizados com metadados e link/arquivo; formato e conteúdo variam conforme o tipo de documento.",
+        "VLMO": "(Valores Mobiliários Negociados e Detidos) informes periódicos sobre valores mobiliários vinculados à companhia (operações, quantidades, posições, custódia e informações correlatas) disponibilizados como conjunto de dados no Portal Dados Abertos da CVM.",
     }
 
     def get_available_docs(self) -> Dict[str, str]:
@@ -113,7 +113,7 @@ class UrlDocs:
         for doc in list_docs:
             self.__available_docs.validate_docs_name(doc)
 
-            doc_key = doc.upper()
+            doc_key = doc.strip().upper()
             if doc_key not in self.__dict_url_docs:
                 raise ValueError(f"No URL available for doc '{doc}'")
 

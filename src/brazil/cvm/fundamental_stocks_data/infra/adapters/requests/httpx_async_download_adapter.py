@@ -199,6 +199,8 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
                     f"{doc_name}_{year}",
                     f"Unexpected extraction error: {extract_exc}",
                 )
+        elif success:
+            result.add_success_downloads(f"{doc_name}_{year}")
         else:
             result.add_error_downloads(
                 f"{doc_name}_{year}", error_msg or "Unknown error"

@@ -89,8 +89,7 @@ class FundamentalStocksData:
         # Initialize with ParquetExtractor and automatic_extractor=False by default
         # automatic_extractor can be overridden per download call
         self.download_adapter = HttpxAsyncDownloadAdapter(
-            file_extractor_repository=ParquetExtractor(),
-            automatic_extractor=False,
+            file_extractor_repository=ParquetExtractor()
         )
         self.__download_use_case = DownloadDocumentsUseCase(self.download_adapter)
         self.__available_docs_use_case = GetAvailableDocsUseCase()
@@ -180,13 +179,12 @@ class FundamentalStocksData:
             self.download_adapter.automatic_extractor = True
             logger.debug("Automatic extractor enabled for this download")
         else:
-            self.download_adapter.automatic_extractor = False
             logger.debug("Automatic extractor disabled for this download")
 
         logger.info(
             f"Download requested: path={destination_path}, "
             f"docs={list_docs}, years={initial_year}-{last_year}, "
-            f"auto_extract={automatic_extractor or self.download_adapter.automatic_extractor}"
+            f"auto_extract={automatic_extractor}"
         )
 
         result = self.__download_use_case.execute(

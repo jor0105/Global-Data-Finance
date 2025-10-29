@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Dict, Set
 
+from src.brazil.cvm.fundamental_stocks_data.domain import AvailableYears
 from src.brazil.cvm.fundamental_stocks_data.exceptions import EmptyDocumentListError
 from src.macro_exceptions import (
     InvalidDestinationPathError,
@@ -20,10 +21,10 @@ class VerifyPathsUseCases:
         new_set_docs: Set[str],
         range_years: range,
     ):
-        verify_destination_path = self.__validate_and_create_paths(destination_path)
-        self.destination_path = verify_destination_path
+        self.destination_path = destination_path
         self.new_set_docs = new_set_docs
         self.range_years = range_years
+        self.__available_years = AvailableYears()
 
         if not new_set_docs:
             raise EmptyDocumentListError()
@@ -49,6 +50,15 @@ class VerifyPathsUseCases:
             # Create subdirectories for each year within document path
             docs_paths[doc] = {}
             for year in self.range_years:
+                is_valid = self.__is_valid_year_for_doc(doc, year)
+                logger.debug(
+                    f"Checking doc={doc!r}, year={year}, is_valid={is_valid}, doc.upper()={doc.upper()!r}"
+                )
+                if not is_valid:
+                    logger.debug(
+                        f"Skipping folder for doc={doc}, year={year} (invalid year for this document)"
+                    )
+                    continue
                 year_path = str(Path(validated_doc_path) / str(year))
                 validated_year_path = self.__validate_and_create_paths(year_path)
                 docs_paths[doc][year] = validated_year_path
@@ -56,12 +66,34 @@ class VerifyPathsUseCases:
         logger.info(
             f"Directory structure created successfully. "
             f"Documents: {len(docs_paths)}, "
-            f"Years per document: {len(self.range_years)}"
+            f"Years per document: {[len(years) for years in docs_paths.values()]}"
         )
 
         print("Folders for installation checked/created. Starting installations...")
 
         return docs_paths
+
+    def __is_valid_year_for_doc(self, doc: str, year: int) -> bool:
+        doc_upper = doc.upper()
+        min_itr = self.__available_years.get_minimal_itr_year()
+        min_cgvn_vlmo = self.__available_years.get_minimal_cgvn_vlmo_year()
+        min_geral = self.__available_years.get_minimal_geral_year()
+
+        logger.debug(
+            f"Validating: doc={doc!r}, doc_upper={doc_upper!r}, year={year}, min_itr={min_itr}, min_cgvn_vlmo={min_cgvn_vlmo}, min_geral={min_geral}"
+        )
+
+        if doc_upper == "ITR":
+            result = year >= min_itr
+            logger.debug(f"ITR check: {year} >= {min_itr} = {result}")
+            return result
+        if doc_upper in {"VLMO", "CGVN"}:
+            result = year >= min_cgvn_vlmo
+            logger.debug(f"VLMO/CGVN check: {year} >= {min_cgvn_vlmo} = {result}")
+            return result
+        result = year >= min_geral
+        logger.debug(f"General check: {year} >= {min_geral} = {result}")
+        return result
 
     @staticmethod
     def __validate_and_create_paths(path: str) -> str:
@@ -96,7 +128,5 @@ class VerifyPathsUseCases:
                     f"Failed to create directory {normalized_path}: {e}"
                 ) from e
 
-        logger.debug(
-            f"Princiapl destination path validated and ready: {normalized_path}"
-        )
+        logger.debug(f"Destination path validated and ready: {normalized_path}")
         return str(normalized_path)
