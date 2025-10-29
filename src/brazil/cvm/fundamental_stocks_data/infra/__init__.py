@@ -1,7 +1,6 @@
-from .adapters import HttpxAsyncDownloadAdapter, WgetDownloadAdapter
+from .adapters import HttpxAsyncDownloadAdapter, ParquetExtractor
 
 __all__ = [
-    "WgetDownloadAdapter",
-    "HttpxAsyncDownloadAdapter",
+    "ParquetExtractor",
     "HttpxAsyncDownloadAdapter",
 ]

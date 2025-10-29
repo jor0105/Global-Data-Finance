@@ -35,7 +35,10 @@ class InvalidTypeDoc(Exception):
 
 
 class EmptyDocumentListError(Exception):
-    """Exception raised when document list is empty."""
-
     def __init__(self, message: str = "Document list cannot be empty."):
         super().__init__(message)
+
+
+class MissingDownloadUrlError(Exception):
+    def __init__(self, doc_name: str):
+        super().__init__(f"No download URL found for document: {doc_name}")

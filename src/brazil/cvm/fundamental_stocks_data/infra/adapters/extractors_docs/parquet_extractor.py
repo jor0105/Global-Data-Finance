@@ -3,13 +3,13 @@ import logging
 from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
     FileExtractorRepository,
 )
-from src.core.extraction import Extractor
-from src.macro_exceptions.macro_exceptions import (
+from src.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     ExtractionError,
     InvalidDestinationPathError,
 )
+from src.macro_infra import Extractor
 
 logger = logging.getLogger(__name__)
 

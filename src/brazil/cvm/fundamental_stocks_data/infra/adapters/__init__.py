@@ -1,9 +1,7 @@
-from .httpx_async_download_adapter import HttpxAsyncDownloadAdapter
-from .threadpool_download_adapter import HttpxAsyncDownloadAdapter
-from .wget_download_adapter import WgetDownloadAdapter
+from .extractors_docs import ParquetExtractor
+from .requests import HttpxAsyncDownloadAdapter
 
 __all__ = [
-    "WgetDownloadAdapter",
-    "HttpxAsyncDownloadAdapter",
+    "ParquetExtractor",
     "HttpxAsyncDownloadAdapter",
 ]

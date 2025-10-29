@@ -5,8 +5,8 @@ from .exceptions_domain import (
     InvalidLastYear,
     InvalidRepositoryTypeError,
     InvalidTypeDoc,
+    MissingDownloadUrlError,
 )
-from .exceptions_infra import WgetLibraryError, WgetValueError
 
 __all__ = [
     "InvalidFirstYear",
@@ -15,6 +15,5 @@ __all__ = [
     "InvalidTypeDoc",
     "InvalidRepositoryTypeError",
     "EmptyDocumentListError",
-    "WgetLibraryError",
-    "WgetValueError",
+    "MissingDownloadUrlError",
 ]

@@ -1,8 +1,6 @@
 import pytest
 
-from src.macro_exceptions.macro_exceptions import DiskFullError, NetworkError
-from src.macro_exceptions.macro_exceptions import PathPermissionError as PermissionError
-from src.macro_exceptions.macro_exceptions import TimeoutError
+from src.macro_exceptions import DiskFullError, NetworkError, TimeoutError
 
 
 class TestNetworkError:

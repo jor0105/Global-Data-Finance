@@ -1,5 +1,8 @@
 from .macro_exceptions import (
+    CorruptedZipError,
     DiskFullError,
+    DownloadExtractionError,
+    ExtractionError,
     InvalidDestinationPathError,
     NetworkError,
     PathIsNotDirectoryError,
@@ -14,4 +17,7 @@ __all__ = [
     "NetworkError",
     "TimeoutError",
     "DiskFullError",
+    "ExtractionError",
+    "CorruptedZipError",
+    "DownloadExtractionError",
 ]

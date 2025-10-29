@@ -1,8 +1,11 @@
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
-from src.brazil.cvm.fundamental_stocks_data.exceptions import InvalidRepositoryTypeError
+from src.brazil.cvm.fundamental_stocks_data.exceptions import (
+    InvalidRepositoryTypeError,
+    MissingDownloadUrlError,
+)
 
 from ..interfaces import DownloadDocsCVMRepository
 from .generate_range_years_use_cases import GenerateRangeYearsUseCases
@@ -124,7 +127,8 @@ class DownloadDocumentsUseCase:
         docs_paths = verify_paths.execute()
 
         try:
-            result = self.__repository.download_docs(dict_urls_zips, docs_paths)
+            tasks = self.__prepare_download_tasks(dict_urls_zips, docs_paths)
+            result = self.__repository.download_docs(tasks)
 
             logger.info(
                 f"Download completed: "
@@ -151,3 +155,41 @@ class DownloadDocumentsUseCase:
         except Exception as e:
             logger.error(f"Download execution failed: {e}", exc_info=True)
             raise
+
+    def __prepare_download_tasks(
+        self,
+        dict_zip_to_download: Dict[str, List[str]],
+        docs_paths: Dict[str, Dict[int, str]],
+    ) -> List[Tuple[str, str, str, str]]:
+        """
+        Prepares download tasks from the input dictionaries.
+
+        Uses the years from docs_paths as the single source of truth,
+        and matches them with the corresponding URLs.
+
+        Returns:
+            List of tuples (url, doc_name, year, destination_path)
+        """
+        tasks = []
+        for doc_name, years_dict in docs_paths.items():
+            if doc_name not in dict_zip_to_download:
+                raise MissingDownloadUrlError(doc_name)
+
+            url_list = dict_zip_to_download[doc_name]
+
+            for year_int, destination_path in years_dict.items():
+                year_str = str(year_int)
+                matching_url = None
+                for url in url_list:
+                    if year_str in url:
+                        matching_url = url
+                        break
+
+                if matching_url:
+                    tasks.append((matching_url, doc_name, year_str, destination_path))
+                else:
+                    logger.warning(
+                        f"No URL found for {doc_name}_{year_str} in dict_zip_to_download"
+                    )
+
+        return tasks

@@ -6,7 +6,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from src.macro_exceptions.macro_exceptions import (
+from src.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     ExtractionError,

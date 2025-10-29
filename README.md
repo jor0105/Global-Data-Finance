@@ -220,7 +220,7 @@ print(list(year_range))  # [2020, 2021, 2022, 2023]
 
 ````python
 ```python
-from src.macro_exceptions.exception_network_errors import (
+from src.macro_exceptions import (
     NetworkError,
     TimeoutError,
     PermissionError,

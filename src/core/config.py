@@ -15,10 +15,13 @@ Example:
 """
 
 import logging
+from pathlib import Path
 from typing import Literal, Optional, cast
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class LoggingSettings(BaseSettings):
@@ -176,3 +179,29 @@ def setup_logging(
         settings.logging.structured = structured
 
     settings.configure_logging()
+
+
+def remove_file(filepath: str, log_on_error: bool = True) -> None:
+    """
+    Remove a file from disk safely.
+
+    This is a utility function that removes any file from disk,
+    with optional logging on errors. Handles missing files gracefully.
+
+    Args:
+        filepath: Path to the file to remove
+        log_on_error: If True, logs warnings when file deletion fails
+
+    Example:
+        >>> from src.core.config import remove_file
+        >>> remove_file("/path/to/file.zip")
+    """
+    try:
+        path_obj = Path(filepath)
+        if path_obj.exists():
+            path_obj.unlink()
+            logger.debug(f"Removed file: {filepath}")
+    except Exception as e:
+        if log_on_error:
+            logger.warning(f"Failed to remove file {filepath}: {e}")
+        pass

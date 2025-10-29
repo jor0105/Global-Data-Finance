@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Set, Tuple
 
-from ..exceptions.exceptions_domain import InvalidDocName, InvalidTypeDoc
+from ..exceptions import InvalidDocName, InvalidTypeDoc
 
 
 class AvailableDocs:

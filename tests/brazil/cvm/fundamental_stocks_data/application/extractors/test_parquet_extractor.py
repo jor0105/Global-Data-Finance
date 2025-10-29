@@ -11,7 +11,7 @@ from src.brazil.cvm.fundamental_stocks_data.application.extractors import (
 from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
     FileExtractorRepository,
 )
-from src.macro_exceptions.macro_exceptions import (
+from src.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     ExtractionError,

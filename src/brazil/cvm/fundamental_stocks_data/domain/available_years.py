@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from ..exceptions.exceptions_domain import InvalidFirstYear, InvalidLastYear
+from ..exceptions import InvalidFirstYear, InvalidLastYear
 
 
 class AvailableYears:

@@ -35,8 +35,10 @@ from src.brazil.cvm.fundamental_stocks_data import (
     GetAvailableDocsUseCase,
     GetAvailableYearsUseCase,
     HttpxAsyncDownloadAdapter,
+    ParquetExtractor,
 )
-from src.presentation.cvm_docs.download_result_formatter import DownloadResultFormatter
+
+from .download_result_formatter import DownloadResultFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -79,14 +81,25 @@ class FundamentalStocksData:
     """
 
     def __init__(self):
-        self.download_adapter = HttpxAsyncDownloadAdapter()
-        self.__download_use_case = DownloadDocumentsUseCase(self._download_adapter)
+        """Initialize the FundamentalStocksData client.
+
+        The automatic_extractor option can be passed per download call.
+        See download() method for details.
+        """
+        # Initialize with ParquetExtractor and automatic_extractor=False by default
+        # automatic_extractor can be overridden per download call
+        self.download_adapter = HttpxAsyncDownloadAdapter(
+            file_extractor_repository=ParquetExtractor(),
+            automatic_extractor=False,
+        )
+        self.__download_use_case = DownloadDocumentsUseCase(self.download_adapter)
         self.__available_docs_use_case = GetAvailableDocsUseCase()
         self.__available_years_use_case = GetAvailableYearsUseCase()
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
-            "FundamentalStocksData client initialized with HttpxAsyncDownloadAdapter"
+            "FundamentalStocksData client initialized with HttpxAsyncDownloadAdapter "
+            "(automatic_extractor can be set per download call)"
         )
 
     def download(
@@ -95,6 +108,7 @@ class FundamentalStocksData:
         list_docs: Optional[List[str]] = None,
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
+        automatic_extractor: bool = False,
     ) -> None:
         """Download CVM financial documents to a specified location.
 
@@ -102,6 +116,7 @@ class FundamentalStocksData:
         - Creating the destination directory if needed
         - Validating document types and year ranges
         - Downloading all requested documents with automatic retry
+        - Optionally extracting downloaded files to Parquet format
         - Providing organized and easy-to-understand result display
 
         Args:
@@ -118,6 +133,10 @@ class FundamentalStocksData:
             last_year: Ending year for downloads (inclusive).
                      If None, uses the current year.
                      Example: 2023
+            automatic_extractor: If True, automatically extracts downloaded ZIP files
+                                to Parquet format. If False or None, keeps ZIP files.
+                                Default: False (keeps original ZIP files)
+                                Example: True
 
         Returns:
             DownloadResult object containing:
@@ -137,27 +156,37 @@ class FundamentalStocksData:
         Example:
             >>> cvm = FundamentalStocksData()
             >>>
-            >>> # Download all document types from 2022 onwards
+            >>> # Download documents without extraction (padrão)
             >>> result = cvm.download(
             ...     destination_path="/home/user/cvm_data",
             ...     initial_year=2022
             ... )
             >>>
-            >>> # Download specific documents for a year range
+            >>> # Download specific documents WITH extraction to Parquet
             >>> result = cvm.download(
             ...     destination_path="/home/user/dfp_data",
             ...     list_docs=["DFP"],
             ...     initial_year=2020,
-            ...     last_year=2023
+            ...     last_year=2023,
+            ...     automatic_extractor=True
             ... )
             >>>
             >>> # Check results programmatically
             >>> if result.error_count_downloads > 0:
             ...     print(f"Some downloads failed: {result.failed_downloads}")
         """
+        # Override automatic_extractor if explicitly provided
+        if automatic_extractor:
+            self.download_adapter.automatic_extractor = True
+            logger.debug("Automatic extractor enabled for this download")
+        else:
+            self.download_adapter.automatic_extractor = False
+            logger.debug("Automatic extractor disabled for this download")
+
         logger.info(
             f"Download requested: path={destination_path}, "
-            f"docs={list_docs}, years={initial_year}-{last_year}"
+            f"docs={list_docs}, years={initial_year}-{last_year}, "
+            f"auto_extract={automatic_extractor or self.download_adapter.automatic_extractor}"
         )
 
         result = self.__download_use_case.execute(

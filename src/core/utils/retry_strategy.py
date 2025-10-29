@@ -1,8 +1,6 @@
-"""Retry strategy with exponential backoff for handling transient failures."""
-
 import requests
 
-from src.macro_exceptions.macro_exceptions import (
+from src.macro_exceptions import (
     DiskFullError,
     NetworkError,
     PathPermissionError,
