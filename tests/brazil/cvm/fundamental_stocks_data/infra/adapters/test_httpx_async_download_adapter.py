@@ -122,8 +122,8 @@ class TestHttpxAsyncDownloadAdapterDownloadDocs:
         result = adapter.download_docs({}, {})
 
         assert isinstance(result, DownloadResult)
-        assert result.success_count == 0
-        assert result.error_count == 0
+        assert result.success_count_downloads == 0
+        assert result.error_count_downloads == 0
 
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.httpx_async_download_adapter.SimpleProgressBar"
@@ -136,7 +136,7 @@ class TestHttpxAsyncDownloadAdapterDownloadDocs:
         mock_extractor = MagicMock()
         mock_extractor.extract = MagicMock(return_value=None)
 
-        adapter = HttpxAsyncDownloadAdapter(file_extractor=mock_extractor)
+        adapter = HttpxAsyncDownloadAdapter(file_extractor_repository=mock_extractor)
         mock_progress.return_value = MagicMock()
 
         dict_zip = {"DRE": ["https://example.com/dre_2023.zip"]}

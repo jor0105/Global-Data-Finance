@@ -119,7 +119,7 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
                 result = DownloadResult()
                 for doc_type, urls in dict_zip_to_download.items():
                     for idx, url in enumerate(urls):
-                        result.add_success(f"{doc_type}_file_{idx}")
+                        result.add_success_downloads(f"{doc_type}_file_{idx}")
                 return result
 
         repository = SuccessRepository()
@@ -128,8 +128,8 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 
         result = repository.download_docs(dict_zip, docs_paths)
 
-        assert result.success_count == 3
-        assert result.error_count == 0
+        assert result.success_count_downloads == 3
+        assert result.error_count_downloads == 0
 
     def test_repository_with_errors(self):
         class ErrorRepository(DownloadDocsCVMRepository):
@@ -139,7 +139,7 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
                 docs_paths: Dict[str, Dict[int, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
-                result.add_error("DFP_2020", "Connection timeout")
+                result.add_error_downloads("DFP_2020", "Connection timeout")
                 return result
 
         repository = ErrorRepository()
@@ -148,7 +148,7 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 
         result = repository.download_docs(dict_zip, docs_paths)
 
-        assert result.error_count == 1
+        assert result.error_count_downloads == 1
         assert "DFP_2020" in result.failed_downloads
 
     def test_repository_can_raise_exceptions(self):
@@ -246,9 +246,9 @@ class TestDownloadDocsCVMRepositoryReturnType:
                 docs_paths: Dict[str, Dict[int, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
-                result.add_success("DFP_2020")
-                result.add_success("DFP_2021")
-                result.add_error("ITR_2020", "Error message")
+                result.add_success_downloads("DFP_2020")
+                result.add_success_downloads("DFP_2021")
+                result.add_error_downloads("ITR_2020", "Error message")
                 return result
 
         repository = PopulatedRepository()
@@ -257,8 +257,8 @@ class TestDownloadDocsCVMRepositoryReturnType:
             {"DFP": {2020: "/path", 2021: "/path"}, "ITR": {2020: "/path"}},
         )
 
-        assert result.success_count == 2
-        assert result.error_count == 1
+        assert result.success_count_downloads == 2
+        assert result.error_count_downloads == 1
 
 
 @pytest.mark.unit
@@ -347,7 +347,7 @@ class TestDownloadDocsCVMRepositoryEdgeCases:
         result = repository.download_docs({}, {})
 
         assert isinstance(result, DownloadResult)
-        assert result.success_count == 0
+        assert result.success_count_downloads == 0
 
     def test_repository_with_many_documents(self):
         class ManyDocsRepository(DownloadDocsCVMRepository):
@@ -359,7 +359,7 @@ class TestDownloadDocsCVMRepositoryEdgeCases:
                 result = DownloadResult()
                 for doc_type, urls in dict_zip_to_download.items():
                     for idx, _ in enumerate(urls):
-                        result.add_success(f"{doc_type}_file_{idx}")
+                        result.add_success_downloads(f"{doc_type}_file_{idx}")
                 return result
 
         repository = ManyDocsRepository()
@@ -376,4 +376,4 @@ class TestDownloadDocsCVMRepositoryEdgeCases:
 
         result = repository.download_docs(dict_zip, docs_paths)
 
-        assert result.success_count == 6
+        assert result.success_count_downloads == 6

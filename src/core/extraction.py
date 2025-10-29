@@ -17,11 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class Extractor:
-    CHUNK_SIZE = 50000
-    MAX_RETRIES = 2
-
     @staticmethod
-    def extract_zip_to_parquet(zip_path: str, output_dir: str) -> None:
+    def extract_zip_to_parquet(chunk_size: int, zip_path: str, output_dir: str) -> None:
         """Extract CSV files from ZIP and save as Parquet with memory optimization.
 
         Args:
@@ -70,7 +67,9 @@ class Extractor:
 
                 for csv_filename in csv_files:
                     try:
-                        Extractor._extract_single_csv(z, csv_filename, output_dir)
+                        Extractor._extract_single_csv(
+                            chunk_size, z, csv_filename, output_dir
+                        )
                         extracted_count += 1
                     except DiskFullError:
                         raise  # Re-raise disk full errors immediately
@@ -106,7 +105,7 @@ class Extractor:
 
     @staticmethod
     def _extract_single_csv(
-        zip_file: zipfile.ZipFile, csv_filename: str, output_dir: str
+        chunk_size: int, zip_file: zipfile.ZipFile, csv_filename: str, output_dir: str
     ) -> None:
         """Extract a single CSV file from ZIP and convert to Parquet.
 
@@ -164,8 +163,8 @@ class Extractor:
 
             # Process data in chunks for memory optimization
             first_chunk = True
-            for chunk_start in range(0, len(csv_data), Extractor.CHUNK_SIZE):
-                chunk = csv_data.iloc[chunk_start : chunk_start + Extractor.CHUNK_SIZE]
+            for chunk_start in range(0, len(csv_data), chunk_size):
+                chunk = csv_data.iloc[chunk_start : chunk_start + chunk_size]
 
                 try:
                     # Convert to Arrow table

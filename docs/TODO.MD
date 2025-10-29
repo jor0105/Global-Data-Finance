@@ -1,19 +1,23 @@
-
+- deixa codigo em pt-br
+- Tirar obrigatoriedade de extrair arquivos e somente baixar os arquivos zips do dados da cvm
 
 ### 6. **Logging Strategy Precisa Evolução**
 
 **Atual:**
+
 ```python
 logger = logging.getLogger(__name__)
 logger.info("Starting download...")
 ```
 
 **Problemas:**
+
 - Sem configuração centralizada
 - Sem diferentes níveis por ambiente (dev/prod)
 - Sem structured logging
 
 **Solução Recomendada:**
+
 ```python
 # src/core/logging_config.py
 import logging
@@ -49,6 +53,7 @@ setup_logging()
 ```
 
 **Uso:**
+
 ```python
 from datafin import setup_logging
 
@@ -60,7 +65,6 @@ setup_logging(level="DEBUG")
 ```
 
 ---
-
 
 ### 9. **Adicionar Observability (Métricas)**
 
@@ -87,12 +91,11 @@ class WgetDownloadAdapter:
     def download_docs(self, ...):
         with download_duration.labels(doc_name).time():
             result = ...
-            download_counter.labels(doc_name, 'success').inc(result.success_count)
-            download_counter.labels(doc_name, 'failure').inc(result.error_count)
+            download_counter.labels(doc_name, 'success').inc(result.success_count_downloads)
+            download_counter.labels(doc_name, 'failure').inc(result.error_count_downloads)
 ```
 
 ---
-
 
 ### 💡 **Considere (Longo Prazo)**
 

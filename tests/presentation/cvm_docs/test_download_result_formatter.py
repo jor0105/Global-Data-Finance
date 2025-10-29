@@ -6,9 +6,9 @@ class TestDownloadResultFormatterWithFailures:
     def test_format_result_with_failures(self):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResult()
-        result.add_success("DFP_2023.zip")
-        result.add_success("ITR_2023.zip")
-        result.add_error("DFP_2022.zip", "Connection timeout after 3 retries")
+        result.add_success_downloads("DFP_2023.zip")
+        result.add_success_downloads("ITR_2023.zip")
+        result.add_error_downloads("DFP_2022.zip", "Connection timeout after 3 retries")
 
         output = formatter.format_result(result)
 
@@ -22,8 +22,8 @@ class TestDownloadResultFormatterWithFailures:
     def test_format_result_only_failures(self):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResult()
-        result.add_error("DFP_2023.zip", "Network error")
-        result.add_error("ITR_2023.zip", "File not found")
+        result.add_error_downloads("DFP_2023.zip", "Network error")
+        result.add_error_downloads("ITR_2023.zip", "File not found")
 
         output = formatter.format_result(result)
 
@@ -40,8 +40,8 @@ class TestDownloadResultFormatterPrintResult:
     def test_print_result(self, capsys):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResult()
-        result.add_success("DFP_2023.zip")
-        result.add_error("ITR_2023.zip", "Error")
+        result.add_success_downloads("DFP_2023.zip")
+        result.add_error_downloads("ITR_2023.zip", "Error")
 
         formatter.print_result(result)
         captured = capsys.readouterr()
@@ -54,8 +54,8 @@ class TestDownloadResultFormatterColors:
     def test_colors_disabled(self):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResult()
-        result.add_success("DFP_2023.zip")
-        result.add_error("ITR_2023.zip", "Error")
+        result.add_success_downloads("DFP_2023.zip")
+        result.add_error_downloads("ITR_2023.zip", "Error")
 
         output = formatter.format_result(result)
 
@@ -64,7 +64,7 @@ class TestDownloadResultFormatterColors:
     def test_colors_enabled(self):
         formatter = DownloadResultFormatter(use_colors=True)
         result = DownloadResult()
-        result.add_success("DFP_2023.zip")
+        result.add_success_downloads("DFP_2023.zip")
 
         output = formatter.format_result(result)
 

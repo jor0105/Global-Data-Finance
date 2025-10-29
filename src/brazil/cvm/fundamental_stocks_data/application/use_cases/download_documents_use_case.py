@@ -28,7 +28,7 @@ class DownloadDocumentsUseCase:
     - Maintainability (changes to validation don't affect URL generation)
 
     Example:
-        >>> repository = ThreadPoolDownloadAdapter()  # Recommended for performance
+        >>> repository = HttpxAsyncDownloadAdapter()  # Recommended for performance
         >>> use_case = DownloadDocumentsUseCase(repository)
         >>> result = use_case.execute(
         ...     destination_path="/path/to/download",
@@ -36,7 +36,7 @@ class DownloadDocumentsUseCase:
         ...     initial_year=2020,
         ...     last_year=2023
         ... )
-        >>> print(f"Downloaded {result.success_count} files")
+        >>> print(f"Downloaded {result.success_count_downloads} files")
     """
 
     def __init__(self, repository: DownloadDocsCVMRepository) -> None:
@@ -44,7 +44,7 @@ class DownloadDocumentsUseCase:
 
         Args:
             repository: Implementation of DownloadDocsCVMRepository.
-                       Options: ThreadPoolDownloadAdapter (recommended),
+                       Options: HttpxAsyncDownloadAdapter (recommended),
                                Aria2cAdapter (maximum speed),
                                WgetDownloadAdapter (compatibility)
         """
@@ -128,8 +128,8 @@ class DownloadDocumentsUseCase:
 
             logger.info(
                 f"Download completed: "
-                f"✓ {result.success_count} successful, "
-                f"✗ {result.error_count} errors"
+                f"✓ {result.success_count_downloads} successful, "
+                f"✗ {result.error_count_downloads} errors"
             )
 
             if result.successful_downloads:

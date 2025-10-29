@@ -3,7 +3,6 @@ import time
 from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCase,
     HttpxAsyncDownloadAdapter,
-    ThreadPoolDownloadAdapter,
     WgetDownloadAdapter,
 )
 
@@ -13,8 +12,8 @@ from src.brazil.cvm.fundamental_stocks_data import (
 
 
 # Mais workers = mais rápido (mas mais carga no servidor)
-adapter1 = ThreadPoolDownloadAdapter(max_workers=16)
-adapter2 = ThreadPoolDownloadAdapter()
+adapter1 = HttpxAsyncDownloadAdapter(max_workers=16)
+adapter2 = HttpxAsyncDownloadAdapter()
 adapter3 = WgetDownloadAdapter()
 adapter4 = HttpxAsyncDownloadAdapter()
 
@@ -30,4 +29,4 @@ result = use_case.execute(
 download_time_minutes = (time.time() - start_time) / 60
 
 print(f"Tempo de download: {download_time_minutes:.2f} minutos")
-print(f"Downloaded {result.success_count} files successfully")
+print(f"Downloaded {result.success_count_downloads} files successfully")

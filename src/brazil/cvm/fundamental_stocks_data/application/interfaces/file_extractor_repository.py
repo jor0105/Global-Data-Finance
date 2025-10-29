@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class FileExtractor(ABC):
+class FileExtractorRepository(ABC):
     """Abstract interface for file extraction strategies.
 
     This interface allows different extraction implementations to be injected

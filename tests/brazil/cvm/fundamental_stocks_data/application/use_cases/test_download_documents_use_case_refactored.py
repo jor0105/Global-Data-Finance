@@ -75,7 +75,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
         )
 
         assert isinstance(result, DownloadResult)
-        assert result.success_count > 0
+        assert result.success_count_downloads > 0
 
     def test_orchestrator_creates_directory_via_validator(self):
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -16,6 +16,7 @@ class DownloadDocsCVMRepository(ABC):
         self,
         dict_zip_to_download: Dict[str, List[str]],
         docs_paths: Dict[str, Dict[int, str]],
+        automatic_extractor: bool = False,
     ) -> DownloadResult:
         """Download CVM documents.
 
@@ -23,6 +24,7 @@ class DownloadDocsCVMRepository(ABC):
             dict_zip_to_download: Dictionary mapping document types to lists of URLs.
             docs_paths: Dictionary with structure {doc: {year: path}} containing
                        the specific destination path for each document and year.
+            automatic_extractor: If True, enables the automatic extractor for downloaded documents.
 
         Returns:
             DownloadResult containing successful downloads and any errors encountered.

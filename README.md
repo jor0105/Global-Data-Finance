@@ -87,8 +87,8 @@ result = adapter.download_docs(
 )
 
 # 3. Analisar resultados
-print(f"Arquivos baixados: {result.success_count}")
-print(f"Erros encontrados: {result.error_count}")
+print(f"Arquivos baixados: {result.success_count_downloads}")
+print(f"Erros encontrados: {result.error_count_downloads}")
 
 for doc_name, years in result.successful_downloads.items():
     print(f"{doc_name}: {years}")
@@ -117,7 +117,7 @@ A biblioteca suporta os seguintes tipos de documentos CVM:
 
 DataFinance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
 
-#### 1. **ThreadPoolDownloadAdapter** (Recomendado) ⭐
+#### 1. **HttpxAsyncDownloadAdapter** (Recomendado) ⭐
 
 - **Velocidade**: 3-5x mais rápido que wget
 - **Características**: Paralelo (8 workers), sem dependências externas
@@ -134,7 +134,7 @@ result = cvm.download(
     start_year=2020,
     end_year=2023
 )
-print(f"Downloaded {result.success_count} files")  # 3-5x mais rápido!
+print(f"Downloaded {result.success_count_downloads} files")  # 3-5x mais rápido!
 ```
 
 #### 2. **Aria2cAdapter** (Máxima Velocidade) 🚀
@@ -183,7 +183,7 @@ result = use_case.execute(
 | Adapter                       | Velocidade       | Dependências | Melhor Para        |
 | ----------------------------- | ---------------- | ------------ | ------------------ |
 | **WgetDownloadAdapter**       | ⭐ 1x (baseline) | wget         | Compatibilidade    |
-| **ThreadPoolDownloadAdapter** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
+| **HttpxAsyncDownloadAdapter** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
 | **Aria2cAdapter**             | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
 
 ### Documentação Detalhada de Adapters

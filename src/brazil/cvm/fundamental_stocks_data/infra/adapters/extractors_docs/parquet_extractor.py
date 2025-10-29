@@ -1,6 +1,8 @@
 import logging
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import FileExtractor
+from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+    FileExtractorRepository,
+)
 from src.core.extraction import Extractor
 from src.macro_exceptions.macro_exceptions import (
     CorruptedZipError,
@@ -12,7 +14,7 @@ from src.macro_exceptions.macro_exceptions import (
 logger = logging.getLogger(__name__)
 
 
-class ParquetExtractor(FileExtractor):
+class ParquetExtractor(FileExtractorRepository):
     """Extracts ZIP files containing CSVs and converts to Parquet format.
 
     This implementation uses the core Extractor utility to handle the actual
@@ -31,12 +33,8 @@ class ParquetExtractor(FileExtractor):
     """
 
     def __init__(self, chunk_size: int = 50000):
-        """Initialize ParquetExtractor.
-
-        Args:
-            chunk_size: Number of rows to process per chunk (default: 50000).
-                       Larger values use more memory but may be faster.
-                       Smaller values are safer for memory-constrained systems.
+        """
+        Initialize ParquetExtractor.
         """
         self.chunk_size = chunk_size
         logger.debug(f"ParquetExtractor initialized with chunk_size={chunk_size}")
@@ -71,7 +69,9 @@ class ParquetExtractor(FileExtractor):
             logger.info(f"Starting Parquet extraction from {source_path}")
 
             # Delegate to core Extractor which handles all the heavy lifting
-            Extractor.extract_zip_to_parquet(source_path, destination_dir)
+            Extractor.extract_zip_to_parquet(
+                self.chunk_size, source_path, destination_dir
+            )
 
             logger.info(f"Parquet extraction completed successfully: {source_path}")
 

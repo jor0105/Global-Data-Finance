@@ -24,7 +24,7 @@ Example:
     ...     initial_year=2020,
     ...     last_year=2023
     ... )
-    >>> print(f"Downloaded {result.success_count} files successfully")
+    >>> print(f"Downloaded {result.success_count_downloads} files successfully")
 """
 
 import logging
@@ -45,11 +45,11 @@ class FundamentalStocksData:
     """High-level interface for CVM fundamental stocks data operations.
 
     This class provides a simple API for downloading CVM financial documents
-    and discovering available data. It uses the ThreadPoolDownloadAdapter by default
+    and discovering available data. It uses the HttpxAsyncDownloadAdapter by default
     for 3-5x faster downloads compared to wget, with automatic retry logic.
 
     You can also customize the adapter:
-    - ThreadPoolDownloadAdapter (default): Fast, no external dependencies
+    - HttpxAsyncDownloadAdapter (default): Fast, no external dependencies
     - Aria2cAdapter: Maximum speed (5-10x faster), requires aria2 installation
     - WgetDownloadAdapter: Original single-threaded, for compatibility
 
@@ -121,11 +121,11 @@ class FundamentalStocksData:
 
         Returns:
             DownloadResult object containing:
-            - success_count: Number of successfully downloaded files
-            - error_count: Number of failed downloads
+            - success_count_downloads: Number of successfully downloaded files
+            - error_count_downloads: Number of failed downloads
             - successful_downloads: List of successfully downloaded files
             - failed_downloads: Dictionary mapping files to error messages
-            - Methods: add_success(), add_error()
+            - Methods: add_success_downloads(), add_error_downloads()
 
         Raises:
             InvalidDocName: If an invalid document type is specified.
@@ -152,7 +152,7 @@ class FundamentalStocksData:
             ... )
             >>>
             >>> # Check results programmatically
-            >>> if result.error_count > 0:
+            >>> if result.error_count_downloads > 0:
             ...     print(f"Some downloads failed: {result.failed_downloads}")
         """
         logger.info(
@@ -168,8 +168,8 @@ class FundamentalStocksData:
         )
 
         logger.info(
-            f"Download completed: {result.success_count} successful, "
-            f"{result.error_count} errors"
+            f"Download completed: {result.success_count_downloads} successful, "
+            f"{result.error_count_downloads} errors"
         )
 
         # Display formatted output

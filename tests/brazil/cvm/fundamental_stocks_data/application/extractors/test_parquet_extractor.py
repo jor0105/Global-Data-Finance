@@ -8,7 +8,9 @@ import pytest
 from src.brazil.cvm.fundamental_stocks_data.application.extractors import (
     ParquetExtractor,
 )
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import FileExtractor
+from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+    FileExtractorRepository,
+)
 from src.macro_exceptions.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
@@ -40,7 +42,7 @@ class TestParquetExtractorInitialization:
 class TestParquetExtractorInterface:
     def test_extractor_implements_file_extractor(self):
         extractor = ParquetExtractor()
-        assert isinstance(extractor, FileExtractor)
+        assert isinstance(extractor, FileExtractorRepository)
 
     def test_extractor_has_extract_method(self):
         extractor = ParquetExtractor()

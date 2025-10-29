@@ -5,10 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from src.brazil.cvm.fundamental_stocks_data.application import (
     DownloadDocsCVMRepository,
-    FileExtractor,
-)
-from src.brazil.cvm.fundamental_stocks_data.application.extractors import (
-    ParquetExtractor,
+    FileExtractorRepository,
 )
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.brazil.cvm.fundamental_stocks_data.utils import (
@@ -32,7 +29,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
 
     def __init__(
         self,
-        file_extractor: Optional[FileExtractor] = None,
+        file_extractor_repository: FileExtractorRepository,
         max_concurrent: int = 10,
         chunk_size: int = 8192,
         timeout: float = 60.0,
@@ -46,7 +43,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         Inicializa o adaptador de download assíncrono.
 
         Args:
-            file_extractor: Extrator de arquivos para extrair ZIPs baixados
+            file_extractor_repository: Extrator de arquivos para extrair ZIPs baixados
             max_concurrent: Número máximo de downloads simultâneos
             chunk_size: Tamanho dos chunks para streaming
             timeout: Timeout das requisições em segundos
@@ -56,7 +53,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             backoff_multiplier: Multiplicador do backoff exponencial
             http2: Habilitar HTTP/2
         """
-        self.file_extractor = file_extractor or ParquetExtractor()
+        self.file_extractor_repository = file_extractor_repository
         self.max_concurrent = max_concurrent
         self.chunk_size = chunk_size
         self.max_retries = max_retries
@@ -85,17 +82,19 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         self,
         dict_zip_to_download: Dict[str, List[str]],
         docs_paths: Dict[str, Dict[int, str]],
+        automatic_extractor: bool = False,
     ) -> DownloadResult:
         """
-        Baixa documentos de forma assíncrona.
+        Asynchronously downloads documents.
 
         Args:
-            dict_zip_to_download: Dict mapeando tipos de docs para listas de URLs
-            docs_paths: Dict com estrutura {doc: {year: path}} contendo
-                       o caminho específico de destino para cada documento e ano
+            dict_zip_to_download: Dictionary mapping document types to lists of URLs.
+            docs_paths: Dictionary with structure {doc: {year: path}} containing
+                       the specific destination path for each document and year.
+            automatic_extractor: If True, enables the automatic extractor for downloaded documents.
 
         Returns:
-            DownloadResult com informações de sucesso/erro agregadas
+            DownloadResult containing aggregated success/error information.
         """
         result = DownloadResult()
         total_files = sum(len(urls) for urls in dict_zip_to_download.values())
@@ -116,8 +115,8 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         asyncio.run(self._execute_async_downloads(tasks, result))
 
         logger.info(
-            f"Download completed: {result.success_count} successful, "
-            f"{result.error_count} errors"
+            f"Download completed: {result.success_count_downloads} successful, "
+            f"{result.error_count_downloads} errors"
         )
 
         return result
@@ -204,19 +203,21 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             # Extrair arquivo após download bem-sucedido
             try:
                 logger.info(f"Starting extraction for {doc_name}_{year}")
-                self.file_extractor.extract(filepath, dest_path)
-                result.add_success(f"{doc_name}_{year}")
+                self.file_extractor_repository.extract(filepath, dest_path)
+                result.add_success_downloads(f"{doc_name}_{year}")
                 logger.info(f"Extraction completed for {doc_name}_{year}")
                 self._cleanup_zip_file(filepath)
 
             except DiskFullError as disk_err:
                 logger.error(f"Disk full during extraction {filepath}: {disk_err}")
-                result.add_error(f"{doc_name}_{year}", f"DiskFull: {disk_err}")
+                result.add_error_downloads(
+                    f"{doc_name}_{year}", f"DiskFull: {disk_err}"
+                )
                 self._cleanup_zip_file(filepath)
 
             except ExtractionError as extract_exc:
                 logger.error(f"Extraction error for {filepath}: {extract_exc}")
-                result.add_error(
+                result.add_error_downloads(
                     f"{doc_name}_{year}", f"Extraction failed: {extract_exc}"
                 )
 
@@ -225,12 +226,14 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
                     f"Unexpected extraction error for {filepath}: "
                     f"{type(extract_exc).__name__}: {extract_exc}"
                 )
-                result.add_error(
+                result.add_error_downloads(
                     f"{doc_name}_{year}",
                     f"Unexpected extraction error: {extract_exc}",
                 )
         else:
-            result.add_error(f"{doc_name}_{year}", error_msg or "Unknown error")
+            result.add_error_downloads(
+                f"{doc_name}_{year}", error_msg or "Unknown error"
+            )
 
         progress_bar.update(1)
 

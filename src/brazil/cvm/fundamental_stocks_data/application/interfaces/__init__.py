@@ -1,4 +1,4 @@
 from .download_repository import DownloadDocsCVMRepository
-from .file_extractor import FileExtractor
+from .file_extractor_repository import FileExtractorRepository
 
-__all__ = ["DownloadDocsCVMRepository", "FileExtractor"]
+__all__ = ["DownloadDocsCVMRepository", "FileExtractorRepository"]

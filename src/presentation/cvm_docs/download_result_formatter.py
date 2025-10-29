@@ -8,8 +8,8 @@ Example:
     >>> from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
     >>>
     >>> result = DownloadResult()
-    >>> result.add_success("DFP_2023")
-    >>> result.add_error("ITR_2023", "Network timeout")
+    >>> result.add_success_downloads("DFP_2023")
+    >>> result.add_error_downloads("ITR_2023", "Network timeout")
     >>>
     >>> formatter = DownloadResultFormatter()
     >>> formatter.print_result(result)
@@ -73,9 +73,9 @@ class DownloadResultFormatter:
 
         Example (with failures):
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
-            >>> result.add_success("FRE_2023")
-            >>> result.add_error("ITR_2023", "Connection timeout")
+            >>> result.add_success_downloads("DFP_2023")
+            >>> result.add_success_downloads("FRE_2023")
+            >>> result.add_error_downloads("ITR_2023", "Connection timeout")
             >>> formatter = DownloadResultFormatter()
             >>> print(formatter.format_result(result))
 
@@ -92,8 +92,8 @@ class DownloadResultFormatter:
 
         Example (all successful):
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
-            >>> result.add_success("FRE_2023")
+            >>> result.add_success_downloads("DFP_2023")
+            >>> result.add_success_downloads("FRE_2023")
             >>> formatter = DownloadResultFormatter()
             >>> print(formatter.format_result(result))
 
@@ -134,7 +134,7 @@ class DownloadResultFormatter:
             lines.append("")
             lines.append(
                 self._colorize(
-                    f"✗ FAILED DOWNLOADS ({result.error_count})",
+                    f"✗ FAILED DOWNLOADS ({result.error_count_downloads})",
                     self._RED,
                 )
             )
@@ -147,7 +147,7 @@ class DownloadResultFormatter:
             lines.append("")
             lines.append(
                 self._colorize(
-                    f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count})",
+                    f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count_downloads})",
                     self._GREEN,
                 )
             )
@@ -156,13 +156,13 @@ class DownloadResultFormatter:
         # Summary line
         lines.append("")
         if result.failed_downloads:
-            total = result.success_count + result.error_count
+            total = result.success_count_downloads + result.error_count_downloads
             summary = (
-                f"SUMMARY: {result.success_count} succeeded, "
-                f"{result.error_count} failed out of {total} total"
+                f"SUMMARY: {result.success_count_downloads} succeeded, "
+                f"{result.error_count_downloads} failed out of {total} total"
             )
         else:
-            summary = f"SUMMARY: {result.success_count} succeeded out of {result.success_count} total"
+            summary = f"SUMMARY: {result.success_count_downloads} succeeded out of {result.success_count_downloads} total"
 
         lines.append(self._colorize(summary, self._RESET))
 
@@ -176,7 +176,7 @@ class DownloadResultFormatter:
 
         Example:
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
+            >>> result.add_success_downloads("DFP_2023")
             >>> formatter = DownloadResultFormatter()
             >>> formatter.print_result(result)
         """

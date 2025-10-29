@@ -24,7 +24,6 @@ class GenerateUrlsUseCase:
     """
 
     def __init__(self) -> None:
-        """Initialize the URL generator use case."""
         self.__dict_generator = DictZipsToDownload()
         logger.debug("GenerateUrlsUseCase initialized")
 
