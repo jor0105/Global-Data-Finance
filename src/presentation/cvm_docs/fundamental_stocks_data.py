@@ -34,7 +34,7 @@ from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCase,
     GetAvailableDocsUseCase,
     GetAvailableYearsUseCase,
-    ThreadPoolDownloadAdapter,
+    HttpxAsyncDownloadAdapter,
 )
 from src.presentation.cvm_docs.download_result_formatter import DownloadResultFormatter
 
@@ -79,14 +79,14 @@ class FundamentalStocksData:
     """
 
     def __init__(self):
-        self.download_adapter = ThreadPoolDownloadAdapter()
+        self.download_adapter = HttpxAsyncDownloadAdapter()
         self.__download_use_case = DownloadDocumentsUseCase(self._download_adapter)
         self.__available_docs_use_case = GetAvailableDocsUseCase()
         self.__available_years_use_case = GetAvailableYearsUseCase()
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
-            "FundamentalStocksData client initialized with ThreadPoolDownloadAdapter"
+            "FundamentalStocksData client initialized with HttpxAsyncDownloadAdapter"
         )
 
     def download(

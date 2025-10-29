@@ -1,25 +1,3 @@
-diretorio_cvm = r"C:\Dados_Fundamentalistas"
-diretorio_b3 = r"C:\Documentos_B3"
-
-acoes_b3 = "Ações_B3.parquet"
-nome_pasta_anos = "CVM Empresas BR"
-nome_pasta_geral = "Dados Fundamentalistas Gerais"
-nome_pasta_atuais = "Dados Fundamentalistas Atuais"
-nome_pasta_zip = "Arquivos CVM Zips"
-
-
-cias_abertas_doc = "cad_cia_aberta.parquet"
-
-
-nomes_arquivos = [
-    "BPA_con_",
-    "BPP_con_",
-    "DFC_MI_con_",
-    "DMPL_con_",
-    "DRA_con_",
-    "DRE_con_",
-    "DVA_con_",
-]
 nomes_arquivos_fre = [
     "fre_cia_aberta_responsavel_",
     "fre_cia_aberta_capital_social_titulo_conversivel_",

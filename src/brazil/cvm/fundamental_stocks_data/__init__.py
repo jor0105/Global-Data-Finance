@@ -31,6 +31,7 @@ from src.brazil.cvm.fundamental_stocks_data.exceptions import (
 
 # Infrastructure layer - adapters
 from src.brazil.cvm.fundamental_stocks_data.infra import (
+    HttpxAsyncDownloadAdapter,
     ThreadPoolDownloadAdapter,
     WgetDownloadAdapter,
 )
@@ -59,6 +60,7 @@ __all__ = [
     # Infrastructure
     "WgetDownloadAdapter",
     "ThreadPoolDownloadAdapter",
+    "HttpxAsyncDownloadAdapter",
     # Exceptions
     "InvalidFirstYear",
     "InvalidLastYear",
