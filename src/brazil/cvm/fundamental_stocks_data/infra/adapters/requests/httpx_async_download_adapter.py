@@ -16,13 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
-    """
-    Asynchronous download adapter using httpx.
-
-    This adapter performs downloads asynchronously and in parallel,
-    offering superior performance compared to traditional synchronous downloads.
-    Uses RequestsAdapter as an interface for the httpx library.
-    """
+    """Asynchronous download adapter using httpx."""
 
     def __init__(
         self,
@@ -41,15 +35,16 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         Initializes the asynchronous download adapter.
 
         Args:
-            file_extractor_repository: File extractor for extracting downloaded ZIPs
-            max_concurrent: Maximum number of concurrent downloads
-            chunk_size: Chunk size for streaming
-            timeout: Request timeout in seconds
-            max_retries: Maximum number of retry attempts on failure
-            initial_backoff: Initial backoff in seconds
-            max_backoff: Maximum backoff in seconds
-            backoff_multiplier: Exponential backoff multiplier
-            http2: Enable HTTP/2
+            file_extractor_repository: File extractor for extracting downloaded ZIPs.
+            max_concurrent: Maximum number of concurrent downloads.
+            chunk_size: Chunk size for streaming.
+            timeout: Request timeout in seconds.
+            max_retries: Maximum number of retry attempts on failure.
+            initial_backoff: Initial backoff in seconds.
+            max_backoff: Maximum backoff in seconds.
+            backoff_multiplier: Exponential backoff multiplier.
+            http2: Enable HTTP/2.
+            automatic_extractor: Enable automatic extraction after download.
         """
         self.file_extractor_repository = file_extractor_repository
         self.max_concurrent = max_concurrent
@@ -57,7 +52,6 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         self.max_retries = max_retries
         self.automatic_extractor = automatic_extractor
 
-        # Configure requests adapter to download
         self.requests_adapter = RequestsAdapter(
             timeout=timeout,
             http2=http2,
@@ -65,7 +59,6 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             max_redirects=20,
         )
 
-        # Configure retry strategy
         self.retry_strategy = RetryStrategy(
             initial_backoff=initial_backoff,
             max_backoff=max_backoff,
@@ -116,13 +109,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         tasks: List[Tuple[str, str, str, str]],
         result: DownloadResult,
     ) -> None:
-        """
-        Executes downloads asynchronously with concurrency control.
-
-        Args:
-            tasks: List of download tasks
-            result: Object to accumulate results
-        """
+        """Execute async downloads with concurrency control."""
         progress_bar = SimpleProgressBar(total=len(tasks), desc="Downloading (async)")
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
@@ -134,9 +121,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
                 )
 
         try:
-            # Create all asynchronous tasks
             download_tasks = [download_with_semaphore(task) for task in tasks]
-
             await asyncio.gather(*download_tasks)
         finally:
             progress_bar.close()
@@ -150,17 +135,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         result: DownloadResult,
         progress_bar: SimpleProgressBar,
     ) -> None:
-        """
-        Downloads a file and extracts its contents.
-
-        Args:
-            url: File URL
-            dest_path: Destination path
-            doc_name: Document name
-            year: Document year
-            result: Object to accumulate results
-            progress_bar: Progress bar
-        """
+        """Download a file and extract its contents."""
         filename = self._extract_filename(url)
         filepath = str(Path(dest_path) / filename)
 
@@ -169,7 +144,6 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         )
 
         if success and self.automatic_extractor:
-            # Extract file after successful download
             try:
                 logger.info(f"Starting extraction for {doc_name}_{year}")
                 self.file_extractor_repository.extract(filepath, dest_path)
@@ -215,12 +189,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         doc_name: str,
         year: str,
     ) -> Tuple[bool, Optional[str]]:
-        """
-        Downloads a file with retry logic.
-
-        Returns:
-            Tuple (success, error_message)
-        """
+        """Download a file with retry logic."""
         last_exception: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
@@ -241,7 +210,6 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             except Exception as e:
                 last_exception = e
 
-                # Check if should retry
                 if (
                     not self.retry_strategy.is_retryable(e)
                     or attempt >= self.max_retries
@@ -257,7 +225,6 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
                     f"(attempt {attempt + 1}/{self.max_retries + 1}): {e}"
                 )
 
-        # Clean up file in case of failure
         remove_file(filepath, log_on_error=False)
 
         error_msg = (
@@ -268,16 +235,7 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
         return False, error_msg
 
     async def _stream_download(self, url: str, filepath: str) -> None:
-        """
-        Performs asynchronous streaming download.
-
-        Args:
-            url: File URL
-            filepath: Path to save the file
-
-        Raises:
-            Exception: In case of download error
-        """
+        """Perform asynchronous streaming download."""
         try:
             await self.requests_adapter.async_download_file(
                 url=url,
@@ -285,21 +243,12 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
                 chunk_size=self.chunk_size,
             )
         except Exception as e:
-            # Clean up partially downloaded file
             remove_file(filepath, log_on_error=False)
             raise e
 
     @staticmethod
     def _extract_filename(url: str) -> str:
-        """
-        Extracts the filename from the URL.
-
-        Args:
-            url: File URL
-
-        Returns:
-            Filename extracted from URL or 'download' as fallback
-        """
+        """Extract the filename from the URL."""
         try:
             return url.split("/")[-1].split("?")[0] or "download"
         except Exception:

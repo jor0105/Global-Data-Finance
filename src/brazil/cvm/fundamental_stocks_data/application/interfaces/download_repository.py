@@ -6,12 +6,7 @@ from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 
 # Abstract base class for CVM document download repository
 class DownloadDocsCVMRepository(ABC):
-    """
-    Abstract repository interface for downloading CVM documents.
-
-    This interface defines the contract for any implementation that downloads
-    CVM documents from the internet.
-    """
+    """Abstract repository interface for downloading CVM documents."""
 
     @abstractmethod
     def download_docs(
@@ -26,8 +21,5 @@ class DownloadDocsCVMRepository(ABC):
 
         Returns:
             DownloadResult containing aggregated information about the success and error of downloads.
-
-        Note:
-            Implementations should handle downloading files from the provided URLs and store them at the specified destination paths.
         """
         pass

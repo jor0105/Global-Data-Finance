@@ -41,19 +41,14 @@ class VerifyPathsUseCases:
         Returns:
             Dictionary with structure: {doc: {year: path}}
         """
-        # Create subdirectories for each document type
         docs_paths: Dict[str, Dict[int, str]] = {}
         for doc in self.new_set_docs:
             doc_path = str(Path(self.destination_path) / doc)
             validated_doc_path = self.__validate_and_create_paths(doc_path)
 
-            # Create subdirectories for each year within document path
             docs_paths[doc] = {}
             for year in self.range_years:
                 is_valid = self.__is_valid_year_for_doc(doc, year)
-                logger.debug(
-                    f"Checking doc={doc!r}, year={year}, is_valid={is_valid}, doc.upper()={doc.upper()!r}"
-                )
                 if not is_valid:
                     logger.debug(
                         f"Skipping folder for doc={doc}, year={year} (invalid year for this document)"
@@ -69,7 +64,7 @@ class VerifyPathsUseCases:
             f"Years per document: {[len(years) for years in docs_paths.values()]}"
         )
 
-        print("Folders for installation checked/created. Starting installations...")
+        print("Installation folders checked/created. Starting installations...")
 
         return docs_paths
 
@@ -77,28 +72,18 @@ class VerifyPathsUseCases:
         doc_upper = doc.upper()
         min_itr = self.__available_years.get_minimal_itr_year()
         min_cgvn_vlmo = self.__available_years.get_minimal_cgvn_vlmo_year()
-        min_geral = self.__available_years.get_minimal_geral_year()
-
-        logger.debug(
-            f"Validating: doc={doc!r}, doc_upper={doc_upper!r}, year={year}, min_itr={min_itr}, min_cgvn_vlmo={min_cgvn_vlmo}, min_geral={min_geral}"
-        )
+        min_general = self.__available_years.get_minimal_general_year()
 
         if doc_upper == "ITR":
-            result = year >= min_itr
-            logger.debug(f"ITR check: {year} >= {min_itr} = {result}")
-            return result
+            return year >= min_itr
+
         if doc_upper in {"VLMO", "CGVN"}:
-            result = year >= min_cgvn_vlmo
-            logger.debug(f"VLMO/CGVN check: {year} >= {min_cgvn_vlmo} = {result}")
-            return result
-        result = year >= min_geral
-        logger.debug(f"General check: {year} >= {min_geral} = {result}")
-        return result
+            return year >= min_cgvn_vlmo
+
+        return year >= min_general
 
     @staticmethod
     def __validate_and_create_paths(path: str) -> str:
-        # path -> destination_path
-
         if not isinstance(path, str):
             raise TypeError(
                 f"Destination path must be a string, got {type(path).__name__}"

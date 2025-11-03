@@ -36,40 +36,43 @@ class DownloadResultFormatter:
     _BOLD = "\033[1m"
 
     def __init__(self, use_colors: bool = True) -> None:
-        """Initialize the formatter.
+        """
+        Initializes the formatter.
 
         Args:
-            use_colors: Whether to use ANSI color codes in output.
-                       Set to False for plain text output.
+            use_colors: Whether to use ANSI color codes in the output.
+                        Set to False for plain text output.
         """
         self.use_colors = use_colors
 
     def _colorize(self, text: str, color: str) -> str:
-        """Apply color to text if colors are enabled.
+        """
+        Applies color to text if colors are enabled.
 
         Args:
-            text: Text to colorize.
-            color: Color code.
+            text: The text to colorize.
+            color: The color code.
 
         Returns:
-            Colorized text or plain text.
+            The colorized text or plain text.
         """
         if not self.use_colors:
             return text
         return f"{color}{text}{self._RESET}"
 
     def format_result(self, result: DownloadResult) -> str:
-        """Format download result with smart layout.
+        """
+        Formats the download result with a smart layout.
 
-        Shows only relevant sections:
-        - If there are failures: displays failures section only
-        - If all successful: displays success summary only
+        It shows only relevant sections:
+        - If there are failures, it displays the failures section only.
+        - If all are successful, it displays a success summary only.
 
         Args:
-            result: DownloadResult object to format.
+            result: The DownloadResult object to format.
 
         Returns:
-            Formatted output string.
+            A formatted output string.
 
         Example (with failures):
             >>> result = DownloadResult()
@@ -169,10 +172,11 @@ class DownloadResultFormatter:
         return "\n".join(lines)
 
     def print_result(self, result: DownloadResult) -> None:
-        """Convenience method to directly print formatted result.
+        """
+        A convenience method to directly print the formatted result.
 
         Args:
-            result: DownloadResult object to print.
+            result: The DownloadResult object to print.
 
         Example:
             >>> result = DownloadResult()

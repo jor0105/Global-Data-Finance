@@ -2,9 +2,7 @@ from abc import ABC
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-    FileExtractorRepository,
-)
+from src.brazil.cvm.fundamental_stocks_data import FileExtractorRepository
 
 
 @pytest.mark.unit
@@ -20,7 +18,6 @@ class TestFileExtractorInterface:
             FileExtractorRepository()
 
     def test_extract_is_abstract_method(self):
-        # Verify that extract is indeed abstract
         assert hasattr(FileExtractorRepository.extract, "__isabstractmethod__")
         assert FileExtractorRepository.extract.__isabstractmethod__
 
@@ -28,7 +25,6 @@ class TestFileExtractorInterface:
 @pytest.mark.unit
 class TestFileExtractorContract:
     def test_concrete_implementation_must_implement_extract(self):
-        # Create incomplete implementation
         class IncompleteExtractor(FileExtractorRepository):
             pass
 
@@ -36,7 +32,6 @@ class TestFileExtractorContract:
             IncompleteExtractor()
 
     def test_concrete_implementation_with_extract_works(self):
-        # Create complete implementation
         class CompleteExtractor(FileExtractorRepository):
             def extract(self, source_path: str, destination_dir: str) -> None:
                 pass
@@ -51,7 +46,6 @@ class TestFileExtractorContract:
                 return None
 
         extractor = ConcreteExtractor()
-        # Should accept exactly 2 parameters (plus self)
         assert extractor.extract.__code__.co_argcount == 3
 
 
@@ -98,7 +92,6 @@ class TestFileExtractorConcreteImplementations:
 
             def extract(self, source_path: str, destination_dir: str) -> None:
                 self.call_count += 1
-                # Custom logic here
                 if not source_path:
                     raise ValueError("Source path cannot be empty")
 
@@ -138,7 +131,6 @@ class TestFileExtractorPolymorphism:
 
         for extractor in extractors:
             assert isinstance(extractor, FileExtractorRepository)
-            # Should be able to call extract on all
             extractor.extract("/file.zip", "/dest")
 
     def test_dependency_injection_with_interface(self):
@@ -149,7 +141,6 @@ class TestFileExtractorPolymorphism:
             def extract(self, source_path: str, destination_dir: str) -> None:
                 self.extracted = True
 
-        # Simulate dependency injection
         def process_files(extractor: FileExtractorRepository, files: list):
             for file in files:
                 extractor.extract(file, "/dest")
@@ -179,7 +170,7 @@ class TestFileExtractorMethodContract:
                 assert isinstance(destination_dir, str)
 
         extractor = TypeCheckingExtractor()
-        extractor.extract("/file.zip", "/dest")  # Should not raise
+        extractor.extract("/file.zip", "/dest")
 
 
 @pytest.mark.unit

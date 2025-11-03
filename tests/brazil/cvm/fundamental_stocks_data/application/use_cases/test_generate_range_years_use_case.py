@@ -49,7 +49,6 @@ class TestGenerateRangeYearsUseCasesExecuteSuccess:
         result = use_case.execute(initial_year=None, last_year=None)
 
         assert isinstance(result, range)
-        # Should use default years (from minimum to current)
         assert len(list(result)) > 0
 
     def test_execute_with_none_initial_year_uses_default(self):
@@ -66,7 +65,6 @@ class TestGenerateRangeYearsUseCasesExecuteSuccess:
 
         assert isinstance(result, range)
         assert 2020 in list(result)
-        # Should include current year or nearby
         result_list = list(result)
         assert current_year in result_list or (current_year - 1) in result_list
 
@@ -75,7 +73,7 @@ class TestGenerateRangeYearsUseCasesExecuteSuccess:
         result = use_case.execute(initial_year=2010, last_year=2024)
 
         assert isinstance(result, range)
-        assert len(list(result)) == 15  # 2010 to 2024 inclusive
+        assert len(list(result)) == 15
 
     def test_execute_returns_consecutive_years(self):
         use_case = GenerateRangeYearsUseCases()
@@ -168,7 +166,6 @@ class TestGenerateRangeYearsUseCasesEdgeCases:
     def test_execute_with_minimum_valid_year(self):
         use_case = GenerateRangeYearsUseCases()
 
-        # Assuming 2010 is the minimum general year
         result = use_case.execute(initial_year=2010, last_year=2012)
 
         assert isinstance(result, range)
@@ -214,7 +211,6 @@ class TestGenerateRangeYearsUseCasesIntegration:
     def test_execute_integrates_with_available_years(self):
         use_case = GenerateRangeYearsUseCases()
 
-        # Should use AvailableYears internally
         result = use_case.execute(initial_year=2020, last_year=2023)
 
         assert isinstance(result, range)
@@ -223,14 +219,12 @@ class TestGenerateRangeYearsUseCasesIntegration:
     def test_execute_respects_available_years_constraints(self):
         use_case = GenerateRangeYearsUseCases()
 
-        # Should respect minimum year constraint
         with pytest.raises(InvalidFirstYear):
             use_case.execute(initial_year=1900, last_year=2023)
 
     def test_execute_respects_current_year_constraint(self):
         use_case = GenerateRangeYearsUseCases()
 
-        # Should not allow years too far in the future
         with pytest.raises(InvalidLastYear):
             use_case.execute(initial_year=2020, last_year=2100)
 
@@ -238,10 +232,7 @@ class TestGenerateRangeYearsUseCasesIntegration:
         use_case = GenerateRangeYearsUseCases()
         result = use_case.execute(initial_year=2020, last_year=2023)
 
-        years_collected = []
-        for year in result:
-            years_collected.append(year)
-
+        years_collected = [year for year in result]
         assert years_collected == [2020, 2021, 2022, 2023]
 
     def test_execute_result_can_be_converted_to_list(self):
@@ -265,8 +256,7 @@ class TestGenerateRangeYearsUseCasesPerformance:
         result = use_case.execute(initial_year=2010, last_year=2024)
         elapsed = time.time() - start_time
 
-        # Should complete quickly
-        assert elapsed < 0.1  # Less than 100ms
+        assert elapsed < 0.1
         assert len(result) == 15
 
     def test_execute_memory_efficiency(self):
@@ -275,5 +265,4 @@ class TestGenerateRangeYearsUseCasesPerformance:
         use_case = GenerateRangeYearsUseCases()
         result = use_case.execute(initial_year=2010, last_year=2024)
 
-        # range objects are memory efficient
-        assert sys.getsizeof(result) < 100  # Small memory footprint
+        assert sys.getsizeof(result) < 100

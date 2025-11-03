@@ -16,21 +16,21 @@ class TestAvailableYears:
         return AvailableYears()
 
     def test_get_atual_year_returns_current_year(self, available_years):
-        atual_year = available_years.get_atual_year()
+        atual_year = available_years.get_current_year()
         expected_year = date.today().year
 
         assert atual_year == expected_year
 
     def test_get_atual_year_returns_integer(self, available_years):
-        atual_year = available_years.get_atual_year()
+        atual_year = available_years.get_current_year()
         assert isinstance(atual_year, int)
 
     def test_get_minimal_geral_year_returns_2010(self, available_years):
-        minimal_year = available_years.get_minimal_geral_year()
+        minimal_year = available_years.get_minimal_general_year()
         assert minimal_year == 2010
 
     def test_get_minimal_geral_year_returns_integer(self, available_years):
-        minimal_year = available_years.get_minimal_geral_year()
+        minimal_year = available_years.get_minimal_general_year()
         assert isinstance(minimal_year, int)
 
     def test_get_minimal_itr_year_returns_2011(self, available_years):
@@ -165,13 +165,13 @@ class TestAvailableYears:
         # can control the value used by the class. Use raising=False to allow
         # setting even if the exact mangled name differs across Python versions.
         monkeypatch.setattr(
-            AvailableYears, "_AvailableYears__ATUAL_YEAR", 2023, raising=False
+            AvailableYears, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
         )
 
         # Also set on the instance in case the implementation uses an instance attr
         available_years_mocked = AvailableYears()
         monkeypatch.setattr(
-            available_years_mocked, "_AvailableYears__ATUAL_YEAR", 2023, raising=False
+            available_years_mocked, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
         )
 
         years_range = available_years_mocked.return_range_years()
@@ -255,7 +255,7 @@ class TestAvailableYears:
 
     def test_constants_relationship(self, available_years):
         assert (
-            available_years.get_minimal_geral_year()
+            available_years.get_minimal_general_year()
             < available_years.get_minimal_itr_year()
         )
         assert (
@@ -264,5 +264,5 @@ class TestAvailableYears:
         )
         assert (
             available_years.get_minimal_cgvn_vlmo_year()
-            <= available_years.get_atual_year()
+            <= available_years.get_current_year()
         )

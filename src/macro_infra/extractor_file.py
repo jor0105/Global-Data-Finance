@@ -2,9 +2,9 @@ import logging
 import zipfile
 from pathlib import Path
 
-import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
+import pandas as pd  # type: ignore
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
 
 from src.macro_exceptions import (
     CorruptedZipError,
@@ -137,11 +137,11 @@ class Extractor:
                         csv_data = pd.read_csv(
                             csv_file,
                             encoding=encoding,
-                            sep=";",  # CVM uses semicolon as delimiter
+                            sep=";",  # CVM uses a semicolon as a delimiter
                             dtype_backend="numpy_nullable",
                             on_bad_lines="skip",  # Skip malformed lines
                             engine="python",  # More flexible parser
-                            skipinitialspace=True,  # Strip whitespace after delimiter
+                            skipinitialspace=True,  # Strip whitespace after the delimiter
                         )
                     logger.debug(
                         f"Successfully read {csv_filename} with encoding {encoding}"
@@ -176,7 +176,7 @@ class Extractor:
                         first_chunk = False
                         logger.debug(f"Created {parquet_filename}")
                     else:
-                        # Append mode: read existing, concatenate, rewrite
+                        # Append mode: read existing, concatenate, and rewrite
                         existing_table = pq.read_table(parquet_path)
                         combined = pa.concat_tables([existing_table, table])
                         pq.write_table(combined, parquet_path)
@@ -188,7 +188,7 @@ class Extractor:
                     raise
 
         except pd.errors.ParserError as e:
-            # Clean up partial file if it exists
+            # Clean up the partial file if it exists
             if parquet_path.exists():
                 try:
                     parquet_path.unlink()
@@ -201,7 +201,7 @@ class Extractor:
         except DiskFullError:
             raise  # Re-raise disk full errors
         except Exception as e:
-            # Clean up partial file if it exists
+            # Clean up the partial file if it exists
             if parquet_path.exists():
                 try:
                     parquet_path.unlink()

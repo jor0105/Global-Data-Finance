@@ -140,9 +140,10 @@ class Settings(BaseSettings):
 # Singleton instance
 settings = Settings()
 
-# Note: Logging is NOT auto-configured on import.
-# Users must explicitly call setup_logging() if they want logging enabled.
-# This gives control to the application over when/how logging is initialized.
+
+# Logging is not auto-configured on import.
+# The user must explicitly call setup_logging() to enable it.
+# This gives the application control over when and how logging is initialized.
 
 
 def setup_logging(
@@ -151,16 +152,16 @@ def setup_logging(
     structured: bool = False,
 ) -> None:
     """
-    Setup logging for DataFinance library.
+    Set up logging for the DataFinance library.
 
     Call this function if you want to see log messages from the library.
     By default, logging is disabled to keep your application clean.
 
     Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-               If None, uses DATAFIN_LOG_LEVEL env var or defaults to INFO
-        log_file: Path to log file. If None, logs go to console only
-        structured: Enable JSON structured logging
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+               If None, uses the DATAFIN_LOG_LEVEL environment variable or defaults to INFO.
+        log_file: Path to the log file. If None, logs go to the console only.
+        structured: Enable JSON structured logging.
 
     Example:
         >>> from src.core.config import setup_logging

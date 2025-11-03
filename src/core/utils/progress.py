@@ -1,16 +1,10 @@
-"""Terminal / CLI progress utilities used by the downloader.
-
-Contains a tiny ProgressTracker abstraction and a SimpleProgressBar
-implementation suitable for CLI feedback. Kept intentionally minimal so it
-can be reused by other infra components.
-"""
-
 import sys
 import time
 
 
 class SimpleProgressBar:
-    """Small terminal progress bar.
+    """
+    A small terminal progress bar.
 
     - Non-blocking: updates only every ~0.1s to reduce console noise.
     - Safe to instantiate with total=0 (no-op printing).

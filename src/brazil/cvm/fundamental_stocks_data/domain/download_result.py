@@ -4,13 +4,14 @@ from typing import Dict, List
 
 @dataclass
 class DownloadResult:
-    """Result of a download operation.
+    """
+    Represents the result of a download operation.
 
     Attributes:
-        successful_downloads: List of successfully downloaded files/document types.
-        failed_downloads: Dictionary mapping document types to error messages.
-        success_count_downloads: Number of successful downloads.
-        error_count_downloads: Number of failed downloads.
+        successful_downloads: A list of successfully downloaded files/document types.
+        failed_downloads: A dictionary that maps document types to error messages.
+        success_count_downloads: The number of successful downloads.
+        error_count_downloads: The number of failed downloads.
     """
 
     successful_downloads: List[str] = field(default_factory=list)

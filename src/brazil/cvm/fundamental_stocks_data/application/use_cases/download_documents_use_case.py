@@ -16,40 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 class DownloadDocumentsUseCase:
-    """Orchestrator use case for downloading CVM documents.
-
-    This use case orchestrates the complete download workflow by coordinating
-    multiple smaller, focused use cases following the Single Responsibility Principle:
-    - Verify and Create Paths
-    - Generation of range of years
-    - Generation of download URLs
-    - Execution of downloads via repository
-
-    This orchestrator pattern allows for:
-    - Better testability (each sub-use case can be tested in isolation)
-    - Reusability (URL generation can be used independently)
-    - Maintainability (changes to validation don't affect URL generation)
-
-    Example:
-        >>> repository = HttpxAsyncDownloadAdapter()  # Recommended for performance
-        >>> use_case = DownloadDocumentsUseCase(repository)
-        >>> result = use_case.execute(
-        ...     destination_path="/path/to/download",
-        ...     list_docs=["DFP", "ITR"],
-        ...     initial_year=2020,
-        ...     last_year=2023
-        ... )
-        >>> print(f"Downloaded {result.success_count_downloads} files")
-    """
+    """Orchestrator use case for downloading CVM documents."""
 
     def __init__(self, repository: DownloadDocsCVMRepository) -> None:
-        """Initialize the orchestrator with a repository and sub-use cases.
+        """Initialize the orchestrator with a repository.
 
         Args:
             repository: Implementation of DownloadDocsCVMRepository.
-                       Options: HttpxAsyncDownloadAdapter (recommended),
-                               Aria2cAdapter (maximum speed),
-                               WgetDownloadAdapter (compatibility)
         """
         if not isinstance(repository, DownloadDocsCVMRepository):
             raise InvalidRepositoryTypeError(
@@ -72,34 +45,16 @@ class DownloadDocumentsUseCase:
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
     ) -> DownloadResult:
-        """Execute the download operation by orchestrating sub-use cases.
-
-        This method coordinates the complete workflow:
+        """Execute the download operation.
 
         Args:
             destination_path: Directory path where files will be saved.
-                             Will be created if it doesn't exist.
             list_docs: List of document type codes (e.g., ["DFP", "ITR"]).
-                      If None, downloads all available document types.
             initial_year: Starting year for downloads (inclusive).
-                       If None, uses minimum available year for each document type.
             last_year: Ending year for downloads (inclusive).
-                     If None, uses current year.
 
         Returns:
             DownloadResult containing successful downloads and encountered errors.
-
-        Raises:
-            InvalidRepositoryTypeError: If repository is not a DownloadDocsCVMRepository instance.
-            InvalidDestinationPathError: If path is invalid (empty, whitespace, or wrong type).
-            PathIsNotDirectoryError: If path exists but is a file.
-            PathPermissionError: If path lacks write permissions.
-            EmptyDocumentListError: If list_docs is an empty list.
-            InvalidDocName: If invalid document type is specified.
-            InvalidTypeDoc: If document type is not a string.
-            InvalidFirstYear: If initial_year is outside valid range.
-            InvalidLastYear: If last_year is outside valid range.
-            OSError: If directory cannot be created.
         """
         logger.info(
             f"Starting download orchestration: "
@@ -161,15 +116,7 @@ class DownloadDocumentsUseCase:
         dict_zip_to_download: Dict[str, List[str]],
         docs_paths: Dict[str, Dict[int, str]],
     ) -> List[Tuple[str, str, str, str]]:
-        """
-        Prepares download tasks from the input dictionaries.
-
-        Uses the years from docs_paths as the single source of truth,
-        and matches them with the corresponding URLs.
-
-        Returns:
-            List of tuples (url, doc_name, year, destination_path)
-        """
+        """Prepare download tasks from the input dictionaries."""
         tasks = []
         for doc_name, years_dict in docs_paths.items():
             if doc_name not in dict_zip_to_download:

@@ -1,12 +1,12 @@
 from abc import ABC
-from typing import Dict, List
+from typing import List, Tuple
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+from src.brazil.cvm.fundamental_stocks_data import (
     DownloadDocsCVMRepository,
+    DownloadResult,
 )
-from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 
 
 @pytest.mark.unit
@@ -39,8 +39,7 @@ class TestDownloadDocsCVMRepositoryContract:
         class CompleteRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
@@ -52,14 +51,12 @@ class TestDownloadDocsCVMRepositoryContract:
         class ConcreteRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
         repository = ConcreteRepository()
-        # Should accept exactly 2 parameters (plus self)
-        assert repository.download_docs.__code__.co_argcount == 3
+        assert repository.download_docs.__code__.co_argcount == 2
 
 
 @pytest.mark.unit
@@ -78,7 +75,7 @@ class TestDownloadDocsCVMRepositoryDocumentation:
 
     def test_download_docs_docstring_mentions_parameters(self):
         doc = DownloadDocsCVMRepository.download_docs.__doc__
-        assert "dict_zip" in doc.lower() or "docs_paths" in doc.lower()
+        assert "tasks" in doc.lower() or "url" in doc.lower()
 
     def test_download_docs_docstring_mentions_return(self):
         doc = DownloadDocsCVMRepository.download_docs.__doc__
@@ -94,39 +91,42 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
-                self.downloads.append((dict_zip_to_download, docs_paths))
+                self.downloads.append(tasks)
                 return DownloadResult()
 
         repository = SimpleRepository()
-        dict_zip = {"DFP": ["url1", "url2"]}
-        docs_paths = {"DFP": {2020: "/path/2020", 2021: "/path/2021"}}
+        tasks = [
+            ("http://example.com/dfp2020", "dfp_2020", "2020", "/path/2020"),
+            ("http://example.com/dfp2021", "dfp_2021", "2021", "/path/2021"),
+        ]
 
-        result = repository.download_docs(dict_zip, docs_paths)
+        result = repository.download_docs(tasks)
 
         assert isinstance(result, DownloadResult)
         assert len(repository.downloads) == 1
+        assert repository.downloads[0] == tasks
 
     def test_repository_with_successful_downloads(self):
         class SuccessRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
-                for doc_type, urls in dict_zip_to_download.items():
-                    for idx, url in enumerate(urls):
-                        result.add_success_downloads(f"{doc_type}_file_{idx}")
+                for url, doc_name, year, path in tasks:
+                    result.add_success_downloads(f"{doc_name}_{year}")
                 return result
 
         repository = SuccessRepository()
-        dict_zip = {"DFP": ["url1", "url2"], "ITR": ["url3"]}
-        docs_paths = {"DFP": {2020: "/path", 2021: "/path"}, "ITR": {2020: "/path"}}
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
+            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
+        ]
 
-        result = repository.download_docs(dict_zip, docs_paths)
+        result = repository.download_docs(tasks)
 
         assert result.success_count_downloads == 3
         assert result.error_count_downloads == 0
@@ -135,18 +135,18 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
         class ErrorRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
                 result.add_error_downloads("DFP_2020", "Connection timeout")
                 return result
 
         repository = ErrorRepository()
-        dict_zip = {"DFP": ["url1"]}
-        docs_paths = {"DFP": {2020: "/path"}}
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
 
-        result = repository.download_docs(dict_zip, docs_paths)
+        result = repository.download_docs(tasks)
 
         assert result.error_count_downloads == 1
         assert "DFP_2020" in result.failed_downloads
@@ -155,17 +155,17 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
         class FailingRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 raise RuntimeError("Download failed")
 
         repository = FailingRepository()
-        dict_zip = {"DFP": ["url1"]}
-        docs_paths = {"DFP": {2020: "/path"}}
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
 
         with pytest.raises(RuntimeError, match="Download failed"):
-            repository.download_docs(dict_zip, docs_paths)
+            repository.download_docs(tasks)
 
 
 @pytest.mark.unit
@@ -174,26 +174,25 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
         class RepoA(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
         class RepoB(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
         repositories = [RepoA(), RepoB()]
-        dict_zip = {"DFP": ["url1"]}
-        docs_paths = {"DFP": {2020: "/path"}}
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
 
         for repo in repositories:
             assert isinstance(repo, DownloadDocsCVMRepository)
-            result = repo.download_docs(dict_zip, docs_paths)
+            result = repo.download_docs(tasks)
             assert isinstance(result, DownloadResult)
 
     def test_dependency_injection_with_interface(self):
@@ -203,20 +202,22 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
 
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 self.called = True
                 return DownloadResult()
 
-        # Simulate dependency injection in a use case
         def execute_download(
-            repository: DownloadDocsCVMRepository, dict_zip: Dict, docs_paths: Dict
-        ):
-            return repository.download_docs(dict_zip, docs_paths)
+            repository: DownloadDocsCVMRepository,
+            tasks: List[Tuple[str, str, str, str]],
+        ) -> DownloadResult:
+            return repository.download_docs(tasks)
 
         mock = MockRepository()
-        result = execute_download(mock, {"DFP": ["url1"]}, {"DFP": {2020: "/path"}})
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
+        result = execute_download(mock, tasks)
 
         assert mock.called is True
         assert isinstance(result, DownloadResult)
@@ -228,13 +229,15 @@ class TestDownloadDocsCVMRepositoryReturnType:
         class ConcreteRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
         repository = ConcreteRepository()
-        result = repository.download_docs({"DFP": ["url1"]}, {"DFP": {2020: "/path"}})
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
+        result = repository.download_docs(tasks)
 
         assert isinstance(result, DownloadResult)
 
@@ -242,8 +245,7 @@ class TestDownloadDocsCVMRepositoryReturnType:
         class PopulatedRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
                 result.add_success_downloads("DFP_2020")
@@ -252,10 +254,12 @@ class TestDownloadDocsCVMRepositoryReturnType:
                 return result
 
         repository = PopulatedRepository()
-        result = repository.download_docs(
-            {"DFP": ["url1", "url2"], "ITR": ["url3"]},
-            {"DFP": {2020: "/path", 2021: "/path"}, "ITR": {2020: "/path"}},
-        )
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
+            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
+        ]
+        result = repository.download_docs(tasks)
 
         assert result.success_count_downloads == 2
         assert result.error_count_downloads == 1
@@ -263,35 +267,44 @@ class TestDownloadDocsCVMRepositoryReturnType:
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryParameterTypes:
-    def test_dict_zip_parameter_accepts_dict(self):
+    def test_tasks_parameter_accepts_list_of_tuples(self):
         class TypeCheckingRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
-                assert isinstance(dict_zip_to_download, dict)
+                assert isinstance(tasks, list)
+                for task in tasks:
+                    assert isinstance(task, tuple)
+                    assert len(task) == 4
                 return DownloadResult()
 
         repository = TypeCheckingRepository()
-        repository.download_docs({"DFP": ["url1"]}, {"DFP": {2020: "/path"}})
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
+        ]
+        repository.download_docs(tasks)
 
-    def test_docs_paths_parameter_accepts_nested_dict(self):
+    def test_tasks_parameter_tuple_elements_are_strings(self):
         class TypeCheckingRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
-                assert isinstance(docs_paths, dict)
-                for doc_type, year_paths in docs_paths.items():
-                    assert isinstance(year_paths, dict)
+                for task in tasks:
+                    url, doc_name, year, path = task
+                    assert isinstance(url, str)
+                    assert isinstance(doc_name, str)
+                    assert isinstance(year, str)
+                    assert isinstance(path, str)
                 return DownloadResult()
 
         repository = TypeCheckingRepository()
-        repository.download_docs(
-            {"DFP": ["url1"]}, {"DFP": {2020: "/path", 2021: "/path"}}
-        )
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+        ]
+        repository.download_docs(tasks)
 
 
 @pytest.mark.unit
@@ -300,8 +313,7 @@ class TestDownloadDocsCVMRepositoryInstanceChecks:
         class ConcreteRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
@@ -312,8 +324,7 @@ class TestDownloadDocsCVMRepositoryInstanceChecks:
         class ConcreteRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
@@ -323,8 +334,7 @@ class TestDownloadDocsCVMRepositoryInstanceChecks:
         class NotARepository:
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
@@ -334,46 +344,41 @@ class TestDownloadDocsCVMRepositoryInstanceChecks:
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryEdgeCases:
-    def test_repository_with_empty_dict_zip(self):
+    def test_repository_with_empty_tasks_list(self):
         class EmptyHandlingRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 return DownloadResult()
 
         repository = EmptyHandlingRepository()
-        result = repository.download_docs({}, {})
+        result = repository.download_docs([])
 
         assert isinstance(result, DownloadResult)
         assert result.success_count_downloads == 0
 
-    def test_repository_with_many_documents(self):
-        class ManyDocsRepository(DownloadDocsCVMRepository):
+    def test_repository_with_many_tasks(self):
+        class ManyTasksRepository(DownloadDocsCVMRepository):
             def download_docs(
                 self,
-                dict_zip_to_download: Dict[str, List[str]],
-                docs_paths: Dict[str, Dict[int, str]],
+                tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResult:
                 result = DownloadResult()
-                for doc_type, urls in dict_zip_to_download.items():
-                    for idx, _ in enumerate(urls):
-                        result.add_success_downloads(f"{doc_type}_file_{idx}")
+                for url, doc_name, year, path in tasks:
+                    result.add_success_downloads(f"{doc_name}_{year}")
                 return result
 
-        repository = ManyDocsRepository()
-        dict_zip = {
-            "DFP": ["url1", "url2", "url3"],
-            "ITR": ["url4", "url5"],
-            "FRE": ["url6"],
-        }
-        docs_paths = {
-            "DFP": {2020: "/p", 2021: "/p", 2022: "/p"},
-            "ITR": {2020: "/p", 2021: "/p"},
-            "FRE": {2020: "/p"},
-        }
+        repository = ManyTasksRepository()
+        tasks = [
+            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
+            ("http://example.com/dfp2022", "dfp", "2022", "/path/2022"),
+            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
+            ("http://example.com/itr2021", "itr", "2021", "/path/2021"),
+            ("http://example.com/fre2020", "fre", "2020", "/path/2020"),
+        ]
 
-        result = repository.download_docs(dict_zip, docs_paths)
+        result = repository.download_docs(tasks)
 
         assert result.success_count_downloads == 6

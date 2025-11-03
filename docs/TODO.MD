@@ -1,4 +1,3 @@
-- deixa codigo em ingles
 - arrumar testes
 
 ### 6. **Logging Strategy Precisa Evolução**
