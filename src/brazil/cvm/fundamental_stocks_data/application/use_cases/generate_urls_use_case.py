@@ -7,24 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class GenerateUrlsUseCase:
-    """Use case for generating download URLs.
-
-    This use case is responsible solely for generating the dictionary
-    of download URLs based on document types and year ranges.
-
-    Example:
-        >>> generator = GenerateUrlsUseCase()
-        >>> urls = generator.execute(
-        ...     list_docs=["DFP", "ITR"],
-        ...     initial_year=2020,
-        ...     last_year=2023
-        ... )
-        >>> print(len(urls))
-        2
-    """
+    """Use case for generating download URLs."""
 
     def __init__(self) -> None:
-        """Initialize the URL generator use case."""
         self.__dict_generator = DictZipsToDownload()
         logger.debug("GenerateUrlsUseCase initialized")
 
@@ -42,22 +27,7 @@ class GenerateUrlsUseCase:
             last_year: Ending year for downloads (inclusive).
 
         Returns:
-            Dict mapping document types to lists of download URLs.
-
-        Raises:
-            EmptyDocumentListError: If list_docs is an empty list.
-            InvalidDocName: If invalid document type is specified.
-            InvalidTypeDoc: If document type is not a string.
-            InvalidFirstYear: If initial_year is outside valid range.
-            InvalidLastYear: If last_year is outside valid range.
-
-        Example:
-            >>> generator = GenerateUrlsUseCase()
-            >>> urls = generator.execute(["DFP"], 2020, 2021)
-            >>> print(urls.keys())
-            dict_keys(['DFP'])
-            >>> print(len(urls['DFP']))
-            2
+            A tuple containing a dictionary mapping document types to lists of download URLs and a set of document types.
         """
         logger.debug(
             f"Generating URLs for docs={list_docs}, "

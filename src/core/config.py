@@ -15,10 +15,13 @@ Example:
 """
 
 import logging
-from typing import Literal, Optional
+from pathlib import Path
+from typing import Literal, Optional, cast
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class LoggingSettings(BaseSettings):
@@ -137,5 +140,69 @@ class Settings(BaseSettings):
 # Singleton instance
 settings = Settings()
 
-# Auto-configure logging on import
-settings.configure_logging()
+
+# Logging is not auto-configured on import.
+# The user must explicitly call setup_logging() to enable it.
+# This gives the application control over when and how logging is initialized.
+
+
+def setup_logging(
+    level: Optional[str] = None,
+    log_file: Optional[str] = None,
+    structured: bool = False,
+) -> None:
+    """
+    Set up logging for the DataFinance library.
+
+    Call this function if you want to see log messages from the library.
+    By default, logging is disabled to keep your application clean.
+
+    Args:
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+               If None, uses the DATAFIN_LOG_LEVEL environment variable or defaults to INFO.
+        log_file: Path to the log file. If None, logs go to the console only.
+        structured: Enable JSON structured logging.
+
+    Example:
+        >>> from src.core.config import setup_logging
+        >>> setup_logging(level="DEBUG")
+        >>> # Now logs will be displayed
+    """
+    if level:
+        normalized = level.upper() if isinstance(level, str) else level
+        settings.logging.level = cast(
+            Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            normalized,
+        )
+    if log_file:
+        settings.logging.log_file = log_file
+    if structured:
+        settings.logging.structured = structured
+
+    settings.configure_logging()
+
+
+def remove_file(filepath: str, log_on_error: bool = True) -> None:
+    """
+    Remove a file from disk safely.
+
+    This is a utility function that removes any file from disk,
+    with optional logging on errors. Handles missing files gracefully.
+
+    Args:
+        filepath: Path to the file to remove
+        log_on_error: If True, logs warnings when file deletion fails
+
+    Example:
+        >>> from src.core.config import remove_file
+        >>> remove_file("/path/to/file.zip")
+    """
+    try:
+        path_obj = Path(filepath)
+        if path_obj.exists():
+            path_obj.unlink()
+            logger.debug(f"Removed file: {filepath}")
+    except Exception as e:
+        if log_on_error:
+            logger.warning(f"Failed to remove file {filepath}: {e}")
+        pass

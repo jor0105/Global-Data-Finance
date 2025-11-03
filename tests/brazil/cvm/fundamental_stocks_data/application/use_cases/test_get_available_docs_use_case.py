@@ -1,11 +1,7 @@
 import logging
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 from src.brazil.cvm.fundamental_stocks_data import (
     AvailableDocs,

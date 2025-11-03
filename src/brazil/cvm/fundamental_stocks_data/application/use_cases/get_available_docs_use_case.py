@@ -7,20 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class GetAvailableDocsUseCase:
-    """Use case for retrieving available CVM document types.
-
-    This use case provides information about all available document types
-    that can be downloaded from CVM, such as DFP, ITR, FRE, etc.
-
-    Example:
-        >>> use_case = GetAvailableDocsUseCase()
-        >>> docs = use_case.execute()
-        >>> print(docs)
-        {'DFP': 'Demonstração Financeira Padronizada', ...}
-    """
+    """Use case for retrieving available CVM document types."""
 
     def __init__(self) -> None:
-        """Initialize the use case with available documents data source."""
+        """Initialize the use case."""
         self.__available_docs = AvailableDocs()
         logger.debug("GetAvailableDocsUseCase initialized")
 
@@ -29,10 +19,6 @@ class GetAvailableDocsUseCase:
 
         Returns:
             Dictionary mapping document codes to their descriptions.
-            Example: {'DFP': 'Demonstração Financeira Padronizada', ...}
-
-        Raises:
-            Exception: If unable to retrieve available documents.
         """
         logger.info("Retrieving available document types")
 

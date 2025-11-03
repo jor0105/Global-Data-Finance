@@ -1,8 +1,6 @@
-"""Retry strategy with exponential backoff for handling transient failures."""
-
 import requests
 
-from src.macro_exceptions.macro_exceptions import (
+from src.macro_exceptions import (
     DiskFullError,
     NetworkError,
     PathPermissionError,
@@ -29,7 +27,7 @@ class RetryStrategy:
         self.multiplier = multiplier
 
     def is_retryable(self, exception: Exception) -> bool:
-        """Determine if exception warrants a retry."""
+        """Determines if an exception warrants a retry."""
         if isinstance(exception, (PathPermissionError, DiskFullError, ValueError)):
             return False
 
@@ -48,6 +46,6 @@ class RetryStrategy:
         return any(kw in error_msg for kw in self._RETRYABLE_KEYWORDS)
 
     def calculate_backoff(self, retry_count: int) -> float:
-        """Calculate exponential backoff duration."""
+        """Calculates the exponential backoff duration."""
         backoff = self.initial_backoff * (self.multiplier**retry_count)
         return min(backoff, self.max_backoff)

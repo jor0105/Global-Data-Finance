@@ -1,8 +1,7 @@
-# Domain models and entities
-# Application layer - use cases and interfaces
 from src.brazil.cvm.fundamental_stocks_data.application import (
     DownloadDocsCVMRepository,
     DownloadDocumentsUseCase,
+    FileExtractorRepository,
     GenerateRangeYearsUseCases,
     GenerateUrlsUseCase,
     GetAvailableDocsUseCase,
@@ -25,21 +24,32 @@ from src.brazil.cvm.fundamental_stocks_data.exceptions import (
     InvalidLastYear,
     InvalidRepositoryTypeError,
     InvalidTypeDoc,
-    WgetLibraryError,
-    WgetValueError,
+    MissingDownloadUrlError,
 )
 
 # Infrastructure layer - adapters
 from src.brazil.cvm.fundamental_stocks_data.infra import (
-    ThreadPoolDownloadAdapter,
-    WgetDownloadAdapter,
+    HttpxAsyncDownloadAdapter,
+    ParquetExtractor,
 )
 
-# Utils
-from src.brazil.cvm.fundamental_stocks_data.utils import (
-    RetryStrategy,
-    SimpleProgressBar,
+# Core utilities
+from src.core import RetryStrategy, SimpleProgressBar
+
+# Macro exceptions - shared error handling
+from src.macro_exceptions import (
+    CorruptedZipError,
+    DiskFullError,
+    ExtractionError,
+    InvalidDestinationPathError,
+    NetworkError,
+    PathIsNotDirectoryError,
+    PathPermissionError,
+    TimeoutError,
 )
+
+# Macro infrastructure - shared adapters
+from src.macro_infra import Extractor, RequestsAdapter
 
 __all__ = [
     # Domain
@@ -50,25 +60,37 @@ __all__ = [
     "DownloadResult",
     # Application
     "DownloadDocsCVMRepository",
+    "FileExtractorRepository",
     "DownloadDocumentsUseCase",
     "GenerateUrlsUseCase",
     "GenerateRangeYearsUseCases",
     "GetAvailableDocsUseCase",
     "GetAvailableYearsUseCase",
     "VerifyPathsUseCases",
-    # Infrastructure
-    "WgetDownloadAdapter",
-    "ThreadPoolDownloadAdapter",
-    # Exceptions
+    # Infrastructure - adapters
+    "ParquetExtractor",
+    "HttpxAsyncDownloadAdapter",
+    # Core utilities
+    "RetryStrategy",
+    "SimpleProgressBar",
+    # Macro infrastructure
+    "Extractor",
+    "RequestsAdapter",
+    # Exceptions - domain specific
     "InvalidFirstYear",
     "InvalidLastYear",
     "InvalidDocName",
     "InvalidTypeDoc",
     "InvalidRepositoryTypeError",
     "EmptyDocumentListError",
-    "WgetLibraryError",
-    "WgetValueError",
-    # Utils
-    "RetryStrategy",
-    "SimpleProgressBar",
+    "MissingDownloadUrlError",
+    # Exceptions - macro/shared
+    "CorruptedZipError",
+    "DiskFullError",
+    "ExtractionError",
+    "InvalidDestinationPathError",
+    "NetworkError",
+    "PathIsNotDirectoryError",
+    "PathPermissionError",
+    "TimeoutError",
 ]

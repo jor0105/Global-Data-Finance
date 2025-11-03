@@ -8,8 +8,8 @@ Example:
     >>> from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
     >>>
     >>> result = DownloadResult()
-    >>> result.add_success("DFP_2023")
-    >>> result.add_error("ITR_2023", "Network timeout")
+    >>> result.add_success_downloads("DFP_2023")
+    >>> result.add_error_downloads("ITR_2023", "Network timeout")
     >>>
     >>> formatter = DownloadResultFormatter()
     >>> formatter.print_result(result)
@@ -36,46 +36,49 @@ class DownloadResultFormatter:
     _BOLD = "\033[1m"
 
     def __init__(self, use_colors: bool = True) -> None:
-        """Initialize the formatter.
+        """
+        Initializes the formatter.
 
         Args:
-            use_colors: Whether to use ANSI color codes in output.
-                       Set to False for plain text output.
+            use_colors: Whether to use ANSI color codes in the output.
+                        Set to False for plain text output.
         """
         self.use_colors = use_colors
 
     def _colorize(self, text: str, color: str) -> str:
-        """Apply color to text if colors are enabled.
+        """
+        Applies color to text if colors are enabled.
 
         Args:
-            text: Text to colorize.
-            color: Color code.
+            text: The text to colorize.
+            color: The color code.
 
         Returns:
-            Colorized text or plain text.
+            The colorized text or plain text.
         """
         if not self.use_colors:
             return text
         return f"{color}{text}{self._RESET}"
 
     def format_result(self, result: DownloadResult) -> str:
-        """Format download result with smart layout.
+        """
+        Formats the download result with a smart layout.
 
-        Shows only relevant sections:
-        - If there are failures: displays failures section only
-        - If all successful: displays success summary only
+        It shows only relevant sections:
+        - If there are failures, it displays the failures section only.
+        - If all are successful, it displays a success summary only.
 
         Args:
-            result: DownloadResult object to format.
+            result: The DownloadResult object to format.
 
         Returns:
-            Formatted output string.
+            A formatted output string.
 
         Example (with failures):
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
-            >>> result.add_success("FRE_2023")
-            >>> result.add_error("ITR_2023", "Connection timeout")
+            >>> result.add_success_downloads("DFP_2023")
+            >>> result.add_success_downloads("FRE_2023")
+            >>> result.add_error_downloads("ITR_2023", "Connection timeout")
             >>> formatter = DownloadResultFormatter()
             >>> print(formatter.format_result(result))
 
@@ -92,8 +95,8 @@ class DownloadResultFormatter:
 
         Example (all successful):
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
-            >>> result.add_success("FRE_2023")
+            >>> result.add_success_downloads("DFP_2023")
+            >>> result.add_success_downloads("FRE_2023")
             >>> formatter = DownloadResultFormatter()
             >>> print(formatter.format_result(result))
 
@@ -134,7 +137,7 @@ class DownloadResultFormatter:
             lines.append("")
             lines.append(
                 self._colorize(
-                    f"✗ FAILED DOWNLOADS ({result.error_count})",
+                    f"✗ FAILED DOWNLOADS ({result.error_count_downloads})",
                     self._RED,
                 )
             )
@@ -147,7 +150,7 @@ class DownloadResultFormatter:
             lines.append("")
             lines.append(
                 self._colorize(
-                    f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count})",
+                    f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count_downloads})",
                     self._GREEN,
                 )
             )
@@ -156,27 +159,28 @@ class DownloadResultFormatter:
         # Summary line
         lines.append("")
         if result.failed_downloads:
-            total = result.success_count + result.error_count
+            total = result.success_count_downloads + result.error_count_downloads
             summary = (
-                f"SUMMARY: {result.success_count} succeeded, "
-                f"{result.error_count} failed out of {total} total"
+                f"SUMMARY: {result.success_count_downloads} succeeded, "
+                f"{result.error_count_downloads} failed out of {total} total"
             )
         else:
-            summary = f"SUMMARY: {result.success_count} succeeded out of {result.success_count} total"
+            summary = f"SUMMARY: {result.success_count_downloads} succeeded out of {result.success_count_downloads} total"
 
         lines.append(self._colorize(summary, self._RESET))
 
         return "\n".join(lines)
 
     def print_result(self, result: DownloadResult) -> None:
-        """Convenience method to directly print formatted result.
+        """
+        A convenience method to directly print the formatted result.
 
         Args:
-            result: DownloadResult object to print.
+            result: The DownloadResult object to print.
 
         Example:
             >>> result = DownloadResult()
-            >>> result.add_success("DFP_2023")
+            >>> result.add_success_downloads("DFP_2023")
             >>> formatter = DownloadResultFormatter()
             >>> formatter.print_result(result)
         """

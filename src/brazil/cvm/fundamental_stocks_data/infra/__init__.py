@@ -1,3 +1,6 @@
-from .adapters import ThreadPoolDownloadAdapter, WgetDownloadAdapter
+from .adapters import HttpxAsyncDownloadAdapter, ParquetExtractor
 
-__all__ = ["WgetDownloadAdapter", "ThreadPoolDownloadAdapter"]
+__all__ = [
+    "ParquetExtractor",
+    "HttpxAsyncDownloadAdapter",
+]

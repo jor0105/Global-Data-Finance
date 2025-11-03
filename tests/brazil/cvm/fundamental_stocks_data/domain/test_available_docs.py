@@ -196,7 +196,7 @@ class TestUrlDocs:
         with pytest.raises(TypeError) as exc_info:
             url_docs.get_url_docs("DFP")
 
-        assert "must be a built-in list" in str(exc_info.value)
+        assert "list_docs must be a list of strings or None" in str(exc_info.value)
 
     def test_get_url_docs_with_dict_parameter(self, url_docs):
         with pytest.raises(TypeError):

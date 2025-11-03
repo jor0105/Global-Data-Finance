@@ -15,6 +15,17 @@ class DictZipsToDownload:
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
     ) -> Tuple[Dict[str, List[str]], Set[str]]:
+        """
+        Gets a dictionary of zip files to download.
+
+        Args:
+            list_docs: A list of document types to download.
+            initial_year: The initial year for the download.
+            last_year: The last year for the download.
+
+        Returns:
+            A tuple containing a dictionary of zip files to download and a set of document types.
+        """
         range_years: range = self._available_years.return_range_years(
             initial_year, last_year
         )
