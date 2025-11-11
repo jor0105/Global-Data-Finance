@@ -60,7 +60,7 @@ def dados_opcoes_b3(taxa_selic_atual):
             caminho = os.path.join(cotacoes_doc_conc, nome_arquivo)
             tabela = pd.read_parquet(caminho)
             return tabela["Fechamento"].iat[-1]
-        except:
+        except Exception:
             print(f"Ativo {codigo} não encontrado.")
 
     df_dados_vol_acoes_b3["Preço Ação"] = [

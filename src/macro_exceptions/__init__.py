@@ -2,6 +2,7 @@ from .macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     DownloadExtractionError,
+    EmptyDirectoryError,
     ExtractionError,
     InvalidDestinationPathError,
     NetworkError,
@@ -11,6 +12,7 @@ from .macro_exceptions import (
 )
 
 __all__ = [
+    "EmptyDirectoryError",
     "InvalidDestinationPathError",
     "PathIsNotDirectoryError",
     "PathPermissionError",

@@ -1,4 +1,5 @@
 from .exception_domain import (
+    EmptyAssetListError,
     InvalidAssetsName,
     InvalidFirstYear,
     InvalidLastYear,
@@ -6,8 +7,9 @@ from .exception_domain import (
 )
 
 __all__ = [
-    "InvalidRepositoryTypeError",
+    "InvalidAssetsName",
     "InvalidFirstYear",
     "InvalidLastYear",
-    "InvalidAssetsName",
+    "InvalidRepositoryTypeError",
+    "EmptyAssetListError",
 ]

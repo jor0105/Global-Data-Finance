@@ -33,9 +33,7 @@ class ParquetExtractor(FileExtractorRepository):
     """
 
     def __init__(self, chunk_size: int = 50000):
-        """
-        Initialize ParquetExtractor.
-        """
+        """Initialize ParquetExtractor."""
         self.chunk_size = chunk_size
         logger.debug(f"ParquetExtractor initialized with chunk_size={chunk_size}")
 

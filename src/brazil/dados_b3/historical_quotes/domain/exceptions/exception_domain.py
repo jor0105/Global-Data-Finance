@@ -25,3 +25,8 @@ class InvalidAssetsName(Exception):
         super().__init__(
             f"Invalid assets names: {assets_list}. Assets must be a list of strings and one of: {list_available_assets}."
         )
+
+
+class EmptyAssetListError(Exception):
+    def __init__(self, message: str = "Asset list cannot be empty."):
+        super().__init__(message)

@@ -1,6 +1,11 @@
 from typing import Optional
 
 
+class EmptyDirectoryError(Exception):
+    def __init__(self, path):
+        super().__init__(f"Directory is empty: {path!r}")
+
+
 class InvalidDestinationPathError(ValueError):
     def __init__(self, reason: str):
         super().__init__(f"Invalid destination path: {reason}")

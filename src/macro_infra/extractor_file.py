@@ -1,8 +1,10 @@
+import asyncio
 import logging
 import zipfile
 from pathlib import Path
+from typing import AsyncIterator, List
 
-import pandas as pd
+import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -104,6 +106,98 @@ class Extractor:
         )
 
     @staticmethod
+    async def read_txt_from_zip_async(zip_path: str) -> AsyncIterator[str]:
+        """Read lines from TXT file inside ZIP asynchronously without disk extraction.
+
+        This method is designed for COTAHIST files from B3.
+
+        Args:
+            zip_path: Path to the ZIP file
+
+        Yields:
+            Lines from the TXT file (decoded as latin-1)
+
+        Raises:
+            FileNotFoundError: If ZIP file doesn't exist
+            CorruptedZipError: If ZIP file is invalid or corrupted
+            ExtractionError: If no TXT file found in ZIP
+        """
+        path = Path(zip_path)
+        if not path.exists():
+            raise FileNotFoundError(f"ZIP file not found: {zip_path}")
+
+        # Run blocking I/O in executor to avoid blocking event loop
+        loop = asyncio.get_event_loop()
+        lines = await loop.run_in_executor(
+            None, Extractor._read_txt_from_zip_sync, zip_path
+        )
+
+        for line in lines:
+            yield line
+
+    @staticmethod
+    def _read_txt_from_zip_sync(zip_path: str) -> List[str]:
+        """Synchronous helper to read TXT file content from ZIP.
+
+        Args:
+            zip_path: Path to the ZIP file
+
+        Returns:
+            List of lines from the TXT file
+
+        Raises:
+            CorruptedZipError: If ZIP is invalid
+            ExtractionError: If no TXT file found
+        """
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                # Get first .TXT file in the archive
+                txt_files = [
+                    name for name in zip_ref.namelist() if name.upper().endswith(".TXT")
+                ]
+
+                if not txt_files:
+                    raise ExtractionError(zip_path, "No .TXT file found in ZIP")
+
+                # Read the first TXT file
+                with zip_ref.open(txt_files[0]) as txt_file:
+                    # B3 files use latin-1 encoding
+                    content = txt_file.read().decode("latin-1")
+                    lines = content.splitlines()
+
+            return lines
+
+        except zipfile.BadZipFile as e:
+            raise CorruptedZipError(zip_path, str(e))
+        except Exception as e:
+            if isinstance(e, (ExtractionError, CorruptedZipError)):
+                raise
+            raise ExtractionError(zip_path, f"Error reading TXT from ZIP: {e}")
+
+    @staticmethod
+    def read_txt_from_zip(zip_path: str) -> List[str]:
+        """Read lines from TXT file inside ZIP synchronously.
+
+        Convenience method for synchronous code.
+
+        Args:
+            zip_path: Path to the ZIP file
+
+        Returns:
+            List of lines from the TXT file
+
+        Raises:
+            FileNotFoundError: If ZIP file doesn't exist
+            CorruptedZipError: If ZIP file is invalid
+            ExtractionError: If no TXT file found
+        """
+        path = Path(zip_path)
+        if not path.exists():
+            raise FileNotFoundError(f"ZIP file not found: {zip_path}")
+
+        return Extractor._read_txt_from_zip_sync(zip_path)
+
+    @staticmethod
     def _extract_single_csv(
         chunk_size: int, zip_file: zipfile.ZipFile, csv_filename: str, output_dir: str
     ) -> None:
@@ -134,14 +228,12 @@ class Extractor:
             for encoding in encodings_to_try:
                 try:
                     with zip_file.open(csv_filename) as csv_file:
-                        csv_data = pd.read_csv(
+                        csv_data = pl.read_csv(
                             csv_file,
                             encoding=encoding,
-                            sep=";",  # CVM uses semicolon as delimiter
-                            dtype_backend="numpy_nullable",
-                            on_bad_lines="skip",  # Skip malformed lines
-                            engine="python",  # More flexible parser
-                            skipinitialspace=True,  # Strip whitespace after delimiter
+                            separator=";",  # CVM uses semicolon as delimiter
+                            ignore_errors=True,  # Skip malformed lines
+                            skip_rows_after_header=0,
                         )
                     logger.debug(
                         f"Successfully read {csv_filename} with encoding {encoding}"
@@ -163,12 +255,12 @@ class Extractor:
 
             # Process data in chunks for memory optimization
             first_chunk = True
-            for chunk_start in range(0, len(csv_data), chunk_size):
-                chunk = csv_data.iloc[chunk_start : chunk_start + chunk_size]
+            for chunk_start in range(0, csv_data.height, chunk_size):
+                chunk = csv_data[chunk_start : chunk_start + chunk_size]
 
                 try:
                     # Convert to Arrow table
-                    table = pa.Table.from_pandas(chunk)
+                    table = chunk.to_arrow()
 
                     # Write or append to Parquet
                     if first_chunk:
@@ -187,7 +279,7 @@ class Extractor:
                         raise DiskFullError(str(parquet_path))
                     raise
 
-        except pd.errors.ParserError as e:
+        except pl.exceptions.ComputeError as e:
             # Clean up partial file if it exists
             if parquet_path.exists():
                 try:

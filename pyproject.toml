@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.11.0,<3.0.0",
     "pyarrow (>=22.0.0,<23.0.0)",
     "httpx[http2] (>=0.28.1,<0.29.0)",
+    "polars>=1.0.0,<2.0.0",
 ]
 
 [tool.poetry]
