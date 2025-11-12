@@ -4,8 +4,6 @@ from ...domain import AvailableAssetsService
 
 
 class GetAvailableAssetsUseCase:
-    """Use case for retrieving available asset classes for historical quotes data."""
-
     @staticmethod
     def execute() -> List[str]:
         """Get the list of available assets for historical quotes data.

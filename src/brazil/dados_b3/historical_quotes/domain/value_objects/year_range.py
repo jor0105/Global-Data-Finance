@@ -58,25 +58,6 @@ class YearRange:
         """
         return range(self.initial_year, self.last_year + 1)
 
-    def contains(self, year: int) -> bool:
-        """Check if a specific year is within this range.
-
-        Args:
-            year: The year to check
-
-        Returns:
-            bool: True if the year is in this range, False otherwise
-        """
-        return self.initial_year <= year <= self.last_year
-
-    def span_years(self) -> int:
-        """Calculate the number of years in this range.
-
-        Returns:
-            int: The number of years (inclusive)
-        """
-        return self.last_year - self.initial_year + 1
-
     def __str__(self) -> str:
         """Return a human-readable string representation.
 

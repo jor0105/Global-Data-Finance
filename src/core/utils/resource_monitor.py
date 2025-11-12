@@ -25,7 +25,7 @@ from src.core import get_logger
 logger = get_logger(__name__)
 
 try:
-    import psutil
+    import psutil  # type: ignore
 except ImportError:
     psutil = None
 
@@ -33,10 +33,10 @@ except ImportError:
 class ResourceState(Enum):
     """Represents the current state of system resources."""
 
-    HEALTHY = "healthy"  # Resources are plentiful
-    WARNING = "warning"  # Resources are getting low
-    CRITICAL = "critical"  # Resources are dangerously low
-    EXHAUSTED = "exhausted"  # Circuit breaker triggered
+    HEALTHY = "healthy"
+    WARNING = "warning"
+    CRITICAL = "critical"
+    EXHAUSTED = "exhausted"
 
 
 @dataclass
@@ -110,7 +110,6 @@ class ResourceMonitor:
                 "Install with: pip install psutil"
             )
 
-        # Log system info
         self._log_system_info()
         self._initialized = True
 
@@ -236,28 +235,6 @@ class ResourceMonitor:
         else:
             return ResourceState.HEALTHY
 
-    def get_memory_info(self) -> dict:
-        """Get detailed memory information.
-
-        Returns:
-            Dictionary with memory statistics
-        """
-        if psutil is None:
-            return {
-                "available": False,
-                "message": "psutil not installed",
-            }
-
-        memory = psutil.virtual_memory()
-        return {
-            "available": True,
-            "total_mb": memory.total / (1024**2),
-            "available_mb": memory.available / (1024**2),
-            "used_mb": memory.used / (1024**2),
-            "percent_used": memory.percent,
-            "state": self._check_memory().value,
-        }
-
     def get_safe_worker_count(self, max_workers: Optional[int] = None) -> int:
         """Calculate safe number of workers based on available resources.
 
@@ -371,14 +348,6 @@ class ResourceMonitor:
         logger.info("Circuit breaker reset - resuming processing")
         self._circuit_breaker_active = False
         self._circuit_breaker_triggered_at = None
-
-    def is_circuit_breaker_active(self) -> bool:
-        """Check if circuit breaker is currently active.
-
-        Returns:
-            True if circuit breaker is active
-        """
-        return self._circuit_breaker_active
 
     def wait_for_resources(
         self,

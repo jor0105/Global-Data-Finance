@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Set
 
 from ...domain import AvailableAssetsService, DocsToExtractor
 from ...infra import CotahistParser, ParquetWriter, ZipFileReader
@@ -41,9 +41,8 @@ class ExtractHistoricalQuotesUseCase:
         Returns:
             Dictionary with raw extraction results (without success/message fields)
         """
-        from ...infra.extraction_service_factory import ExtractionServiceFactory
+        from ...infra import ExtractionServiceFactory
 
-        # Create extraction service based on processing mode
         extraction_service = ExtractionServiceFactory.create(
             zip_reader=self.zip_reader,
             parser=self.parser,
@@ -51,15 +50,12 @@ class ExtractHistoricalQuotesUseCase:
             processing_mode=processing_mode,
         )
 
-        # Map user-friendly asset classes to TPMERC codes
         target_tpmerc_codes = AvailableAssetsService.get_tpmerc_codes_for_assets(
             docs_to_extract.set_assets
         )
 
-        # Convert set of document paths to list
-        zip_files = list(docs_to_extract.set_documents_to_download)
+        zip_files: Set[str] = docs_to_extract.set_documents_to_download
 
-        # Handle edge case: no ZIP files found
         if not zip_files:
             return {
                 "total_files": 0,
@@ -70,10 +66,8 @@ class ExtractHistoricalQuotesUseCase:
                 "output_file": "",
             }
 
-        # Define output path
         output_path = Path(docs_to_extract.destination_path) / output_filename
 
-        # Execute extraction and return raw results
         result = await extraction_service.extract_from_zip_files(
             zip_files=zip_files,
             target_tpmerc_codes=target_tpmerc_codes,

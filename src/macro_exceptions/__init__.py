@@ -1,7 +1,6 @@
 from .macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
-    DownloadExtractionError,
     EmptyDirectoryError,
     ExtractionError,
     InvalidDestinationPathError,
@@ -22,6 +21,5 @@ __all__ = [
     "DiskFullError",
     "ExtractionError",
     "CorruptedZipError",
-    "DownloadExtractionError",
     "SecurityError",
 ]

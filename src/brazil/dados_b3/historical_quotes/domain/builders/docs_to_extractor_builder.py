@@ -1,6 +1,6 @@
 from typing import Optional, Set
 
-from ..entities.docs_to_extractor import DocsToExtractor
+from ..entities import DocsToExtractor
 
 
 class DocsToExtractorBuilder:
@@ -111,8 +111,6 @@ class DocsToExtractorBuilder:
         # Validate required fields (raises ValueError if any are None)
         self._validate_required_fields()
 
-        # After validation, we know these are not None
-        # Type checker needs explicit assertion
         assert self._path_of_docs is not None
         assert self._set_assets is not None
         assert self._range_years is not None

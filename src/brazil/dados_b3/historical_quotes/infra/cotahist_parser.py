@@ -37,7 +37,6 @@ class CotahistParser:
             Dictionary with parsed data if TPMERC matches filter, None otherwise
             Returns None for header (00), trailer (99), invalid, or malformed records
         """
-        # Safety check: reject extremely long lines to prevent memory issues
         if len(line) > self.MAX_LINE_LENGTH:
             if self._error_count < self._max_errors_to_log:
                 logger.warning(
@@ -94,6 +93,7 @@ class CotahistParser:
                     exc_info=True,
                 )
                 self._error_count += 1
+
             return None
 
     def _parse_quote_record(self, line: str) -> Dict[str, Any]:
@@ -153,7 +153,6 @@ class CotahistParser:
             }
         except Exception as e:
             logger.error(f"Error parsing quote record: {e}", exc_info=True)
-            # Return minimal valid record to avoid complete failure
             return {
                 "data_pregao": None,
                 "codbdi": "",

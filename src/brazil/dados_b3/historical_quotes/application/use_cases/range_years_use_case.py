@@ -24,10 +24,8 @@ class CreateRangeYearsUseCase:
             InvalidFirstYear: If initial_year is invalid
             InvalidLastYear: If last_year is invalid
         """
-        # Validate and create YearRange value object
         year_range = YearValidationService.validate_and_create_year_range(
             initial_year, last_year
         )
 
-        # Return as Python range for backward compatibility
         return year_range.to_range()

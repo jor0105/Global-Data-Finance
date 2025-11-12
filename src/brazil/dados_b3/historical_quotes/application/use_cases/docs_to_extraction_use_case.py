@@ -1,7 +1,6 @@
 from typing import List, Optional
 
-from ...domain import DocsToExtractorBuilder
-from ...domain.entities.docs_to_extractor import DocsToExtractor
+from ...domain import DocsToExtractor, DocsToExtractorBuilder
 from .range_years_use_case import CreateRangeYearsUseCase
 from .set_assets_use_case import CreateSetAssetsUseCase
 from .set_docs_to_download_use_case import CreateSetToDownloadUseCase
@@ -61,22 +60,16 @@ class CreateDocsToExtractUseCase:
         Raises:
             Various domain exceptions: For validation failures
         """
-        # Validate and create set of assets (uses Domain service)
         set_assets = CreateSetAssetsUseCase.execute(self.assets_list)
 
-        # Validate and create year range (uses Domain service)
         range_years = CreateRangeYearsUseCase.execute(self.initial_year, self.last_year)
 
-        # Validate destination path
         VerifyDestinationPathsUseCase().execute(self.destination_path)
 
-        # Find document files in the source directory
         set_documents_to_download = CreateSetToDownloadUseCase.execute(
             range_years, self.path_of_docs
         )
 
-        # Use the Domain builder to construct the entity
-        # All validations are done, builder just assembles the entity
         builder = DocsToExtractorBuilder()
         return (
             builder.with_path_of_docs(self.path_of_docs)

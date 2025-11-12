@@ -11,7 +11,6 @@ from src.macro_exceptions import (
 class VerifyDestinationPathsUseCase:
     @staticmethod
     def execute(destination_path: str) -> None:
-        """Create and verify directory structure for documents and years."""
         if not isinstance(destination_path, str):
             raise TypeError(
                 f"Destination path must be a string, got {type(destination_path).__name__}"

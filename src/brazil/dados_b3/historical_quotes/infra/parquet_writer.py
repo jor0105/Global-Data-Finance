@@ -8,14 +8,13 @@ except ImportError:
     pl = None  # type: ignore
 
 try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
+    import pyarrow as pa  # type: ignore
+    import pyarrow.parquet as pq  # type: ignore
 except ImportError:
     pa = None  # type: ignore
     pq = None  # type: ignore
 
-from src.core import get_logger
-from src.core.utils import ResourceMonitor, ResourceState
+from src.core import ResourceMonitor, ResourceState, get_logger
 from src.macro_exceptions import DiskFullError
 
 logger = get_logger(__name__)
@@ -130,7 +129,6 @@ class ParquetWriter:
             if memory_state == ResourceState.EXHAUSTED:
                 raise MemoryError("Insufficient memory to create DataFrame")
 
-            # Convert list of dicts to Polars DataFrame
             df = pl.DataFrame(data)
 
             estimated_size_mb = df.estimated_size() / 1024 / 1024
@@ -144,7 +142,6 @@ class ParquetWriter:
                 },
             )
 
-            # Check disk space before writing
             self._check_disk_space(output_path, estimated_size_mb)
 
             # Ensure output directory exists
@@ -219,10 +216,10 @@ class ParquetWriter:
         """
         df.write_parquet(
             str(output_path),
-            compression="zstd",  # Better compression than default
-            compression_level=3,  # Balance between speed and size
-            statistics=True,  # Enable statistics for query optimization
-            use_pyarrow=False,  # Use native Polars writer for better performance
+            compression="zstd",
+            compression_level=3,
+            statistics=True,
+            use_pyarrow=False,
         )
 
     async def _append_with_concat(
@@ -235,7 +232,6 @@ class ParquetWriter:
             output_path: Path to existing Parquet file
         """
         try:
-            # Read existing data
             existing_df = pl.read_parquet(str(output_path))
 
             logger.debug(
@@ -246,17 +242,14 @@ class ParquetWriter:
                 },
             )
 
-            # Concatenate
             combined_df = pl.concat([existing_df, new_df], how="vertical")
 
             logger.debug(f"Combined DataFrame has {combined_df.height} rows")
 
-            # Write combined data
             await self._write_dataframe(combined_df, output_path)
 
         except Exception as e:
             logger.error(f"Error in concat-based append: {e}")
-            # Fallback to streaming
             logger.info("Falling back to streaming append")
             await self._append_with_streaming(new_df, output_path)
 
@@ -318,7 +311,6 @@ class ParquetWriter:
                     compression_level=3,
                 )
 
-            # Replace original file atomically
             temp_path.replace(output_path)
 
             logger.debug("Streaming append completed successfully")

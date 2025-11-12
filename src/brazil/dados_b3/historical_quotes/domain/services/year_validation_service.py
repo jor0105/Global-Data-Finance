@@ -1,13 +1,7 @@
-"""Service for validating year ranges for historical data extraction.
-
-This is a Domain Service that handles business logic related to year validation,
-ensuring that requested year ranges are valid for B3 historical data.
-"""
-
 from datetime import date
 
 from ..exceptions import InvalidFirstYear, InvalidLastYear
-from ..value_objects.year_range import YearRange
+from ..value_objects import YearRange
 
 
 class YearValidationService:
@@ -19,7 +13,7 @@ class YearValidationService:
     The B3 COTAHIST files are available starting from 1986.
     """
 
-    MIN_YEAR = 1986
+    __MIN_YEAR = 1986
 
     @classmethod
     def get_current_year(cls) -> int:
@@ -37,7 +31,7 @@ class YearValidationService:
         Returns:
             int: The minimum year (1986 for B3 COTAHIST data)
         """
-        return cls.MIN_YEAR
+        return cls.__MIN_YEAR
 
     @classmethod
     def validate_and_create_year_range(
@@ -47,8 +41,8 @@ class YearValidationService:
 
         This method ensures that:
         1. Both years are integers
-        2. initial_year is within valid bounds (MIN_YEAR to current year)
-        3. last_year is within valid bounds (MIN_YEAR to current year)
+        2. initial_year is within valid bounds (__MIN_YEAR to current year)
+        3. last_year is within valid bounds (__MIN_YEAR to current year)
         4. initial_year <= last_year
 
         Args:
@@ -64,15 +58,13 @@ class YearValidationService:
         """
         current_year = cls.get_current_year()
 
-        # Validate initial_year
         if (
             not isinstance(initial_year, int)
-            or initial_year < cls.MIN_YEAR
+            or initial_year < cls.__MIN_YEAR
             or initial_year > current_year
         ):
-            raise InvalidFirstYear(cls.MIN_YEAR, current_year)
+            raise InvalidFirstYear(cls.__MIN_YEAR, current_year)
 
-        # Validate last_year
         if (
             not isinstance(last_year, int)
             or last_year > current_year
@@ -80,28 +72,4 @@ class YearValidationService:
         ):
             raise InvalidLastYear(initial_year, current_year)
 
-        # Create and return the YearRange value object
         return YearRange(initial_year=initial_year, last_year=last_year)
-
-    @classmethod
-    def is_valid_year(cls, year: int) -> bool:
-        """Check if a specific year is valid for historical data.
-
-        Args:
-            year: The year to check
-
-        Returns:
-            bool: True if the year is valid, False otherwise
-        """
-        if not isinstance(year, int):
-            return False
-        return cls.MIN_YEAR <= year <= cls.get_current_year()
-
-    @classmethod
-    def get_valid_year_range_description(cls) -> str:
-        """Get a description of the valid year range.
-
-        Returns:
-            str: Human-readable description of valid years
-        """
-        return f"Valid years: {cls.MIN_YEAR} to {cls.get_current_year()}"

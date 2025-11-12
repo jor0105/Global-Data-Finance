@@ -2,8 +2,6 @@ from ...domain import YearValidationService
 
 
 class GetAvailableYearsUseCase:
-    """Use case for retrieving available years range for historical quotes data."""
-
     def get_atual_year(self) -> int:
         """Get the current available year for historical quotes data.
 

@@ -33,7 +33,6 @@ class ExtractionServiceFactory:
         Raises:
             ValueError: If processing_mode is invalid
         """
-        # Convert string to enum
         try:
             mode = ProcessingModeEnum(processing_mode.lower())
         except ValueError:

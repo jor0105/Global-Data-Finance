@@ -110,35 +110,3 @@ class AvailableAssetsService:
             print(f"Warning: Invalid asset classes were ignored: {invalid_inputs}")
 
         return valid_codes
-
-    @classmethod
-    def is_valid_asset_class(cls, asset_class: str) -> bool:
-        """Check if a given asset class identifier is valid.
-
-        Args:
-            asset_class: The asset class identifier to check
-
-        Returns:
-            bool: True if the asset class is valid, False otherwise
-        """
-        return asset_class in cls.__AVAILABLE_ASSETS
-
-    @classmethod
-    def get_tpmerc_codes_for_single_asset(cls, asset_class: str) -> List[str]:
-        """Get TPMERC codes for a single asset class.
-
-        Args:
-            asset_class: The asset class identifier
-
-        Returns:
-            List[str]: List of TPMERC codes for this asset class
-
-        Raises:
-            KeyError: If the asset class is not valid
-        """
-        if not cls.is_valid_asset_class(asset_class):
-            raise KeyError(
-                f"Asset class '{asset_class}' not found. "
-                f"Available: {cls.get_available_assets()}"
-            )
-        return cls.__AVAILABLE_ASSETS[asset_class]

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import Set
 
@@ -7,7 +6,6 @@ from src.macro_exceptions import (
     EmptyDirectoryError,
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
-    PathPermissionError,
     SecurityError,
 )
 
@@ -99,68 +97,6 @@ class FileSystemService:
             "Directory path validated successfully",
             extra={"normalized_path": str(normalized_path)},
         )
-
-        return normalized_path
-
-    def create_directory_if_not_exists(self, path: str) -> Path:
-        """Create directory if it doesn't exist.
-
-        Args:
-            path: Path to create
-
-        Returns:
-            Normalized Path object
-
-        Raises:
-            PathPermissionError: If no write permission
-            SecurityError: If path traversal detected
-        """
-        logger.debug("Creating directory if not exists", extra={"path": path})
-
-        if not isinstance(path, str):
-            raise TypeError(f"Path must be a string, got {type(path).__name__}")
-
-        if not path or path.isspace():
-            raise InvalidDestinationPathError("Path cannot be empty or whitespace")
-
-        normalized_path = Path(path).expanduser().resolve()
-
-        self._validate_path_safety(normalized_path)
-
-        if normalized_path.exists():
-            if not normalized_path.is_dir():
-                raise PathIsNotDirectoryError(str(normalized_path))
-
-            if not os.access(str(normalized_path), os.W_OK):
-                raise PathPermissionError(str(normalized_path))
-
-            logger.debug(
-                "Directory already exists",
-                extra={"path": str(normalized_path)},
-            )
-        else:
-            try:
-                normalized_path.mkdir(parents=True, exist_ok=True)
-                logger.info(
-                    "Created directory",
-                    extra={"path": str(normalized_path)},
-                )
-            except PermissionError as e:
-                logger.error(
-                    "Permission denied creating directory",
-                    extra={"path": str(normalized_path)},
-                    exc_info=True,
-                )
-                raise PathPermissionError(str(normalized_path)) from e
-            except OSError as e:
-                logger.error(
-                    "Failed to create directory",
-                    extra={"path": str(normalized_path), "error": str(e)},
-                    exc_info=True,
-                )
-                raise OSError(
-                    f"Failed to create directory {normalized_path}: {e}"
-                ) from e
 
         return normalized_path
 

@@ -116,7 +116,7 @@ docs = CreateDocsToExtractUseCase(
     initial_year=2020,
     last_year=2024,
     destination_path='/output',             # ← Saída em outro local
-    output_filename='cotahist_full.parquet',
+    output_filename='cotahist_full',
     processing_mode='slow'                  # ← Modo econômico
 ).execute()
 
@@ -496,7 +496,7 @@ for year in range(2020, 2024):
         initial_year=year,
         last_year=year,
         destination_path='/output',
-        output_filename=f'cotahist_{year}.parquet'
+        output_filename=f'cotahist_{year}'
     ).execute()
 
     result = ExtractHistoricalQuotesUseCase().execute_sync(

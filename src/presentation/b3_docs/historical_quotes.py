@@ -208,10 +208,10 @@ class HistoricalQuotes:
             ...         for error in result['errors']:
             ...             print(f"  - {error}")
         """
-        initial_year = self._resolve_initial_year(initial_year)
-        last_year = self._resolve_last_year(last_year)
+        initial_year = self.__resolve_initial_year(initial_year)
+        last_year = self.__resolve_last_year(last_year)
 
-        output_filename_with_ext = self._ensure_parquet_extension(output_filename)
+        output_filename_with_ext = self.__ensure_parquet_extension(output_filename)
 
         logger.info(
             f"Extraction requested: path={path_of_docs}, "
@@ -249,49 +249,6 @@ class HistoricalQuotes:
         self.__result_formatter.print_result(result)
 
         return result
-
-    def _resolve_initial_year(self, initial_year: Optional[int]) -> int:
-        """Resolve initial_year to a valid value, using minimum year if None.
-
-        Args:
-            initial_year: User-provided initial year or None
-
-        Returns:
-            Valid initial year value
-        """
-        if initial_year is None:
-            resolved = self.__available_years_use_case.get_minimal_year()
-            logger.debug(f"initial_year not provided, using minimal year: {resolved}")
-            return resolved
-        return initial_year
-
-    def _resolve_last_year(self, last_year: Optional[int]) -> int:
-        """Resolve last_year to a valid value, using current year if None.
-
-        Args:
-            last_year: User-provided last year or None
-
-        Returns:
-            Valid last year value
-        """
-        if last_year is None:
-            resolved = self.__available_years_use_case.get_atual_year()
-            logger.debug(f"last_year not provided, using current year: {resolved}")
-            return resolved
-        return last_year
-
-    def _ensure_parquet_extension(self, filename: str) -> str:
-        """Ensure filename has .parquet extension.
-
-        Args:
-            filename: Filename with or without .parquet extension
-
-        Returns:
-            Filename with .parquet extension
-        """
-        if not filename.lower().endswith(".parquet"):
-            return f"{filename}.parquet"
-        return filename
 
     def get_available_assets(self) -> List[str]:
         """Get all available B3 asset classes that can be extracted.
@@ -376,91 +333,49 @@ class HistoricalQuotes:
             "current_year": self.__available_years_use_case.get_atual_year(),
         }
 
-    async def extract_async(
-        self,
-        path_of_docs: str,
-        assets_list: List[str],
-        initial_year: Optional[int] = None,
-        last_year: Optional[int] = None,
-        destination_path: Optional[str] = None,
-        output_filename: str = "cotahist_extracted",
-        processing_mode: str = "fast",
-    ) -> Dict[str, Any]:
-        """Async version of extract() for use in Jupyter notebooks and async contexts.
-
-        This method is identical to extract() but returns an awaitable coroutine.
-        Use this when you're already in an async context (like Jupyter notebooks
-        with IPython event loop).
-
-        Args:
-            path_of_docs: Directory path where COTAHIST ZIP files are located.
-            assets_list: List of asset class codes to extract.
-            initial_year: Starting year for extraction (inclusive).
-                       If None, uses the minimal available year (1986).
-            last_year: Ending year for extraction (inclusive).
-                     If None, uses the current year.
-            destination_path: Directory path where the output Parquet file will be saved.
-            output_filename: Name of the output Parquet file (without extension).
-                           The '.parquet' extension will be added automatically.
-                           Default: "cotahist_extracted" (saved as "cotahist_extracted.parquet")
-            processing_mode: Processing strategy - 'fast' or 'slow'
-
-        Returns:
-            Same as extract() method.
-
-        Example:
-            >>> # In Jupyter notebook
-            >>> b3 = HistoricalQuotes()
-            >>> result = await b3.extract_async(
-            ...     path_of_docs="/data/cotahist",
-            ...     assets_list=["ações"],
-            ...     initial_year=2023
-            ... )
-        """
-        # Set default values for optional parameters
-        initial_year = self._resolve_initial_year(initial_year)
-        last_year = self._resolve_last_year(last_year)
-
-        # Ensure output_filename has .parquet extension
-        output_filename_with_ext = self._ensure_parquet_extension(output_filename)
-
-        logger.info(
-            f"Async extraction requested: path={path_of_docs}, "
-            f"destination={destination_path or path_of_docs}, "
-            f"assets={assets_list}, years={initial_year}-{last_year}, "
-            f"mode={processing_mode}"
-        )
-
-        docs_to_extract = CreateDocsToExtractUseCase(
-            path_of_docs=path_of_docs,
-            assets_list=assets_list,
-            initial_year=initial_year,
-            last_year=last_year,
-            destination_path=destination_path,
-        ).execute()
-
-        logger.info(
-            f"Found {len(docs_to_extract.set_documents_to_download)} ZIP files to process"
-        )
-
-        result = await self.__extract_use_case.execute(
-            docs_to_extract=docs_to_extract,
-            processing_mode=processing_mode,
-            output_filename=output_filename_with_ext,
-        )
-
-        result = HistoricalQuotesResultFormatter.enrich_result(result)
-
-        logger.info(
-            f"Async extraction completed: {result['success_count']} successful, "
-            f"{result['error_count']} errors, "
-            f"{result['total_records']} records extracted"
-        )
-
-        self.__result_formatter.print_result(result)
-
-        return result
-
     def __repr__(self) -> str:
         """Return a string representation of the client."""
         return "HistoricalQuotes()"
+
+    def __resolve_initial_year(self, initial_year: Optional[int]) -> int:
+        """Resolve initial_year to a valid value, using minimum year if None.
+
+        Args:
+            initial_year: User-provided initial year or None
+
+        Returns:
+            Valid initial year value
+        """
+        if initial_year is None:
+            resolved = self.__available_years_use_case.get_minimal_year()
+            logger.debug(f"initial_year not provided, using minimal year: {resolved}")
+            return resolved
+        return initial_year
+
+    def __resolve_last_year(self, last_year: Optional[int]) -> int:
+        """Resolve last_year to a valid value, using current year if None.
+
+        Args:
+            last_year: User-provided last year or None
+
+        Returns:
+            Valid last year value
+        """
+        if last_year is None:
+            resolved = self.__available_years_use_case.get_atual_year()
+            logger.debug(f"last_year not provided, using current year: {resolved}")
+            return resolved
+        return last_year
+
+    def __ensure_parquet_extension(self, filename: str) -> str:
+        """Ensure filename has .parquet extension.
+
+        Args:
+            filename: Filename with or without .parquet extension
+
+        Returns:
+            Filename with .parquet extension
+        """
+        if not filename.lower().endswith(".parquet"):
+            return f"{filename}.parquet"
+        return filename
