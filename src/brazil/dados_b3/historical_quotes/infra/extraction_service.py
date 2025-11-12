@@ -1,6 +1,6 @@
 import asyncio
 import gc
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
@@ -18,15 +18,16 @@ class ExtractionService:
     """Service for extracting data from COTAHIST ZIP files asynchronously.
 
     This service controls resource consumption through processing modes:
-    - FAST: High concurrency, more CPU/RAM usage, with parallel parsing
+    - FAST: High concurrency, more CPU/RAM usage, with parallel parsing using threads
     - SLOW: Low concurrency, minimal CPU/RAM usage, sequential parsing
 
     Features:
-    - Parallel CPU-bound parsing using ProcessPoolExecutor (FAST mode)
+    - Parallel parsing using ThreadPoolExecutor (FAST mode)
     - Async I/O for reading ZIP files
     - Dynamic batch writing based on available memory
     - Real-time resource monitoring with circuit breaker
     - Automatic garbage collection on memory pressure
+    - No multiprocessing guards required - works automatically
     """
 
     # Default batch sizes (will be adjusted dynamically based on RAM)
@@ -73,7 +74,7 @@ class ExtractionService:
             self.resource_monitor.get_safe_worker_count(desired_concurrent_files),
         )
 
-        # Determine safe worker count for ProcessPoolExecutor
+        # Determine safe worker count for parallel parsing
         if self.use_parallel_parsing:
             self.max_workers = self.resource_monitor.get_safe_worker_count(
                 desired_workers
@@ -85,10 +86,12 @@ class ExtractionService:
         self.batch_size = self.DEFAULT_BATCH_SIZE
         self.parse_batch_size = self.DEFAULT_PARSE_BATCH_SIZE
 
-        # Initialize process pool for CPU-bound parsing if in FAST mode
-        self.process_pool = None
+        # Initialize thread pool for parallel parsing if in FAST mode
+        # Using ThreadPoolExecutor instead of ProcessPoolExecutor to avoid
+        # requiring __main__ guard in user scripts
+        self.executor_pool = None
         if self.use_parallel_parsing:
-            self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers)
+            self.executor_pool = ThreadPoolExecutor(max_workers=self.max_workers)
 
         logger.info(
             "ExtractionService initialized",
@@ -98,15 +101,18 @@ class ExtractionService:
                 "use_parallel_parsing": self.use_parallel_parsing,
                 "max_workers": self.max_workers,
                 "batch_size": self.batch_size,
+                "executor_type": (
+                    "ThreadPoolExecutor" if self.use_parallel_parsing else "Sequential"
+                ),
                 "resource_monitoring": "enabled",
             },
         )
 
     def __del__(self):
-        """Cleanup process pool on deletion."""
-        if self.process_pool is not None:
+        """Cleanup executor pool on deletion."""
+        if self.executor_pool is not None:
             try:
-                self.process_pool.shutdown(wait=True, cancel_futures=False)
+                self.executor_pool.shutdown(wait=True, cancel_futures=False)
             except Exception:
                 # Ignore errors during cleanup (interpreter might be shutting down)
                 pass
@@ -371,10 +377,10 @@ class ExtractionService:
     async def _parse_lines_batch_parallel(
         self, lines: List[str], target_tpmerc_codes: Set[str]
     ) -> List[Dict[str, Any]]:
-        """Parse a batch of lines in parallel using ProcessPoolExecutor.
+        """Parse a batch of lines in parallel using ThreadPoolExecutor.
 
-        This offloads CPU-intensive parsing to separate processes, allowing
-        better utilization of multi-core CPUs.
+        This offloads parsing to separate threads, allowing better utilization
+        of multi-core CPUs while avoiding multiprocessing complexity.
 
         Args:
             lines: List of lines to parse
@@ -385,10 +391,10 @@ class ExtractionService:
         """
         loop = asyncio.get_event_loop()
 
-        # Execute parsing in process pool
+        # Execute parsing in thread pool
         parsed_batch = await loop.run_in_executor(
-            self.process_pool,
-            _parse_lines_batch,  # Static function for pickling
+            self.executor_pool,
+            _parse_lines_batch,  # Static function that works with threads
             lines,
             target_tpmerc_codes,
         )
@@ -475,8 +481,8 @@ def _parse_lines_batch(
 ) -> List[Dict[str, Any]]:
     """Parse a batch of lines using a fresh parser instance.
 
-    This function is defined at module level so it can be pickled
-    and sent to worker processes.
+    This function is defined at module level so it can be used
+    by both threads and processes if needed in the future.
 
     Args:
         lines: List of lines to parse
