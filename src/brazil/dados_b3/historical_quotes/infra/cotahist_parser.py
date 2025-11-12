@@ -113,67 +113,81 @@ class CotahistParser:
                 # Data do Pregão (positions 3-10)
                 "data_pregao": self._parse_date(self._safe_slice(line, 2, 10)),
                 # Código BDI (positions 11-12)
-                "codbdi": self._safe_slice(line, 10, 12).strip(),
+                "codigo_bdi": self._safe_slice(line, 10, 12).strip(),
                 # Código de Negociação - Ticker (positions 13-24)
-                "codneg": self._safe_slice(line, 12, 24).strip(),
+                "ticker": self._safe_slice(line, 12, 24).strip(),
                 # Tipo de Mercado (positions 25-27)
-                "tpmerc": self._safe_slice(line, 24, 27).strip(),
+                "tipo_mercado": self._safe_slice(line, 24, 27).strip(),
                 # Nome Resumido (positions 28-39)
-                "nomres": self._safe_slice(line, 27, 39).strip(),
+                "nome_resumido": self._safe_slice(line, 27, 39).strip(),
                 # Especificação do Papel (positions 40-49)
-                "especi": self._safe_slice(line, 39, 49).strip(),
+                "especificacao_papel": self._safe_slice(line, 39, 49).strip(),
                 # Preço de Abertura (positions 57-69, format (11)V99)
-                "preabe": self._parse_decimal_v99(self._safe_slice(line, 56, 69)),
+                "preco_abertura": self._parse_decimal_v99(
+                    self._safe_slice(line, 56, 69)
+                ),
                 # Preço Máximo (positions 70-82, format (11)V99)
-                "premax": self._parse_decimal_v99(self._safe_slice(line, 69, 82)),
+                "preco_maximo": self._parse_decimal_v99(self._safe_slice(line, 69, 82)),
                 # Preço Mínimo (positions 83-95, format (11)V99)
-                "premin": self._parse_decimal_v99(self._safe_slice(line, 82, 95)),
+                "preco_minimo": self._parse_decimal_v99(self._safe_slice(line, 82, 95)),
                 # Preço Médio (positions 96-108, format (11)V99)
-                "premed": self._parse_decimal_v99(self._safe_slice(line, 95, 108)),
+                "preco_medio": self._parse_decimal_v99(self._safe_slice(line, 95, 108)),
                 # Preço de Fechamento (positions 109-121, format (11)V99)
-                "preult": self._parse_decimal_v99(self._safe_slice(line, 108, 121)),
+                "preco_fechamento": self._parse_decimal_v99(
+                    self._safe_slice(line, 108, 121)
+                ),
                 # Melhor Oferta de Compra (positions 122-134, format (11)V99)
-                "preofc": self._parse_decimal_v99(self._safe_slice(line, 121, 134)),
+                "melhor_oferta_compra": self._parse_decimal_v99(
+                    self._safe_slice(line, 121, 134)
+                ),
                 # Melhor Oferta de Venda (positions 135-147, format (11)V99)
-                "preofv": self._parse_decimal_v99(self._safe_slice(line, 134, 147)),
+                "melhor_oferta_venda": self._parse_decimal_v99(
+                    self._safe_slice(line, 134, 147)
+                ),
                 # Número de Negócios (positions 148-152)
-                "totneg": self._parse_int(self._safe_slice(line, 147, 152)),
+                "numero_negocios": self._parse_int(self._safe_slice(line, 147, 152)),
                 # Quantidade Total (positions 153-170)
-                "quatot": self._parse_int(self._safe_slice(line, 152, 170)),
+                "quantidade_total": self._parse_int(self._safe_slice(line, 152, 170)),
                 # Volume Total (positions 171-188, format (16)V99)
-                "voltot": self._parse_decimal_v99(self._safe_slice(line, 170, 188)),
+                "volume_total": self._parse_decimal_v99(
+                    self._safe_slice(line, 170, 188)
+                ),
                 # Data de Vencimento (positions 203-210) - for options/term
-                "datven": self._parse_date_optional(self._safe_slice(line, 202, 210)),
+                "data_vencimento": self._parse_date_optional(
+                    self._safe_slice(line, 202, 210)
+                ),
                 # Fator de Cotação (positions 211-217)
-                "fatcot": self._parse_int(self._safe_slice(line, 210, 217)),
+                "fator_cotacao": self._parse_int(self._safe_slice(line, 210, 217)),
                 # Código ISIN (positions 231-242)
-                "codisi": self._safe_slice(line, 230, 242).strip(),
+                "codigo_isin": self._safe_slice(line, 230, 242).strip(),
                 # Número de Distribuição (positions 243-245)
-                "dismes": self._parse_int(self._safe_slice(line, 242, 245)),
+                "numero_distribuicao": self._parse_int(
+                    self._safe_slice(line, 242, 245)
+                ),
             }
         except Exception as e:
             logger.error(f"Error parsing quote record: {e}", exc_info=True)
             return {
                 "data_pregao": None,
-                "codbdi": "",
-                "codneg": "",
-                "tpmerc": "",
-                "nomres": "",
-                "especi": "",
-                "preabe": Decimal("0"),
-                "premax": Decimal("0"),
-                "premin": Decimal("0"),
-                "premed": Decimal("0"),
-                "preult": Decimal("0"),
-                "preofc": Decimal("0"),
-                "preofv": Decimal("0"),
-                "totneg": 0,
-                "quatot": 0,
-                "voltot": Decimal("0"),
-                "datven": None,
-                "fatcot": 0,
-                "codisi": "",
-                "dismes": 0,
+                "codigo_bdi": "",
+                "ticker": "",
+                "tipo_mercado": "",
+                "nome_resumido": "",
+                "especificacao_papel": "",
+                "preco_abertura": Decimal("0"),
+                "preco_maximo": Decimal("0"),
+                "preco_minimo": Decimal("0"),
+                "preco_medio": Decimal("0"),
+                "preco_fechamento": Decimal("0"),
+                "melhor_oferta_compra": Decimal("0"),
+                "melhor_oferta_venda": Decimal("0"),
+                "numero_negocios": 0,
+                "quantidade_total": 0,
+                "volume_total": Decimal("0"),
+                "data_vencimento": None,
+                "fator_cotacao": 0,
+                "codigo_isin": "",
+                "numero_distribuicao": 0,
             }
 
     def _safe_slice(self, line: str, start: int, end: int) -> str:

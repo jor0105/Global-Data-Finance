@@ -27,7 +27,7 @@ Sistema robusto e escalável para extração de dados históricos de cotações 
 - 🎮 **Controle de Recursos**: Modos `fast` e `slow` para otimizar CPU/RAM
 - 🔒 **Type-Safe**: Type hints completos + protocolos para máxima segurança
 - 💯 **Precisão Numérica**: Uso de `Decimal` para conversão correta de valores
-- 📦 **Formato Parquet**: Saída otimizada com Polars + compressão Snappy
+- 📦 **Formato Parquet**: Saída otimizada com Polars + compressão ZSTD
 - ⚙️ **Streaming**: Leitura de ZIP sem extrair para disco
 - 🛡️ **Tratamento de Erros**: Capturas de erros granulares com recovery
 
@@ -70,7 +70,34 @@ seu_projeto/
 
 ## 🚀 Guia de Uso
 
-### Uso Básico (3 linhas)
+### Quickstart (alto nível recomendado)
+
+A forma mais simples é usar a interface de alto nível em `presentation/b3_docs`:
+
+```python
+from src.presentation.b3_docs import HistoricalQuotes
+
+# 1) Criar cliente
+b3 = HistoricalQuotes()
+
+# 2) Extrair
+result = b3.extract(
+    path_of_docs='/data/zips',           # Onde estão os .zip do COTAHIST
+    destination_path='/data/output',     # Onde salvar o .parquet (opcional)
+    assets_list=['ações'],               # Quais classes de ativos
+    initial_year=2023,                   # Ano inicial (inclusive)
+    last_year=2023,                      # Ano final (inclusive)
+    output_filename='cotahist',          # Sem extensão; .parquet é adicionado
+    processing_mode='fast'               # 'fast' (padrão) ou 'slow'
+)
+
+print(result['message'])
+print('Arquivo:', result['output_file'])
+```
+
+Também é possível usar os casos de uso diretamente (baixo nível):
+
+### Uso Básico (baixo nível)
 
 ```python
 from src.brazil.dados_b3.historical_quotes.application import (
@@ -89,7 +116,7 @@ docs = CreateDocsToExtractUseCase(
 # 2. Executar extração (síncrono)
 result = ExtractHistoricalQuotesUseCase().execute_sync(
     docs_to_extract=docs,
-    processing_mode='fast',              # fast ou slow
+    processing_mode='fast',              # 'fast' ou 'slow'
     output_filename='cotahist.parquet'   # Nome do arquivo de saída
 )
 
@@ -107,7 +134,7 @@ print(f"📁 Salvo em: {result['output_file']}")
 
 ---
 
-### Uso com Múltiplos Ativos
+### Uso com Múltiplos Ativos (baixo nível)
 
 ```python
 docs = CreateDocsToExtractUseCase(
@@ -115,20 +142,19 @@ docs = CreateDocsToExtractUseCase(
     assets_list=['ações', 'etf', 'opções'],  # ← Múltiplos ativos
     initial_year=2020,
     last_year=2024,
-    destination_path='/output',             # ← Saída em outro local
-    output_filename='cotahist_full',
-    processing_mode='slow'                  # ← Modo econômico
+    destination_path='/output'               # ← Saída em outro local
 ).execute()
 
 result = ExtractHistoricalQuotesUseCase().execute_sync(
     docs_to_extract=docs,
-    processing_mode='slow'
+    processing_mode='slow',
+    output_filename='cotahist_full.parquet'
 )
 ```
 
 ---
 
-### Uso Assíncrono Avançado
+### Uso Assíncrono Avançado (baixo nível)
 
 ```python
 import asyncio
@@ -144,7 +170,8 @@ async def main():
     # Usar versão assíncrona (melhor performance)
     result = await ExtractHistoricalQuotesUseCase().execute(
         docs_to_extract=docs,
-        processing_mode='fast'
+        processing_mode='fast',
+        output_filename='cotahist.parquet'
     )
 
     return result
@@ -161,38 +188,31 @@ Suponha que tens arquivos em `/home/jordan/Programação/DataFinance/dados/b3`:
 
 ```python
 from pathlib import Path
-from src.brazil.dados_b3.historical_quotes.application import (
-    CreateDocsToExtractUseCase,
-    ExtractHistoricalQuotesUseCase,
-)
+from src.presentation.b3_docs import HistoricalQuotes
 
 # Setup
 data_path = Path.home() / "Programação/DataFinance/dados/b3"
 output_path = Path.home() / "Programação/DataFinance/output"
 
-# Criar configuração
-docs = CreateDocsToExtractUseCase(
+# Extrair (alto nível)
+result = HistoricalQuotes().extract(
     path_of_docs=str(data_path),
+    destination_path=str(output_path),
     assets_list=['ações'],
     initial_year=2023,
     last_year=2024,
-    destination_path=str(output_path)
-).execute()
-
-# Extrair
-result = ExtractHistoricalQuotesUseCase().execute_sync(
-    docs_to_extract=docs,
-    processing_mode='fast'
+    processing_mode='fast',
+    output_filename='cotahist'
 )
 
 # Validar
 if result['success']:
-    print(f"✅ Sucesso!")
+    print("✅ Sucesso!")
     print(f"   - Arquivos processados: {result['success_count']}/{result['total_files']}")
     print(f"   - Registros extraídos: {result['total_records']}")
     print(f"   - Localização: {result['output_file']}")
 else:
-    print(f"❌ Falha!")
+    print("❌ Concluído com erros")
     print(f"   - Erros: {result['errors']}")
 ```
 
@@ -203,19 +223,18 @@ else:
 ```
 historical_quotes/
 │
-├── domain/                    ← Lógica de negócio (adora de dependências)
+├── domain/                    ← Lógica de negócio (pura)
 │   ├── entities/
-│   │   └── docs_to_extractor.py      Entity com parâmetros validados
-│   │
+│   │   └── docs_to_extractor.py            Entity com parâmetros validados
+│   ├── builders/
+│   │   └── docs_to_extractor_builder.py    Builder da entity
+│   ├── services/
+│   │   ├── available_assets_service.py     Mapeia assets → TPMERC codes
+│   │   └── year_validation_service.py      Regras/validação de anos
 │   ├── value_objects/
-│   │   ├── available_assests.py      Mapeia assets → TPMERC codes
-│   │   ├── available_years.py        Valida e normaliza anos
-│   │   ├── output_filename.py        Valida nome do arquivo
-│   │   ├── processing_mode.py        Valida modo (fast/slow)
-│   │   └── extract_result.py         Resultado de extração
-│   │
-│   └── exceptions/
-│       └── exception_domain.py       Exceções de negócio
+│   │   ├── processing_mode.py              Enum: fast/slow
+│   │   └── year_range.py                   Faixa de anos validada
+│   └── exceptions/                         Exceções de domínio
 │
 ├── application/               ← Use cases (orquestra domain + infra)
 │   └── use_cases/
@@ -262,9 +281,9 @@ Presentation → Application → Domain
 **Verificar assets disponíveis:**
 
 ```python
-from src.brazil.dados_b3.historical_quotes.domain import AvailableAssets
+from src.brazil.dados_b3.historical_quotes import GetAvailableAssetsUseCase
 
-assets = AvailableAssets.get_available_assets()
+assets = GetAvailableAssetsUseCase.execute()
 print(assets)  # ['ações', 'etf', 'opções', 'termo', ...]
 ```
 
@@ -281,7 +300,7 @@ result = ExtractHistoricalQuotesUseCase().execute_sync(
 )
 ```
 
-**Características:**
+**Características (fast):**
 
 - ✅ Até **10 arquivos** processados em paralelo
 - ✅ Tempo: ~30 segundos para 10 ZIPs
@@ -305,7 +324,7 @@ result = ExtractHistoricalQuotesUseCase().execute_sync(
 )
 ```
 
-**Características:**
+**Características (slow):**
 
 - ✅ Até **2 arquivos** processados em paralelo
 - ✅ Tempo: ~3 minutos para 10 ZIPs
@@ -351,30 +370,30 @@ Posição   | Campos                | Descrição
 243-245   | DISMES               | Número de distribuição
 ```
 
-### Campos Extraídos no Output
+### Campos extraídos no output (chaves reais)
 
 ```python
 {
-    'data_pregao': date(2023, 1, 2),       # Data da negociação
-    'codbdi': '01',
-    'codneg': 'PETR4',                      # Ticker
-    'tpmerc': '010',                        # Tipo de mercado
-    'nomres': 'PETROBRAS ON',               # Nome resumido
-    'especi': '',                           # Especificação
-    'preabe': Decimal('27.53'),             # Preço abertura
-    'premax': Decimal('27.85'),             # Preço máximo
-    'premin': Decimal('27.30'),             # Preço mínimo
-    'premed': Decimal('27.55'),             # Preço médio
-    'preult': Decimal('27.76'),             # Preço fechamento
-    'preofc': Decimal('27.76'),             # Melhor oferta compra
-    'preofv': Decimal('27.77'),             # Melhor oferta venda
-    'totneg': 45230,                        # Número de negócios
-    'quatot': 123456789,                    # Quantidade total
-    'voltot': Decimal('3415670123.45'),     # Volume financeiro
-    'datven': None,                         # Data vencimento (opções)
-    'fatcot': 1,                            # Fator de cotação
-    'codisi': 'BRVALEACNOR9',               # Código ISIN
-    'dismes': 0
+    'data_pregao': date(2023, 1, 2),        # Data da negociação
+    'codigo_bdi': '01',
+    'ticker': 'PETR4',                       # Código de negociação
+    'tipo_mercado': '010',                   # TPMERC
+    'nome_resumido': 'PETROBRAS ON',
+    'especificacao_papel': '',
+    'preco_abertura': Decimal('27.53'),
+    'preco_maximo': Decimal('27.85'),
+    'preco_minimo': Decimal('27.30'),
+    'preco_medio': Decimal('27.55'),
+    'preco_fechamento': Decimal('27.76'),
+    'melhor_oferta_compra': Decimal('27.76'),
+    'melhor_oferta_venda': Decimal('27.77'),
+    'numero_negocios': 45230,
+    'quantidade_total': 123456789,
+    'volume_total': Decimal('3415670123.45'),
+    'data_vencimento': None,
+    'fator_cotacao': 1,
+    'codigo_isin': 'BRVALEACNOR9',
+    'numero_distribuicao': 0
 }
 ```
 
@@ -406,7 +425,7 @@ Posição   | Campos                | Descrição
 # voltot:           decimal128(18,2)
 # ... (todos os campos)
 
-# Compressão: Snappy (balanceado)
+# Compressão: ZSTD (equilíbrio tamanho/velocidade)
 # Tamanho típico: 200KB para 1000 registros
 ```
 
@@ -420,15 +439,15 @@ print(df.info())
 print(df.head())
 
 # Filtrar
-ações_petr = df[df['codneg'] == 'PETR4']
-print(ações_petr[['data_pregao', 'preult', 'voltot']])
+acoes_petr = df[df['ticker'] == 'PETR4']
+print(acoes_petr[['data_pregao', 'preco_fechamento', 'volume_total']])
 ```
 
 ---
 
 ## 🔍 Exemplos Avançados
 
-### Exemplo 1: Extração com Validação
+### Exemplo 1: Extração com Validação (baixo nível)
 
 ```python
 from pathlib import Path
@@ -455,16 +474,17 @@ try:
     # 2. Extrair
     result = ExtractHistoricalQuotesUseCase().execute_sync(
         docs_to_extract=docs,
-        processing_mode='fast'
+        processing_mode='fast',
+        output_filename='cotahist.parquet'
     )
 
-    # 3. Validar resultado
-    if result['success']:
-        print(f"\n✅ Extração concluída!")
+    # 3. Validar resultado (use error_count para checar sucesso)
+    if result['error_count'] == 0:
+        print("\n✅ Extração concluída!")
         print(f"  - Registros: {result['total_records']}")
         print(f"  - Arquivo: {result['output_file']}")
     else:
-        print(f"\n❌ Erros detectados:")
+        print("\n❌ Erros detectados:")
         for arquivo, erro in result['errors'].items():
             print(f"  - {arquivo}: {erro}")
 
@@ -478,7 +498,7 @@ except Exception as e:
 
 ---
 
-### Exemplo 2: Processamento em Batch de Múltiplos Anos
+### Exemplo 2: Processamento em Batch de Múltiplos Anos (baixo nível)
 
 ```python
 from src.brazil.dados_b3.historical_quotes.application import (
@@ -495,13 +515,13 @@ for year in range(2020, 2024):
         assets_list=['ações', 'etf'],
         initial_year=year,
         last_year=year,
-        destination_path='/output',
-        output_filename=f'cotahist_{year}'
+        destination_path='/output'
     ).execute()
 
     result = ExtractHistoricalQuotesUseCase().execute_sync(
         docs_to_extract=docs,
-        processing_mode='fast'
+        processing_mode='fast',
+        output_filename=f'cotahist_{year}.parquet'
     )
 
     print(f"   ✓ {result['total_records']} registros")
@@ -512,17 +532,18 @@ for year in range(2020, 2024):
 ### Exemplo 3: Verificar Assets Disponíveis
 
 ```python
-from src.brazil.dados_b3.historical_quotes.domain import AvailableAssets
+from src.brazil.dados_b3.historical_quotes import GetAvailableAssetsUseCase
+from src.brazil.dados_b3.historical_quotes.domain import AvailableAssetsService
 
-# 1. Ver todos os assets disponíveis
+# 1. Ver todos os assets disponíveis (use case)
 print("Assets disponíveis:")
-for asset in AvailableAssets.get_available_assets():
+for asset in GetAvailableAssetsUseCase.execute():
     print(f"  - {asset}")
 
-# 2. Ver mapping de TPMERC
-codes = AvailableAssets.get_target_tmerc_codes({'ações', 'etf'})
+# 2. Ver mapping de TPMERC (serviço de domínio)
+codes = AvailableAssetsService.get_tpmerc_codes_for_assets({'ações', 'etf'})
 print(f"\nCódigos TPMERC para 'ações' e 'etf': {codes}")
-# Output: {'010', '020'}
+assert codes == {'010', '020'}
 ```
 
 ---
@@ -630,12 +651,10 @@ class CreateDocsToExtractUseCase:
         initial_year: int,
         last_year: int,
         destination_path: Optional[str] = None,
-        output_filename: str = "cotahist_extracted",
-        processing_mode: str = "fast"
     )
 
     def execute(self) -> DocsToExtractor:
-        """Valida todos os parâmetros e retorna Entity"""
+        """Valida parâmetros e retorna a entity"""
 ```
 
 **Parâmetros:**
@@ -645,8 +664,6 @@ class CreateDocsToExtractUseCase:
 - `initial_year` (int): Ano inicial (inclusive)
 - `last_year` (int): Ano final (inclusive)
 - `destination_path` (Optional[str]): Onde salvar (default: path_of_docs)
-- `output_filename` (str): Nome do arquivo Parquet (default: "cotahist_extracted")
-- `processing_mode` (str): "fast" ou "slow" (default: "fast")
 
 **Retorna:**
 
@@ -680,18 +697,39 @@ class ExtractHistoricalQuotesUseCase:
 
 **Retorna:**
 
-```python
+````python
 {
-    'success': bool,                    # Sucesso geral
-    'message': str,                     # Mensagem descritiva
-    'total_files': int,                 # Total de ZIPs
-    'success_count': int,               # ZIPs processados
+    'total_files': int,                 # Total de ZIPs encontrados
+    'success_count': int,               # ZIPs processados com sucesso
     'error_count': int,                 # ZIPs com erro
-    'total_records': int,               # Registros extraídos
+    'total_records': int,               # Registros extraídos (somatório dos batches)
+    'batches_written': int,             # Quantidade de batches gravados
     'errors': Dict[str, str],           # Erros por arquivo
-    'output_file': str                  # Caminho do Parquet
+    'output_file': str                  # Caminho do Parquet final
 }
+
+Obs.: os campos `success` e `message` são adicionados pela camada de apresentação
+(`HistoricalQuotesResultFormatter.enrich_result`). Ao usar o `HistoricalQuotes`
+de alto nível, esses campos já virão preenchidos.
+
+### `GetAvailableAssetsUseCase`
+
+```python
+class GetAvailableAssetsUseCase:
+    @staticmethod
+    def execute() -> List[str]:
+        """Retorna lista de assets suportados"""
+````
+
+### `GetAvailableYearsUseCase`
+
+```python
+class GetAvailableYearsUseCase:
+    def get_minimal_year(self) -> int: ...
+    def get_atual_year(self) -> int: ...
 ```
+
+````
 
 ---
 
@@ -706,29 +744,28 @@ class AvailableAssets:
     @classmethod
     def get_target_tmerc_codes(cls, set_assets: Set[str]) -> Set[str]:
         """Mapeia assets para códigos TPMERC"""
-```
+````
 
 ---
 
 ## 🧪 Testes
 
 ```bash
-# Executar todos os testes
-pytest tests/brazil/dados_b3/historical_quotes/ -v
+# Executar todos os testes do módulo
+pytest tests/brazil/dados_b3/historical_quotes -v
 
-# Testes específicos
-pytest tests/brazil/dados_b3/historical_quotes/test_extraction.py -v
+# Testes da camada de apresentação (alto nível)
+pytest tests/presentation/b3_docs -v
 
-# Com coverage
-pytest tests/brazil/dados_b3/historical_quotes/ --cov
+# Com coverage (opcional)
+pytest -q --cov
 ```
 
 ---
 
 ## 🔗 Documentação Adicional
 
-- 📖 [Arquitetura Detalhada](../../docs/ARCHITECTURE_HISTORICAL_QUOTES.md)
-- 📋 [Layout COTAHIST](../../docs/context/HistoricalQuoteB3.md)
+- 📋 Layout COTAHIST (especificação oficial da B3)
 - 🔗 [B3 - Histórico de Cotações](http://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)
 
 ---
