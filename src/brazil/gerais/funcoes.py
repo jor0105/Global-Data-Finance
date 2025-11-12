@@ -2,7 +2,6 @@ import locale
 import time
 
 import numpy as np
-import pandas as pd
 
 locale.setlocale(locale.LC_ALL, "pt_BR.UTF-8")
 

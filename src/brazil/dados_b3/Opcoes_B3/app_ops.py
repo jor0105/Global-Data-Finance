@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-import pandas as pd
 
 from ..common.io_utils import write_parquet
 from ..Dados_B3_Acoes.Vol_Ativos.funcao_vol import dados_vol_acoes_b3

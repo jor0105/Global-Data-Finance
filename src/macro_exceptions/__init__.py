@@ -8,6 +8,7 @@ from .macro_exceptions import (
     NetworkError,
     PathIsNotDirectoryError,
     PathPermissionError,
+    SecurityError,
     TimeoutError,
 )
 
@@ -22,4 +23,5 @@ __all__ = [
     "ExtractionError",
     "CorruptedZipError",
     "DownloadExtractionError",
+    "SecurityError",
 ]

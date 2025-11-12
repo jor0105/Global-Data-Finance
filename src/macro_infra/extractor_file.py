@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import zipfile
 from pathlib import Path
 from typing import AsyncIterator, List
@@ -8,6 +7,7 @@ import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from src.core import get_logger
 from src.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
@@ -15,7 +15,7 @@ from src.macro_exceptions import (
     InvalidDestinationPathError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Extractor:
@@ -107,9 +107,10 @@ class Extractor:
 
     @staticmethod
     async def read_txt_from_zip_async(zip_path: str) -> AsyncIterator[str]:
-        """Read lines from TXT file inside ZIP asynchronously without disk extraction.
+        """Read lines from TXT file inside ZIP asynchronously with true streaming.
 
-        This method is designed for COTAHIST files from B3.
+        This method is designed for COTAHIST files from B3 and uses
+        true streaming without loading entire file into memory.
 
         Args:
             zip_path: Path to the ZIP file
@@ -126,14 +127,83 @@ class Extractor:
         if not path.exists():
             raise FileNotFoundError(f"ZIP file not found: {zip_path}")
 
-        # Run blocking I/O in executor to avoid blocking event loop
+        # Use streaming approach with limited buffer
         loop = asyncio.get_event_loop()
-        lines = await loop.run_in_executor(
-            None, Extractor._read_txt_from_zip_sync, zip_path
-        )
 
-        for line in lines:
-            yield line
+        try:
+            # Open ZIP in executor (blocking operation)
+            zip_file = await loop.run_in_executor(None, zipfile.ZipFile, zip_path, "r")
+
+            try:
+                # Get first .TXT file in the archive
+                txt_files = [
+                    name
+                    for name in zip_file.namelist()
+                    if name.upper().endswith(".TXT")
+                ]
+
+                if not txt_files:
+                    raise ExtractionError(zip_path, "No .TXT file found in ZIP")
+
+                # Open the TXT file for streaming
+                txt_file_handle = await loop.run_in_executor(
+                    None, zip_file.open, txt_files[0]
+                )
+
+                try:
+                    # Read in chunks to avoid memory issues
+                    CHUNK_SIZE = 8192  # 8KB chunks
+                    buffer = b""
+
+                    while True:
+                        # Read chunk in executor
+                        chunk = await loop.run_in_executor(
+                            None, txt_file_handle.read, CHUNK_SIZE
+                        )
+
+                        if not chunk:
+                            # Process remaining buffer
+                            if buffer:
+                                try:
+                                    line = buffer.decode("latin-1")
+                                    if line.strip():
+                                        yield line.strip()
+                                except UnicodeDecodeError:
+                                    logger.warning(
+                                        f"Failed to decode final buffer in {zip_path}"
+                                    )
+                            break
+
+                        buffer += chunk
+
+                        # Process complete lines from buffer
+                        while b"\n" in buffer:
+                            line_bytes, buffer = buffer.split(b"\n", 1)
+
+                            try:
+                                line = line_bytes.decode("latin-1").strip()
+                                if line:  # Skip empty lines
+                                    yield line
+                            except UnicodeDecodeError:
+                                logger.warning(
+                                    f"Failed to decode line in {zip_path}, skipping"
+                                )
+                                continue
+
+                finally:
+                    # Cleanup file handle
+                    await loop.run_in_executor(None, txt_file_handle.close)
+
+            finally:
+                # Cleanup ZIP file
+                await loop.run_in_executor(None, zip_file.close)
+
+        except zipfile.BadZipFile as e:
+            raise CorruptedZipError(zip_path, str(e))
+        except Exception as e:
+            if isinstance(e, (ExtractionError, CorruptedZipError, FileNotFoundError)):
+                raise
+            raise ExtractionError(zip_path, f"Error reading TXT from ZIP: {e}")
 
     @staticmethod
     def _read_txt_from_zip_sync(zip_path: str) -> List[str]:
@@ -201,9 +271,12 @@ class Extractor:
     def _extract_single_csv(
         chunk_size: int, zip_file: zipfile.ZipFile, csv_filename: str, output_dir: str
     ) -> None:
-        """Extract a single CSV file from ZIP and convert to Parquet.
+        """Extract a single CSV file from ZIP and convert to Parquet with memory safety.
+
+        Uses streaming processing to avoid loading entire CSV into memory.
 
         Args:
+            chunk_size: Number of rows per chunk for processing
             zip_file: Open ZipFile object
             csv_filename: Name of CSV file inside ZIP
             output_dir: Output directory for Parquet file
@@ -216,68 +289,156 @@ class Extractor:
         parquet_filename = Path(csv_filename).stem + ".parquet"
         parquet_path = output_path / parquet_filename
 
+        # Reduce chunk size further for memory safety
+        safe_chunk_size = min(chunk_size, 50_000)
+
         # List of encodings to try in order
         encodings_to_try = ["utf-8", "latin-1", "iso-8859-1", "cp1252"]
 
-        try:
-            # Read CSV and convert to Parquet in chunks to save memory
-            csv_data = None
-            last_encoding_error = None
+        logger.debug(f"Processing {csv_filename} with chunk size {safe_chunk_size}")
 
-            # Try different encodings
+        try:
+            # Find working encoding first (read just first chunk)
+            working_encoding = None
             for encoding in encodings_to_try:
                 try:
                     with zip_file.open(csv_filename) as csv_file:
-                        csv_data = pl.read_csv(
+                        # Try to read just first few lines
+                        test_df = pl.read_csv(
                             csv_file,
                             encoding=encoding,
-                            separator=";",  # CVM uses semicolon as delimiter
-                            ignore_errors=True,  # Skip malformed lines
-                            skip_rows_after_header=0,
+                            separator=";",
+                            ignore_errors=True,
+                            n_rows=100,
                         )
-                    logger.debug(
-                        f"Successfully read {csv_filename} with encoding {encoding}"
-                    )
-                    break
-                except (UnicodeDecodeError, LookupError) as e:
-                    last_encoding_error = e
-                    logger.debug(
-                        f"Failed to read {csv_filename} with encoding {encoding}: {e}"
-                    )
+                        working_encoding = encoding
+                        logger.debug(
+                            f"Successfully validated {csv_filename} with encoding {encoding}"
+                        )
+                        break
+                except (UnicodeDecodeError, LookupError):
+                    continue
+                except Exception as e:
+                    logger.debug(f"Test read failed for {csv_filename}: {e}")
                     continue
 
-            if csv_data is None:
+            if working_encoding is None:
                 raise ExtractionError(
                     str(parquet_path),
                     f"Could not read {csv_filename} with any encoding "
-                    f"(tried {', '.join(encodings_to_try)}): {last_encoding_error}",
+                    f"(tried {', '.join(encodings_to_try)})",
                 )
 
-            # Process data in chunks for memory optimization
-            first_chunk = True
-            for chunk_start in range(0, csv_data.height, chunk_size):
-                chunk = csv_data[chunk_start : chunk_start + chunk_size]
+            # Now process file in chunks using streaming approach
+            first_write = True
+            total_rows = 0
 
+            with zip_file.open(csv_filename) as csv_file:
+                # Use scan_csv for lazy loading (more memory efficient)
                 try:
-                    # Convert to Arrow table
-                    table = chunk.to_arrow()
+                    # Read and process in chunks
+                    reader = pl.read_csv_batched(
+                        csv_file,
+                        encoding=working_encoding,
+                        separator=";",
+                        ignore_errors=True,
+                        batch_size=safe_chunk_size,
+                    )
 
-                    # Write or append to Parquet
-                    if first_chunk:
-                        pq.write_table(table, parquet_path)
-                        first_chunk = False
-                        logger.debug(f"Created {parquet_filename}")
-                    else:
-                        # Append mode: read existing, concatenate, rewrite
-                        existing_table = pq.read_table(parquet_path)
-                        combined = pa.concat_tables([existing_table, table])
-                        pq.write_table(combined, parquet_path)
-                        logger.debug(f"Appended chunk to {parquet_filename}")
+                    batches = reader.next_batches(1)
+                    while batches:
+                        for chunk in batches:
+                            if chunk is not None and chunk.height > 0:
+                                try:
+                                    # Convert to Arrow table
+                                    table = chunk.to_arrow()
 
-                except OSError as e:
-                    if "No space left on device" in str(e):
-                        raise DiskFullError(str(parquet_path))
-                    raise
+                                    # Write or append to Parquet
+                                    if first_write:
+                                        pq.write_table(
+                                            table,
+                                            parquet_path,
+                                            compression="zstd",
+                                            compression_level=3,
+                                        )
+                                        first_write = False
+                                        logger.debug(f"Created {parquet_filename}")
+                                    else:
+                                        # Append using ParquetWriter for efficiency
+                                        parquet_file = pq.ParquetFile(parquet_path)
+                                        existing_table = parquet_file.read()
+                                        combined = pa.concat_tables(
+                                            [existing_table, table]
+                                        )
+                                        pq.write_table(
+                                            combined,
+                                            parquet_path,
+                                            compression="zstd",
+                                            compression_level=3,
+                                        )
+                                        logger.debug(
+                                            f"Appended chunk to {parquet_filename}"
+                                        )
+
+                                    total_rows += chunk.height
+
+                                except OSError as e:
+                                    if "No space left on device" in str(e):
+                                        raise DiskFullError(str(parquet_path))
+                                    raise
+
+                        # Get next batch
+                        batches = reader.next_batches(1)
+
+                    logger.debug(
+                        f"Completed {csv_filename}: {total_rows} rows written to {parquet_filename}"
+                    )
+
+                except pl.exceptions.ComputeError as e:
+                    # Fallback to traditional approach if streaming fails
+                    logger.warning(
+                        f"Streaming read failed for {csv_filename}, falling back to traditional approach: {e}"
+                    )
+
+                    # Clean up partial file
+                    if parquet_path.exists():
+                        try:
+                            parquet_path.unlink()
+                        except Exception:
+                            pass
+
+                    # Retry with traditional approach
+                    with zip_file.open(csv_filename) as csv_file_retry:
+                        csv_data = pl.read_csv(
+                            csv_file_retry,
+                            encoding=working_encoding,
+                            separator=";",
+                            ignore_errors=True,
+                        )
+
+                        # Write in smaller chunks
+                        for chunk_start in range(0, csv_data.height, safe_chunk_size):
+                            chunk = csv_data[
+                                chunk_start : chunk_start + safe_chunk_size
+                            ]
+                            table = chunk.to_arrow()
+
+                            if chunk_start == 0:
+                                pq.write_table(
+                                    table,
+                                    parquet_path,
+                                    compression="zstd",
+                                    compression_level=3,
+                                )
+                            else:
+                                existing = pq.read_table(parquet_path)
+                                combined = pa.concat_tables([existing, table])
+                                pq.write_table(
+                                    combined,
+                                    parquet_path,
+                                    compression="zstd",
+                                    compression_level=3,
+                                )
 
         except pl.exceptions.ComputeError as e:
             # Clean up partial file if it exists

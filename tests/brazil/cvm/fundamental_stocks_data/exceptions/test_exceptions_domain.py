@@ -314,14 +314,14 @@ class TestDomainExceptionsIntegration:
             valid_docs=["DRE", "BPARMS", "DMPL"],
         ):
             # ...existing code...
-            min_year, atual_year = valid_years_range
+            minimal_year, atual_year = valid_years_range
 
             if (
                 not isinstance(first_year, int)
-                or first_year < min_year
+                or first_year < minimal_year
                 or first_year > atual_year
             ):
-                raise InvalidFirstYear(min_year, atual_year)
+                raise InvalidFirstYear(minimal_year, atual_year)
 
             if (
                 not isinstance(last_year, int)

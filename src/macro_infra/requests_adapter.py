@@ -1,9 +1,9 @@
 """
-RequestsAdapter - Wrapper completo para a biblioteca httpx.
+RequestsAdapter - Full wrapper for the httpx library.
 
-Este adaptador encapsula todas as funcionalidades importantes do httpx,
-permitindo o uso de requisições HTTP síncronas e assíncronas sem
-necessidade de importar httpx diretamente no código.
+This adapter encapsulates all important httpx functionality,
+allowing the use of synchronous and asynchronous HTTP requests
+without importing httpx directly in the code.
 """
 
 from typing import Any, Dict, Optional
@@ -13,10 +13,10 @@ import httpx
 
 class RequestsAdapter:
     """
-    Adaptador que encapsula a biblioteca httpx para requisições HTTP.
+    Adapter that encapsulates the httpx library for HTTP requests.
 
-    Fornece métodos síncronos e assíncronos para fazer requisições HTTP,
-    com suporte a streaming, timeout, retry, e outras funcionalidades do httpx.
+    Provides synchronous and asynchronous methods to make HTTP requests,
+    with support for streaming, timeout, retry, and other httpx features.
     """
 
     def __init__(
@@ -27,20 +27,20 @@ class RequestsAdapter:
         http2: bool = False,
     ):
         """
-        Inicializa o adaptador httpx.
+        Initialize the httpx adapter.
 
         Args:
-            timeout: Timeout padrão para requisições em segundos
-            max_redirects: Número máximo de redirecionamentos
-            verify: Verificar certificados SSL
-            http2: Habilitar HTTP/2
+            timeout: Default request timeout in seconds
+            max_redirects: Maximum number of redirects
+            verify: Verify SSL certificates
+            http2: Enable HTTP/2
         """
         self.timeout = timeout
         self.max_redirects = max_redirects
         self.verify = verify
         self.http2 = http2
 
-    # ==================== MÉTODOS SÍNCRONOS ====================
+    # ==================== SYNCHRONOUS METHODS ====================
 
     def get(
         self,
@@ -51,17 +51,17 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição GET síncrona.
+        Synchronous GET request.
 
         Args:
-            url: URL da requisição
-            params: Parâmetros de query string
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            params: Query string parameters
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         with httpx.Client(
             timeout=timeout or self.timeout,
@@ -82,18 +82,18 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição POST síncrona.
+        Synchronous POST request.
 
         Args:
-            url: URL da requisição
-            data: Dados para enviar no body
-            json: Dados JSON para enviar
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            data: Body data to send
+            json: JSON data to send
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         with httpx.Client(
             timeout=timeout or self.timeout,
@@ -114,18 +114,18 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição PUT síncrona.
+        Synchronous PUT request.
 
         Args:
-            url: URL da requisição
-            data: Dados para enviar no body
-            json: Dados JSON para enviar
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            data: Body data to send
+            json: JSON data to send
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         with httpx.Client(
             timeout=timeout or self.timeout,
@@ -144,16 +144,16 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição DELETE síncrona.
+        Synchronous DELETE request.
 
         Args:
-            url: URL da requisição
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         with httpx.Client(
             timeout=timeout or self.timeout,
@@ -173,17 +173,17 @@ class RequestsAdapter:
         **kwargs,
     ):
         """
-        Requisição GET com streaming síncrono.
+        Synchronous GET request with streaming.
 
         Args:
-            url: URL da requisição
-            params: Parâmetros de query string
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            params: Query string parameters
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            Context manager com a resposta em streaming
+            Context manager with the streaming response
         """
         client = httpx.Client(
             timeout=timeout or self.timeout,
@@ -194,7 +194,7 @@ class RequestsAdapter:
         )
         return client.stream("GET", url, params=params, headers=headers, **kwargs)
 
-    # ==================== MÉTODOS ASSÍNCRONOS ====================
+    # ==================== ASYNCHRONOUS METHODS ====================
 
     async def async_get(
         self,
@@ -205,17 +205,17 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição GET assíncrona.
+        Asynchronous GET request.
 
         Args:
-            url: URL da requisição
-            params: Parâmetros de query string
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            params: Query string parameters
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -236,18 +236,18 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição POST assíncrona.
+        Asynchronous POST request.
 
         Args:
-            url: URL da requisição
-            data: Dados para enviar no body
-            json: Dados JSON para enviar
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            data: Body data to send
+            json: JSON data to send
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -270,18 +270,18 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição PUT assíncrona.
+        Asynchronous PUT request.
 
         Args:
-            url: URL da requisição
-            data: Dados para enviar no body
-            json: Dados JSON para enviar
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            data: Body data to send
+            json: JSON data to send
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -302,16 +302,16 @@ class RequestsAdapter:
         **kwargs,
     ) -> httpx.Response:
         """
-        Requisição DELETE assíncrona.
+        Asynchronous DELETE request.
 
         Args:
-            url: URL da requisição
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            httpx.Response: Resposta da requisição
+            httpx.Response: Request response
         """
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -331,17 +331,17 @@ class RequestsAdapter:
         **kwargs,
     ):
         """
-        Requisição GET com streaming assíncrono.
+        Asynchronous GET request with streaming.
 
         Args:
-            url: URL da requisição
-            params: Parâmetros de query string
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
-            **kwargs: Argumentos adicionais do httpx
+            url: Request URL
+            params: Query string parameters
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
 
         Returns:
-            Context manager assíncrono com a resposta em streaming
+            Asynchronous context manager with the streaming response
         """
         client = httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -352,7 +352,7 @@ class RequestsAdapter:
         )
         return client.stream("GET", url, params=params, headers=headers, **kwargs)
 
-    # ==================== MÉTODOS DE DOWNLOAD ====================
+    # ==================== DOWNLOAD HELPERS ====================
 
     def download_file(
         self,
@@ -363,14 +363,14 @@ class RequestsAdapter:
         timeout: Optional[float] = None,
     ) -> None:
         """
-        Download síncrono de arquivo com streaming.
+        Synchronous file download with streaming.
 
         Args:
-            url: URL do arquivo
-            output_path: Caminho onde salvar o arquivo
-            chunk_size: Tamanho dos chunks para streaming
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
+            url: File URL
+            output_path: Path to save the file
+            chunk_size: Chunk size for streaming
+            headers: Custom headers
+            timeout: Specific timeout for this request
         """
         with self.stream_get(url, headers=headers, timeout=timeout) as response:
             response.raise_for_status()
@@ -388,14 +388,14 @@ class RequestsAdapter:
         timeout: Optional[float] = None,
     ) -> None:
         """
-        Download assíncrono de arquivo com streaming.
+        Asynchronous file download with streaming.
 
         Args:
-            url: URL do arquivo
-            output_path: Caminho onde salvar o arquivo
-            chunk_size: Tamanho dos chunks para streaming
-            headers: Headers customizados
-            timeout: Timeout específico para esta requisição
+            url: File URL
+            output_path: Path to save the file
+            chunk_size: Chunk size for streaming
+            headers: Custom headers
+            timeout: Specific timeout for this request
         """
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
@@ -411,7 +411,7 @@ class RequestsAdapter:
                         if chunk:
                             f.write(chunk)
 
-    # ==================== UTILITÁRIOS ====================
+    # ==================== UTILITIES ====================
 
     @staticmethod
     def create_headers(
@@ -420,15 +420,15 @@ class RequestsAdapter:
         **custom_headers,
     ) -> Dict[str, str]:
         """
-        Cria um dicionário de headers.
+        Create a headers dictionary.
 
         Args:
-            content_type: Tipo de conteúdo (ex: 'application/json')
-            authorization: Token de autorização (ex: 'Bearer token')
-            **custom_headers: Headers adicionais
+            content_type: Content type (e.g. 'application/json')
+            authorization: Authorization token (e.g. 'Bearer token')
+            **custom_headers: Additional headers
 
         Returns:
-            Dict com os headers
+            Dict with headers
         """
         headers = {}
         if content_type:
@@ -441,25 +441,25 @@ class RequestsAdapter:
     @staticmethod
     def is_success(response: httpx.Response) -> bool:
         """
-        Verifica se a resposta indica sucesso (2xx).
+        Check if the response indicates success (2xx).
 
         Args:
-            response: Resposta HTTP
+            response: HTTP response
 
         Returns:
-            True se status code é 2xx
+            True if status code is 2xx
         """
         return 200 <= response.status_code < 300
 
     @staticmethod
     def raise_for_status(response: httpx.Response) -> None:
         """
-        Lança exceção se a resposta indica erro.
+        Raise exception if the response indicates an error.
 
         Args:
-            response: Resposta HTTP
+            response: HTTP response
 
         Raises:
-            httpx.HTTPStatusError: Se status code indica erro
+            httpx.HTTPStatusError: If status code indicates error
         """
         response.raise_for_status()

@@ -60,8 +60,3 @@ Durante o parsing completo (somente para os dados filtrados):
 ### 4. Saída (Output)
 
 Salvar os dados filtrados e transformados em **formato Parquet**. A estratégia de salvamento pode ser um arquivo único ou múltiplos arquivos particionados (ex: por ano ou classe de ativo).
-
-### 5. Pilha de Tecnologia Sugerida
-* **`asyncio`** (com `asyncio.Semaphore` para controle de concorrência).
-* **`zipfile`**: Para leitura dos `.zip` em memória.
-* **`polars`** ou **`pandas`** (com `pyarrow`): Para estruturação dos dados e salvamento em Parquet.

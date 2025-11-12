@@ -1,8 +1,7 @@
-import logging
-
 from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
     FileExtractorRepository,
 )
+from src.core import get_logger
 from src.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
@@ -11,7 +10,7 @@ from src.macro_exceptions import (
 )
 from src.macro_infra import Extractor
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ParquetExtractor(FileExtractorRepository):

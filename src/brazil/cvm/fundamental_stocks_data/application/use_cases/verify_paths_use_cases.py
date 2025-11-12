@@ -1,17 +1,17 @@
-import logging
 import os
 from pathlib import Path
 from typing import Dict, Set
 
 from src.brazil.cvm.fundamental_stocks_data.domain import AvailableYears
 from src.brazil.cvm.fundamental_stocks_data.exceptions import EmptyDocumentListError
+from src.core import get_logger
 from src.macro_exceptions import (
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
     PathPermissionError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VerifyPathsUseCases:

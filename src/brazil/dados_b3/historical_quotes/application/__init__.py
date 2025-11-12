@@ -1,17 +1,13 @@
 from .use_cases import (
     CreateDocsToExtractUseCase,
-    CreateRangeYearsUseCase,
-    CreateSetAssetsUseCase,
-    CreateSetToDownloadUseCase,
     ExtractHistoricalQuotesUseCase,
-    VerifyDestinationPathsUseCase,
+    GetAvailableAssetsUseCase,
+    GetAvailableYearsUseCase,
 )
 
 __all__ = [
     "CreateDocsToExtractUseCase",
     "ExtractHistoricalQuotesUseCase",
-    "CreateRangeYearsUseCase",
-    "CreateSetAssetsUseCase",
-    "CreateSetToDownloadUseCase",
-    "VerifyDestinationPathsUseCase",
+    "GetAvailableAssetsUseCase",
+    "GetAvailableYearsUseCase",
 ]

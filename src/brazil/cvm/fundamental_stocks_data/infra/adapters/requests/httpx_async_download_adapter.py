@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -8,11 +7,11 @@ from src.brazil.cvm.fundamental_stocks_data.application import (
     FileExtractorRepository,
 )
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
-from src.core import RetryStrategy, SimpleProgressBar, remove_file
+from src.core import RetryStrategy, SimpleProgressBar, get_logger, remove_file
 from src.macro_exceptions import DiskFullError, ExtractionError
 from src.macro_infra import RequestsAdapter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):

@@ -64,3 +64,11 @@ class DownloadExtractionError(Exception):
 class DiskFullError(OSError):
     def __init__(self, path: str):
         super().__init__(f"Insufficient disk space for saving '{path}'.")
+
+
+class SecurityError(Exception):
+    def __init__(self, message: str, path: Optional[str] = None):
+        if path:
+            super().__init__(f"Security violation: {message} (path: '{path}')")
+        else:
+            super().__init__(f"Security violation: {message}")

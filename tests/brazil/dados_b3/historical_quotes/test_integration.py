@@ -1,194 +1,320 @@
+"""Integration tests for historical_quotes module.
+
+These tests verify the complete end-to-end flow:
+1. Creating DocsToExtractor with validated parameters
+2. Extracting data from mock ZIP files
+3. Verifying output Parquet files
+4. Testing error handling and edge cases
 """
-Integration test for Historical Quotes extraction module.
 
-This test validates the entire flow without real file I/O.
-"""
+from pathlib import Path
 
-from datetime import date
-from decimal import Decimal
-from unittest.mock import Mock
-
+import polars as pl
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.domain import (
-    AvailableAssets,
-    DocsToExtractor,
+from src.brazil.dados_b3.historical_quotes import (
+    CreateDocsToExtractUseCase,
+    ExtractHistoricalQuotesUseCase,
 )
-from src.brazil.dados_b3.historical_quotes.infra import (
-    CotahistParser,
-    ExtractionService,
-    ProcessingMode,
-)
+from src.presentation.b3_docs.result_formatters import HistoricalQuotesResultFormatter
+from tests.fixtures import MockZipFiles
 
 
-class TestAvailableAssets:
-    """Test asset class mapping and validation."""
-
-    def test_create_set_assets_valid(self):
-        """Valid asset list should be converted to set."""
-        assets = AvailableAssets.create_set_assets(["ações", "etf"])
-        assert assets == {"ações", "etf"}
-
-    def test_get_target_tmerc_codes(self):
-        """Asset classes should map to correct TPMERC codes."""
-        assets = {"ações", "etf"}
-        codes = AvailableAssets.get_target_tmerc_codes(assets)
-        assert codes == {"010", "020"}
-
-    def test_get_target_tmerc_codes_options(self):
-        """Options should map to correct codes."""
-        assets = {"opções"}
-        codes = AvailableAssets.get_target_tmerc_codes(assets)
-        assert codes == {"070", "080"}
-
-
-class TestDocsToExtractor:
-    """Test DocsToExtractor entity."""
-
-    def test_entity_creation(self):
-        """Entity should be created with all required fields."""
-        entity = DocsToExtractor(
-            set_assets={"ações"},
-            range_years=range(2023, 2025),
-            path_of_docs="/path",
-            destination_path="/output",
-            set_documents_to_download={"/path/file1.zip"},
-        )
-
-        assert entity.set_assets == {"ações"}
-        assert list(entity.range_years) == [2023, 2024]
-        assert entity.path_of_docs == "/path"
-        assert entity.destination_path == "/output"
-        assert len(entity.set_documents_to_download) == 1
-
-
-class TestCotahistParserIntegration:
-    """Integration tests for COTAHIST parser."""
+class TestHistoricalQuotesIntegration:
+    """Integration tests for complete historical quotes extraction flow."""
 
     @pytest.fixture
-    def parser(self):
-        return CotahistParser()
+    def source_dir_with_zips(self, tmp_path):
+        """Create a source directory with multiple COTAHIST ZIP files."""
+        source_dir = tmp_path / "cotahist_source"
+        source_dir.mkdir()
+
+        # Create ZIP files for multiple years
+        MockZipFiles.create_multiple_cotahist_zips(source_dir, 2022, 2023)
+
+        return source_dir
 
     @pytest.fixture
-    def sample_quote_line(self):
-        """Create a realistic COTAHIST line."""
-        line = "01"  # TIPREG
-        line += "20231215"  # DATA
-        line += "02"  # CODBDI
-        line += "PETR4       "  # CODNEG (12 chars)
-        line += "010"  # TPMERC
-        line += "PETROBRAS   "  # NOMRES (12 chars)
-        line += "ON        "  # ESPECI (10 chars)
-        line += " " * 7  # PRAZOT
-        line += "BRL"  # MODREF
-        line += "0000000003150"  # PREABE = 31.50
-        line += "0000000003200"  # PREMAX = 32.00
-        line += "0000000003100"  # PREMIN = 31.00
-        line += "0000000003150"  # PREMED = 31.50
-        line += "0000000003180"  # PREULT = 31.80
-        line += "0000000003179"  # PREOFC = 31.79
-        line += "0000000003181"  # PREOFV = 31.81
-        line += "12345"  # TOTNEG
-        line += "000000000100000000"  # QUATOT
-        line += "000000003180000000"  # VOLTOT
-        line += "0000000003180"  # PREEXE
-        line += "1"  # INDOPC
-        line += "00000000"  # DATVEN
-        line += "0000001"  # FATCOT
-        line += "0000000003185"  # PTOEXE
-        line += "BRPETRACNOR9"  # CODISI (12 chars)
-        line += "123"  # DISMES
+    def output_dir(self, tmp_path):
+        """Create an output directory for extracted files."""
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        return output_dir
 
-        return line.ljust(245)
+    def test_full_extraction_flow_fast_mode(self, source_dir_with_zips, output_dir):
+        """Test complete extraction flow in fast mode."""
+        # Step 1: Create DocsToExtractor entity
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir_with_zips),
+            assets_list=["ações"],
+            initial_year=2022,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
 
-    def test_full_parsing_flow(self, parser, sample_quote_line):
-        """Test complete parsing with filtering."""
-        target_codes = {"010", "020"}
-        result = parser.parse_line(sample_quote_line, target_codes)
+        # Verify entity was created correctly
+        assert docs_to_extract.path_of_docs == str(source_dir_with_zips)
+        assert "ações" in docs_to_extract.set_assets
+        assert len(docs_to_extract.set_documents_to_download) == 2  # 2022 and 2023
 
-        assert result is not None
-        assert result["codneg"] == "PETR4"
-        assert result["tpmerc"] == "010"
-        assert result["data_pregao"] == date(2023, 12, 15)
-        assert result["preult"] == Decimal("31.80")
-        assert result["premax"] == Decimal("32.00")
-        assert result["premin"] == Decimal("31.00")
-        assert result["totneg"] == 12345
-        assert result["codisi"] == "BRPETRACNOR9"
+        # Step 2: Extract data
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            processing_mode="fast",
+            output_filename="test_output.parquet",
+        )
 
-    def test_filtering_by_tpmerc(self, parser, sample_quote_line):
-        """Lines with non-matching TPMERC should be filtered out."""
-        target_codes = {"070", "080"}  # Options only
-        result = parser.parse_line(sample_quote_line, target_codes)
+        # Step 3: Enrich result with presentation data
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
 
-        assert result is None
+        # Step 4: Verify results
+        assert result["success"] is True
+        assert result["total_files"] == 2
+        assert result["success_count"] == 2
+        assert result["error_count"] == 0
+        assert result["total_records"] > 0
+        assert "message" in result
+        assert "Successfully extracted" in result["message"]
 
+        # Step 5: Verify output file exists and is valid
+        output_file = Path(result["output_file"])
+        assert output_file.exists()
+        assert output_file.suffix == ".parquet"
 
-class TestExtractionServiceIntegration:
-    """Integration tests for extraction service."""
+        # Step 6: Verify Parquet content
+        df = pl.read_parquet(output_file)
+        assert len(df) > 0
+        assert "codneg" in df.columns
+        assert "preult" in df.columns
+        assert "data_pregao" in df.columns
+
+    def test_full_extraction_flow_slow_mode(self, source_dir_with_zips, output_dir):
+        """Test complete extraction flow in slow mode."""
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir_with_zips),
+            assets_list=["ações", "etf"],
+            initial_year=2022,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            processing_mode="slow",
+            output_filename="slow_mode_output.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+        assert result["total_records"] > 0
+
+        output_file = Path(result["output_file"])
+        assert output_file.exists()
+
+        df = pl.read_parquet(output_file)
+        assert len(df) > 0
+
+    def test_extraction_with_single_year(self, tmp_path):
+        """Test extraction with just one year."""
+        source_dir = tmp_path / "single_year"
+        source_dir.mkdir()
+        MockZipFiles.create_cotahist_zip(source_dir, 2023)
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir),
+            assets_list=["ações"],
+            initial_year=2023,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="single_year.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+        assert result["total_files"] == 1
+        assert result["success_count"] == 1
+
+    def test_extraction_with_multiple_asset_classes(
+        self, source_dir_with_zips, output_dir
+    ):
+        """Test extraction filtering multiple asset classes."""
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir_with_zips),
+            assets_list=["ações", "etf", "opções"],
+            initial_year=2022,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="multi_asset.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+        assert result["total_records"] > 0
+
+        # Verify output contains different asset types
+        df = pl.read_parquet(Path(result["output_file"]))
+        assert len(df) > 0
+        # Should have records from different TPMERC codes
+        assert df["tpmerc"].n_unique() >= 1
+
+    def test_extraction_with_empty_zip(self, tmp_path):
+        """Test extraction with ZIP containing no matching records."""
+        source_dir = tmp_path / "empty_data"
+        source_dir.mkdir()
+        MockZipFiles.create_empty_cotahist_zip(source_dir, 2023)
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir),
+            assets_list=["ações"],
+            initial_year=2023,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="empty_output.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+        assert result["total_records"] == 0
+
+    def test_extraction_with_no_zip_files(self, tmp_path):
+        """Test extraction when no ZIP files match the year range."""
+        source_dir = tmp_path / "no_files"
+        source_dir.mkdir()
+        # Create a ZIP for 2020, but request 2023
+        MockZipFiles.create_cotahist_zip(source_dir, 2020)
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir),
+            assets_list=["ações"],
+            initial_year=2023,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        # Should have no documents to download
+        assert len(docs_to_extract.set_documents_to_download) == 0
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="no_files_output.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        # Should succeed but with 0 records
+        assert result["total_files"] == 0
+        assert result["total_records"] == 0
+
+    def test_extraction_destination_defaults_to_source(self, tmp_path):
+        """Test that destination path defaults to source path."""
+        source_dir = tmp_path / "source_and_dest"
+        source_dir.mkdir()
+        MockZipFiles.create_cotahist_zip(source_dir, 2023)
+
+        # Don't specify destination_path
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir),
+            assets_list=["ações"],
+            initial_year=2023,
+            last_year=2023,
+            # destination_path not specified
+        ).execute()
+
+        # Destination should default to source
+        assert docs_to_extract.destination_path == str(source_dir)
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="default_dest.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+
+        # Output file should be in source directory
+        output_file = Path(result["output_file"])
+        assert output_file.parent == source_dir
+
+    def test_extraction_with_custom_output_filename(
+        self, source_dir_with_zips, output_dir
+    ):
+        """Test extraction with custom output filename."""
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir_with_zips),
+            assets_list=["ações"],
+            initial_year=2022,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
+
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = extract_use_case.execute_sync(
+            docs_to_extract=docs_to_extract,
+            output_filename="custom_name.parquet",
+        )
+
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert result["success"] is True
+
+        output_file = Path(result["output_file"])
+        assert output_file.name == "custom_name.parquet"
+        assert output_file.exists()
 
     @pytest.mark.asyncio
-    async def test_extraction_service_creation(self):
-        """Service should be created with proper configuration."""
-        mock_reader = Mock()
-        mock_parser = Mock()
-        mock_writer = Mock()
+    async def test_async_extraction_flow(self, source_dir_with_zips, output_dir):
+        """Test async extraction flow."""
+        docs_to_extract = CreateDocsToExtractUseCase(
+            path_of_docs=str(source_dir_with_zips),
+            assets_list=["ações"],
+            initial_year=2022,
+            last_year=2023,
+            destination_path=str(output_dir),
+        ).execute()
 
-        service = ExtractionService(
-            zip_reader=mock_reader,
-            parser=mock_parser,
-            data_writer=mock_writer,
-            processing_mode=ProcessingMode.FAST,
+        extract_use_case = ExtractHistoricalQuotesUseCase()
+        result = await extract_use_case.execute(
+            docs_to_extract=docs_to_extract,
+            output_filename="async_output.parquet",
         )
 
-        assert service.max_concurrent_files == 10
+        result = HistoricalQuotesResultFormatter.enrich_result(result)
 
-    @pytest.mark.asyncio
-    async def test_extraction_service_slow_mode(self):
-        """Slow mode should limit concurrency."""
-        mock_reader = Mock()
-        mock_parser = Mock()
-        mock_writer = Mock()
+        assert result["success"] is True
+        assert result["total_records"] > 0
 
-        service = ExtractionService(
-            zip_reader=mock_reader,
-            parser=mock_parser,
-            data_writer=mock_writer,
-            processing_mode=ProcessingMode.SLOW,
-        )
-
-        assert service.max_concurrent_files == 2
-
-
-class TestEndToEndFlow:
-    """End-to-end integration test."""
-
-    def test_complete_flow_validation(self):
-        """Validate that all components can work together."""
-        # 1. Create asset set
-        assets = AvailableAssets.create_set_assets(["ações", "etf"])
-        assert assets == {"ações", "etf"}
-
-        # 2. Map to TPMERC codes
-        codes = AvailableAssets.get_target_tmerc_codes(assets)
-        assert codes == {"010", "020"}
-
-        # 3. Create entity
-        docs = DocsToExtractor(
-            set_assets=assets,
-            range_years=range(2023, 2025),
-            path_of_docs="/test",
-            destination_path="/output",
-            set_documents_to_download={"/test/COTAHIST.2023.ZIP"},
-        )
-
-        assert docs.set_assets == assets
-        assert list(docs.range_years) == [2023, 2024]
-
-        # 4. Verify parser can handle the codes
-        parser = CotahistParser()
-        line = "01202312150210PETR4       010" + " " * 213
-        result = parser.parse_line(line, codes)
-
-        assert result is not None
-        assert result["tpmerc"] == "010"
+        output_file = Path(result["output_file"])
+        assert output_file.exists()

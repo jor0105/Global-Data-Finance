@@ -1,32 +1,50 @@
 import asyncio
-from enum import Enum
+import gc
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
-from ..application.interfaces import ICotahistParser, IDataWriter, IZipReader
+from src.core import get_logger, log_execution_time
+from src.core.utils import ResourceLimits, ResourceMonitor, ResourceState
 
+from ..domain import ProcessingModeEnum
+from .cotahist_parser import CotahistParser
+from .parquet_writer import ParquetWriter
+from .zip_reader import ZipFileReader
 
-class ProcessingMode(str, Enum):
-    """Processing mode configuration."""
-
-    FAST = "fast"
-    SLOW = "slow"
+logger = get_logger(__name__)
 
 
 class ExtractionService:
     """Service for extracting data from COTAHIST ZIP files asynchronously.
 
     This service controls resource consumption through processing modes:
-    - FAST: High concurrency, more CPU/RAM usage
-    - SLOW: Low concurrency, minimal CPU/RAM usage
+    - FAST: High concurrency, more CPU/RAM usage, with parallel parsing
+    - SLOW: Low concurrency, minimal CPU/RAM usage, sequential parsing
+
+    Features:
+    - Parallel CPU-bound parsing using ProcessPoolExecutor (FAST mode)
+    - Async I/O for reading ZIP files
+    - Dynamic batch writing based on available memory
+    - Real-time resource monitoring with circuit breaker
+    - Automatic garbage collection on memory pressure
     """
+
+    # Default batch sizes (will be adjusted dynamically based on RAM)
+    DEFAULT_BATCH_SIZE = 100_000
+    DEFAULT_PARSE_BATCH_SIZE = 10_000
+
+    # Minimum safe batch sizes
+    MIN_BATCH_SIZE = 1_000
+    MIN_PARSE_BATCH_SIZE = 500
 
     def __init__(
         self,
-        zip_reader: IZipReader,
-        parser: ICotahistParser,
-        data_writer: IDataWriter,
-        processing_mode: ProcessingMode = ProcessingMode.FAST,
+        zip_reader: ZipFileReader,
+        parser: CotahistParser,
+        data_writer: ParquetWriter,
+        processing_mode: ProcessingModeEnum = ProcessingModeEnum.FAST,
+        resource_limits: ResourceLimits = None,
     ):
         """Initialize extraction service with dependencies.
 
@@ -35,22 +53,70 @@ class ExtractionService:
             parser: Parser for COTAHIST format
             data_writer: Writer for output data
             processing_mode: Resource consumption strategy
+            resource_limits: Optional custom resource limits
         """
         self.zip_reader = zip_reader
         self.parser = parser
         self.data_writer = data_writer
         self.processing_mode = processing_mode
 
-        # Configure concurrency based on mode
-        if processing_mode == ProcessingMode.FAST:
-            self.max_concurrent_files = 10  # Process up to 10 files concurrently
+        # Initialize resource monitor
+        self.resource_monitor = ResourceMonitor(limits=resource_limits)
+
+        # Configure concurrency based on mode and available resources
+        if processing_mode == ProcessingModeEnum.FAST:
+            desired_concurrent_files = 10
+            desired_workers = None  # Use default (CPU count)
+            self.use_parallel_parsing = True
         else:  # SLOW
-            self.max_concurrent_files = 2  # Process only 2 files at a time
+            desired_concurrent_files = 2
+            desired_workers = 1
+            self.use_parallel_parsing = False
+
+        # Adjust based on actual available resources
+        self.max_concurrent_files = min(
+            desired_concurrent_files,
+            self.resource_monitor.get_safe_worker_count(desired_concurrent_files),
+        )
+
+        # Determine safe worker count for ProcessPoolExecutor
+        if self.use_parallel_parsing:
+            self.max_workers = self.resource_monitor.get_safe_worker_count(
+                desired_workers
+            )
+        else:
+            self.max_workers = 1
+
+        # Dynamic batch sizes (will be adjusted during execution)
+        self.batch_size = self.DEFAULT_BATCH_SIZE
+        self.parse_batch_size = self.DEFAULT_PARSE_BATCH_SIZE
+
+        # Initialize process pool for CPU-bound parsing if in FAST mode
+        self.process_pool = None
+        if self.use_parallel_parsing:
+            self.process_pool = ProcessPoolExecutor(max_workers=self.max_workers)
+
+        logger.info(
+            "ExtractionService initialized",
+            extra={
+                "processing_mode": str(processing_mode),
+                "max_concurrent_files": self.max_concurrent_files,
+                "use_parallel_parsing": self.use_parallel_parsing,
+                "max_workers": self.max_workers,
+                "batch_size": self.batch_size,
+                "resource_monitoring": "enabled",
+            },
+        )
+
+    def __del__(self):
+        """Cleanup process pool on deletion."""
+        if self.process_pool is not None:
+            self.process_pool.shutdown(wait=False)
 
     async def extract_from_zip_files(
         self, zip_files: List[str], target_tpmerc_codes: Set[str], output_path: Path
     ) -> Dict[str, Any]:
-        """Extract data from multiple ZIP files asynchronously.
+        """Extract data from multiple ZIP files asynchronously with adaptive batch writing.
 
         Args:
             zip_files: List of paths to ZIP files
@@ -60,46 +126,121 @@ class ExtractionService:
         Returns:
             Dictionary with extraction statistics
         """
-        semaphore = asyncio.Semaphore(self.max_concurrent_files)
+        # Adjust batch sizes based on current memory state
+        self._adjust_batch_sizes()
 
-        async def process_with_semaphore(zip_file: str):
-            async with semaphore:
-                return await self._process_single_zip(zip_file, target_tpmerc_codes)
-
-        # Process all files with controlled concurrency
-        results = await asyncio.gather(
-            *[process_with_semaphore(zip_file) for zip_file in zip_files],
-            return_exceptions=True,
+        logger.info(
+            "Starting extraction from ZIP files",
+            extra={
+                "total_files": len(zip_files),
+                "target_codes_count": len(target_tpmerc_codes),
+                "output_path": str(output_path),
+                "processing_mode": str(self.processing_mode),
+                "batch_size": self.batch_size,
+                "parse_batch_size": self.parse_batch_size,
+            },
         )
 
-        # Consolidate all results
-        all_records: List[Dict[str, Any]] = []
-        success_count = 0
-        error_count = 0
-        errors = {}
+        with log_execution_time(
+            logger,
+            "Extract from all ZIP files",
+            total_files=len(zip_files),
+        ):
+            semaphore = asyncio.Semaphore(self.max_concurrent_files)
 
-        for i, result in enumerate(results):
-            if isinstance(result, Exception):
-                error_count += 1
-                errors[zip_files[i]] = str(result)
-            elif isinstance(result, list):
-                success_count += 1
-                all_records.extend(result)
+            async def process_with_semaphore(zip_file: str):
+                # Check resources before processing each file
+                if not await self._wait_for_resources():
+                    logger.error(f"Skipping {zip_file} - resources exhausted")
+                    return Exception("Resources exhausted")
 
-        # Write all data to Parquet
-        if all_records:
-            await self.data_writer.write_to_parquet(
-                data=all_records, output_path=output_path
+                async with semaphore:
+                    return await self._process_single_zip(zip_file, target_tpmerc_codes)
+
+            # Process all files with controlled concurrency
+            results = await asyncio.gather(
+                *[process_with_semaphore(zip_file) for zip_file in zip_files],
+                return_exceptions=True,
             )
 
-        return {
-            "total_files": len(zip_files),
-            "success_count": success_count,
-            "error_count": error_count,
-            "total_records": len(all_records),
-            "errors": errors,
-            "output_file": str(output_path),
-        }
+            # Consolidate results with adaptive batch writing
+            all_records: List[Dict[str, Any]] = []
+            success_count = 0
+            error_count = 0
+            errors = {}
+            total_records_written = 0
+            batch_number = 0
+
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    error_count += 1
+                    errors[zip_files[i]] = str(result)
+                    logger.error(
+                        "Failed to process ZIP file",
+                        extra={
+                            "zip_file": zip_files[i],
+                            "error": str(result),
+                        },
+                        exc_info=result,
+                    )
+                elif isinstance(result, list):
+                    success_count += 1
+                    all_records.extend(result)
+                    logger.debug(
+                        "Successfully processed ZIP file",
+                        extra={
+                            "zip_file": zip_files[i],
+                            "records_extracted": len(result),
+                        },
+                    )
+
+                    # Adjust batch size dynamically and flush if needed
+                    self._adjust_batch_sizes()
+
+                    if len(all_records) >= self.batch_size:
+                        batch_number += 1
+                        await self._flush_batch_to_disk(
+                            all_records,
+                            output_path,
+                            batch_number,
+                        )
+                        total_records_written += len(all_records)
+                        all_records.clear()
+
+                        # Force garbage collection after flush
+                        gc.collect()
+
+            # Write remaining records
+            if all_records:
+                batch_number += 1
+                await self._flush_batch_to_disk(
+                    all_records,
+                    output_path,
+                    batch_number,
+                )
+                total_records_written += len(all_records)
+                all_records.clear()
+                gc.collect()
+
+            if total_records_written == 0:
+                logger.warning("No records extracted from any ZIP file")
+
+            result_summary = {
+                "total_files": len(zip_files),
+                "success_count": success_count,
+                "error_count": error_count,
+                "total_records": total_records_written,
+                "batches_written": batch_number,
+                "errors": errors,
+                "output_file": str(output_path),
+            }
+
+            logger.info(
+                "Extraction completed",
+                extra=result_summary,
+            )
+
+            return result_summary
 
     async def _process_single_zip(
         self, zip_file: str, target_tpmerc_codes: Set[str]
@@ -113,14 +254,220 @@ class ExtractionService:
         Returns:
             List of parsed records
         """
+        logger.debug(
+            "Processing ZIP file",
+            extra={
+                "zip_file": zip_file,
+                "target_codes": list(target_tpmerc_codes),
+                "parallel_parsing": self.use_parallel_parsing,
+            },
+        )
+
         records = []
 
-        # Stream lines from ZIP file
-        async for line in await self.zip_reader.read_lines_from_zip(zip_file):
-            # Parse line (returns None if not matching filter)
-            parsed = self.parser.parse_line(line, target_tpmerc_codes)
+        try:
+            if self.use_parallel_parsing:
+                # Collect lines in batches for parallel processing
+                line_buffer = []
 
-            if parsed:
-                records.append(parsed)
+                async for line in self.zip_reader.read_lines_from_zip(zip_file):
+                    # Check resources periodically
+                    if len(line_buffer) % 5000 == 0 and len(line_buffer) > 0:
+                        resource_state = self.resource_monitor.check_resources()
+                        if resource_state == ResourceState.EXHAUSTED:
+                            logger.warning(
+                                f"Resource exhaustion detected while processing {zip_file}"
+                            )
+                            # Wait for resources to recover
+                            if not await self._wait_for_resources():
+                                raise MemoryError(
+                                    "Unable to recover from resource exhaustion"
+                                )
+
+                    line_buffer.append(line)
+
+                    # Process batch when threshold reached (dynamic size)
+                    if len(line_buffer) >= self.parse_batch_size:
+                        batch_records = await self._parse_lines_batch_parallel(
+                            line_buffer, target_tpmerc_codes
+                        )
+                        records.extend(batch_records)
+                        line_buffer.clear()
+
+                        # Opportunistic garbage collection on large batches
+                        if len(records) % 50000 == 0:
+                            gc.collect()
+
+                # Process remaining lines
+                if line_buffer:
+                    batch_records = await self._parse_lines_batch_parallel(
+                        line_buffer, target_tpmerc_codes
+                    )
+                    records.extend(batch_records)
+                    line_buffer.clear()
+            else:
+                # Sequential parsing for SLOW mode
+                line_count = 0
+                async for line in self.zip_reader.read_lines_from_zip(zip_file):
+                    # Check resources every 1000 lines
+                    if line_count % 1000 == 0 and line_count > 0:
+                        resource_state = self.resource_monitor.check_resources()
+                        if resource_state == ResourceState.CRITICAL:
+                            # Pause briefly to allow memory recovery
+                            await asyncio.sleep(0.1)
+                        elif resource_state == ResourceState.EXHAUSTED:
+                            if not await self._wait_for_resources():
+                                raise MemoryError(
+                                    "Unable to recover from resource exhaustion"
+                                )
+
+                    parsed = self.parser.parse_line(line, target_tpmerc_codes)
+                    if parsed:
+                        records.append(parsed)
+
+                    line_count += 1
+
+            logger.debug(
+                "Completed processing ZIP file",
+                extra={
+                    "zip_file": zip_file,
+                    "records_extracted": len(records),
+                },
+            )
+
+        except Exception as e:
+            logger.error(
+                "Error processing ZIP file",
+                extra={
+                    "zip_file": zip_file,
+                    "error": str(e),
+                },
+                exc_info=True,
+            )
+            raise
 
         return records
+
+    async def _parse_lines_batch_parallel(
+        self, lines: List[str], target_tpmerc_codes: Set[str]
+    ) -> List[Dict[str, Any]]:
+        """Parse a batch of lines in parallel using ProcessPoolExecutor.
+
+        This offloads CPU-intensive parsing to separate processes, allowing
+        better utilization of multi-core CPUs.
+
+        Args:
+            lines: List of lines to parse
+            target_tpmerc_codes: Set of TPMERC codes to filter
+
+        Returns:
+            List of parsed records (excludes None values)
+        """
+        loop = asyncio.get_event_loop()
+
+        # Execute parsing in process pool
+        parsed_batch = await loop.run_in_executor(
+            self.process_pool,
+            _parse_lines_batch,  # Static function for pickling
+            lines,
+            target_tpmerc_codes,
+        )
+
+        # Filter out None values (non-matching records)
+        return [record for record in parsed_batch if record is not None]
+
+    async def _flush_batch_to_disk(
+        self,
+        records: List[Dict[str, Any]],
+        output_path: Path,
+        batch_number: int,
+    ) -> None:
+        """Flush a batch of records to disk.
+
+        Uses append mode for batches after the first one to prevent overwriting.
+
+        Args:
+            records: List of records to write
+            output_path: Path where to save the data
+            batch_number: Current batch number (1-indexed)
+        """
+        if not records:
+            return
+
+        # First batch overwrites, subsequent batches append
+        write_mode = "overwrite" if batch_number == 1 else "append"
+
+        logger.info(
+            f"Flushing batch {batch_number} to disk",
+            extra={
+                "batch_number": batch_number,
+                "records_in_batch": len(records),
+                "write_mode": write_mode,
+                "output_path": str(output_path),
+            },
+        )
+
+        await self.data_writer.write_to_parquet(
+            data=records,
+            output_path=output_path,
+            mode=write_mode,
+        )
+
+    def _adjust_batch_sizes(self) -> None:
+        """Dynamically adjust batch sizes based on current memory state."""
+        memory_state = self.resource_monitor.check_resources()
+
+        # Adjust write batch size
+        new_batch_size = self.resource_monitor.get_safe_batch_size(
+            self.DEFAULT_BATCH_SIZE
+        )
+        if new_batch_size != self.batch_size:
+            logger.info(
+                f"Adjusted write batch size: {self.batch_size} -> {new_batch_size} "
+                f"(memory state: {memory_state.value})"
+            )
+            self.batch_size = max(new_batch_size, self.MIN_BATCH_SIZE)
+
+        # Adjust parse batch size proportionally
+        ratio = self.DEFAULT_PARSE_BATCH_SIZE / self.DEFAULT_BATCH_SIZE
+        new_parse_batch_size = int(self.batch_size * ratio)
+        if new_parse_batch_size != self.parse_batch_size:
+            self.parse_batch_size = max(new_parse_batch_size, self.MIN_PARSE_BATCH_SIZE)
+
+    async def _wait_for_resources(self, timeout_seconds: int = 30) -> bool:
+        """Wait for resources to become available.
+
+        Args:
+            timeout_seconds: Maximum time to wait
+
+        Returns:
+            True if resources became available, False if timeout
+        """
+        # Run blocking wait in executor to avoid blocking event loop
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None,
+            self.resource_monitor.wait_for_resources,
+            ResourceState.WARNING,
+            timeout_seconds,
+        )
+
+
+# Module-level function for ProcessPoolExecutor (must be picklable)
+def _parse_lines_batch(
+    lines: List[str], target_tpmerc_codes: Set[str]
+) -> List[Dict[str, Any]]:
+    """Parse a batch of lines using a fresh parser instance.
+
+    This function is defined at module level so it can be pickled
+    and sent to worker processes.
+
+    Args:
+        lines: List of lines to parse
+        target_tpmerc_codes: Set of TPMERC codes to filter
+
+    Returns:
+        List of parsed records (may include None for non-matching lines)
+    """
+    parser = CotahistParser()
+    return [parser.parse_line(line, target_tpmerc_codes) for line in lines]

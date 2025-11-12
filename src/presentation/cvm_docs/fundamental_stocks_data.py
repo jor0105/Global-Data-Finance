@@ -27,7 +27,6 @@ Example:
     >>> print(f"Downloaded {result.success_count_downloads} files successfully")
 """
 
-import logging
 from typing import Dict, List, Optional
 
 from src.brazil.cvm.fundamental_stocks_data import (
@@ -37,10 +36,11 @@ from src.brazil.cvm.fundamental_stocks_data import (
     HttpxAsyncDownloadAdapter,
     ParquetExtractor,
 )
+from src.core import get_logger
 
 from .download_result_formatter import DownloadResultFormatter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FundamentalStocksData:
@@ -255,12 +255,12 @@ class FundamentalStocksData:
             >>> print(f"Current year: {years['Current Year']}")
             >>>
             >>> # Use this info to make informed download requests
-            >>> min_year = years['Geral Docs']
+            >>> minimal_year = years['Geral Docs']
             >>> max_year = years['Current Year']
             >>> result = cvm.download(
             ...     destination_path="/data",
             ...     list_docs=["DFP"],
-            ...     initial_year=min_year,
+            ...     initial_year=minimal_year,
             ...     last_year=max_year
             ... )
         """

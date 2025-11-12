@@ -29,11 +29,14 @@ class DownloadResultFormatter:
     - If all successful: Shows a success summary
     """
 
-    # Color codes for terminal output
-    _GREEN = "\033[92m"
-    _RED = "\033[91m"
-    _RESET = "\033[0m"
-    _BOLD = "\033[1m"
+    # ANSI color codes
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
 
     def __init__(self, use_colors: bool = True) -> None:
         """Initialize the formatter.
@@ -56,7 +59,7 @@ class DownloadResultFormatter:
         """
         if not self.use_colors:
             return text
-        return f"{color}{text}{self._RESET}"
+        return f"{color}{text}{self.RESET}"
 
     def format_result(self, result: DownloadResult) -> str:
         """Format download result with smart layout.
@@ -113,19 +116,19 @@ class DownloadResultFormatter:
         lines.append(
             self._colorize(
                 "╔════════════════════════════════════════╗",
-                self._BOLD,
+                self.BOLD,
             )
         )
         lines.append(
             self._colorize(
                 "║    DOWNLOAD OPERATION COMPLETED        ║",
-                self._BOLD,
+                self.BOLD,
             )
         )
         lines.append(
             self._colorize(
                 "╚════════════════════════════════════════╝",
-                self._BOLD,
+                self.BOLD,
             )
         )
 
@@ -135,10 +138,10 @@ class DownloadResultFormatter:
             lines.append(
                 self._colorize(
                     f"✗ FAILED DOWNLOADS ({result.error_count_downloads})",
-                    self._RED,
+                    self.RED,
                 )
             )
-            lines.append(self._colorize("────────────────────────────", self._RED))
+            lines.append(self._colorize("────────────────────────────", self.RED))
             for item, error in result.failed_downloads.items():
                 lines.append(f"  • {item}")
                 lines.append(f"    └─ Error: {error}")
@@ -148,10 +151,10 @@ class DownloadResultFormatter:
             lines.append(
                 self._colorize(
                     f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count_downloads})",
-                    self._GREEN,
+                    self.GREEN,
                 )
             )
-            lines.append(self._colorize("────────────────────────────", self._GREEN))
+            lines.append(self._colorize("────────────────────────────", self.GREEN))
 
         # Summary line
         lines.append("")
@@ -164,7 +167,7 @@ class DownloadResultFormatter:
         else:
             summary = f"SUMMARY: {result.success_count_downloads} succeeded out of {result.success_count_downloads} total"
 
-        lines.append(self._colorize(summary, self._RESET))
+        lines.append(self._colorize(summary, self.RESET))
 
         return "\n".join(lines)
 

@@ -1,13 +1,14 @@
-from .entities.docs_to_extractor import DocsToExtractor
-from .value_objects.available_assests import AvailableAssets
-from .value_objects.available_years import AvailableYears
-from .value_objects.extract_result import ExtractorResult
-from .value_objects.validate_paths import ValidatePaths
+from .builders import DocsToExtractorBuilder
+from .entities import DocsToExtractor
+from .services import AvailableAssetsService, YearValidationService
+from .value_objects import AssetClass, ProcessingModeEnum, YearRange
 
 __all__ = [
+    "DocsToExtractorBuilder",
     "DocsToExtractor",
-    "AvailableAssets",
-    "AvailableYears",
-    "ExtractorResult",
-    "ValidatePaths",
+    "AssetClass",
+    "AvailableAssetsService",
+    "YearValidationService",
+    "ProcessingModeEnum",
+    "YearRange",
 ]

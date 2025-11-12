@@ -1,6 +1,6 @@
 from typing import AsyncIterator
 
-from src.macro_infra.extractor_file import Extractor
+from src.macro_infra import Extractor
 
 
 class ZipFileReader:
