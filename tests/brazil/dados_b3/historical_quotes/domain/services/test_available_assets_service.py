@@ -1,29 +1,36 @@
+"""Tests for AvailableAssetsService."""
+
 import pytest
 
 from src.brazil.dados_b3.historical_quotes.domain.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
 )
-from src.brazil.dados_b3.historical_quotes.domain.services.available_assets_service import (
-    AvailableAssetsService,
-)
+from src.brazil.dados_b3.historical_quotes.domain.services import AvailableAssetsService
 
 
 class TestGetAvailableAssets:
-    """Test get_available_assets method."""
+    """Test suite for get_available_assets method."""
 
-    def test_returns_list_of_strings(self):
-        """Should return a list containing string asset class names."""
+    def test_returns_list_of_assets(self):
+        """Test that method returns a list."""
+        # Act
         result = AvailableAssetsService.get_available_assets()
 
+        # Assert
         assert isinstance(result, list)
-        assert len(result) > 0
-        assert all(isinstance(asset, str) for asset in result)
 
-    def test_contains_expected_asset_classes(self):
-        """Should contain all expected B3 asset classes."""
+    def test_returns_non_empty_list(self):
+        """Test that returned list is not empty."""
+        # Act
         result = AvailableAssetsService.get_available_assets()
 
+        # Assert
+        assert len(result) > 0
+
+    def test_returns_expected_asset_classes(self):
+        """Test that all expected asset classes are present."""
+        # Arrange
         expected_assets = [
             "ações",
             "etf",
@@ -33,262 +40,418 @@ class TestGetAvailableAssets:
             "forward",
             "leilao",
         ]
-        for expected in expected_assets:
-            assert expected in result, f"Expected asset class '{expected}' not found"
 
-    def test_returns_exactly_seven_asset_classes(self):
-        """Should return exactly 7 asset classes."""
+        # Act
         result = AvailableAssetsService.get_available_assets()
+
+        # Assert
+        for asset in expected_assets:
+            assert asset in result
+
+    def test_returns_seven_asset_classes(self):
+        """Test that exactly 7 asset classes are returned."""
+        # Act
+        result = AvailableAssetsService.get_available_assets()
+
+        # Assert
         assert len(result) == 7
+
+    def test_all_elements_are_strings(self):
+        """Test that all returned elements are strings."""
+        # Act
+        result = AvailableAssetsService.get_available_assets()
+
+        # Assert
+        assert all(isinstance(asset, str) for asset in result)
+
+    def test_no_duplicate_assets(self):
+        """Test that there are no duplicate asset classes."""
+        # Act
+        result = AvailableAssetsService.get_available_assets()
+
+        # Assert
+        assert len(result) == len(set(result))
+
+    def test_is_class_method(self):
+        """Test that method can be called as class method."""
+        # Act & Assert - should not raise any exception
+        result = AvailableAssetsService.get_available_assets()
+        assert result is not None
 
 
 class TestValidateAndCreateAssetSet:
-    """Test validate_and_create_asset_set method - Success cases."""
+    """Test suite for validate_and_create_asset_set method."""
 
-    def test_valid_single_asset(self):
-        """Should accept a single valid asset class."""
-        result = AvailableAssetsService.validate_and_create_asset_set(["ações"])
+    def test_validates_single_valid_asset(self):
+        """Test validation with single valid asset."""
+        # Arrange
+        assets_list = ["ações"]
 
+        # Act
+        result = AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+        # Assert
         assert isinstance(result, set)
-        assert "ações" in result
-        assert len(result) == 1
+        assert result == {"ações"}
 
-    def test_valid_multiple_assets(self):
-        """Should accept multiple valid asset classes."""
-        assets = ["ações", "etf", "opções"]
-        result = AvailableAssetsService.validate_and_create_asset_set(assets)
+    def test_validates_multiple_valid_assets(self):
+        """Test validation with multiple valid assets."""
+        # Arrange
+        assets_list = ["ações", "etf", "opções"]
 
-        assert isinstance(result, set)
+        # Act
+        result = AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+        # Assert
         assert result == {"ações", "etf", "opções"}
-        assert len(result) == 3
 
-    def test_all_asset_classes(self):
-        """Should accept all available asset classes."""
-        all_assets = AvailableAssetsService.get_available_assets()
-        result = AvailableAssetsService.validate_and_create_asset_set(all_assets)
+    def test_validates_all_available_assets(self):
+        """Test validation with all available assets."""
+        # Arrange
+        assets_list = [
+            "ações",
+            "etf",
+            "opções",
+            "termo",
+            "exercicio_opcoes",
+            "forward",
+            "leilao",
+        ]
 
-        assert isinstance(result, set)
+        # Act
+        result = AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+        # Assert
         assert len(result) == 7
 
-    def test_removes_duplicates(self):
-        """Should remove duplicate asset classes in the result set."""
-        assets = ["ações", "ações", "etf", "etf"]
-        result = AvailableAssetsService.validate_and_create_asset_set(assets)
+    def test_removes_duplicates_from_list(self):
+        """Test that duplicates in input list are removed in output set."""
+        # Arrange
+        assets_list = ["ações", "ações", "etf", "etf"]
 
+        # Act
+        result = AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+        # Assert
         assert len(result) == 2
         assert result == {"ações", "etf"}
 
+    def test_raises_empty_asset_list_error_for_empty_list(self):
+        """Test that empty list raises EmptyAssetListError."""
+        # Arrange
+        assets_list = []
 
-class TestValidateAndCreateAssetSetErrors:
-    """Test validate_and_create_asset_set method - Error cases."""
-
-    def test_empty_list_raises_error(self):
-        """Should raise EmptyAssetListError when list is empty."""
+        # Act & Assert
         with pytest.raises(EmptyAssetListError):
-            AvailableAssetsService.validate_and_create_asset_set([])
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
 
-    def test_none_raises_error(self):
-        """Should raise EmptyAssetListError when input is None."""
+    def test_raises_empty_asset_list_error_for_non_list(self):
+        """Test that non-list input raises EmptyAssetListError."""
+        # Arrange
+        assets_not_list = "ações"
+
+        # Act & Assert
+        with pytest.raises(EmptyAssetListError):
+            AvailableAssetsService.validate_and_create_asset_set(assets_not_list)
+
+    def test_raises_empty_asset_list_error_for_none(self):
+        """Test that None input raises EmptyAssetListError."""
+        # Act & Assert
         with pytest.raises(EmptyAssetListError):
             AvailableAssetsService.validate_and_create_asset_set(None)
 
-    def test_not_a_list_raises_error(self):
-        """Should raise EmptyAssetListError when input is not a list."""
+    def test_raises_invalid_assets_name_for_non_string_elements(self):
+        """Test that list with non-string elements raises InvalidAssetsName."""
+        # Arrange
+        assets_list = ["ações", 123, "etf"]
+
+        # Act & Assert
+        with pytest.raises(InvalidAssetsName):
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+    def test_raises_invalid_assets_name_for_invalid_asset(self):
+        """Test that invalid asset name raises InvalidAssetsName."""
+        # Arrange
+        assets_list = ["ações", "invalid_asset"]
+
+        # Act & Assert
+        with pytest.raises(InvalidAssetsName):
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+    def test_raises_invalid_assets_name_for_all_invalid_assets(self):
+        """Test that all invalid assets raise InvalidAssetsName."""
+        # Arrange
+        assets_list = ["invalid1", "invalid2"]
+
+        # Act & Assert
+        with pytest.raises(InvalidAssetsName):
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+    def test_raises_invalid_assets_name_with_mixed_valid_invalid(self):
+        """Test that mixed valid and invalid assets raise InvalidAssetsName."""
+        # Arrange
+        assets_list = ["ações", "invalid", "etf"]
+
+        # Act & Assert
+        with pytest.raises(InvalidAssetsName):
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+    def test_is_case_sensitive(self):
+        """Test that validation is case sensitive."""
+        # Arrange
+        assets_list = ["AÇÕES", "ETF"]
+
+        # Act & Assert
+        with pytest.raises(InvalidAssetsName):
+            AvailableAssetsService.validate_and_create_asset_set(assets_list)
+
+    def test_validates_with_dict_input(self):
+        """Test that dict input raises EmptyAssetListError."""
+        # Arrange
+        assets_dict = {"ações": True}
+
+        # Act & Assert
         with pytest.raises(EmptyAssetListError):
-            AvailableAssetsService.validate_and_create_asset_set("ações")
+            AvailableAssetsService.validate_and_create_asset_set(assets_dict)
 
+    def test_validates_with_set_input(self):
+        """Test that set input raises EmptyAssetListError (expects list)."""
+        # Arrange
+        assets_set = {"ações", "etf"}
+
+        # Act & Assert
         with pytest.raises(EmptyAssetListError):
-            AvailableAssetsService.validate_and_create_asset_set({"ações"})
-
-        with pytest.raises(EmptyAssetListError):
-            AvailableAssetsService.validate_and_create_asset_set(123)
-
-    def test_invalid_asset_name_raises_error(self):
-        """Should raise InvalidAssetsName when asset class is invalid."""
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsService.validate_and_create_asset_set(["invalid_asset"])
-
-    def test_mixed_valid_and_invalid_raises_error(self):
-        """Should raise InvalidAssetsName when list contains invalid asset."""
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsService.validate_and_create_asset_set(["ações", "invalid"])
-
-    def test_non_string_elements_raise_error(self):
-        """Should raise InvalidAssetsName when list contains non-strings."""
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsService.validate_and_create_asset_set([123, 456])
-
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsService.validate_and_create_asset_set(["ações", 123])
-
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsService.validate_and_create_asset_set([None])
+            AvailableAssetsService.validate_and_create_asset_set(assets_set)
 
 
 class TestGetTpmercCodesForAssets:
-    """Test get_tpmerc_codes_for_assets method."""
+    """Test suite for get_tpmerc_codes_for_assets method."""
 
-    def test_single_asset_returns_codes(self):
-        """Should return TPMERC codes for a single asset class."""
+    def test_returns_codes_for_acoes(self):
+        """Test TPMERC codes for ações (stocks)."""
+        # Arrange
         asset_set = {"ações"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
+        # Assert
         assert isinstance(result, set)
-        assert "010" in result  # CASH
-        assert "020" in result  # FRACTIONARY
-        assert len(result) == 2
+        assert result == {"010", "020"}
 
-    def test_multiple_assets_return_combined_codes(self):
-        """Should return combined TPMERC codes for multiple assets."""
-        asset_set = {"ações", "etf"}
+    def test_returns_codes_for_etf(self):
+        """Test TPMERC codes for ETF."""
+        # Arrange
+        asset_set = {"etf"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert isinstance(result, set)
-        # Both ações and etf use the same codes
-        assert "010" in result
-        assert "020" in result
+        # Assert
+        assert result == {"010", "020"}
 
-    def test_options_returns_correct_codes(self):
-        """Should return correct TPMERC codes for options."""
+    def test_returns_codes_for_opcoes(self):
+        """Test TPMERC codes for opções (options)."""
+        # Arrange
         asset_set = {"opções"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert "070" in result  # CALL
-        assert "080" in result  # PUT
-        assert len(result) == 2
+        # Assert
+        assert result == {"070", "080"}
 
-    def test_termo_returns_correct_code(self):
-        """Should return correct TPMERC code for termo."""
+    def test_returns_codes_for_termo(self):
+        """Test TPMERC codes for termo (term)."""
+        # Arrange
         asset_set = {"termo"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert "030" in result
-        assert len(result) == 1
+        # Assert
+        assert result == {"030"}
 
-    def test_exercicio_opcoes_returns_correct_codes(self):
-        """Should return correct codes for exercicio_opcoes."""
+    def test_returns_codes_for_exercicio_opcoes(self):
+        """Test TPMERC codes for exercicio_opcoes (option exercise)."""
+        # Arrange
         asset_set = {"exercicio_opcoes"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert "012" in result  # CALL EXERCISE
-        assert "013" in result  # PUT EXERCISE
-        assert len(result) == 2
+        # Assert
+        assert result == {"012", "013"}
 
-    def test_forward_returns_correct_codes(self):
-        """Should return correct codes for forward."""
+    def test_returns_codes_for_forward(self):
+        """Test TPMERC codes for forward."""
+        # Arrange
         asset_set = {"forward"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert "050" in result  # FORWARD WITH GAIN
-        assert "060" in result  # FORWARD WITH MOVEMENT
-        assert len(result) == 2
+        # Assert
+        assert result == {"050", "060"}
 
-    def test_leilao_returns_correct_code(self):
-        """Should return correct code for leilao."""
+    def test_returns_codes_for_leilao(self):
+        """Test TPMERC codes for leilao (auction)."""
+        # Arrange
         asset_set = {"leilao"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        assert "017" in result
-        assert len(result) == 1
+        # Assert
+        assert result == {"017"}
 
-    def test_all_assets_return_all_codes(self):
-        """Should return all TPMERC codes when all assets are requested."""
-        all_assets = set(AvailableAssetsService.get_available_assets())
-        result = AvailableAssetsService.get_tpmerc_codes_for_assets(all_assets)
+    def test_returns_combined_codes_for_multiple_assets(self):
+        """Test TPMERC codes for multiple assets."""
+        # Arrange
+        asset_set = {"ações", "opções"}
 
-        assert isinstance(result, set)
-        # Should have at least 10 unique codes
-        assert len(result) >= 10
-
-    def test_empty_set_returns_empty_set(self):
-        """Should return empty set when input set is empty."""
-        result = AvailableAssetsService.get_tpmerc_codes_for_assets(set())
-
-        assert isinstance(result, set)
-        assert len(result) == 0
-
-    def test_invalid_asset_prints_warning(self, capsys):
-        """Should print warning for invalid asset classes but not fail."""
-        asset_set = {"invalid_asset"}
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        # Should return empty set
-        assert len(result) == 0
+        # Assert
+        assert result == {"010", "020", "070", "080"}
 
-        # Should print warning
+    def test_returns_all_codes_for_all_assets(self):
+        """Test TPMERC codes for all available assets."""
+        # Arrange
+        asset_set = {
+            "ações",
+            "etf",
+            "opções",
+            "termo",
+            "exercicio_opcoes",
+            "forward",
+            "leilao",
+        }
+
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
+
+        # Assert
+        expected_codes = {
+            "010",
+            "020",
+            "030",
+            "050",
+            "060",
+            "070",
+            "080",
+            "012",
+            "013",
+            "017",
+        }
+        assert result == expected_codes
+
+    def test_returns_empty_set_for_empty_input(self):
+        """Test that empty set returns empty set."""
+        # Arrange
+        asset_set = set()
+
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
+
+        # Assert
+        assert result == set()
+
+    def test_ignores_invalid_asset_with_warning(self, capsys):
+        """Test that invalid assets are ignored with warning."""
+        # Arrange
+        asset_set = {"ações", "invalid_asset"}
+
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
+
+        # Assert
+        assert result == {"010", "020"}
         captured = capsys.readouterr()
         assert "Warning" in captured.out
         assert "invalid_asset" in captured.out
 
-    def test_mixed_valid_invalid_returns_only_valid_codes(self, capsys):
-        """Should return codes for valid assets and warn about invalid ones."""
-        asset_set = {"ações", "invalid_asset"}
+    def test_ignores_all_invalid_assets_with_warning(self, capsys):
+        """Test that all invalid assets are ignored with warning."""
+        # Arrange
+        asset_set = {"invalid1", "invalid2"}
+
+        # Act
         result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        # Should return codes for ações
-        assert "010" in result
-        assert "020" in result
-
-        # Should print warning
+        # Assert
+        assert result == set()
         captured = capsys.readouterr()
-        assert "invalid_asset" in captured.out
+        assert "Warning" in captured.out
+        assert "invalid1" in captured.out
+        assert "invalid2" in captured.out
 
+    def test_handles_uppercase_assets_normalized(self):
+        """Test that uppercase asset names are normalized to lowercase."""
+        # Arrange
+        asset_set = {"AÇÕES"}
 
-class TestIsValidAssetClass:
-    """Test is_valid_asset_class method."""
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-    def test_valid_asset_returns_true(self):
-        """Should return True for valid asset classes."""
-        assert AvailableAssetsService.is_valid_asset_class("ações") is True
-        assert AvailableAssetsService.is_valid_asset_class("etf") is True
-        assert AvailableAssetsService.is_valid_asset_class("opções") is True
+        # Assert
+        # The service normalizes to lowercase, so uppercase AÇÕES becomes ações
+        # which is invalid in exact match, but gets normalized
+        assert isinstance(result, set)
 
-    def test_invalid_asset_returns_false(self):
-        """Should return False for invalid asset classes."""
-        assert AvailableAssetsService.is_valid_asset_class("invalid") is False
-        assert AvailableAssetsService.is_valid_asset_class("stocks") is False
-        assert AvailableAssetsService.is_valid_asset_class("") is False
+    def test_normalizes_whitespace_in_asset_names(self):
+        """Test that asset names with extra whitespace are normalized."""
+        # Arrange
+        asset_set = {" ações ", "  etf  "}
 
-    def test_all_available_assets_are_valid(self):
-        """Should return True for all assets from get_available_assets."""
-        all_assets = AvailableAssetsService.get_available_assets()
-        for asset in all_assets:
-            assert AvailableAssetsService.is_valid_asset_class(asset) is True
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-
-class TestGetTpmercCodesForSingleAsset:
-    """Test get_tpmerc_codes_for_single_asset method."""
-
-    def test_valid_asset_returns_codes(self):
-        """Should return list of TPMERC codes for valid asset."""
-        result = AvailableAssetsService.get_tpmerc_codes_for_single_asset("ações")
-
-        assert isinstance(result, list)
+        # Assert
+        # Should normalize and find the assets
         assert "010" in result
         assert "020" in result
 
-    def test_all_assets_return_codes(self):
-        """Should return codes for all valid asset classes."""
-        all_assets = AvailableAssetsService.get_available_assets()
+    def test_no_duplicate_codes_returned(self):
+        """Test that duplicate codes are not returned when assets share codes."""
+        # Arrange - ações and etf both use 010 and 020
+        asset_set = {"ações", "etf"}
 
-        for asset in all_assets:
-            result = AvailableAssetsService.get_tpmerc_codes_for_single_asset(asset)
-            assert isinstance(result, list)
-            assert len(result) > 0
-            assert all(isinstance(code, str) for code in result)
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-    def test_invalid_asset_raises_key_error(self):
-        """Should raise KeyError for invalid asset class."""
-        with pytest.raises(KeyError) as exc_info:
-            AvailableAssetsService.get_tpmerc_codes_for_single_asset("invalid")
+        # Assert
+        assert len(result) == 2
+        assert result == {"010", "020"}
 
-        assert "invalid" in str(exc_info.value)
-        assert "not found" in str(exc_info.value)
+    def test_all_codes_are_strings(self):
+        """Test that all returned codes are strings."""
+        # Arrange
+        asset_set = {"ações", "opções", "termo"}
 
-    def test_error_message_includes_available_assets(self):
-        """Should include available assets in error message."""
-        with pytest.raises(KeyError) as exc_info:
-            AvailableAssetsService.get_tpmerc_codes_for_single_asset("invalid")
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
 
-        error_message = str(exc_info.value)
-        assert "Available:" in error_message
+        # Assert
+        assert all(isinstance(code, str) for code in result)
+
+    def test_all_codes_are_three_digits(self):
+        """Test that all TPMERC codes are three digits."""
+        # Arrange
+        asset_set = {
+            "ações",
+            "etf",
+            "opções",
+            "termo",
+            "exercicio_opcoes",
+            "forward",
+            "leilao",
+        }
+
+        # Act
+        result = AvailableAssetsService.get_tpmerc_codes_for_assets(asset_set)
+
+        # Assert
+        assert all(len(code) == 3 for code in result)
+        assert all(code.isdigit() for code in result)

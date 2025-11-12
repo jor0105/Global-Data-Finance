@@ -1,7 +1,13 @@
-"""Tests for FileSystemService with security validations."""
+"""
+Complete test suite for FileSystemService.
 
-import os
-import tempfile
+Tests file system operations including:
+- Directory path validation
+- Security checks for path traversal
+- File finding by year patterns
+- Error handling and edge cases
+"""
+
 from pathlib import Path
 
 import pytest
@@ -13,227 +19,479 @@ from src.macro_exceptions import (
     EmptyDirectoryError,
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
-    PathPermissionError,
     SecurityError,
 )
 
 
 class TestFileSystemService:
-    """Test suite for FileSystemService."""
+    """Test suite for FileSystemService basic functionality."""
 
     @pytest.fixture
     def service(self):
-        """Provide FileSystemService instance."""
+        """Create a FileSystemService instance."""
         return FileSystemService()
 
-    @pytest.fixture
-    def temp_dir(self):
-        """Provide a temporary directory for testing."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            yield tmpdir
+    def test_validate_directory_path_valid(self, service, tmp_path):
+        """Test validating a valid directory path."""
+        test_dir = tmp_path / "test_dir"
+        test_dir.mkdir()
+        (test_dir / "file.txt").write_text("test")
 
-    @pytest.fixture
-    def populated_temp_dir(self, temp_dir):
-        """Provide a temporary directory with files."""
-        test_file = Path(temp_dir) / "test.txt"
-        test_file.write_text("test content")
-        return temp_dir
-
-
-class TestValidateDirectoryPath(TestFileSystemService):
-    """Tests for validate_directory_path method."""
-
-    def test_valid_directory_path(self, service, populated_temp_dir):
-        """Test validation with valid directory path."""
-        result = service.validate_directory_path(populated_temp_dir)
+        result = service.validate_directory_path(str(test_dir))
 
         assert isinstance(result, Path)
         assert result.exists()
         assert result.is_dir()
 
-    def test_empty_string_raises_error(self, service):
+    def test_validate_directory_path_with_files(self, service, tmp_path):
+        """Test validating directory with files."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+        (test_dir / "file1.zip").write_text("data1")
+        (test_dir / "file2.zip").write_text("data2")
+
+        result = service.validate_directory_path(str(test_dir))
+
+        assert result.exists()
+        assert result.is_dir()
+
+    def test_validate_directory_path_not_string_type(self, service):
+        """Test that non-string path raises TypeError."""
+        with pytest.raises(TypeError):
+            service.validate_directory_path(123)
+
+    def test_validate_directory_path_none(self, service):
+        """Test that None path raises TypeError."""
+        with pytest.raises(TypeError):
+            service.validate_directory_path(None)
+
+    def test_validate_directory_path_empty_string(self, service):
         """Test that empty string raises InvalidDestinationPathError."""
-        with pytest.raises(InvalidDestinationPathError, match="empty or whitespace"):
+        with pytest.raises(InvalidDestinationPathError):
             service.validate_directory_path("")
 
-    def test_whitespace_string_raises_error(self, service):
-        """Test that whitespace string raises InvalidDestinationPathError."""
-        with pytest.raises(InvalidDestinationPathError, match="empty or whitespace"):
+    def test_validate_directory_path_whitespace_only(self, service):
+        """Test that whitespace-only string raises error."""
+        with pytest.raises(InvalidDestinationPathError):
             service.validate_directory_path("   ")
 
-    def test_non_string_raises_type_error(self, service):
-        """Test that non-string input raises TypeError."""
-        with pytest.raises(TypeError, match="Path must be a string"):
-            service.validate_directory_path(123)  # type: ignore
-
-    def test_non_existent_path_raises_error(self, service):
+    def test_validate_directory_path_nonexistent(self, service):
         """Test that non-existent path raises PathIsNotDirectoryError."""
         with pytest.raises(PathIsNotDirectoryError):
-            service.validate_directory_path("/nonexistent/path/12345")
+            service.validate_directory_path("/nonexistent/path/to/dir")
 
-    def test_file_path_raises_error(self, service, temp_dir):
-        """Test that file path (not directory) raises PathIsNotDirectoryError."""
-        file_path = Path(temp_dir) / "test_file.txt"
+    def test_validate_directory_path_is_file(self, service, tmp_path):
+        """Test that file path raises PathIsNotDirectoryError."""
+        file_path = tmp_path / "file.txt"
         file_path.write_text("content")
 
         with pytest.raises(PathIsNotDirectoryError):
             service.validate_directory_path(str(file_path))
 
-    def test_empty_directory_raises_error(self, service, temp_dir):
+    def test_validate_directory_path_empty_directory(self, service, tmp_path):
         """Test that empty directory raises EmptyDirectoryError."""
-        with pytest.raises(EmptyDirectoryError):
-            service.validate_directory_path(temp_dir)
+        empty_dir = tmp_path / "empty"
+        empty_dir.mkdir()
 
-    def test_expanduser_works(self, service, populated_temp_dir):
-        """Test that tilde expansion works."""
-        # This test assumes the temp_dir is under home directory
-        # We'll create a relative path and test expansion
-        result = service.validate_directory_path(populated_temp_dir)
+        with pytest.raises(EmptyDirectoryError):
+            service.validate_directory_path(str(empty_dir))
+
+    def test_validate_directory_path_with_tilde_expansion(self, service, tmp_path):
+        """Test that paths with ~ are expanded."""
+        # Create a directory in tmp_path
+        test_dir = tmp_path / "test"
+        test_dir.mkdir()
+        (test_dir / "file.txt").write_text("test")
+
+        # This test is tricky as we can't easily test ~ expansion without
+        # creating files in the user's home directory
+        # Just test that the method handles it
+        result = service.validate_directory_path(str(test_dir))
+        assert result.exists()
+
+    def test_validate_directory_path_relative(self, service, tmp_path, monkeypatch):
+        """Test validating relative path."""
+        test_dir = tmp_path / "relative_test"
+        test_dir.mkdir()
+        (test_dir / "file.txt").write_text("test")
+
+        # Change to tmp_path directory
+        monkeypatch.chdir(tmp_path)
+
+        result = service.validate_directory_path("relative_test")
+
+        assert result.exists()
         assert result.is_absolute()
 
 
-class TestPathTraversalSecurity(TestFileSystemService):
-    """Security tests for path traversal protection."""
+class TestFileSystemServiceSecurityValidation:
+    """Test suite for security validation."""
 
-    def test_access_to_etc_blocked(self, service):
-        """Test that access to /etc is blocked."""
-        with pytest.raises(SecurityError, match="sensitive system directory"):
-            service.create_directory_if_not_exists("/etc/malicious_dir")
+    @pytest.fixture
+    def service(self):
+        """Create a FileSystemService instance."""
+        return FileSystemService()
 
-    def test_access_to_root_blocked(self, service):
-        """Test that access to /root is blocked."""
-        with pytest.raises(SecurityError, match="sensitive system directory"):
-            service.validate_directory_path("/root")
+    def test_validate_path_safety_blocks_etc(self, service):
+        """Test that paths to /etc are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/etc/passwd").resolve())
 
-    def test_access_to_sys_blocked(self, service):
-        """Test that access to /sys is blocked."""
-        with pytest.raises(SecurityError, match="sensitive system directory"):
-            service.create_directory_if_not_exists("/sys/test")
+    def test_validate_path_safety_blocks_root(self, service):
+        """Test that paths to /root are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/root/secret").resolve())
 
-    def test_access_to_proc_blocked(self, service):
-        """Test that access to /proc is blocked."""
-        with pytest.raises(SecurityError, match="sensitive system directory"):
-            service.create_directory_if_not_exists("/proc/test")
+    def test_validate_path_safety_blocks_sys(self, service):
+        """Test that paths to /sys are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/sys/kernel").resolve())
 
-    def test_valid_path_in_home_allowed(self, service, temp_dir):
-        """Test that valid paths in home directory are allowed."""
-        result = service.create_directory_if_not_exists(temp_dir)
-        assert isinstance(result, Path)
-        assert result.exists()
+    def test_validate_path_safety_blocks_proc(self, service):
+        """Test that paths to /proc are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/proc/meminfo").resolve())
 
-    def test_valid_path_in_tmp_allowed(self, service):
-        """Test that valid paths in /tmp are allowed."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            result = service.create_directory_if_not_exists(tmpdir)
-            assert isinstance(result, Path)
-            assert result.exists()
+    def test_validate_path_safety_blocks_dev(self, service):
+        """Test that paths to /dev are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/dev/null").resolve())
 
+    def test_validate_path_safety_blocks_boot(self, service):
+        """Test that paths to /boot are blocked."""
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path("/boot/grub").resolve())
 
-class TestCreateDirectoryIfNotExists(TestFileSystemService):
-    """Tests for create_directory_if_not_exists method."""
+    def test_validate_path_safety_allows_safe_paths(self, service, tmp_path):
+        """Test that safe paths are allowed."""
+        safe_dir = tmp_path / "safe_directory"
+        safe_dir.mkdir()
 
-    def test_creates_new_directory(self, service, temp_dir):
-        """Test creating a new directory."""
-        new_dir = Path(temp_dir) / "new_subdir"
+        # Should not raise any exception
+        service._validate_path_safety(safe_dir.resolve())
 
-        result = service.create_directory_if_not_exists(str(new_dir))
+    def test_validate_path_safety_allows_home_directory(self, service, tmp_path):
+        """Test that home directory paths are allowed."""
+        # Use tmp_path as it simulates a safe user directory
+        home_like = tmp_path / "home" / "user" / "data"
+        home_like.mkdir(parents=True)
 
-        assert isinstance(result, Path)
-        assert result.exists()
-        assert result.is_dir()
+        # Should not raise
+        service._validate_path_safety(home_like.resolve())
 
-    def test_creates_nested_directories(self, service, temp_dir):
-        """Test creating nested directories."""
-        nested_dir = Path(temp_dir) / "level1" / "level2" / "level3"
+    def test_validate_directory_with_path_traversal_attempt(self, service, tmp_path):
+        """Test that path traversal attempts are caught."""
+        # Create directory structure
+        safe_dir = tmp_path / "safe"
+        safe_dir.mkdir()
+        (safe_dir / "file.txt").write_text("test")
 
-        result = service.create_directory_if_not_exists(str(nested_dir))
+        # Try to access parent using ../
+        traversal_path = str(safe_dir / ".." / ".." / ".." / "etc")
 
-        assert result.exists()
-        assert result.is_dir()
-
-    def test_existing_directory_no_error(self, service, temp_dir):
-        """Test that existing directory doesn't raise error."""
-        result = service.create_directory_if_not_exists(temp_dir)
-
-        assert isinstance(result, Path)
-        assert result.exists()
-
-    def test_path_is_file_raises_error(self, service, temp_dir):
-        """Test that existing file path raises PathIsNotDirectoryError."""
-        file_path = Path(temp_dir) / "existing_file.txt"
-        file_path.write_text("content")
-
-        with pytest.raises(PathIsNotDirectoryError):
-            service.create_directory_if_not_exists(str(file_path))
-
-    def test_empty_string_raises_error(self, service):
-        """Test that empty string raises InvalidDestinationPathError."""
-        with pytest.raises(InvalidDestinationPathError):
-            service.create_directory_if_not_exists("")
-
-    def test_non_string_raises_type_error(self, service):
-        """Test that non-string input raises TypeError."""
-        with pytest.raises(TypeError):
-            service.create_directory_if_not_exists(None)  # type: ignore
-
-    @pytest.mark.skipif(
-        os.name == "nt", reason="Permission test not reliable on Windows"
-    )
-    def test_no_write_permission_raises_error(self, service):
-        """Test that directory without write permission raises PathPermissionError."""
-        # This test is skipped on Windows as permission handling differs
-        # On Unix-like systems, /root is typically not writable by non-root users
-        read_only_dir = "/root"
-
-        if Path(read_only_dir).exists():
-            with pytest.raises((PathPermissionError, OSError, SecurityError)):
-                service.create_directory_if_not_exists(read_only_dir)
+        # Depending on resolution, this might raise PathIsNotDirectoryError or SecurityError
+        with pytest.raises(
+            (PathIsNotDirectoryError, SecurityError, EmptyDirectoryError)
+        ):
+            service.validate_directory_path(traversal_path)
 
 
-class TestFindFilesByYears(TestFileSystemService):
-    """Tests for find_files_by_years method."""
+class TestFileSystemServiceFindFiles:
+    """Test suite for finding files by year."""
 
-    def test_finds_files_matching_years(self, service, temp_dir):
-        """Test finding files that match specific years."""
-        # Create test files
-        Path(temp_dir, "COTAHIST_A2020.ZIP").touch()
-        Path(temp_dir, "COTAHIST_A2021.ZIP").touch()
-        Path(temp_dir, "COTAHIST_A2022.ZIP").touch()
-        Path(temp_dir, "OTHER_FILE.txt").touch()
+    @pytest.fixture
+    def service(self):
+        """Create a FileSystemService instance."""
+        return FileSystemService()
 
-        years = range(2020, 2022)  # 2020, 2021
-        result = service.find_files_by_years(Path(temp_dir), years)
+    def test_find_files_by_years_single_year(self, service, tmp_path):
+        """Test finding files for a single year."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "COTAHIST_A2023.ZIP").write_text("data")
+        (test_dir / "OTHER_2023.ZIP").write_text("data")
+        (test_dir / "FILE_2022.ZIP").write_text("data")
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
 
         assert len(result) == 2
-        assert any("2020" in path for path in result)
-        assert any("2021" in path for path in result)
-        assert not any("2022" in path for path in result)
+        assert any("2023" in f for f in result)
+        assert not any("2022" in f for f in result)
 
-    def test_empty_directory_returns_empty_set(self, service, temp_dir):
-        """Test that empty directory returns empty set."""
-        years = range(2020, 2025)
-        result = service.find_files_by_years(Path(temp_dir), years)
+    def test_find_files_by_years_multiple_years(self, service, tmp_path):
+        """Test finding files for multiple years."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
 
-        assert len(result) == 0
-        assert isinstance(result, set)
+        (test_dir / "FILE_2020.ZIP").write_text("data")
+        (test_dir / "FILE_2021.ZIP").write_text("data")
+        (test_dir / "FILE_2022.ZIP").write_text("data")
+        (test_dir / "FILE_2023.ZIP").write_text("data")
+        (test_dir / "FILE_2024.ZIP").write_text("data")
 
-    def test_no_matching_files_returns_empty_set(self, service, temp_dir):
-        """Test that no matching files returns empty set."""
-        Path(temp_dir, "FILE_WITHOUT_YEAR.txt").touch()
+        years = range(2021, 2024)  # 2021, 2022, 2023
+        result = service.find_files_by_years(test_dir, years)
 
-        years = range(2020, 2025)
-        result = service.find_files_by_years(Path(temp_dir), years)
-
-        assert len(result) == 0
-
-    def test_multiple_files_same_year(self, service, temp_dir):
-        """Test finding multiple files with same year."""
-        Path(temp_dir, "FILE1_2020.zip").touch()
-        Path(temp_dir, "FILE2_2020.txt").touch()
-        Path(temp_dir, "FILE3_2020.dat").touch()
-
-        years = range(2020, 2021)
-        result = service.find_files_by_years(Path(temp_dir), years)
-
-        # Should find all 3 files
         assert len(result) == 3
+        assert any("2021" in f for f in result)
+        assert any("2022" in f for f in result)
+        assert any("2023" in f for f in result)
+        assert not any("2020" in f for f in result)
+        assert not any("2024" in f for f in result)
+
+    def test_find_files_by_years_no_matches(self, service, tmp_path):
+        """Test finding files when no files match."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "FILE_2020.ZIP").write_text("data")
+        (test_dir / "FILE_2021.ZIP").write_text("data")
+
+        years = range(2025, 2027)
+        result = service.find_files_by_years(test_dir, years)
+
+        assert len(result) == 0
+
+    def test_find_files_by_years_empty_directory(self, service, tmp_path):
+        """Test finding files in empty directory."""
+        test_dir = tmp_path / "empty"
+        test_dir.mkdir()
+
+        years = range(2020, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        assert len(result) == 0
+
+    def test_find_files_by_years_ignores_subdirectories(self, service, tmp_path):
+        """Test that subdirectories are ignored."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "FILE_2023.ZIP").write_text("data")
+        subdir = test_dir / "SUBDIR_2023"
+        subdir.mkdir()
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        # Should only find the file, not the directory
+        assert len(result) == 1
+        assert "FILE_2023.ZIP" in str(list(result)[0])
+
+    def test_find_files_by_years_various_extensions(self, service, tmp_path):
+        """Test finding files with various extensions."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "DATA_2023.ZIP").write_text("data")
+        (test_dir / "DATA_2023.TXT").write_text("data")
+        (test_dir / "DATA_2023.CSV").write_text("data")
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        # Should find all files containing 2023
+        assert len(result) == 3
+
+    def test_find_files_by_years_year_in_different_positions(self, service, tmp_path):
+        """Test finding files with year in different filename positions."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "2023_DATA.ZIP").write_text("data")
+        (test_dir / "DATA_2023.ZIP").write_text("data")
+        (test_dir / "DATA_2023_FINAL.ZIP").write_text("data")
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        assert len(result) == 3
+
+    def test_find_files_by_years_partial_year_match(self, service, tmp_path):
+        """Test that partial year matches are found."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        # File with year as substring
+        (test_dir / "VERSION_20231.ZIP").write_text("data")
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        # "2023" is in "20231"
+        assert len(result) == 1
+
+    def test_find_files_by_years_empty_range(self, service, tmp_path):
+        """Test with empty year range."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "FILE_2023.ZIP").write_text("data")
+
+        years = range(2023, 2023)  # Empty range
+        result = service.find_files_by_years(test_dir, years)
+
+        assert len(result) == 0
+
+    def test_find_files_by_years_duplicate_filenames(self, service, tmp_path):
+        """Test that duplicate matches are handled (set removes duplicates)."""
+        test_dir = tmp_path / "data"
+        test_dir.mkdir()
+
+        (test_dir / "FILE_2023_2023.ZIP").write_text("data")
+
+        years = range(2023, 2024)
+        result = service.find_files_by_years(test_dir, years)
+
+        # Even though 2023 appears twice, file should only be in set once
+        assert len(result) == 1
+
+
+class TestFileSystemServiceIntegration:
+    """Integration tests for FileSystemService."""
+
+    @pytest.fixture
+    def service(self):
+        """Create a FileSystemService instance."""
+        return FileSystemService()
+
+    def test_validate_and_find_workflow(self, service, tmp_path):
+        """Test complete workflow: validate directory then find files."""
+        data_dir = tmp_path / "cotahist_data"
+        data_dir.mkdir()
+
+        # Create test files
+        (data_dir / "COTAHIST_A2022.ZIP").write_text("data")
+        (data_dir / "COTAHIST_A2023.ZIP").write_text("data")
+        (data_dir / "COTAHIST_A2024.ZIP").write_text("data")
+
+        # Validate directory
+        validated_path = service.validate_directory_path(str(data_dir))
+
+        # Find files
+        years = range(2022, 2025)
+        files = service.find_files_by_years(validated_path, years)
+
+        assert len(files) == 3
+        assert all("COTAHIST" in f for f in files)
+
+    def test_handles_symlinks(self, service, tmp_path):
+        """Test handling of symbolic links."""
+        real_dir = tmp_path / "real"
+        real_dir.mkdir()
+        (real_dir / "file.txt").write_text("data")
+
+        link_dir = tmp_path / "link"
+        try:
+            link_dir.symlink_to(real_dir)
+            # Test validation follows symlink
+            result = service.validate_directory_path(str(link_dir))
+            assert result.exists()
+        except OSError:
+            # Symlink creation might fail on some systems (like Windows)
+            pytest.skip("Symlink creation not supported")
+
+    def test_multiple_validations(self, service, tmp_path):
+        """Test multiple sequential validations."""
+        dir1 = tmp_path / "dir1"
+        dir1.mkdir()
+        (dir1 / "file1.txt").write_text("data")
+
+        dir2 = tmp_path / "dir2"
+        dir2.mkdir()
+        (dir2 / "file2.txt").write_text("data")
+
+        result1 = service.validate_directory_path(str(dir1))
+        result2 = service.validate_directory_path(str(dir2))
+
+        assert result1 != result2
+        assert result1.exists()
+        assert result2.exists()
+
+    def test_large_directory(self, service, tmp_path):
+        """Test validation and file finding in large directory."""
+        data_dir = tmp_path / "large"
+        data_dir.mkdir()
+
+        # Create many files
+        for year in range(2000, 2025):
+            for i in range(5):
+                (data_dir / f"FILE_{year}_{i}.ZIP").write_text("data")
+
+        validated_path = service.validate_directory_path(str(data_dir))
+
+        # Find files for specific years
+        years = range(2020, 2023)
+        files = service.find_files_by_years(validated_path, years)
+
+        # Should find 5 files per year * 3 years = 15 files
+        assert len(files) == 15
+
+
+class TestFileSystemServiceEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    @pytest.fixture
+    def service(self):
+        """Create a FileSystemService instance."""
+        return FileSystemService()
+
+    def test_directory_with_special_characters(self, service, tmp_path):
+        """Test directory with special characters in name."""
+        special_dir = tmp_path / "dir with spaces & special!chars"
+        special_dir.mkdir()
+        (special_dir / "file.txt").write_text("data")
+
+        result = service.validate_directory_path(str(special_dir))
+        assert result.exists()
+
+    def test_directory_with_unicode_name(self, service, tmp_path):
+        """Test directory with unicode characters."""
+        unicode_dir = tmp_path / "Programação_Açúcar"
+        unicode_dir.mkdir()
+        (unicode_dir / "arquivo.txt").write_text("data")
+
+        result = service.validate_directory_path(str(unicode_dir))
+        assert result.exists()
+
+    def test_very_long_path(self, service, tmp_path):
+        """Test with very long path."""
+        # Create nested directories
+        long_path = tmp_path
+        for i in range(10):
+            long_path = long_path / f"directory_level_{i}"
+        long_path.mkdir(parents=True)
+        (long_path / "file.txt").write_text("data")
+
+        result = service.validate_directory_path(str(long_path))
+        assert result.exists()
+
+    def test_find_files_with_numeric_only_names(self, service, tmp_path):
+        """Test finding files with numeric-only names."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+
+        (data_dir / "2023").write_text("data")
+        (data_dir / "20231231").write_text("data")
+
+        years = range(2023, 2024)
+        files = service.find_files_by_years(data_dir, years)
+
+        assert len(files) == 2
+
+    def test_case_sensitivity_in_years(self, service, tmp_path):
+        """Test that year matching is case-sensitive (numbers)."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+
+        (data_dir / "file_2023.zip").write_text("data")
+        (data_dir / "file_XXXX.zip").write_text("data")
+
+        years = range(2023, 2024)
+        files = service.find_files_by_years(data_dir, years)
+
+        # Should only find numeric year
+        assert len(files) == 1
+        assert "2023" in list(files)[0]

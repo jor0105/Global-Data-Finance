@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import AsyncIterator, List
 
 import polars as pl
-import pyarrow as pa
-import pyarrow.parquet as pq
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
 
 from src.core import get_logger
 from src.macro_exceptions import (
@@ -303,8 +303,7 @@ class Extractor:
             for encoding in encodings_to_try:
                 try:
                     with zip_file.open(csv_filename) as csv_file:
-                        # Try to read just first few lines
-                        test_df = pl.read_csv(
+                        pl.read_csv(
                             csv_file,
                             encoding=encoding,
                             separator=";",

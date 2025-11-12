@@ -3,7 +3,12 @@ from pathlib import Path
 from typing import Any, Dict, Set
 
 from ...domain import AvailableAssetsService, DocsToExtractor
-from ...infra import CotahistParser, ParquetWriter, ZipFileReader
+from ...infra import (
+    CotahistParser,
+    ExtractionServiceFactory,
+    ParquetWriter,
+    ZipFileReader,
+)
 
 
 class ExtractHistoricalQuotesUseCase:
@@ -41,8 +46,6 @@ class ExtractHistoricalQuotesUseCase:
         Returns:
             Dictionary with raw extraction results (without success/message fields)
         """
-        from ...infra import ExtractionServiceFactory
-
         extraction_service = ExtractionServiceFactory.create(
             zip_reader=self.zip_reader,
             parser=self.parser,

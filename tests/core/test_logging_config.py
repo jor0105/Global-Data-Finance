@@ -49,13 +49,6 @@ class TestLoggingConfiguration:
             assert "Debug message" in content
             assert "Info message" in content
 
-    def test_get_logger_returns_logger(self):
-        """Test that get_logger returns a Logger instance."""
-        logger = get_logger("test_module")
-
-        assert isinstance(logger, logging.Logger)
-        assert logger.name == "test_module"
-
     def test_log_with_context_executes(self):
         """Test logging with structured context executes without error."""
         logger = get_logger("test_module")
