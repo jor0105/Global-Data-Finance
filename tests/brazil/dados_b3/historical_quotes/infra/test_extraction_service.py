@@ -102,7 +102,7 @@ class DummyPool:
         self.max_workers = max_workers
         self.shutdown_called = False
 
-    def shutdown(self, wait: bool = False) -> None:
+    def shutdown(self, wait: bool = False, cancel_futures: bool = False) -> None:
         self.shutdown_called = True
 
 
@@ -513,3 +513,87 @@ async def test_extract_from_zip_files_handles_errors(
     assert result["batches_written"] == 1
     assert result["errors"] == {"error.zip": "expected failure"}
     assert flush_batches == [1]
+
+
+def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_spy):
+    """Test that ExtractionService properly cleans up process pool on deletion."""
+    monitor = FakeResourceMonitor(safe_worker_cap=4)
+    monkeypatch.setattr(
+        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        lambda: monitor,
+    )
+
+    service = ExtractionService(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnum.FAST,
+    )
+
+    # Verify process pool was created
+    assert len(process_pool_spy) == 1
+    pool = process_pool_spy[0]
+    assert pool.shutdown_called is False
+
+    # Trigger cleanup via __del__
+    service.__del__()
+
+    # Verify shutdown was called with correct parameters
+    assert pool.shutdown_called is True
+
+
+def test_extraction_service_cleanup_no_pool_in_slow_mode(monkeypatch, process_pool_spy):
+    """Test that SLOW mode doesn't create process pool, so cleanup is safe."""
+    monitor = FakeResourceMonitor(safe_worker_cap=2)
+    monkeypatch.setattr(
+        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        lambda: monitor,
+    )
+
+    service = ExtractionService(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnum.SLOW,
+    )
+
+    # Verify no process pool was created
+    assert service.process_pool is None
+    assert len(process_pool_spy) == 0
+
+    # Cleanup should not raise any error
+    service.__del__()
+
+    # No pools to verify
+    assert len(process_pool_spy) == 0
+
+
+def test_extraction_service_cleanup_handles_shutdown_errors(
+    monkeypatch, process_pool_spy
+):
+    """Test that cleanup gracefully handles exceptions during shutdown."""
+    monitor = FakeResourceMonitor(safe_worker_cap=4)
+    monkeypatch.setattr(
+        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        lambda: monitor,
+    )
+
+    service = ExtractionService(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnum.FAST,
+    )
+
+    # Make shutdown raise an error
+
+    def shutdown_with_error(wait: bool = False, cancel_futures: bool = False):
+        raise RuntimeError("Shutdown error during interpreter cleanup")
+
+    process_pool_spy[0].shutdown = shutdown_with_error
+
+    # Cleanup should not raise any error even if shutdown fails
+    try:
+        service.__del__()
+    except Exception as e:
+        pytest.fail(f"__del__ should handle shutdown errors gracefully: {e}")

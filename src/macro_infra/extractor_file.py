@@ -1,7 +1,7 @@
 import asyncio
 import zipfile
 from pathlib import Path
-from typing import AsyncIterator, List
+from typing import Any, AsyncIterator, List, cast
 
 import polars as pl
 import pyarrow as pa  # type: ignore
@@ -303,8 +303,12 @@ class Extractor:
             for encoding in encodings_to_try:
                 try:
                     with zip_file.open(csv_filename) as csv_file:
+                        # zip_file.open returns a binary file-like object. Polars'
+                        # type stubs expect a path-like name for some functions
+                        # (e.g. read_csv_batched). Use a cast to Any to satisfy
+                        # static type checkers while keeping runtime behavior.
                         pl.read_csv(
-                            csv_file,
+                            cast(Any, csv_file),
                             encoding=encoding,
                             separator=";",
                             ignore_errors=True,
@@ -337,7 +341,7 @@ class Extractor:
                 try:
                     # Read and process in chunks
                     reader = pl.read_csv_batched(
-                        csv_file,
+                        cast(Any, csv_file),
                         encoding=working_encoding,
                         separator=";",
                         ignore_errors=True,
@@ -408,8 +412,9 @@ class Extractor:
 
                     # Retry with traditional approach
                     with zip_file.open(csv_filename) as csv_file_retry:
+                        # Same cast here for the fallback (synchronous) read
                         csv_data = pl.read_csv(
-                            csv_file_retry,
+                            cast(Any, csv_file_retry),
                             encoding=working_encoding,
                             separator=";",
                             ignore_errors=True,

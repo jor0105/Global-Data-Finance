@@ -105,7 +105,11 @@ class ExtractionService:
     def __del__(self):
         """Cleanup process pool on deletion."""
         if self.process_pool is not None:
-            self.process_pool.shutdown(wait=False)
+            try:
+                self.process_pool.shutdown(wait=True, cancel_futures=False)
+            except Exception:
+                # Ignore errors during cleanup (interpreter might be shutting down)
+                pass
 
     async def extract_from_zip_files(
         self, zip_files: Set[str], target_tpmerc_codes: Set[str], output_path: Path
