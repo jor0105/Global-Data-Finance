@@ -75,14 +75,10 @@ class TestFileSystemService:
             service.validate_directory_path(str(empty_dir))
 
     def test_validate_directory_path_with_tilde_expansion(self, service, tmp_path):
-        # Create a directory in tmp_path
         test_dir = tmp_path / "test"
         test_dir.mkdir()
         (test_dir / "file.txt").write_text("test")
 
-        # This test is tricky as we can't easily test ~ expansion without
-        # creating files in the user's home directory
-        # Just test that the method handles it
         result = service.validate_directory_path(str(test_dir))
         assert result.exists()
 
@@ -91,7 +87,6 @@ class TestFileSystemService:
         test_dir.mkdir()
         (test_dir / "file.txt").write_text("test")
 
-        # Change to tmp_path directory
         monkeypatch.chdir(tmp_path)
 
         result = service.validate_directory_path("relative_test")
@@ -133,27 +128,21 @@ class TestFileSystemServiceSecurityValidation:
         safe_dir = tmp_path / "safe_directory"
         safe_dir.mkdir()
 
-        # Should not raise any exception
         service._validate_path_safety(safe_dir.resolve())
 
     def test_validate_path_safety_allows_home_directory(self, service, tmp_path):
-        # Use tmp_path as it simulates a safe user directory
         home_like = tmp_path / "home" / "user" / "data"
         home_like.mkdir(parents=True)
 
-        # Should not raise
         service._validate_path_safety(home_like.resolve())
 
     def test_validate_directory_with_path_traversal_attempt(self, service, tmp_path):
-        # Create directory structure
         safe_dir = tmp_path / "safe"
         safe_dir.mkdir()
         (safe_dir / "file.txt").write_text("test")
 
-        # Try to access parent using ../
         traversal_path = str(safe_dir / ".." / ".." / ".." / "etc")
 
-        # Depending on resolution, this might raise PathIsNotDirectoryError or SecurityError
         with pytest.raises(
             (PathIsNotDirectoryError, SecurityError, EmptyDirectoryError)
         ):
@@ -190,7 +179,7 @@ class TestFileSystemServiceFindFiles:
         (test_dir / "FILE_2023.ZIP").write_text("data")
         (test_dir / "FILE_2024.ZIP").write_text("data")
 
-        years = range(2021, 2024)  # 2021, 2022, 2023
+        years = range(2021, 2024)
         result = service.find_files_by_years(test_dir, years)
 
         assert len(result) == 3
@@ -232,7 +221,6 @@ class TestFileSystemServiceFindFiles:
         years = range(2023, 2024)
         result = service.find_files_by_years(test_dir, years)
 
-        # Should only find the file, not the directory
         assert len(result) == 1
         assert "FILE_2023.ZIP" in str(list(result)[0])
 
@@ -247,7 +235,6 @@ class TestFileSystemServiceFindFiles:
         years = range(2023, 2024)
         result = service.find_files_by_years(test_dir, years)
 
-        # Should find all files containing 2023
         assert len(result) == 3
 
     def test_find_files_by_years_year_in_different_positions(self, service, tmp_path):
@@ -267,13 +254,11 @@ class TestFileSystemServiceFindFiles:
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
-        # File with year as substring
         (test_dir / "VERSION_20231.ZIP").write_text("data")
 
         years = range(2023, 2024)
         result = service.find_files_by_years(test_dir, years)
 
-        # "2023" is in "20231"
         assert len(result) == 1
 
     def test_find_files_by_years_empty_range(self, service, tmp_path):
@@ -282,7 +267,7 @@ class TestFileSystemServiceFindFiles:
 
         (test_dir / "FILE_2023.ZIP").write_text("data")
 
-        years = range(2023, 2023)  # Empty range
+        years = range(2023, 2023)
         result = service.find_files_by_years(test_dir, years)
 
         assert len(result) == 0
@@ -296,7 +281,6 @@ class TestFileSystemServiceFindFiles:
         years = range(2023, 2024)
         result = service.find_files_by_years(test_dir, years)
 
-        # Even though 2023 appears twice, file should only be in set once
         assert len(result) == 1
 
 
@@ -309,15 +293,12 @@ class TestFileSystemServiceIntegration:
         data_dir = tmp_path / "cotahist_data"
         data_dir.mkdir()
 
-        # Create test files
         (data_dir / "COTAHIST_A2022.ZIP").write_text("data")
         (data_dir / "COTAHIST_A2023.ZIP").write_text("data")
         (data_dir / "COTAHIST_A2024.ZIP").write_text("data")
 
-        # Validate directory
         validated_path = service.validate_directory_path(str(data_dir))
 
-        # Find files
         years = range(2022, 2025)
         files = service.find_files_by_years(validated_path, years)
 
@@ -332,11 +313,9 @@ class TestFileSystemServiceIntegration:
         link_dir = tmp_path / "link"
         try:
             link_dir.symlink_to(real_dir)
-            # Test validation follows symlink
             result = service.validate_directory_path(str(link_dir))
             assert result.exists()
         except OSError:
-            # Symlink creation might fail on some systems (like Windows)
             pytest.skip("Symlink creation not supported")
 
     def test_multiple_validations(self, service, tmp_path):
@@ -359,18 +338,15 @@ class TestFileSystemServiceIntegration:
         data_dir = tmp_path / "large"
         data_dir.mkdir()
 
-        # Create many files
         for year in range(2000, 2025):
             for i in range(5):
                 (data_dir / f"FILE_{year}_{i}.ZIP").write_text("data")
 
         validated_path = service.validate_directory_path(str(data_dir))
 
-        # Find files for specific years
         years = range(2020, 2023)
         files = service.find_files_by_years(validated_path, years)
 
-        # Should find 5 files per year * 3 years = 15 files
         assert len(files) == 15
 
 
@@ -396,7 +372,6 @@ class TestFileSystemServiceEdgeCases:
         assert result.exists()
 
     def test_very_long_path(self, service, tmp_path):
-        # Create nested directories
         long_path = tmp_path
         for i in range(10):
             long_path = long_path / f"directory_level_{i}"
@@ -428,6 +403,5 @@ class TestFileSystemServiceEdgeCases:
         years = range(2023, 2024)
         files = service.find_files_by_years(data_dir, years)
 
-        # Should only find numeric year
         assert len(files) == 1
         assert "2023" in list(files)[0]

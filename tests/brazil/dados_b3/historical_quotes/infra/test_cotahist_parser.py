@@ -45,7 +45,7 @@ class TestCotahistParser:
             assert "tipo_mercado" in result
 
     def test_parse_line_with_non_matching_tpmerc(self, parser):
-        line = "01" + "20230615" + "02" + "PETR4       " + "030"  # TPMERC 030
+        line = "01" + "20230615" + "02" + "PETR4       " + "030"
         line = line + " " * (245 - len(line))
 
         result = parser.parse_line(line, {"010", "020"})
@@ -72,19 +72,16 @@ class TestCotahistParser:
     def test_parse_short_line(self, parser, target_codes):
         short_line = "0120230615"
         result = parser.parse_line(short_line, target_codes)
-        # Should pad and attempt to parse
         assert result is None or isinstance(result, dict)
 
     def test_parse_long_line(self, parser, target_codes):
         long_line = "01" + "20230615" + "02" + "PETR4       " + "010" + "X" * 500
         result = parser.parse_line(long_line, target_codes)
-        # Should truncate to 245 chars and parse
         assert result is None or isinstance(result, dict)
 
     def test_parse_extremely_long_line(self, parser, target_codes):
         extremely_long_line = "01" + "X" * 1500
         result = parser.parse_line(extremely_long_line, target_codes)
-        # Should return None due to length check
         assert result is None
 
     def test_parse_empty_line(self, parser, target_codes):
@@ -104,13 +101,11 @@ class TestCotahistParser:
         initial_count = parser._error_count
         malformed_line = "01" + "X" * 50
         parser.parse_line(malformed_line, target_codes)
-        # Error count may increment depending on how parse handles it
         assert parser._error_count >= initial_count
 
     def test_parse_line_with_unicode_characters(self, parser, target_codes):
         line = "01" + "20230615" + "02" + "AÇÚCAR      " + "010" + " " * 217
         result = parser.parse_line(line, target_codes)
-        # Should handle or skip unicode appropriately
         assert result is None or isinstance(result, dict)
 
 
@@ -125,7 +120,7 @@ class TestCotahistParserFieldParsing:
         assert result == date(2023, 6, 15)
 
     def test_parse_date_invalid(self, parser):
-        date_str = "20231332"  # Invalid month/day
+        date_str = "20231332"
         result = parser._parse_date(date_str)
         assert result is None
 
@@ -248,7 +243,7 @@ class TestCotahistParserEdgeCases:
     def test_parse_line_with_all_zeros(self, parser, target_codes):
         line = "0" * 245
         result = parser.parse_line(line, target_codes)
-        assert result is None  # Type 00 is header
+        assert result is None
 
     def test_parse_line_with_all_spaces(self, parser, target_codes):
         line = " " * 245
@@ -256,10 +251,8 @@ class TestCotahistParserEdgeCases:
         assert result is None
 
     def test_parse_line_with_mixed_valid_invalid_data(self, parser, target_codes):
-        # Valid type and date, but corrupted fields
         line = "01" + "20230615" + "XX" + "###########" + "010" + "#" * 220
         result = parser.parse_line(line, target_codes)
-        # Should return a dict with some fields populated, others with defaults
         assert result is None or isinstance(result, dict)
 
     def test_multiple_lines_parsing(self, parser, target_codes):
@@ -272,33 +265,28 @@ class TestCotahistParserEdgeCases:
 
         results = [parser.parse_line(line, target_codes) for line in lines]
 
-        assert results[0] is None  # Header
-        assert results[1] is not None or results[1] is None  # Quote or filtered
-        assert results[2] is not None or results[2] is None  # Quote or filtered
-        assert results[3] is None  # Trailer
+        assert results[0] is None
+        assert results[1] is not None or results[1] is None
+        assert results[2] is not None or results[2] is None
+        assert results[3] is None
 
     def test_error_logging_limit(self, parser, target_codes):
         parser._error_count = 0
         parser._max_errors_to_log = 3
 
-        # Generate many malformed lines
         for i in range(20):
             malformed_line = "01" + "INVALID" * 30
             parser.parse_line(malformed_line, target_codes)
 
-        # Error count should stop incrementing after max
-        assert parser._error_count <= parser._max_errors_to_log + 10  # Some tolerance
+        assert parser._error_count <= parser._max_errors_to_log + 10
 
     def test_parse_line_with_boundary_dates(self, parser, target_codes):
-        # Minimum valid date (e.g., 19000101)
         line_min = "01" + "19000101" + "02" + "TEST        " + "010" + " " * 217
         result_min = parser.parse_line(line_min, target_codes)
 
-        # Maximum reasonable date (e.g., 20991231)
         line_max = "01" + "20991231" + "02" + "TEST        " + "010" + " " * 217
         result_max = parser.parse_line(line_max, target_codes)
 
-        # Both should parse or return None based on other validations
         assert result_min is None or isinstance(result_min, dict)
         assert result_max is None or isinstance(result_max, dict)
 
@@ -308,16 +296,14 @@ class TestCotahistParserEdgeCases:
         result1 = parser.parse_line(line, target_codes)
         result2 = parser.parse_line(line, target_codes)
 
-        # Both results should be independent
         if result1 and result2:
             assert result1 == result2
-            assert result1 is not result2  # Different objects
+            assert result1 is not result2
 
     def test_empty_target_codes_set(self, parser):
         line = "01" + "20230615" + "02" + "PETR4       " + "010" + " " * 217
         result = parser.parse_line(line, set())
 
-        # Should filter out all quotes
         assert result is None
 
     def test_parse_quote_record_with_exception_returns_defaults(self, parser):
@@ -353,42 +339,27 @@ class TestCotahistParserIntegration:
             if result:
                 results.append(result)
 
-        # Should have parsed 2 quotes (010 and 020, not 030)
-        assert len(results) == 2 or len(results) == 0  # Depends on line completeness
+        assert len(results) == 2 or len(results) == 0
 
     def test_parser_handles_real_world_variations(self, parser):
         target_codes = {"010"}
 
-        # Test with various realistic but potentially problematic lines
         test_cases = [
-            "01" + "20230615" + "  " + "            " + "010" + " " * 217,  # Spaces
-            "01"
-            + "20230615"
-            + "99"
-            + "TEST123     "
-            + "010"
-            + " " * 217,  # Valid CODBDI
-            "01"
-            + "00000000"
-            + "02"
-            + "INVALID     "
-            + "010"
-            + " " * 217,  # Invalid date
+            "01" + "20230615" + "  " + "            " + "010" + " " * 217,
+            "01" + "20230615" + "99" + "TEST123     " + "010" + " " * 217,
+            "01" + "00000000" + "02" + "INVALID     " + "010" + " " * 217,
         ]
 
         for line in test_cases:
             result = parser.parse_line(line, target_codes)
-            # All should return None or dict, never raise exception
             assert result is None or isinstance(result, dict)
 
     def test_concurrent_parsing_safety(self, parser):
         line = "01" + "20230615" + "02" + "PETR4       " + "010" + " " * 217
         target_codes = {"010"}
 
-        # Simulate multiple calls (would be concurrent in real scenario)
         results = [parser.parse_line(line, target_codes) for _ in range(100)]
 
-        # All results should be consistent
         non_none_results = [r for r in results if r is not None]
         if non_none_results:
             first_result = non_none_results[0]

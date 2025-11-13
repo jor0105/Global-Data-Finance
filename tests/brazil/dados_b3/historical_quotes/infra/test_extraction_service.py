@@ -484,15 +484,12 @@ def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_
         processing_mode=ProcessingModeEnum.FAST,
     )
 
-    # Verify process pool was created
     assert len(process_pool_spy) == 1
     pool = process_pool_spy[0]
     assert pool.shutdown_called is False
 
-    # Trigger cleanup via __del__
     service.__del__()
 
-    # Verify shutdown was called with correct parameters
     assert pool.shutdown_called is True
 
 
@@ -534,14 +531,11 @@ def test_extraction_service_cleanup_handles_shutdown_errors(
         processing_mode=ProcessingModeEnum.FAST,
     )
 
-    # Make shutdown raise an error
-
     def shutdown_with_error(wait: bool = False, cancel_futures: bool = False):
         raise RuntimeError("Shutdown error during interpreter cleanup")
 
     process_pool_spy[0].shutdown = shutdown_with_error
 
-    # Cleanup should not raise any error even if shutdown fails
     try:
         service.__del__()
     except Exception as e:

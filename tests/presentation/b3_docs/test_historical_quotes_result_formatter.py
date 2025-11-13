@@ -1,13 +1,8 @@
-"""Tests for HistoricalQuotesResultFormatter."""
-
 from src.presentation.b3_docs.result_formatters import HistoricalQuotesResultFormatter
 
 
 class TestHistoricalQuotesResultFormatter:
-    """Test suite for HistoricalQuotesResultFormatter."""
-
     def test_generate_message_success(self):
-        """Test message generation for successful extraction."""
         result = {
             "error_count": 0,
             "total_records": 1000,
@@ -24,7 +19,6 @@ class TestHistoricalQuotesResultFormatter:
         assert "/path/to/output.parquet" in message
 
     def test_generate_message_with_errors(self):
-        """Test message generation for extraction with errors."""
         result = {
             "error_count": 2,
             "total_records": 500,
@@ -41,7 +35,6 @@ class TestHistoricalQuotesResultFormatter:
         assert "Errors: 2" in message
 
     def test_determine_success_no_errors(self):
-        """Test success determination with no errors."""
         result = {"error_count": 0}
 
         success = HistoricalQuotesResultFormatter.determine_success(result)
@@ -49,7 +42,6 @@ class TestHistoricalQuotesResultFormatter:
         assert success is True
 
     def test_determine_success_with_errors(self):
-        """Test success determination with errors."""
         result = {"error_count": 1}
 
         success = HistoricalQuotesResultFormatter.determine_success(result)
@@ -57,15 +49,13 @@ class TestHistoricalQuotesResultFormatter:
         assert success is False
 
     def test_determine_success_missing_error_count(self):
-        """Test success determination with missing error_count field."""
         result = {}
 
         success = HistoricalQuotesResultFormatter.determine_success(result)
 
-        assert success is True  # Default to success if error_count not present
+        assert success is True
 
     def test_enrich_result_success(self):
-        """Test result enrichment for successful extraction."""
         result = {
             "error_count": 0,
             "total_records": 1000,
@@ -79,10 +69,9 @@ class TestHistoricalQuotesResultFormatter:
         assert enriched["success"] is True
         assert "message" in enriched
         assert "Successfully extracted" in enriched["message"]
-        assert enriched is result  # Should modify in place
+        assert enriched is result
 
     def test_enrich_result_with_errors(self):
-        """Test result enrichment for extraction with errors."""
         result = {
             "error_count": 2,
             "total_records": 500,
@@ -98,7 +87,6 @@ class TestHistoricalQuotesResultFormatter:
         assert "completed with errors" in enriched["message"]
 
     def test_message_formatting_large_numbers(self):
-        """Test that large numbers are formatted with thousand separators."""
         result = {
             "error_count": 0,
             "total_records": 1234567,

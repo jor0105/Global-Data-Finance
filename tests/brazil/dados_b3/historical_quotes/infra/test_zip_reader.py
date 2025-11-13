@@ -144,7 +144,6 @@ class TestZipFileReader:
             lines.append(line)
 
         assert len(lines) == 3
-        # Just verify we got lines, encoding might vary
         assert len(lines[0]) > 0
         assert len(lines[1]) > 0
 
@@ -162,7 +161,6 @@ class TestZipFileReader:
         async for line in reader.read_lines_from_zip(str(zip_path)):
             lines.append(line)
 
-        # Should read the first TXT file found
         assert len(lines) >= 1
         assert "First" in lines[0] or "content" in " ".join(lines)
 
@@ -196,7 +194,6 @@ class TestZipFileReader:
         async for line in reader.read_lines_from_zip(str(zip_path)):
             lines.append(line)
 
-        # Empty lines should be filtered out by the implementation
         assert "Line 1" in lines
         assert "Line 3" in lines
         assert "Line 6" in lines
@@ -215,7 +212,6 @@ class TestZipFileReader:
         async for line in reader.read_lines_from_zip(str(zip_path)):
             lines.append(line)
 
-        # Should strip whitespace and filter empty lines
         assert len(lines) >= 2
         assert "Line 1" in lines
         assert "Line 3" in lines
@@ -314,20 +310,16 @@ class TestZipFileReaderIntegration:
     async def test_error_handling_in_stream(self, reader, tmp_path):
         import zipfile
 
-        # Create a ZIP with binary data that might cause decode issues
         zip_path = tmp_path / "binary.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("data.TXT", b"\x00\x01\x02\x03\x04")
 
-        # Should handle decode errors gracefully or raise appropriate exception
         try:
             lines = []
             async for line in reader.read_lines_from_zip(str(zip_path)):
                 lines.append(line)
-            # If it succeeds, that's okay (handled gracefully)
             assert isinstance(lines, list)
         except (UnicodeDecodeError, ExtractionError):
-            # If it raises, that's also acceptable
             pass
 
     @pytest.mark.asyncio
@@ -335,7 +327,6 @@ class TestZipFileReaderIntegration:
         import zipfile
 
         zip_path = tmp_path / "huge.zip"
-        # Create a large file (but not too large for test)
         num_lines = 50000
         txt_content = "\n".join([f"Line {i}" * 10 for i in range(num_lines)])
 
@@ -345,9 +336,7 @@ class TestZipFileReaderIntegration:
         line_count = 0
         async for line in reader.read_lines_from_zip(str(zip_path)):
             line_count += 1
-            # Just count, don't store in memory
             if line_count % 10000 == 0:
-                # Verify we're getting valid lines
                 assert "Line" in line
 
         assert line_count == num_lines
@@ -400,12 +389,10 @@ class TestZipFileReaderEdgeCases:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("data.TXT", b"Line 1\nLine 2\n")
 
-        # Read first time
         lines1 = []
         async for line in reader.read_lines_from_zip(str(zip_path)):
             lines1.append(line)
 
-        # Read second time
         lines2 = []
         async for line in reader.read_lines_from_zip(str(zip_path)):
             lines2.append(line)

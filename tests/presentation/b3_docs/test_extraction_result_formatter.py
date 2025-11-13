@@ -1,30 +1,22 @@
-"""Tests for ExtractionResultFormatter."""
-
 from src.presentation.b3_docs.extraction_result_formatter import (
     ExtractionResultFormatter,
 )
 
 
 class TestExtractionResultFormatter:
-    """Test suite for ExtractionResultFormatter class."""
-
     def test_initialization_with_colors_enabled(self):
-        """Test initialization with colors enabled."""
         formatter = ExtractionResultFormatter(use_colors=True)
         assert formatter.use_colors is True
 
     def test_initialization_with_colors_disabled(self):
-        """Test initialization with colors disabled."""
         formatter = ExtractionResultFormatter(use_colors=False)
         assert formatter.use_colors is False
 
     def test_initialization_default_colors_enabled(self):
-        """Test default initialization has colors enabled."""
         formatter = ExtractionResultFormatter()
         assert formatter.use_colors is True
 
     def test_colorize_applies_color_when_enabled(self):
-        """Test colorize applies color when enabled."""
         formatter = ExtractionResultFormatter(use_colors=True)
         result = formatter._colorize("test", formatter.GREEN)
         assert formatter.GREEN in result
@@ -32,7 +24,6 @@ class TestExtractionResultFormatter:
         assert "test" in result
 
     def test_colorize_returns_plain_text_when_disabled(self):
-        """Test colorize returns plain text when disabled."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = formatter._colorize("test", formatter.GREEN)
         assert result == "test"
@@ -40,7 +31,6 @@ class TestExtractionResultFormatter:
         assert formatter.RESET not in result
 
     def test_print_result_with_successful_extraction(self, capsys):
-        """Test print_result with successful extraction."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -58,7 +48,6 @@ class TestExtractionResultFormatter:
         assert "/path/to/output.parquet" in captured.out
 
     def test_print_result_with_errors(self, capsys):
-        """Test print_result with extraction errors."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": False,
@@ -80,7 +69,6 @@ class TestExtractionResultFormatter:
         assert "Corrupted file" in captured.out
 
     def test_print_result_displays_header(self, capsys):
-        """Test that print_result displays proper header."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -97,7 +85,6 @@ class TestExtractionResultFormatter:
         assert "=" * 70 in captured.out
 
     def test_print_result_displays_statistics_section(self, capsys):
-        """Test that print_result displays statistics section."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -114,7 +101,6 @@ class TestExtractionResultFormatter:
         assert "8" in captured.out
 
     def test_print_result_shows_error_details_for_dict_errors(self, capsys):
-        """Test error details display for dictionary errors."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": False,
@@ -134,7 +120,6 @@ class TestExtractionResultFormatter:
         assert "/path/to/file1.zip" in captured.out or "file1.zip" in captured.out
 
     def test_print_result_shows_error_details_for_list_errors(self, capsys):
-        """Test error details display for list errors."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": False,
@@ -151,7 +136,6 @@ class TestExtractionResultFormatter:
         assert "Error 1" in captured.out or "Error 2" in captured.out
 
     def test_print_result_formats_large_record_count(self, capsys):
-        """Test that large record counts are formatted with commas."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -167,7 +151,6 @@ class TestExtractionResultFormatter:
         assert "1,500,000" in captured.out or "1500000" in captured.out
 
     def test_print_result_handles_missing_message(self, capsys):
-        """Test print_result handles missing message gracefully."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -182,7 +165,6 @@ class TestExtractionResultFormatter:
         assert "SUCCESS" in captured.out
 
     def test_print_result_handles_zero_records(self, capsys):
-        """Test print_result handles zero records."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -198,7 +180,6 @@ class TestExtractionResultFormatter:
         assert "0" in captured.out
 
     def test_print_result_with_colors_contains_ansi_codes(self, capsys):
-        """Test print_result with colors contains ANSI codes."""
         formatter = ExtractionResultFormatter(use_colors=True)
         result = {
             "success": True,
@@ -214,7 +195,6 @@ class TestExtractionResultFormatter:
         assert "\033[" in captured.out
 
     def test_print_result_without_colors_no_ansi_codes(self, capsys):
-        """Test print_result without colors has no ANSI codes."""
         formatter = ExtractionResultFormatter(use_colors=False)
         result = {
             "success": True,
@@ -230,7 +210,6 @@ class TestExtractionResultFormatter:
         assert "\033[" not in captured.out
 
     def test_color_constants_are_defined(self):
-        """Test that color constants are properly defined."""
         formatter = ExtractionResultFormatter()
         assert hasattr(formatter, "GREEN")
         assert hasattr(formatter, "RED")
