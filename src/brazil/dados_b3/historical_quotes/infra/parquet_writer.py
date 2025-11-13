@@ -35,12 +35,8 @@ class ParquetWriter:
         ImportError: If polars is not installed
     """
 
-    # Minimum free space required (in bytes) - 100MB
+    # Minimum free space required (in MB)
     MIN_FREE_SPACE_MB = 100
-    MIN_FREE_SPACE_BYTES = MIN_FREE_SPACE_MB * 1024 * 1024
-
-    # Maximum rows to hold in memory before forcing streaming write
-    MAX_ROWS_IN_MEMORY = 500_000
 
     def __init__(self, resource_monitor: Optional[ResourceMonitor] = None):
         if pl is None:
@@ -51,6 +47,30 @@ class ParquetWriter:
 
         self.resource_monitor = resource_monitor or ResourceMonitor()
         logger.debug("ParquetWriter initialized with memory-safe optimizations")
+
+    @staticmethod
+    def _get_schema_overrides() -> Dict[str, Any]:
+        """Get explicit schema overrides to ensure consistency.
+
+        This prevents Polars from inferring different decimal precisions
+        between different batches of data.
+
+        Returns:
+            Dictionary with column name -> type mappings
+        """
+        return {
+            # Decimal fields - explicitly set to 2 decimal places
+            "preco_abertura": pl.Decimal(precision=38, scale=2),
+            "preco_maximo": pl.Decimal(precision=38, scale=2),
+            "preco_minimo": pl.Decimal(precision=38, scale=2),
+            "preco_medio": pl.Decimal(precision=38, scale=2),
+            "preco_fechamento": pl.Decimal(precision=38, scale=2),
+            "melhor_oferta_compra": pl.Decimal(precision=38, scale=2),
+            "melhor_oferta_venda": pl.Decimal(precision=38, scale=2),
+            "volume_total": pl.Decimal(
+                precision=38, scale=2
+            ),  # ✅ Force 2 decimal places
+        }
 
     @staticmethod
     def _check_disk_space(path: Path, estimated_size_mb: float = 0) -> None:
@@ -93,7 +113,6 @@ class ParquetWriter:
         self,
         data: List[Dict[str, Any]],
         output_path: Path,
-        partition_cols: Optional[List[str]] = None,
         mode: str = "overwrite",
     ) -> None:
         """Write data to Parquet format with memory safety.
@@ -101,7 +120,6 @@ class ParquetWriter:
         Args:
             data: List of dictionaries containing parsed quote data
             output_path: Path where to save the Parquet file(s)
-            partition_cols: Optional list of columns to partition by
             mode: Write mode - 'overwrite' or 'append'. Default is 'overwrite'
 
         Raises:
@@ -118,18 +136,56 @@ class ParquetWriter:
             extra={
                 "record_count": len(data),
                 "output_path": str(output_path),
-                "partition_cols": partition_cols,
                 "mode": mode,
             },
         )
+
+        # If data is very large and memory is tight, split into smaller chunks
+        memory_state = self.resource_monitor.check_resources()
+        if (
+            memory_state in (ResourceState.CRITICAL, ResourceState.EXHAUSTED)
+            and len(data) > 10000
+        ):
+            logger.warning(
+                f"Memory {memory_state.value} with {len(data)} records - splitting write"
+            )
+            await self._write_in_chunks(data, output_path, mode)
+            return
 
         try:
             # Check memory state before creating DataFrame
             memory_state = self.resource_monitor.check_resources()
             if memory_state == ResourceState.EXHAUSTED:
-                raise MemoryError("Insufficient memory to create DataFrame")
+                logger.warning(
+                    "Memory exhausted before DataFrame creation - attempting recovery"
+                )
+                # Try aggressive cleanup
+                import gc
 
-            df = pl.DataFrame(data)
+                gc.collect()
+
+                # Re-check after cleanup
+                memory_state = self.resource_monitor.check_resources()
+                if memory_state == ResourceState.EXHAUSTED:
+                    # Before raising, try to estimate how much memory we need
+                    estimated_memory_needed_mb = (
+                        len(data) * 0.001
+                    )  # Very rough estimate: 1KB per record
+                    logger.error(
+                        "Insufficient memory after cleanup attempt",
+                        extra={
+                            "records": len(data),
+                            "estimated_memory_mb": f"{estimated_memory_needed_mb:.2f}",
+                            "memory_state": memory_state.value,
+                        },
+                    )
+                    raise MemoryError(
+                        f"Insufficient memory to create DataFrame with {len(data)} records. "
+                        f"Estimated memory needed: {estimated_memory_needed_mb:.2f}MB"
+                    )
+
+            # Create DataFrame with explicit schema to ensure consistency
+            df = pl.DataFrame(data, schema_overrides=self._get_schema_overrides())
 
             estimated_size_mb = df.estimated_size() / 1024 / 1024
 
@@ -147,18 +203,11 @@ class ParquetWriter:
             # Ensure output directory exists
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Handle append mode with memory-safe concatenation
+            # Handle append mode with ALWAYS streaming (never load full parquet in RAM)
             if mode == "append" and output_path.exists():
                 logger.debug(f"Appending to existing Parquet file: {output_path}")
-
-                # Check memory before reading existing file
-                memory_state = self.resource_monitor.check_resources()
-                if memory_state in (ResourceState.CRITICAL, ResourceState.EXHAUSTED):
-                    # Use streaming approach for low memory
-                    await self._append_with_streaming(df, output_path)
-                else:
-                    # Standard concatenation for adequate memory
-                    await self._append_with_concat(df, output_path)
+                # ALWAYS use streaming to avoid loading entire parquet in memory
+                await self._append_with_streaming(df, output_path)
             else:
                 # Direct write for overwrite mode
                 await self._write_dataframe(df, output_path)
@@ -222,43 +271,67 @@ class ParquetWriter:
             use_pyarrow=False,
         )
 
-    async def _append_with_concat(
-        self, new_df: "pl.DataFrame", output_path: Path
+    async def _write_in_chunks(
+        self, data: List[Dict[str, Any]], output_path: Path, mode: str = "overwrite"
     ) -> None:
-        """Append data using concatenation (for adequate memory).
+        """Write data in smaller chunks to avoid memory issues.
 
         Args:
-            new_df: New DataFrame to append
-            output_path: Path to existing Parquet file
+            data: List of records to write
+            output_path: Output file path
+            mode: Write mode ('overwrite' or 'append')
         """
-        try:
-            existing_df = pl.read_parquet(str(output_path))
+        import gc
 
-            logger.debug(
-                "Concatenating with existing data",
-                extra={
-                    "previous_rows": existing_df.height,
-                    "new_rows": new_df.height,
-                },
-            )
+        chunk_size = 25000  # Write 25000 records at a time (optimized for performance)
+        total_chunks = (len(data) + chunk_size - 1) // chunk_size
 
-            combined_df = pl.concat([existing_df, new_df], how="vertical")
+        logger.info(
+            f"Writing {len(data)} records in {total_chunks} chunks of {chunk_size}"
+        )
 
-            logger.debug(f"Combined DataFrame has {combined_df.height} rows")
+        current_mode = mode
+        for i in range(0, len(data), chunk_size):
+            chunk = data[i : i + chunk_size]
+            chunk_num = (i // chunk_size) + 1
 
-            await self._write_dataframe(combined_df, output_path)
+            logger.debug(f"Writing chunk {chunk_num}/{total_chunks}")
 
-        except Exception as e:
-            logger.error(f"Error in concat-based append: {e}")
-            logger.info("Falling back to streaming append")
-            await self._append_with_streaming(new_df, output_path)
+            try:
+                df = pl.DataFrame(chunk, schema_overrides=self._get_schema_overrides())
+
+                self._check_disk_space(output_path, df.estimated_size() / 1024 / 1024)
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+
+                if current_mode == "append" and output_path.exists():
+                    await self._append_with_streaming(df, output_path)
+                else:
+                    await self._write_dataframe(df, output_path)
+
+                # After first chunk is written, switch to append mode
+                current_mode = "append"
+
+                # Clean up
+                del df
+                del chunk
+                gc.collect()
+
+            except Exception as e:
+                logger.error(
+                    f"Failed to write chunk {chunk_num}/{total_chunks}: {e}",
+                    exc_info=True,
+                )
+                raise
+
+        logger.info(f"Successfully wrote all {total_chunks} chunks")
 
     async def _append_with_streaming(
         self, new_df: "pl.DataFrame", output_path: Path
     ) -> None:
-        """Append data using PyArrow streaming (for low memory).
+        """Append data using PyArrow streaming (NEVER loads full parquet in RAM).
 
-        This approach reads existing file in batches and writes incrementally.
+        This approach reads existing file in batches and writes incrementally,
+        ensuring constant memory usage regardless of file size.
 
         Args:
             new_df: New DataFrame to append
@@ -270,57 +343,103 @@ class ParquetWriter:
                 "Install it with: pip install pyarrow"
             )
 
-        logger.debug("Using streaming append for memory efficiency")
+        logger.debug(
+            "Using streaming append for memory efficiency",
+            extra={
+                "new_rows": new_df.height,
+                "existing_file": str(output_path),
+            },
+        )
 
         # Create temporary file for atomic write
         temp_path = output_path.with_suffix(".parquet.tmp")
 
         try:
-            # Convert new DataFrame to Arrow table
-            new_table = new_df.to_arrow()
-
-            # Open existing file
+            # Open existing file for streaming read
             existing_parquet = pq.ParquetFile(str(output_path))
 
-            # Create writer for temp file
-            writer = None
+            # Get schema from existing file
+            schema = existing_parquet.schema_arrow
 
-            # Stream existing data in batches
-            for batch in existing_parquet.iter_batches(batch_size=50_000):
-                if writer is None:
-                    # Initialize writer with schema from first batch
-                    writer = pq.ParquetWriter(
-                        str(temp_path),
-                        batch.schema,
-                        compression="zstd",
-                        compression_level=3,
-                    )
-                writer.write_batch(batch)
+            # Convert new DataFrame to Arrow table and CAST to existing schema
+            new_table = new_df.to_arrow()
 
-            # Write new data
-            if writer is not None:
-                for batch in new_table.to_batches(max_chunksize=50_000):
-                    writer.write_batch(batch)
-                writer.close()
-            else:
-                # No existing data, just write new data
-                pq.write_table(
-                    new_table,
-                    str(temp_path),
-                    compression="zstd",
-                    compression_level=3,
+            # Cast new table to match existing schema (handles decimal precision differences)
+            try:
+                new_table = new_table.cast(schema)
+            except Exception as cast_error:
+                logger.warning(
+                    f"Schema cast failed, attempting column-by-column cast: {cast_error}"
                 )
+                # Fallback: cast each column individually
+                arrays = []
+                for i, field in enumerate(schema):
+                    try:
+                        arrays.append(new_table.column(i).cast(field.type))
+                    except Exception:
+                        # If cast fails, keep original column
+                        logger.warning(
+                            f"Could not cast column {field.name}, keeping original"
+                        )
+                        arrays.append(new_table.column(i))
+                new_table = pa.table(arrays, schema=schema)
 
+            # Create writer for temp file with existing schema
+            writer = pq.ParquetWriter(
+                str(temp_path),
+                schema,
+                compression="zstd",
+                compression_level=3,
+            )
+
+            # Stream existing data in larger batches (200k rows at a time for performance)
+            total_rows_copied = 0
+            for batch in existing_parquet.iter_batches(batch_size=200_000):
+                writer.write_batch(batch)
+                total_rows_copied += batch.num_rows
+
+            logger.debug(f"Copied {total_rows_copied} existing rows")
+
+            # Write new data in larger batches
+            new_rows_written = 0
+            for batch in new_table.to_batches(max_chunksize=200_000):
+                writer.write_batch(batch)
+                new_rows_written += batch.num_rows
+
+            logger.debug(f"Appended {new_rows_written} new rows")
+
+            # Close writer
+            writer.close()
+
+            # Replace original file atomically
             temp_path.replace(output_path)
 
-            logger.debug("Streaming append completed successfully")
+            logger.debug(
+                "Streaming append completed successfully",
+                extra={
+                    "total_rows": total_rows_copied + new_rows_written,
+                    "output_file": str(output_path),
+                },
+            )
 
         except Exception as e:
             # Clean up temp file on error
             if temp_path.exists():
-                temp_path.unlink()
+                try:
+                    temp_path.unlink()
+                except Exception:
+                    pass
+
+            logger.error(
+                f"Streaming append failed: {e}",
+                extra={"output_path": str(output_path)},
+                exc_info=True,
+            )
             raise IOError(f"Streaming append failed: {e}")
         finally:
             # Ensure temp file is cleaned up
             if temp_path.exists():
-                temp_path.unlink()
+                try:
+                    temp_path.unlink()
+                except Exception:
+                    pass

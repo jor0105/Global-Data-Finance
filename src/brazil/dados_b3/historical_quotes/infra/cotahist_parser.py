@@ -20,9 +20,11 @@ class CotahistParser:
     # Maximum allowed line length (safety limit)
     MAX_LINE_LENGTH = 1000
 
-    # Counter for tracking parse errors
+    # Counter for tracking parse errors and filtering
     _error_count = 0
     _max_errors_to_log = 10  # Only log first 10 errors to avoid spam
+    _filtered_count = 0  # Track lines filtered out by TPMERC
+    _log_filtering_interval = 100_000  # Log filtering stats every 100k lines
 
     def parse_line(
         self, line: str, target_tpmerc_codes: Set[str]
@@ -72,6 +74,15 @@ class CotahistParser:
 
             # Filter by target market types
             if tpmerc not in target_tpmerc_codes:
+                self._filtered_count += 1
+
+                # Log filtering statistics periodically
+                if self._filtered_count % self._log_filtering_interval == 0:
+                    logger.debug(
+                        f"Filtered {self._filtered_count:,} lines by TPMERC code",
+                        extra={"target_codes": sorted(target_tpmerc_codes)},
+                    )
+
                 return None
 
             # Parse all fields for matching records

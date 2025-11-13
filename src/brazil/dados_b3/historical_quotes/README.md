@@ -37,7 +37,7 @@ Sistema robusto e escalável para extração de dados históricos de cotações 
 
 ### Pré-requisitos
 
-- Python 3.10+
+- Python 3.12+
 - pip ou poetry
 
 ### Passos
@@ -75,7 +75,7 @@ seu_projeto/
 A forma mais simples é usar a interface de alto nível em `presentation/b3_docs`:
 
 ```python
-from src.presentation.b3_docs import HistoricalQuotes
+from src.presentation import HistoricalQuotes
 
 # 1) Criar cliente
 b3 = HistoricalQuotes()
@@ -83,10 +83,10 @@ b3 = HistoricalQuotes()
 # 2) Extrair
 result = b3.extract(
     path_of_docs='/data/zips',           # Onde estão os .zip do COTAHIST
-    destination_path='/data/output',     # Onde salvar o .parquet (opcional)
-    assets_list=['ações'],               # Quais classes de ativos
+    assets_list=['ações'],               # Quais classes de ativos juntar no documento
     initial_year=2023,                   # Ano inicial (inclusive)
     last_year=2023,                      # Ano final (inclusive)
+    destination_path='/data/output',     # Onde salvar o .parquet (opcional)
     output_filename='cotahist',          # Sem extensão; .parquet é adicionado
     processing_mode='fast'               # 'fast' (padrão) ou 'slow'
 )
@@ -96,91 +96,6 @@ print('Arquivo:', result['output_file'])
 ```
 
 Também é possível usar os casos de uso diretamente (baixo nível):
-
-### Uso Básico (baixo nível)
-
-```python
-from src.brazil.dados_b3.historical_quotes.application import (
-    CreateDocsToExtractUseCase,
-    ExtractHistoricalQuotesUseCase,
-)
-
-# 1. Criar configuração validada
-docs = CreateDocsToExtractUseCase(
-    path_of_docs='/data/zips',          # Onde estão os ZIPs
-    assets_list=['ações'],               # Quais ativos
-    initial_year=2023,                   # De que ano
-    last_year=2023                       # Até que ano
-).execute()
-
-# 2. Executar extração (síncrono)
-result = ExtractHistoricalQuotesUseCase().execute_sync(
-    docs_to_extract=docs,
-    processing_mode='fast',              # 'fast' ou 'slow'
-    output_filename='cotahist.parquet'   # Nome do arquivo de saída
-)
-
-# 3. Usar resultado
-print(f"✅ Extraídos {result['total_records']} registros")
-print(f"📁 Salvo em: {result['output_file']}")
-```
-
-**Saída esperada:**
-
-```
-✅ Extraídos 1250 registros
-📁 Salvo em: /data/zips/cotahist.parquet
-```
-
----
-
-### Uso com Múltiplos Ativos (baixo nível)
-
-```python
-docs = CreateDocsToExtractUseCase(
-    path_of_docs='/data/b3_zips',
-    assets_list=['ações', 'etf', 'opções'],  # ← Múltiplos ativos
-    initial_year=2020,
-    last_year=2024,
-    destination_path='/output'               # ← Saída em outro local
-).execute()
-
-result = ExtractHistoricalQuotesUseCase().execute_sync(
-    docs_to_extract=docs,
-    processing_mode='slow',
-    output_filename='cotahist_full.parquet'
-)
-```
-
----
-
-### Uso Assíncrono Avançado (baixo nível)
-
-```python
-import asyncio
-
-async def main():
-    docs = CreateDocsToExtractUseCase(
-        path_of_docs='/data/zips',
-        assets_list=['ações'],
-        initial_year=2023,
-        last_year=2023
-    ).execute()
-
-    # Usar versão assíncrona (melhor performance)
-    result = await ExtractHistoricalQuotesUseCase().execute(
-        docs_to_extract=docs,
-        processing_mode='fast',
-        output_filename='cotahist.parquet'
-    )
-
-    return result
-
-# Executar
-result = asyncio.run(main())
-```
-
----
 
 ### Usar com Teus Dados (Exemplo Real)
 
@@ -197,12 +112,12 @@ output_path = Path.home() / "Programação/DataFinance/output"
 # Extrair (alto nível)
 result = HistoricalQuotes().extract(
     path_of_docs=str(data_path),
-    destination_path=str(output_path),
     assets_list=['ações'],
     initial_year=2023,
     last_year=2024,
-    processing_mode='fast',
+    destination_path=str(output_path),
     output_filename='cotahist'
+    processing_mode='fast',
 )
 
 # Validar
@@ -272,7 +187,7 @@ Presentation → Application → Domain
 | ------------------ | -------- | ----------------------------------------- | -------------- |
 | `ações`            | 010, 020 | Ações (lote padrão + fracionário)         | PETR4, VALE3   |
 | `etf`              | 010, 020 | Fundos de Índice                          | IVVB11, EGIE11 |
-| `opções`           | 070, 080 | Opções de compra (070) e venda (080)      | PETRM21C26     |
+| `opções`           | 070, 080 | Opções de compra (070) e venda (080)      | PETRM21        |
 | `termo`            | 030      | Mercado a Termo                           | PETR4 (termo)  |
 | `exercicio_opcoes` | 012, 013 | Exercício de opções (call 012, put 013)   | (interno)      |
 | `forward`          | 050, 060 | Forward com ganho (050) e movimento (060) | (derivativo)   |
