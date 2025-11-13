@@ -1,6 +1,11 @@
 from typing import Optional
 
 
+class EmptyDirectoryError(Exception):
+    def __init__(self, path):
+        super().__init__(f"Directory is empty: {path!r}")
+
+
 class InvalidDestinationPathError(ValueError):
     def __init__(self, reason: str):
         super().__init__(f"Invalid destination path: {reason}")
@@ -9,27 +14,27 @@ class InvalidDestinationPathError(ValueError):
 class PathIsNotDirectoryError(ValueError):
     def __init__(self, path: str):
         super().__init__(
-            f"The destination path must be a directory, but '{path}' is a file."
+            f"Destination path must be a directory, but '{path}' is a file."
         )
 
 
 class PathPermissionError(OSError):
     def __init__(self, path: str):
         super().__init__(
-            f"Permission denied: No write permission for the destination path '{path}'"
+            f"Permission denied: No write permission for destination path '{path}'"
         )
 
 
 class NetworkError(Exception):
     def __init__(self, doc_name: str, message: Optional[str] = None):
         super().__init__(
-            f"A network error occurred while downloading '{doc_name}'. {message or ''}"
+            f"Network error while downloading '{doc_name}'. {message or ''}"
         )
 
 
 class TimeoutError(Exception):
     def __init__(self, doc_name: str, timeout: Optional[float] = None):
-        msg = f"A timeout occurred while downloading '{doc_name}'."
+        msg = f"Timeout while downloading '{doc_name}'."
         if timeout:
             msg += f" Timeout: {timeout}s."
         super().__init__(msg)
@@ -37,7 +42,7 @@ class TimeoutError(Exception):
 
 class ExtractionError(Exception):
     def __init__(self, path: str, message: str):
-        super().__init__(f"An extraction error occurred for '{path}': {message}")
+        super().__init__(f"Extraction error for '{path}': {message}")
 
 
 class CorruptedZipError(ExtractionError):
@@ -45,17 +50,14 @@ class CorruptedZipError(ExtractionError):
         super().__init__(zip_path, f"Corrupted ZIP: {message}")
 
 
-class DownloadExtractionError(Exception):
-    def __init__(self, doc_name: str, year: str, zip_path: str, message: str):
-        self.doc_name = doc_name
-        self.year = year
-        self.zip_path = zip_path
-        self.message = message
-        super().__init__(
-            f"A download/extraction failed for '{doc_name}_{year}' ({zip_path}): {message}"
-        )
-
-
 class DiskFullError(OSError):
     def __init__(self, path: str):
-        super().__init__(f"There is not enough disk space to save '{path}'.")
+        super().__init__(f"Insufficient disk space for saving '{path}'.")
+
+
+class SecurityError(Exception):
+    def __init__(self, message: str, path: Optional[str] = None):
+        if path:
+            super().__init__(f"Security violation: {message} (path: '{path}')")
+        else:
+            super().__init__(f"Security violation: {message}")

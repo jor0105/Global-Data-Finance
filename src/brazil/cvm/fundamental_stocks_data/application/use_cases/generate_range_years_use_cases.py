@@ -1,9 +1,9 @@
-import logging
 from typing import Optional
 
 from src.brazil.cvm.fundamental_stocks_data.domain import AvailableYears
+from src.core import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GenerateRangeYearsUseCases:

@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, List, Optional, Tuple
 
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
@@ -6,13 +5,14 @@ from src.brazil.cvm.fundamental_stocks_data.exceptions import (
     InvalidRepositoryTypeError,
     MissingDownloadUrlError,
 )
+from src.core import get_logger
 
 from ..interfaces import DownloadDocsCVMRepository
 from .generate_range_years_use_cases import GenerateRangeYearsUseCases
 from .generate_urls_use_case import GenerateUrlsUseCase
 from .verify_paths_use_cases import VerifyPathsUseCases
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DownloadDocumentsUseCase:

@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-import pandas as pd
 
 from ..common.io_utils import write_parquet
 from ..Dados_B3_Acoes.Vol_Ativos.funcao_vol import dados_vol_acoes_b3
@@ -60,7 +59,7 @@ def dados_opcoes_b3(taxa_selic_atual):
             caminho = os.path.join(cotacoes_doc_conc, nome_arquivo)
             tabela = pd.read_parquet(caminho)
             return tabela["Fechamento"].iat[-1]
-        except:
+        except Exception:
             print(f"Ativo {codigo} não encontrado.")
 
     df_dados_vol_acoes_b3["Preço Ação"] = [

@@ -27,7 +27,6 @@ Example:
     >>> print(f"Downloaded {result.success_count_downloads} files successfully")
 """
 
-import logging
 from typing import Dict, List, Optional
 
 from src.brazil.cvm.fundamental_stocks_data import (
@@ -37,10 +36,11 @@ from src.brazil.cvm.fundamental_stocks_data import (
     HttpxAsyncDownloadAdapter,
     ParquetExtractor,
 )
+from src.core import get_logger
 
 from .download_result_formatter import DownloadResultFormatter
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FundamentalStocksData:
@@ -48,102 +48,58 @@ class FundamentalStocksData:
 
     This class provides a simple API for downloading CVM financial documents
     and discovering available data. It uses the HttpxAsyncDownloadAdapter by default
+    for 3-5x faster downloads compared to wget, with automatic retry logic.
+
+    You can also customize the adapter:
+    - HttpxAsyncDownloadAdapter (default): Fast, no external dependencies
+    - Aria2cAdapter: Maximum speed (5-10x faster), requires aria2 installation
+    - WgetDownloadAdapter: Original single-threaded, for compatibility
+
+    Attributes:
+        None - all dependencies are managed internally
 
     Example:
+        >>> # Basic usage (uses ThreadPool by default)
         >>> cvm = FundamentalStocksData()
-        >>> docs = cvm.get_available_docs()
         >>>
-        >>> # Lists all available document types
-        >>> for code, description in docs.items():
-        ...     print(f"{code}: {description}")
+        >>> # Download all document types for recent years
+        >>> result = cvm.download(
+        ...     destination_path="/home/user/cvm_data",
+        ...     initial_year=2022
+        ... )
         >>>
-        >>> # Checks if a specific document type exists
-        >>> if "DFP" in docs:
-        ...     print(f"DFP available: {docs['DFP']}")
+        >>> # Download specific documents
+        >>> result = cvm.download(
+        ...     destination_path="/home/user/cvm_data",
+        ...     list_docs=["DFP"],
+        ...     initial_year=2020,
+        ...     last_year=2023
+        ... )
+        >>>
+        >>> if result.has_errors():
+        ...     print(f"Some downloads failed: {result.errors}")
     """
 
     def __init__(self):
-        """Initialize the FundamentalStocksData client."""
+        """Initialize the FundamentalStocksData client.
+
+        The automatic_extractor option can be passed per download call.
+        See download() method for details.
+        """
+        # Initialize with ParquetExtractor and automatic_extractor=False by default
+        # automatic_extractor can be overridden per download call
+        self.download_adapter = HttpxAsyncDownloadAdapter(
+            file_extractor_repository=ParquetExtractor()
+        )
+        self.__download_use_case = DownloadDocumentsUseCase(self.download_adapter)
         self.__available_docs_use_case = GetAvailableDocsUseCase()
         self.__available_years_use_case = GetAvailableYearsUseCase()
-        self.__parquet_extractor = ParquetExtractor()
-        self.download_adapter = HttpxAsyncDownloadAdapter(
-            file_extractor_repository=self.__parquet_extractor
+        self.__result_formatter = DownloadResultFormatter(use_colors=True)
+
+        logger.info(
+            "FundamentalStocksData client initialized with HttpxAsyncDownloadAdapter "
+            "(automatic_extractor can be set per download call)"
         )
-        self.__download_use_case = DownloadDocumentsUseCase(
-            repository=self.download_adapter
-        )
-        self.__result_formatter = DownloadResultFormatter()
-
-    def get_available_docs(self) -> Dict[str, str]:
-        """Get all available CVM document types with descriptions.
-
-        This method retrieves a mapping of document type codes to their
-        full descriptions, helping you understand what data is available.
-
-        Returns:
-            Dictionary mapping document codes to descriptions.
-            Example: {
-                'DFP': 'Standardized Financial Statement',
-                'ITR': 'Quarterly Information',
-                'FCA': 'Registration Form',
-                ...
-            }
-
-        Example:
-            >>> cvm = FundamentalStocksData()
-            >>> docs = cvm.get_available_docs()
-            >>>
-            >>> # List all available document types
-            >>> for code, description in docs.items():
-            ...     print(f"{code}: {description}")
-            >>>
-            >>> # Check if a specific document type exists
-            >>> if "DFP" in docs:
-            ...     print(f"DFP available: {docs['DFP']}")
-        """
-        logger.debug("Retrieving available document types")
-        return self.__available_docs_use_case.execute()
-
-    def get_available_years(self) -> Dict[str, int]:
-        """
-        Gets information about the available years for CVM documents.
-
-        This method returns the year ranges for which documents are available,
-        including the minimum years for different document types and the current year.
-
-        Returns:
-            A dictionary with year information:
-            - 'General Docs': The minimum year for general documents (e.g., 1998).
-            - 'ITR Documents': The minimum year for ITR documents (e.g., 2011).
-            - 'CGVN and VLMO Documents': The minimum year for CGVN/VLMO (e.g., 2017).
-            - 'Current Year': The current year (e.g., 2025).
-
-        Example:
-            >>> cvm = FundamentalStocksData()
-            >>> years = cvm.get_available_years()
-            >>>
-            >>> # Displays available year ranges
-            >>> print(f"General documents available from: {years['General Docs']}")
-            >>> print(f"ITR documents available from: {years['ITR Documents']}")
-            >>> print(f"Current year: {years['Current Year']}")
-            >>>
-            >>> # Uses this info to make informed download requests
-            >>> min_year = years['General Docs']
-            >>> max_year = years['Current Year']
-            >>> result = cvm.download(
-            ...     destination_path="/data",
-            ...     list_docs=["DFP"],
-            ...     initial_year=min_year,
-            ...     last_year=max_year
-            ... )
-        """
-        logger.debug("Retrieving available years information")
-        return self.__available_years_use_case.execute()
-
-    def __repr__(self) -> str:
-        """Returns a string representation of the client."""
-        return "FundamentalStocksData()"
 
     def download(
         self,
@@ -199,7 +155,7 @@ class FundamentalStocksData:
         Example:
             >>> cvm = FundamentalStocksData()
             >>>
-            >>> # Download documents without extraction (default)
+            >>> # Download documents without extraction (padrão)
             >>> result = cvm.download(
             ...     destination_path="/home/user/cvm_data",
             ...     initial_year=2022
@@ -245,3 +201,72 @@ class FundamentalStocksData:
 
         # Display formatted output
         self.__result_formatter.print_result(result)
+
+    def get_available_docs(self) -> Dict[str, str]:
+        """Get all available CVM document types with descriptions.
+
+        This method retrieves a mapping of document type codes to their
+        full descriptions, helping you understand what data is available.
+
+        Returns:
+            Dictionary mapping document codes to descriptions.
+            Example: {
+                'DFP': 'Demonstração Financeira Padronizada',
+                'ITR': 'Informação Trimestral',
+                'FCA': 'Formulário Cadastral',
+                ...
+            }
+
+        Example:
+            >>> cvm = FundamentalStocksData()
+            >>> docs = cvm.get_available_docs()
+            >>>
+            >>> # List all available document types
+            >>> for code, description in docs.items():
+            ...     print(f"{code}: {description}")
+            >>>
+            >>> # Check if a specific document type exists
+            >>> if "DFP" in docs:
+            ...     print(f"DFP available: {docs['DFP']}")
+        """
+        logger.debug("Retrieving available document types")
+        return self.__available_docs_use_case.execute()
+
+    def get_available_years(self) -> Dict[str, int]:
+        """Get information about available years for CVM documents.
+
+        This method returns the year ranges for which documents are available,
+        including minimum years for different document types and the current year.
+
+        Returns:
+            Dictionary with year information:
+            - 'Geral Docs': Minimum year for general documents (e.g., 1998)
+            - 'ITR Documents': Minimum year for ITR documents (e.g., 2011)
+            - 'CGVN and VLMO Documents': Minimum year for CGVN/VLMO (e.g., 2017)
+            - 'Current Year': Current year (e.g., 2025)
+
+        Example:
+            >>> cvm = FundamentalStocksData()
+            >>> years = cvm.get_available_years()
+            >>>
+            >>> # Display available year ranges
+            >>> print(f"General documents available from: {years['Geral Docs']}")
+            >>> print(f"ITR documents available from: {years['ITR Documents']}")
+            >>> print(f"Current year: {years['Current Year']}")
+            >>>
+            >>> # Use this info to make informed download requests
+            >>> minimal_year = years['Geral Docs']
+            >>> max_year = years['Current Year']
+            >>> result = cvm.download(
+            ...     destination_path="/data",
+            ...     list_docs=["DFP"],
+            ...     initial_year=minimal_year,
+            ...     last_year=max_year
+            ... )
+        """
+        logger.debug("Retrieving available years information")
+        return self.__available_years_use_case.execute()
+
+    def __repr__(self) -> str:
+        """Return a string representation of the client."""
+        return "FundamentalStocksData()"

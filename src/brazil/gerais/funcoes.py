@@ -2,7 +2,6 @@ import locale
 import time
 
 import numpy as np
-import pandas as pd
 
 locale.setlocale(locale.LC_ALL, "pt_BR.UTF-8")
 
@@ -73,11 +72,11 @@ def organizar_geral3(df, reverter=False):
         try:
             try:
                 df.drop(["Versao", "ID_Documento"], axis=1, inplace=True)
-            except:
+            except KeyError:
                 pass
             if "Data_Referencia" in df.columns:
                 df.sort_values(by="Data_Referencia", inplace=True)
-        except:
+        except Exception:
             pass
     return df
 
@@ -132,6 +131,6 @@ def arrumar_valor_numerico(df):
                 df[coluna] = df[coluna].apply(
                     lambda x: f"{int(x):,}".replace(",", ".") if pd.notnull(x) else ""
                 )
-            except:
+            except (ValueError, TypeError):
                 pass
     return df

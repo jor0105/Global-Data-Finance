@@ -1,4 +1,6 @@
-from docs.imports import *
+import math
+
+import numpy as np
 
 
 def opcoes_calculo(
@@ -34,7 +36,7 @@ def opcoes_calculo(
         # Cálculo do preço da opção
         preco_opcao = calcular_preco_opcao(S, K, T, r, sigma, option=option)
         preco_opcao = round(preco_opcao, 2)
-    except:
+    except Exception:
         preco_opcao = np.nan
 
     return preco_opcao
