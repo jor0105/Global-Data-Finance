@@ -9,10 +9,11 @@ from src.macro_exceptions import DiskFullError
 
 
 class FakeDataFrame:
-    def __init__(self, rows: list[dict]):
+    def __init__(self, rows: list[dict], schema_overrides=None):
         self.data = [dict(row) for row in rows]
         self.height = len(self.data)
         self.width = len(self.data[0]) if self.data else 0
+        self.schema_overrides = schema_overrides
 
     def estimated_size(self) -> int:
         return max(1, self.height) * 64
@@ -20,12 +21,16 @@ class FakeDataFrame:
     def write_parquet(self, path: str, **_kwargs) -> None:
         Path(path).write_text("parquet")
 
-    def to_arrow(self):  # pragma: no cover - only needed for streaming path
+    def to_arrow(self):
         raise NotImplementedError
 
 
 class FakePolarsModule:
     DataFrame = FakeDataFrame
+
+    @staticmethod
+    def Decimal(precision: int, scale: int):
+        return f"Decimal({precision}, {scale})"
 
     @staticmethod
     def read_parquet(_path: str) -> FakeDataFrame:
@@ -116,21 +121,15 @@ async def test_parquet_writer_overwrite_mode(monkeypatch, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_parquet_writer_append_uses_concat(monkeypatch, tmp_path):
+async def test_parquet_writer_append_uses_streaming(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY, ResourceState.HEALTHY])
     writer = ParquetWriter(resource_monitor=monitor)
 
-    append_calls: list[int] = []
     streaming_calls: list[int] = []
-
-    async def fake_concat(df: FakeDataFrame, output_path: Path) -> None:
-        append_calls.append(df.height)
-        output_path.write_text("appended")
 
     async def fake_stream(df: FakeDataFrame, output_path: Path) -> None:
         streaming_calls.append(df.height)
 
-    monkeypatch.setattr(writer, "_append_with_concat", fake_concat)
     monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
@@ -142,8 +141,7 @@ async def test_parquet_writer_append_uses_concat(monkeypatch, tmp_path):
 
     await writer.write_to_parquet([{"a": 1}], output_path, mode="append")
 
-    assert append_calls == [1]
-    assert streaming_calls == []
+    assert streaming_calls == [1]
 
 
 @pytest.mark.asyncio
@@ -238,46 +236,3 @@ async def test_parquet_writer_propagates_unexpected_exception(monkeypatch, tmp_p
 
     with pytest.raises(RuntimeError):
         await writer.write_to_parquet([{"a": 1}], tmp_path / "out.parquet")
-
-
-@pytest.mark.asyncio
-async def test_append_with_concat_writes_combined(monkeypatch, tmp_path):
-    monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
-
-    combinations: list[int] = []
-
-    async def fake_write(df: FakeDataFrame, output_path: Path) -> None:
-        combinations.append(df.height)
-        output_path.write_text("combined")
-
-    monkeypatch.setattr(writer, "_write_dataframe", fake_write)
-
-    new_df = FakePolarsModule.DataFrame([{"a": 2}])
-    await writer._append_with_concat(new_df, tmp_path / "out.parquet")
-
-    assert combinations == [2]
-
-
-@pytest.mark.asyncio
-async def test_append_with_concat_falls_back_to_streaming(monkeypatch, tmp_path):
-    monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
-
-    async def fake_stream(df: FakeDataFrame, output_path: Path) -> None:
-        output_path.write_text("streamed")
-
-    monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
-
-    def raise_failure(_path: str) -> FakeDataFrame:
-        raise ValueError("failure")
-
-    monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.pl.read_parquet",
-        raise_failure,
-    )
-
-    new_df = FakePolarsModule.DataFrame([{"a": 1}])
-    await writer._append_with_concat(new_df, tmp_path / "out.parquet")
-
-    assert (tmp_path / "out.parquet").read_text() == "streamed"

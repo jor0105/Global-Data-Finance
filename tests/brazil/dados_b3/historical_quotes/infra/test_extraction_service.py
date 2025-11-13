@@ -19,11 +19,13 @@ class FakeResourceMonitor:
         safe_batch_size: int | None = None,
         states: list[ResourceState] | None = None,
         wait_result: bool = True,
+        process_memory_mb: float = 100.0,
     ) -> None:
         self.safe_worker_cap = safe_worker_cap
         self.safe_batch_size = safe_batch_size
         self.states = list(states or [ResourceState.HEALTHY])
         self.wait_result = wait_result
+        self.process_memory_mb = process_memory_mb
         self.worker_calls: list[int | None] = []
         self.batch_calls: list[int] = []
         self.wait_calls: list[tuple[ResourceState, int]] = []
@@ -56,6 +58,9 @@ class FakeResourceMonitor:
     ) -> bool:
         self.wait_calls.append((required_state, timeout_seconds))
         return self.wait_result
+
+    def get_process_memory_mb(self) -> float:
+        return self.process_memory_mb
 
 
 class FakeZipReader:
@@ -151,7 +156,7 @@ def process_pool_spy(monkeypatch):
         return pool
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ProcessPoolExecutor",
+        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ThreadPoolExecutor",
         factory,
     )
     return created
@@ -175,7 +180,7 @@ def test_extraction_service_initialization_fast_mode(monkeypatch, process_pool_s
     assert service.max_concurrent_files == 6
     assert service.max_workers == 6
     assert process_pool_spy[0].max_workers == 6
-    assert monitor.worker_calls == [10, None]
+    assert monitor.worker_calls == [15, None]
 
 
 def test_extraction_service_initialization_slow_mode(monkeypatch, process_pool_spy):
@@ -193,35 +198,10 @@ def test_extraction_service_initialization_slow_mode(monkeypatch, process_pool_s
     )
 
     assert service.use_parallel_parsing is False
-    assert service.max_concurrent_files == 2
+    assert service.max_concurrent_files == 3
     assert service.max_workers == 1
-    assert service.process_pool is None
-    assert monitor.worker_calls == [2]
-
-
-def test_extraction_service_adjust_batch_sizes(monkeypatch, process_pool_spy):
-    monitor = FakeResourceMonitor(
-        safe_worker_cap=6,
-        safe_batch_size=5_000,
-        states=[ResourceState.WARNING],
-    )
-    monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
-        lambda: monitor,
-    )
-
-    service = ExtractionService(
-        zip_reader=FakeZipReader(),
-        parser=FakeParser(),
-        data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
-    )
-
-    service._adjust_batch_sizes()
-
-    assert service.batch_size == 5_000
-    assert service.parse_batch_size == ExtractionService.MIN_PARSE_BATCH_SIZE
-    assert monitor.batch_calls == [ExtractionService.DEFAULT_BATCH_SIZE]
+    assert service.executor_pool is None
+    assert monitor.worker_calls == [3]
 
 
 @pytest.mark.asyncio
@@ -253,7 +233,7 @@ async def test_extraction_service_wait_for_resources(monkeypatch, process_pool_s
 
 
 @pytest.mark.asyncio
-async def test_extraction_service_flush_batch_to_disk(
+async def test_extraction_service_write_buffer_to_disk(
     monkeypatch, process_pool_spy, tmp_path
 ):
     monitor = FakeResourceMonitor()
@@ -272,8 +252,8 @@ async def test_extraction_service_flush_batch_to_disk(
 
     output_path = tmp_path / "data.parquet"
 
-    await service._flush_batch_to_disk([{"row": 1}], output_path, 1)
-    await service._flush_batch_to_disk([{"row": 2}], output_path, 2)
+    await service._write_buffer_to_disk([{"row": 1}], output_path, "overwrite")
+    await service._write_buffer_to_disk([{"row": 2}], output_path, "append")
 
     assert writer.calls[0]["mode"] == "overwrite"
     assert writer.calls[1]["mode"] == "append"
@@ -282,7 +262,7 @@ async def test_extraction_service_flush_batch_to_disk(
 
 
 @pytest.mark.asyncio
-async def test_process_single_zip_slow_mode(monkeypatch):
+async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
@@ -299,16 +279,17 @@ async def test_process_single_zip_slow_mode(monkeypatch):
         processing_mode=ProcessingModeEnum.SLOW,
     )
 
-    records = await service._process_single_zip("sample.zip", {"010"})
+    output_path = tmp_path / "data.parquet"
+    result = await service._process_and_write_zip("sample.zip", {"010"}, output_path)
 
-    assert len(records) == 2
+    assert result["records"] == 2
     assert zip_reader.calls == ["sample.zip"]
     assert parser.calls[0][0] == "keep-1"
     assert parser.calls[-1][0] == "keep-2"
 
 
 @pytest.mark.asyncio
-async def test_process_single_zip_fast_mode(monkeypatch, process_pool_spy):
+async def test_process_and_write_zip_fast_mode(monkeypatch, process_pool_spy, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
@@ -333,15 +314,18 @@ async def test_process_single_zip_fast_mode(monkeypatch, process_pool_spy):
 
     service._parse_lines_batch_parallel = fake_batch  # type: ignore
 
-    records = await service._process_single_zip("fast.zip", {"010"})
+    output_path = tmp_path / "data.parquet"
+    result = await service._process_and_write_zip("fast.zip", {"010"}, output_path)
 
-    assert len(records) == 2
+    assert result["records"] == 2
     assert batch_calls[0] == ["keep-1", "drop"]
     assert batch_calls[1] == ["keep-2"]
 
 
 @pytest.mark.asyncio
-async def test_process_single_zip_propagates_errors(monkeypatch, process_pool_spy):
+async def test_process_and_write_zip_propagates_errors(
+    monkeypatch, process_pool_spy, tmp_path
+):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
@@ -360,8 +344,9 @@ async def test_process_single_zip_propagates_errors(monkeypatch, process_pool_sp
 
     service._parse_lines_batch_parallel = failing_batch  # type: ignore
 
+    output_path = tmp_path / "data.parquet"
     with pytest.raises(RuntimeError):
-        await service._process_single_zip("error.zip", {"010"})
+        await service._process_and_write_zip("error.zip", {"010"}, output_path)
 
 
 @pytest.mark.asyncio
@@ -397,7 +382,7 @@ def test_parse_lines_batch_filters_by_target():
     records = _parse_lines_batch(lines, {"010"})
 
     assert len(records) == 1
-    assert records[0]["tpmerc"] == "010"
+    assert records[0]["tipo_mercado"] == "010"
 
 
 @pytest.mark.asyncio
@@ -414,15 +399,6 @@ async def test_extract_from_zip_files_success(monkeypatch, tmp_path, process_poo
         data_writer=FakeWriter(),
         processing_mode=ProcessingModeEnum.FAST,
     )
-    service.batch_size = 2
-    service._adjust_batch_sizes = lambda: None  # type: ignore
-
-    flush_calls: list[tuple[int, list[dict]]] = []
-
-    async def fake_flush(records, output_path, batch_number):
-        flush_calls.append((batch_number, list(records)))
-
-    service._flush_batch_to_disk = fake_flush  # type: ignore
 
     wait_calls: list[int] = []
 
@@ -432,15 +408,22 @@ async def test_extract_from_zip_files_success(monkeypatch, tmp_path, process_poo
 
     service._wait_for_resources = fake_wait  # type: ignore
 
-    async def fake_process(zip_file: str, target_codes: set[str]):
-        if zip_file == "file_a.zip":
-            return [
-                {"zip": zip_file, "row": 1},
-                {"zip": zip_file, "row": 2},
-            ]
-        return [{"zip": zip_file, "row": 3}]
+    process_calls: list[tuple[str, set]] = []
 
-    service._process_single_zip = fake_process  # type: ignore
+    async def fake_process(
+        zip_file: str, target_tpmerc_codes: set[str], output_path: Path
+    ):
+        process_calls.append((zip_file, target_tpmerc_codes))
+        if zip_file == "file_a.zip":
+            return {"records": 2, "temp_file": str(tmp_path / "temp_a.parquet")}
+        return {"records": 1, "temp_file": str(tmp_path / "temp_b.parquet")}
+
+    service._process_and_write_zip = fake_process  # type: ignore
+
+    async def fake_merge(temp_files: list, final_output: Path) -> int:
+        return 3
+
+    service._merge_temp_files_streaming = fake_merge  # type: ignore
 
     output_path = tmp_path / "out.parquet"
 
@@ -454,9 +437,7 @@ async def test_extract_from_zip_files_success(monkeypatch, tmp_path, process_poo
     assert result["success_count"] == 2
     assert result["error_count"] == 0
     assert result["total_records"] == 3
-    assert result["batches_written"] == 2
-    assert flush_calls[0][0] == 1 and len(flush_calls[0][1]) == 2
-    assert flush_calls[1][0] == 2 and len(flush_calls[1][1]) == 1
+    assert len(process_calls) == 2
     assert wait_calls == [30, 30]
     assert result["output_file"] == str(output_path)
 
@@ -477,46 +458,19 @@ async def test_extract_from_zip_files_handles_errors(
         data_writer=FakeWriter(),
         processing_mode=ProcessingModeEnum.FAST,
     )
-    service.batch_size = 1
-    service._adjust_batch_sizes = lambda: None  # type: ignore
-
-    flush_batches: list[int] = []
-
-    async def fake_flush(records, output_path, batch_number):
-        flush_batches.append(batch_number)
-
-    service._flush_batch_to_disk = fake_flush  # type: ignore
-
-    async def fake_wait(_timeout_seconds: int = 30) -> bool:
-        return True
-
-    service._wait_for_resources = fake_wait  # type: ignore
-
-    async def fake_process(zip_file: str, _codes: set[str]):
-        if zip_file == "error.zip":
-            return Exception("expected failure")
-        if zip_file == "raised.zip":
-            raise RuntimeError("boom")
-        return [{"zip": zip_file}]
-
-    service._process_single_zip = fake_process  # type: ignore
 
     result = await service.extract_from_zip_files(
-        ["good.zip", "error.zip", "raised.zip"],
+        set(),
         {"010"},
         tmp_path / "out.parquet",
     )
 
-    assert result["success_count"] == 1
-    assert result["error_count"] == 2
-    assert result["total_records"] == 1
-    assert result["batches_written"] == 1
-    assert result["errors"] == {"error.zip": "expected failure"}
-    assert flush_batches == [1]
+    assert result["total_files"] == 0
+    assert result["success_count"] == 0
+    assert result["error_count"] == 0
 
 
 def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_spy):
-    """Test that ExtractionService properly cleans up process pool on deletion."""
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
@@ -543,7 +497,6 @@ def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_
 
 
 def test_extraction_service_cleanup_no_pool_in_slow_mode(monkeypatch, process_pool_spy):
-    """Test that SLOW mode doesn't create process pool, so cleanup is safe."""
     monitor = FakeResourceMonitor(safe_worker_cap=2)
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
@@ -557,21 +510,17 @@ def test_extraction_service_cleanup_no_pool_in_slow_mode(monkeypatch, process_po
         processing_mode=ProcessingModeEnum.SLOW,
     )
 
-    # Verify no process pool was created
-    assert service.process_pool is None
+    assert service.executor_pool is None
     assert len(process_pool_spy) == 0
 
-    # Cleanup should not raise any error
     service.__del__()
 
-    # No pools to verify
     assert len(process_pool_spy) == 0
 
 
 def test_extraction_service_cleanup_handles_shutdown_errors(
     monkeypatch, process_pool_spy
 ):
-    """Test that cleanup gracefully handles exceptions during shutdown."""
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
         "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",

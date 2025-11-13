@@ -1,13 +1,3 @@
-"""
-Complete test suite for FileSystemService.
-
-Tests file system operations including:
-- Directory path validation
-- Security checks for path traversal
-- File finding by year patterns
-- Error handling and edge cases
-"""
-
 from pathlib import Path
 
 import pytest
@@ -24,15 +14,11 @@ from src.macro_exceptions import (
 
 
 class TestFileSystemService:
-    """Test suite for FileSystemService basic functionality."""
-
     @pytest.fixture
     def service(self):
-        """Create a FileSystemService instance."""
         return FileSystemService()
 
     def test_validate_directory_path_valid(self, service, tmp_path):
-        """Test validating a valid directory path."""
         test_dir = tmp_path / "test_dir"
         test_dir.mkdir()
         (test_dir / "file.txt").write_text("test")
@@ -44,7 +30,6 @@ class TestFileSystemService:
         assert result.is_dir()
 
     def test_validate_directory_path_with_files(self, service, tmp_path):
-        """Test validating directory with files."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
         (test_dir / "file1.zip").write_text("data1")
@@ -56,32 +41,26 @@ class TestFileSystemService:
         assert result.is_dir()
 
     def test_validate_directory_path_not_string_type(self, service):
-        """Test that non-string path raises TypeError."""
         with pytest.raises(TypeError):
             service.validate_directory_path(123)
 
     def test_validate_directory_path_none(self, service):
-        """Test that None path raises TypeError."""
         with pytest.raises(TypeError):
             service.validate_directory_path(None)
 
     def test_validate_directory_path_empty_string(self, service):
-        """Test that empty string raises InvalidDestinationPathError."""
         with pytest.raises(InvalidDestinationPathError):
             service.validate_directory_path("")
 
     def test_validate_directory_path_whitespace_only(self, service):
-        """Test that whitespace-only string raises error."""
         with pytest.raises(InvalidDestinationPathError):
             service.validate_directory_path("   ")
 
     def test_validate_directory_path_nonexistent(self, service):
-        """Test that non-existent path raises PathIsNotDirectoryError."""
         with pytest.raises(PathIsNotDirectoryError):
             service.validate_directory_path("/nonexistent/path/to/dir")
 
     def test_validate_directory_path_is_file(self, service, tmp_path):
-        """Test that file path raises PathIsNotDirectoryError."""
         file_path = tmp_path / "file.txt"
         file_path.write_text("content")
 
@@ -89,7 +68,6 @@ class TestFileSystemService:
             service.validate_directory_path(str(file_path))
 
     def test_validate_directory_path_empty_directory(self, service, tmp_path):
-        """Test that empty directory raises EmptyDirectoryError."""
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
 
@@ -97,7 +75,6 @@ class TestFileSystemService:
             service.validate_directory_path(str(empty_dir))
 
     def test_validate_directory_path_with_tilde_expansion(self, service, tmp_path):
-        """Test that paths with ~ are expanded."""
         # Create a directory in tmp_path
         test_dir = tmp_path / "test"
         test_dir.mkdir()
@@ -110,7 +87,6 @@ class TestFileSystemService:
         assert result.exists()
 
     def test_validate_directory_path_relative(self, service, tmp_path, monkeypatch):
-        """Test validating relative path."""
         test_dir = tmp_path / "relative_test"
         test_dir.mkdir()
         (test_dir / "file.txt").write_text("test")
@@ -125,45 +101,35 @@ class TestFileSystemService:
 
 
 class TestFileSystemServiceSecurityValidation:
-    """Test suite for security validation."""
-
     @pytest.fixture
     def service(self):
-        """Create a FileSystemService instance."""
         return FileSystemService()
 
     def test_validate_path_safety_blocks_etc(self, service):
-        """Test that paths to /etc are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/etc/passwd").resolve())
 
     def test_validate_path_safety_blocks_root(self, service):
-        """Test that paths to /root are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/root/secret").resolve())
 
     def test_validate_path_safety_blocks_sys(self, service):
-        """Test that paths to /sys are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/sys/kernel").resolve())
 
     def test_validate_path_safety_blocks_proc(self, service):
-        """Test that paths to /proc are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/proc/meminfo").resolve())
 
     def test_validate_path_safety_blocks_dev(self, service):
-        """Test that paths to /dev are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/dev/null").resolve())
 
     def test_validate_path_safety_blocks_boot(self, service):
-        """Test that paths to /boot are blocked."""
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path("/boot/grub").resolve())
 
     def test_validate_path_safety_allows_safe_paths(self, service, tmp_path):
-        """Test that safe paths are allowed."""
         safe_dir = tmp_path / "safe_directory"
         safe_dir.mkdir()
 
@@ -171,7 +137,6 @@ class TestFileSystemServiceSecurityValidation:
         service._validate_path_safety(safe_dir.resolve())
 
     def test_validate_path_safety_allows_home_directory(self, service, tmp_path):
-        """Test that home directory paths are allowed."""
         # Use tmp_path as it simulates a safe user directory
         home_like = tmp_path / "home" / "user" / "data"
         home_like.mkdir(parents=True)
@@ -180,7 +145,6 @@ class TestFileSystemServiceSecurityValidation:
         service._validate_path_safety(home_like.resolve())
 
     def test_validate_directory_with_path_traversal_attempt(self, service, tmp_path):
-        """Test that path traversal attempts are caught."""
         # Create directory structure
         safe_dir = tmp_path / "safe"
         safe_dir.mkdir()
@@ -197,15 +161,11 @@ class TestFileSystemServiceSecurityValidation:
 
 
 class TestFileSystemServiceFindFiles:
-    """Test suite for finding files by year."""
-
     @pytest.fixture
     def service(self):
-        """Create a FileSystemService instance."""
         return FileSystemService()
 
     def test_find_files_by_years_single_year(self, service, tmp_path):
-        """Test finding files for a single year."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -221,7 +181,6 @@ class TestFileSystemServiceFindFiles:
         assert not any("2022" in f for f in result)
 
     def test_find_files_by_years_multiple_years(self, service, tmp_path):
-        """Test finding files for multiple years."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -242,7 +201,6 @@ class TestFileSystemServiceFindFiles:
         assert not any("2024" in f for f in result)
 
     def test_find_files_by_years_no_matches(self, service, tmp_path):
-        """Test finding files when no files match."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -255,7 +213,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 0
 
     def test_find_files_by_years_empty_directory(self, service, tmp_path):
-        """Test finding files in empty directory."""
         test_dir = tmp_path / "empty"
         test_dir.mkdir()
 
@@ -265,7 +222,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 0
 
     def test_find_files_by_years_ignores_subdirectories(self, service, tmp_path):
-        """Test that subdirectories are ignored."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -281,7 +237,6 @@ class TestFileSystemServiceFindFiles:
         assert "FILE_2023.ZIP" in str(list(result)[0])
 
     def test_find_files_by_years_various_extensions(self, service, tmp_path):
-        """Test finding files with various extensions."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -296,7 +251,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 3
 
     def test_find_files_by_years_year_in_different_positions(self, service, tmp_path):
-        """Test finding files with year in different filename positions."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -310,7 +264,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 3
 
     def test_find_files_by_years_partial_year_match(self, service, tmp_path):
-        """Test that partial year matches are found."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -324,7 +277,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 1
 
     def test_find_files_by_years_empty_range(self, service, tmp_path):
-        """Test with empty year range."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -336,7 +288,6 @@ class TestFileSystemServiceFindFiles:
         assert len(result) == 0
 
     def test_find_files_by_years_duplicate_filenames(self, service, tmp_path):
-        """Test that duplicate matches are handled (set removes duplicates)."""
         test_dir = tmp_path / "data"
         test_dir.mkdir()
 
@@ -350,15 +301,11 @@ class TestFileSystemServiceFindFiles:
 
 
 class TestFileSystemServiceIntegration:
-    """Integration tests for FileSystemService."""
-
     @pytest.fixture
     def service(self):
-        """Create a FileSystemService instance."""
         return FileSystemService()
 
     def test_validate_and_find_workflow(self, service, tmp_path):
-        """Test complete workflow: validate directory then find files."""
         data_dir = tmp_path / "cotahist_data"
         data_dir.mkdir()
 
@@ -378,7 +325,6 @@ class TestFileSystemServiceIntegration:
         assert all("COTAHIST" in f for f in files)
 
     def test_handles_symlinks(self, service, tmp_path):
-        """Test handling of symbolic links."""
         real_dir = tmp_path / "real"
         real_dir.mkdir()
         (real_dir / "file.txt").write_text("data")
@@ -394,7 +340,6 @@ class TestFileSystemServiceIntegration:
             pytest.skip("Symlink creation not supported")
 
     def test_multiple_validations(self, service, tmp_path):
-        """Test multiple sequential validations."""
         dir1 = tmp_path / "dir1"
         dir1.mkdir()
         (dir1 / "file1.txt").write_text("data")
@@ -411,7 +356,6 @@ class TestFileSystemServiceIntegration:
         assert result2.exists()
 
     def test_large_directory(self, service, tmp_path):
-        """Test validation and file finding in large directory."""
         data_dir = tmp_path / "large"
         data_dir.mkdir()
 
@@ -431,15 +375,11 @@ class TestFileSystemServiceIntegration:
 
 
 class TestFileSystemServiceEdgeCases:
-    """Test edge cases and boundary conditions."""
-
     @pytest.fixture
     def service(self):
-        """Create a FileSystemService instance."""
         return FileSystemService()
 
     def test_directory_with_special_characters(self, service, tmp_path):
-        """Test directory with special characters in name."""
         special_dir = tmp_path / "dir with spaces & special!chars"
         special_dir.mkdir()
         (special_dir / "file.txt").write_text("data")
@@ -448,7 +388,6 @@ class TestFileSystemServiceEdgeCases:
         assert result.exists()
 
     def test_directory_with_unicode_name(self, service, tmp_path):
-        """Test directory with unicode characters."""
         unicode_dir = tmp_path / "Programação_Açúcar"
         unicode_dir.mkdir()
         (unicode_dir / "arquivo.txt").write_text("data")
@@ -457,7 +396,6 @@ class TestFileSystemServiceEdgeCases:
         assert result.exists()
 
     def test_very_long_path(self, service, tmp_path):
-        """Test with very long path."""
         # Create nested directories
         long_path = tmp_path
         for i in range(10):
@@ -469,7 +407,6 @@ class TestFileSystemServiceEdgeCases:
         assert result.exists()
 
     def test_find_files_with_numeric_only_names(self, service, tmp_path):
-        """Test finding files with numeric-only names."""
         data_dir = tmp_path / "data"
         data_dir.mkdir()
 
@@ -482,7 +419,6 @@ class TestFileSystemServiceEdgeCases:
         assert len(files) == 2
 
     def test_case_sensitivity_in_years(self, service, tmp_path):
-        """Test that year matching is case-sensitive (numbers)."""
         data_dir = tmp_path / "data"
         data_dir.mkdir()
 

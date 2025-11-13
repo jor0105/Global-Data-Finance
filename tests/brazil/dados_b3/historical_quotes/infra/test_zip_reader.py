@@ -1,13 +1,3 @@
-"""
-Complete test suite for ZipFileReader.
-
-Tests ZIP file reading functionality including:
-- Successful async line reading from ZIP files
-- Error handling for missing and corrupted files
-- Integration with Extractor
-- Edge cases and boundary conditions
-"""
-
 import pytest
 
 from src.brazil.dados_b3.historical_quotes.infra.zip_reader import ZipFileReader
@@ -15,16 +5,12 @@ from src.macro_exceptions import CorruptedZipError, ExtractionError
 
 
 class TestZipFileReader:
-    """Test suite for ZipFileReader."""
-
     @pytest.fixture
     def reader(self):
-        """Create a ZipFileReader instance."""
         return ZipFileReader()
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_file_not_found(self, reader):
-        """Test reading from non-existent ZIP file raises FileNotFoundError."""
         zip_path = "/nonexistent/path/file.zip"
 
         with pytest.raises(FileNotFoundError):
@@ -33,21 +19,18 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_invalid_path_type(self, reader):
-        """Test that invalid path type raises appropriate error."""
         with pytest.raises((TypeError, FileNotFoundError)):
             async for _ in reader.read_lines_from_zip(None):
                 pass
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_empty_path(self, reader):
-        """Test reading from empty path string."""
         with pytest.raises((FileNotFoundError, ValueError)):
             async for _ in reader.read_lines_from_zip(""):
                 pass
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_directory_path(self, reader, tmp_path):
-        """Test reading from a directory instead of ZIP file."""
         dir_path = tmp_path / "test_dir"
         dir_path.mkdir()
 
@@ -57,7 +40,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_corrupted_file(self, reader, tmp_path):
-        """Test reading from corrupted ZIP file raises CorruptedZipError."""
         corrupted_zip = tmp_path / "corrupted.zip"
         corrupted_zip.write_text("This is not a valid ZIP file")
 
@@ -67,7 +49,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_no_txt_file(self, reader, tmp_path):
-        """Test reading from ZIP with no TXT file raises ExtractionError."""
         import zipfile
 
         zip_path = tmp_path / "no_txt.zip"
@@ -81,7 +62,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_valid_file(self, reader, tmp_path):
-        """Test successfully reading lines from valid ZIP with TXT file."""
         import zipfile
 
         zip_path = tmp_path / "valid.zip"
@@ -101,7 +81,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_empty_txt_file(self, reader, tmp_path):
-        """Test reading from ZIP with empty TXT file."""
         import zipfile
 
         zip_path = tmp_path / "empty.zip"
@@ -117,7 +96,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_single_line(self, reader, tmp_path):
-        """Test reading single line from ZIP."""
         import zipfile
 
         zip_path = tmp_path / "single.zip"
@@ -134,7 +112,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_large_file(self, reader, tmp_path):
-        """Test reading large TXT file from ZIP."""
         import zipfile
 
         zip_path = tmp_path / "large.zip"
@@ -154,7 +131,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_latin1_encoding(self, reader, tmp_path):
-        """Test reading TXT with latin-1 special characters."""
         import zipfile
 
         zip_path = tmp_path / "latin1.zip"
@@ -174,7 +150,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_multiple_txt_files(self, reader, tmp_path):
-        """Test reading from ZIP with multiple TXT files (should read first)."""
         import zipfile
 
         zip_path = tmp_path / "multiple.zip"
@@ -193,7 +168,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_mixed_case_extension(self, reader, tmp_path):
-        """Test reading TXT files with mixed case extensions."""
         import zipfile
 
         zip_path = tmp_path / "mixedcase.zip"
@@ -210,7 +184,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_with_empty_lines(self, reader, tmp_path):
-        """Test reading TXT with empty lines."""
         import zipfile
 
         zip_path = tmp_path / "empty_lines.zip"
@@ -230,7 +203,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_whitespace_lines(self, reader, tmp_path):
-        """Test reading TXT with whitespace-only lines."""
         import zipfile
 
         zip_path = tmp_path / "whitespace.zip"
@@ -250,7 +222,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_special_characters(self, reader, tmp_path):
-        """Test reading lines with special characters."""
         import zipfile
 
         zip_path = tmp_path / "special.zip"
@@ -268,7 +239,6 @@ class TestZipFileReader:
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_long_lines(self, reader, tmp_path):
-        """Test reading very long lines."""
         import zipfile
 
         zip_path = tmp_path / "longlines.zip"
@@ -288,16 +258,12 @@ class TestZipFileReader:
 
 
 class TestZipFileReaderIntegration:
-    """Integration tests for ZipFileReader."""
-
     @pytest.fixture
     def reader(self):
-        """Create a ZipFileReader instance."""
         return ZipFileReader()
 
     @pytest.mark.asyncio
     async def test_read_real_world_cotahist_structure(self, reader, tmp_path):
-        """Test reading file with COTAHIST-like structure."""
         import zipfile
 
         zip_path = tmp_path / "COTAHIST_A2023.ZIP"
@@ -321,7 +287,6 @@ class TestZipFileReaderIntegration:
 
     @pytest.mark.asyncio
     async def test_concurrent_reading(self, reader, tmp_path):
-        """Test concurrent reading from multiple ZIP files."""
         import asyncio
         import zipfile
 
@@ -347,7 +312,6 @@ class TestZipFileReaderIntegration:
 
     @pytest.mark.asyncio
     async def test_error_handling_in_stream(self, reader, tmp_path):
-        """Test error handling during streaming."""
         import zipfile
 
         # Create a ZIP with binary data that might cause decode issues
@@ -368,7 +332,6 @@ class TestZipFileReaderIntegration:
 
     @pytest.mark.asyncio
     async def test_memory_efficiency_with_large_file(self, reader, tmp_path):
-        """Test that large files are streamed efficiently."""
         import zipfile
 
         zip_path = tmp_path / "huge.zip"
@@ -391,16 +354,12 @@ class TestZipFileReaderIntegration:
 
 
 class TestZipFileReaderEdgeCases:
-    """Test edge cases and boundary conditions."""
-
     @pytest.fixture
     def reader(self):
-        """Create a ZipFileReader instance."""
         return ZipFileReader()
 
     @pytest.mark.asyncio
     async def test_zip_with_nested_directories(self, reader, tmp_path):
-        """Test reading from ZIP with nested directory structure."""
         import zipfile
 
         zip_path = tmp_path / "nested.zip"
@@ -417,7 +376,6 @@ class TestZipFileReaderEdgeCases:
 
     @pytest.mark.asyncio
     async def test_zip_with_compressed_txt(self, reader, tmp_path):
-        """Test reading compressed TXT from ZIP."""
         import zipfile
 
         zip_path = tmp_path / "compressed.zip"
@@ -435,7 +393,6 @@ class TestZipFileReaderEdgeCases:
 
     @pytest.mark.asyncio
     async def test_multiple_reads_same_zip(self, reader, tmp_path):
-        """Test reading same ZIP file multiple times."""
         import zipfile
 
         zip_path = tmp_path / "reread.zip"
@@ -458,7 +415,6 @@ class TestZipFileReaderEdgeCases:
 
     @pytest.mark.asyncio
     async def test_partial_iteration(self, reader, tmp_path):
-        """Test partial iteration (breaking early)."""
         import zipfile
 
         zip_path = tmp_path / "partial.zip"
