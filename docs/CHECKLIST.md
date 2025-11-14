@@ -1,5 +1,7 @@
 ## 1. Melhorias Futuras (Sugeridas)
 
-- [ ] Progress bar com tqdm
+- [ ] Criar validador de todos os codigos da cvm e dados_b3
+- [ ] Progress bar com tqdm no codigo dados_b3
+
 
 ---

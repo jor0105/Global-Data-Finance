@@ -375,8 +375,9 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
 
             file_size = path.stat().st_size
 
-            # Check 2: Minimum size (CVM ZIPs generally > 100KB)
-            MIN_EXPECTED_SIZE = 100_000  # 100KB
+            # Check 2: Minimum size validation (very permissive - just ensure file is not empty/corrupted)
+            # Some legitimate CVM files (e.g., VLMO for certain years) can be quite small (< 100KB)
+            MIN_EXPECTED_SIZE = 1024  # 1KB - just ensure file has some content
             if file_size < MIN_EXPECTED_SIZE:
                 logger.error(
                     f"Downloaded file too small ({file_size} bytes, expected > {MIN_EXPECTED_SIZE}): {filepath}"

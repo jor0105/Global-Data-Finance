@@ -20,10 +20,10 @@ years = cvm.get_available_years()
 start_time = time.time()
 cvm.download(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
-    list_docs=[],
-    initial_year=2009,
-    last_year=2025,
-    automatic_extractor=True,
+    # list_docs=[],
+    initial_year=2018,
+    # last_year=2026,
+    # automatic_extractor=True,
 )
 download_time_minutes = (time.time() - start_time) / 60
 

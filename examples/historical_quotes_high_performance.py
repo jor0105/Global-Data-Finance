@@ -1,6 +1,15 @@
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import time
 
+from src.core import setup_logging
 from src.presentation import HistoricalQuotes
+
+setup_logging(level="ERROR")
+
 
 print("=" * 80)
 print("HISTORICAL QUOTES EXTRACTION - HIGH PERFORMANCE MODE")
