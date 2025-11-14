@@ -1,8 +1,14 @@
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import time
 
+from src.core import setup_logging
 from src.presentation import FundamentalStocksData
 
-# setup_logging(level="INFO")
+setup_logging(level="ERROR")
 
 
 cvm = FundamentalStocksData()
@@ -14,9 +20,9 @@ years = cvm.get_available_years()
 start_time = time.time()
 cvm.download(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
-    list_docs=["fre"],
-    initial_year=2016,
-    last_year=2017,
+    list_docs=[],
+    initial_year=2024,
+    last_year=2025,
     automatic_extractor=True,
 )
 download_time_minutes = (time.time() - start_time) / 60

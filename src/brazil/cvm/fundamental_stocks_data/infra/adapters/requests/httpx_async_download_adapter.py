@@ -1,4 +1,5 @@
 import asyncio
+import zipfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -8,7 +9,7 @@ from src.brazil.cvm.fundamental_stocks_data.application import (
 )
 from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 from src.core import RetryStrategy, SimpleProgressBar, get_logger, remove_file
-from src.macro_exceptions import DiskFullError, ExtractionError
+from src.macro_exceptions import CorruptedZipError, DiskFullError, ExtractionError
 from src.macro_infra import RequestsAdapter
 
 logger = get_logger(__name__)
@@ -142,41 +143,97 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             url, filepath, doc_name, year
         )
 
-        if success and self.automatic_extractor:
-            try:
-                logger.info(f"Starting extraction for {doc_name}_{year}")
-                self.file_extractor_repository.extract(filepath, dest_path)
-                result.add_success_downloads(f"{doc_name}_{year}")
-                logger.info(f"Extraction completed for {doc_name}_{year}")
-                remove_file(filepath, log_on_error=True)
-
-            except DiskFullError as disk_err:
-                logger.error(f"Disk full during extraction {filepath}: {disk_err}")
-                result.add_error_downloads(
-                    f"{doc_name}_{year}", f"DiskFull: {disk_err}"
-                )
-                remove_file(filepath, log_on_error=True)
-
-            except ExtractionError as extract_exc:
-                logger.error(f"Extraction error for {filepath}: {extract_exc}")
-                result.add_error_downloads(
-                    f"{doc_name}_{year}", f"Extraction failed: {extract_exc}"
-                )
-
-            except Exception as extract_exc:
+        if success:
+            # CRITICAL FIX: Validate file integrity before extraction
+            if not self._validate_downloaded_file(filepath):
                 logger.error(
-                    f"Unexpected extraction error for {filepath}: "
-                    f"{type(extract_exc).__name__}: {extract_exc}"
+                    f"Downloaded file validation failed for {doc_name}_{year}: {filepath}"
                 )
                 result.add_error_downloads(
                     f"{doc_name}_{year}",
-                    f"Unexpected extraction error: {extract_exc}",
+                    "Downloaded file corrupted, incomplete, or invalid ZIP",
                 )
-        elif success:
-            result.add_success_downloads(f"{doc_name}_{year}")
+                remove_file(filepath, log_on_error=True)
+                progress_bar.update(1)
+                return
+
+            if self.automatic_extractor:
+                try:
+                    logger.info(f"Starting extraction for {doc_name}_{year}")
+                    self.file_extractor_repository.extract(filepath, dest_path)
+
+                    # CRITICAL FIX: Verify extraction with recursive glob
+                    parquet_files = list(Path(dest_path).glob("**/*.parquet"))
+                    if not parquet_files:
+                        logger.warning(
+                            f"Extraction completed but no .parquet files found in {dest_path} "
+                            f"(including subdirectories). Keeping source ZIP: {filepath}"
+                        )
+                        result.add_error_downloads(
+                            f"{doc_name}_{year}",
+                            "No parquet files generated after extraction",
+                        )
+                        progress_bar.update(1)
+                        return
+
+                    result.add_success_downloads(f"{doc_name}_{year}")
+                    logger.info(
+                        f"✓ Extraction completed for {doc_name}_{year}: "
+                        f"{len(parquet_files)} parquet files created"
+                    )
+                    remove_file(filepath, log_on_error=True)
+
+                except DiskFullError as disk_err:
+                    logger.error(
+                        f"Disk full during extraction of {doc_name}_{year}: {disk_err}"
+                    )
+                    result.add_error_downloads(
+                        f"{doc_name}_{year}", f"DiskFull: {disk_err}"
+                    )
+                    # Remove ZIP on disk full (non-recoverable)
+                    remove_file(filepath, log_on_error=True)
+
+                except CorruptedZipError as zip_err:
+                    logger.error(
+                        f"Corrupted ZIP detected during extraction of {doc_name}_{year}: {zip_err}"
+                    )
+                    result.add_error_downloads(
+                        f"{doc_name}_{year}", f"CorruptedZIP: {zip_err}"
+                    )
+                    # Remove corrupted ZIP (non-recoverable)
+                    remove_file(filepath, log_on_error=True)
+
+                except ExtractionError as extract_err:
+                    logger.error(
+                        f"Extraction error for {doc_name}_{year}: {extract_err}"
+                    )
+                    result.add_error_downloads(
+                        f"{doc_name}_{year}", f"ExtractionFailed: {extract_err}"
+                    )
+                    # CRITICAL FIX: Keep ZIP for manual investigation (might be recoverable)
+                    # E.g., encoding issues, partial extraction, etc.
+                    logger.info(f"Keeping ZIP for manual investigation: {filepath}")
+
+                except Exception as unexpected_err:
+                    logger.error(
+                        f"Unexpected extraction error for {doc_name}_{year}: "
+                        f"{type(unexpected_err).__name__}: {unexpected_err}",
+                        exc_info=True,
+                    )
+                    result.add_error_downloads(
+                        f"{doc_name}_{year}",
+                        f"UnexpectedError: {type(unexpected_err).__name__}: {unexpected_err}",
+                    )
+                    # Keep ZIP for debugging
+                    logger.info(f"Keeping ZIP for debugging: {filepath}")
+
+            else:
+                # Automatic extraction disabled
+                result.add_success_downloads(f"{doc_name}_{year}")
+                logger.info(f"✓ Downloaded {doc_name}_{year} (extraction disabled)")
         else:
             result.add_error_downloads(
-                f"{doc_name}_{year}", error_msg or "Unknown error"
+                f"{doc_name}_{year}", error_msg or "Unknown download error"
             )
 
         progress_bar.update(1)
@@ -252,3 +309,66 @@ class HttpxAsyncDownloadAdapter(DownloadDocsCVMRepository):
             return url.split("/")[-1].split("?")[0] or "download"
         except Exception:
             return "download"
+
+    def _validate_downloaded_file(
+        self, filepath: str, expected_size: Optional[int] = None
+    ) -> bool:
+        """Validate that downloaded file is complete and not corrupted.
+
+        Args:
+            filepath: Path to downloaded file
+            expected_size: Optional expected file size in bytes
+
+        Returns:
+            True if file is valid, False otherwise
+        """
+        try:
+            path = Path(filepath)
+
+            # Check existence and minimum size
+            if not path.exists():
+                logger.error(f"Downloaded file does not exist: {filepath}")
+                return False
+
+            file_size = path.stat().st_size
+
+            # File empty or too small (< 1KB is suspicious for CVM ZIPs)
+            if file_size < 1024:
+                logger.error(
+                    f"Downloaded file too small ({file_size} bytes): {filepath}"
+                )
+                return False
+
+            # If expected size provided, validate
+            if expected_size is not None:
+                if file_size != expected_size:
+                    logger.error(
+                        f"File size mismatch: expected {expected_size}, "
+                        f"got {file_size}: {filepath}"
+                    )
+                    return False
+
+            # Validate it's a valid ZIP
+            try:
+                with zipfile.ZipFile(filepath, "r") as z:
+                    # Test ZIP integrity
+                    bad_file = z.testzip()
+                    if bad_file:
+                        logger.error(f"Corrupted file in ZIP: {bad_file} ({filepath})")
+                        return False
+
+                    # Check if ZIP has at least one file
+                    if not z.namelist():
+                        logger.error(f"Empty ZIP file: {filepath}")
+                        return False
+
+            except zipfile.BadZipFile as e:
+                logger.error(f"Invalid ZIP file: {filepath} - {e}")
+                return False
+
+            logger.debug(f"File validation passed: {filepath} ({file_size} bytes)")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error validating file {filepath}: {e}")
+            return False

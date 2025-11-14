@@ -17,7 +17,7 @@ class TestInvalidFirstYear:
         exception = InvalidFirstYear(minimal, atual)
         expected = (
             f"Invalid first year. You must provide an integer value greater than or equal to "
-            f"{minimal} year and less than or equal to {atual}."
+            f"{minimal} and less than or equal to {atual}."
         )
         assert str(exception) == expected
 
@@ -58,7 +58,7 @@ class TestInvalidLastYear:
         exception = InvalidLastYear(first_year, atual)
         expected = (
             f"Invalid last year. You must provide an integer value greater than or equal to "
-            f"the {first_year} year and less than or equal to {atual}."
+            f"{first_year} and less than or equal to {atual}."
         )
         assert str(exception) == expected
 
@@ -80,7 +80,7 @@ class TestInvalidLastYear:
 
     def test_shows_first_year_reference(self):
         exception = InvalidLastYear(2010, 2025)
-        assert "the 2010 year" in str(exception)
+        assert "2010" in str(exception)
 
     def test_with_boundary_years(self):
         exc1 = InvalidLastYear(2000, 1999)
@@ -101,7 +101,7 @@ class TestInvalidDocName:
         doc_name = "INVALID_DOC"
         available_docs = ["DFP", "ITR", "FRE"]
         exception = InvalidDocName(doc_name, available_docs)
-        expected = f"Invalid document name: {doc_name}. Documents must be a string and one of: {available_docs}."
+        expected = f"Invalid document name: {doc_name}. The document name must be a string and one of the following: {available_docs}."
         assert str(exception) == expected
 
     def test_is_exception_subclass(self):
@@ -167,13 +167,17 @@ class TestInvalidTypeDoc:
     def test_message_format_exact_with_string_input(self):
         doc_name = "123"
         exception = InvalidTypeDoc(doc_name)
-        expected = f"Invalid type document: {doc_name}. Documents must be a string."
+        expected = (
+            f"Invalid document type: {doc_name}. The document name must be a string."
+        )
         assert str(exception) == expected
 
     def test_message_format_exact_with_int_input(self):
         doc_name = 123
         exception = InvalidTypeDoc(doc_name)
-        expected = f"Invalid type document: {doc_name}. Documents must be a string."
+        expected = (
+            f"Invalid document type: {doc_name}. The document name must be a string."
+        )
         assert str(exception) == expected
 
     def test_is_exception_subclass(self):
@@ -183,7 +187,7 @@ class TestInvalidTypeDoc:
     def test_can_be_raised_and_caught(self):
         with pytest.raises(InvalidTypeDoc) as exc_info:
             raise InvalidTypeDoc(123)
-        assert "Invalid type document" in str(exc_info.value)
+        assert "Invalid document type" in str(exc_info.value)
 
     def test_with_integer_value(self):
         exception = InvalidTypeDoc(42)
@@ -236,7 +240,7 @@ class TestInvalidTypeDoc:
 class TestEmptyDocumentListError:
     def test_message_format(self):
         exception = EmptyDocumentListError()
-        assert "Document list cannot be empty" in str(exception)
+        assert "document list cannot be empty" in str(exception).lower()
 
     def test_is_exception_subclass(self):
         exception = EmptyDocumentListError()

@@ -415,7 +415,32 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
     )
-    async def test_download_and_extract_without_automatic_extractor(self, mock_remove):
+    async def test_download_and_extract_without_automatic_extractor(
+        self, mock_remove, tmp_path
+    ):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        zip_path = output_dir / "file.zip"
+
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+        csv_data = "col1,col2,col3,col4\n" + "\n".join(
+            [
+                f"{random.randint(1,1000)},{random.random():.4f},"
+                f"{random.choice(['A','B','C','D'])},{random.randint(100,999)}"
+                for _ in range(200)
+            ]
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", csv_data)
+
         mock_extractor = MagicMock()
         adapter = HttpxAsyncDownloadAdapter(
             file_extractor_repository=mock_extractor, automatic_extractor=False
@@ -431,7 +456,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             "https://example.com/file.zip",
-            "/tmp/output",
+            str(output_dir),
             "DRE",
             "2023",
             result,
@@ -446,7 +471,27 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
     )
-    async def test_download_and_extract_with_automatic_extractor(self, mock_remove):
+    async def test_download_and_extract_with_automatic_extractor(
+        self, mock_remove, tmp_path
+    ):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        zip_path = output_dir / "file.zip"
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+
+        (output_dir / "file1.parquet").touch()
+        (output_dir / "file2.parquet").touch()
+
         mock_extractor = MagicMock()
         adapter = HttpxAsyncDownloadAdapter(
             file_extractor_repository=mock_extractor, automatic_extractor=True
@@ -462,7 +507,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             "https://example.com/file.zip",
-            "/tmp/output",
+            str(output_dir),
             "DRE",
             "2023",
             result,
@@ -470,13 +515,80 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         )
 
         mock_extractor.extract.assert_called_once()
-        assert mock_remove.called
+        assert (
+            mock_remove.called
+        ), "ZIP source should be removed after successful extraction with parquet files"
         assert result.success_count_downloads == 1
 
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
     )
-    async def test_download_and_extract_extraction_error(self, mock_remove):
+    async def test_download_and_extract_no_parquet_files_keeps_zip(
+        self, mock_remove, tmp_path
+    ):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        zip_path = output_dir / "file.zip"
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+
+        mock_extractor = MagicMock()
+        adapter = HttpxAsyncDownloadAdapter(
+            file_extractor_repository=mock_extractor, automatic_extractor=True
+        )
+
+        async def mock_download_with_retry(url, filepath, doc_name, year):
+            return True, None
+
+        adapter._download_with_retry = mock_download_with_retry
+
+        mock_progress = MagicMock()
+        result = DownloadResult()
+
+        await adapter._download_and_extract(
+            "https://example.com/file.zip",
+            str(output_dir),
+            "DRE",
+            "2023",
+            result,
+            mock_progress,
+        )
+
+        mock_extractor.extract.assert_called_once()
+        assert (
+            not mock_remove.called
+        ), "ZIP source should NOT be removed if no parquet files were created"
+        assert result.error_count_downloads == 1
+        assert "No parquet files generated" in result.failed_downloads["DRE_2023"]
+
+    @patch(
+        "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+    )
+    async def test_download_and_extract_extraction_error(self, mock_remove, tmp_path):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        zip_path = output_dir / "file.zip"
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = ExtractionError("/tmp/file.zip", "Bad CSV")
 
@@ -494,7 +606,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             "https://example.com/file.zip",
-            "/tmp/output",
+            str(output_dir),
             "DRE",
             "2023",
             result,
@@ -503,12 +615,27 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         assert result.error_count_downloads == 1
         assert "DRE_2023" in result.failed_downloads
-        assert "Extraction failed" in result.failed_downloads["DRE_2023"]
+        assert "ExtractionFailed" in result.failed_downloads["DRE_2023"]
 
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
     )
-    async def test_download_and_extract_disk_full_error(self, mock_remove):
+    async def test_download_and_extract_disk_full_error(self, mock_remove, tmp_path):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        zip_path = output_dir / "file.zip"
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = DiskFullError("/tmp/output")
 
@@ -526,7 +653,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             "https://example.com/file.zip",
-            "/tmp/output",
+            str(output_dir),
             "DRE",
             "2023",
             result,
@@ -540,7 +667,24 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     @patch(
         "src.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
     )
-    async def test_download_and_extract_unexpected_extraction_error(self, mock_remove):
+    async def test_download_and_extract_unexpected_extraction_error(
+        self, mock_remove, tmp_path
+    ):
+        import random
+        import string
+        import zipfile
+
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+
+        zip_path = output_dir / "file.zip"
+        random_data = "".join(
+            random.choices(string.ascii_letters + string.digits, k=5000)
+        )
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            zf.writestr("test.txt", random_data)
+
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = RuntimeError("Unexpected error")
 
@@ -558,7 +702,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             "https://example.com/file.zip",
-            "/tmp/output",
+            str(output_dir),
             "DRE",
             "2023",
             result,
@@ -566,7 +710,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         )
 
         assert result.error_count_downloads == 1
-        assert "Unexpected extraction error" in result.failed_downloads["DRE_2023"]
+        assert "UnexpectedError" in result.failed_downloads["DRE_2023"]
 
     async def test_download_and_extract_download_failure(self):
         mock_extractor = MagicMock()

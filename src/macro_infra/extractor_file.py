@@ -1,9 +1,10 @@
 import asyncio
 import zipfile
+from io import BytesIO
 from pathlib import Path
-from typing import Any, AsyncIterator, List, cast
+from typing import AsyncIterator, List
 
-import polars as pl
+import pandas as pd  # type: ignore
 import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 
@@ -19,92 +20,6 @@ logger = get_logger(__name__)
 
 
 class Extractor:
-    @staticmethod
-    def extract_zip_to_parquet(chunk_size: int, zip_path: str, output_dir: str) -> None:
-        """Extract CSV files from ZIP and save as Parquet with memory optimization.
-
-        Args:
-            zip_path: Path to the ZIP file
-            output_dir: Directory where Parquet files will be saved
-
-        Raises:
-            InvalidDestinationPathError: If output_dir doesn't exist or isn't writable
-            CorruptedZipError: If ZIP is corrupted or can't be read
-            ExtractionError: For other extraction failures (CSV read, Parquet write, etc.)
-            DiskFullError: If insufficient disk space
-        """
-        output_path = Path(output_dir)
-        try:
-            if not output_path.exists():
-                output_path.mkdir(parents=True, exist_ok=True)
-                logger.info(f"Created output directory: {output_dir}")
-
-            if not output_path.is_dir():
-                raise InvalidDestinationPathError(f"'{output_dir}' is not a directory")
-
-            test_file = output_path / ".write_test"
-            test_file.touch()
-            test_file.unlink()
-        except PermissionError as e:
-            raise InvalidDestinationPathError(
-                f"No write permission for '{output_dir}': {e}"
-            )
-        except Exception as e:
-            raise InvalidDestinationPathError(f"Invalid path '{output_dir}': {e}")
-
-        zip_path_obj = Path(zip_path)
-        if not zip_path_obj.exists():
-            raise ExtractionError(zip_path, f"ZIP file not found: {zip_path}")
-
-        extracted_count = 0
-        failed_files = []
-
-        try:
-            with zipfile.ZipFile(zip_path, "r") as z:
-                csv_files = [name for name in z.namelist() if name.endswith(".csv")]
-
-                if not csv_files:
-                    logger.warning(f"No CSV files found in {zip_path}")
-                    return
-
-                for csv_filename in csv_files:
-                    try:
-                        Extractor._extract_single_csv(
-                            chunk_size, z, csv_filename, output_dir
-                        )
-                        extracted_count += 1
-                    except DiskFullError:
-                        raise  # Re-raise disk full errors immediately
-                    except Exception as e:
-                        logger.error(f"Failed to extract {csv_filename}: {e}")
-                        failed_files.append((csv_filename, str(e)))
-                        continue
-
-                if failed_files:
-                    failed_list = "; ".join([f"{f[0]}: {f[1]}" for f in failed_files])
-                    logger.warning(
-                        f"Extracted {extracted_count} files with {len(failed_files)} "
-                        f"failures: {failed_list}"
-                    )
-                    if extracted_count == 0:
-                        raise ExtractionError(
-                            zip_path,
-                            f"Failed to extract all CSV files: {failed_list}",
-                        )
-
-        except zipfile.BadZipFile as e:
-            raise CorruptedZipError(zip_path, f"Invalid or corrupted ZIP file: {e}")
-        except ExtractionError:
-            raise  # Re-raise extraction errors as-is
-        except DiskFullError:
-            raise  # Re-raise disk full errors as-is
-        except Exception as e:
-            raise ExtractionError(zip_path, f"Unexpected error during extraction: {e}")
-
-        logger.info(
-            f"Successfully extracted {extracted_count} CSV files from {zip_path}"
-        )
-
     @staticmethod
     async def read_txt_from_zip_async(zip_path: str) -> AsyncIterator[str]:
         """Read lines from TXT file inside ZIP asynchronously with true streaming.
@@ -268,6 +183,124 @@ class Extractor:
         return Extractor._read_txt_from_zip_sync(zip_path)
 
     @staticmethod
+    def extract_zip_to_parquet(chunk_size: int, zip_path: str, output_dir: str) -> None:
+        """Extract CSV files from ZIP and save as Parquet with memory optimization.
+
+        Args:
+            zip_path: Path to the ZIP file
+            output_dir: Directory where Parquet files will be saved
+
+        Raises:
+            InvalidDestinationPathError: If output_dir doesn't exist or isn't writable
+            CorruptedZipError: If ZIP is corrupted or can't be read
+            ExtractionError: For other extraction failures (CSV read, Parquet write, etc.)
+            DiskFullError: If insufficient disk space
+        """
+        output_path = Path(output_dir)
+        try:
+            if not output_path.exists():
+                output_path.mkdir(parents=True, exist_ok=True)
+                logger.info(f"Created output directory: {output_dir}")
+
+            if not output_path.is_dir():
+                raise InvalidDestinationPathError(f"'{output_dir}' is not a directory")
+
+            test_file = output_path / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except PermissionError as e:
+            raise InvalidDestinationPathError(
+                f"No write permission for '{output_dir}': {e}"
+            )
+        except Exception as e:
+            raise InvalidDestinationPathError(f"Invalid path '{output_dir}': {e}")
+
+        zip_path_obj = Path(zip_path)
+        if not zip_path_obj.exists():
+            raise ExtractionError(zip_path, f"ZIP file not found: {zip_path}")
+
+        extracted_count = 0
+        failed_files = []
+
+        try:
+            with zipfile.ZipFile(zip_path, "r") as z:
+                csv_files = [name for name in z.namelist() if name.endswith(".csv")]
+
+                if not csv_files:
+                    logger.warning(f"No CSV files found in {zip_path}")
+                    return
+
+                for csv_filename in csv_files:
+                    try:
+                        Extractor._extract_single_csv(
+                            chunk_size, z, csv_filename, output_dir
+                        )
+                        extracted_count += 1
+                    except DiskFullError:
+                        raise  # Re-raise disk full errors immediately
+                    except Exception as e:
+                        logger.error(f"Failed to extract {csv_filename}: {e}")
+                        failed_files.append((csv_filename, str(e)))
+                        continue
+
+                # CRITICAL FIX: Extraction must be atomic (all-or-nothing)
+                # If ANY file fails, we must rollback to prevent data loss
+                if failed_files:
+                    failed_list = "; ".join([f"{f[0]}: {f[1]}" for f in failed_files])
+
+                    # Clean up any partially extracted parquet files
+                    logger.warning(
+                        f"Partial extraction detected ({extracted_count} succeeded, "
+                        f"{len(failed_files)} failed). Rolling back..."
+                    )
+
+                    cleanup_count = 0
+                    cleanup_errors = []
+                    for parquet_file in Path(output_dir).glob("*.parquet"):
+                        try:
+                            parquet_file.unlink()
+                            cleanup_count += 1
+                            logger.debug(
+                                f"Cleaned up partial file: {parquet_file.name}"
+                            )
+                        except Exception as cleanup_err:
+                            cleanup_errors.append(f"{parquet_file.name}: {cleanup_err}")
+                            logger.error(
+                                f"Failed to cleanup {parquet_file.name}: {cleanup_err}"
+                            )
+
+                    logger.info(
+                        f"Rollback complete: {cleanup_count} partial files removed"
+                    )
+
+                    if cleanup_errors:
+                        cleanup_msg = "; ".join(cleanup_errors)
+                        logger.error(
+                            f"WARNING: Some partial files could not be removed: {cleanup_msg}"
+                        )
+
+                    # Always raise error if any extraction failed (atomic behavior)
+                    raise ExtractionError(
+                        zip_path,
+                        f"Atomic extraction failed: {extracted_count} succeeded but "
+                        f"{len(failed_files)} failed. All partial data rolled back. "
+                        f"Failures: {failed_list}",
+                    )
+
+        except zipfile.BadZipFile as e:
+            raise CorruptedZipError(zip_path, f"Invalid or corrupted ZIP file: {e}")
+        except ExtractionError:
+            raise  # Re-raise extraction errors as-is
+        except DiskFullError:
+            raise  # Re-raise disk full errors as-is
+        except Exception as e:
+            raise ExtractionError(zip_path, f"Unexpected error during extraction: {e}")
+
+        logger.info(
+            f"Successfully extracted {extracted_count} CSV files from {zip_path}"
+        )
+
+    @staticmethod
     def _extract_single_csv(
         chunk_size: int, zip_file: zipfile.ZipFile, csv_filename: str, output_dir: str
     ) -> None:
@@ -292,8 +325,8 @@ class Extractor:
         # Reduce chunk size further for memory safety
         safe_chunk_size = min(chunk_size, 50_000)
 
-        # List of encodings to try in order
-        encodings_to_try = ["utf-8", "latin-1", "iso-8859-1", "cp1252"]
+        # List of encodings to try in order (latin-1 first for CVM files)
+        encodings_to_try = ["latin-1", "utf-8", "iso-8859-1", "cp1252"]
 
         logger.debug(f"Processing {csv_filename} with chunk size {safe_chunk_size}")
 
@@ -303,16 +336,13 @@ class Extractor:
             for encoding in encodings_to_try:
                 try:
                     with zip_file.open(csv_filename) as csv_file:
-                        # zip_file.open returns a binary file-like object. Polars'
-                        # type stubs expect a path-like name for some functions
-                        # (e.g. read_csv_batched). Use a cast to Any to satisfy
-                        # static type checkers while keeping runtime behavior.
-                        pl.read_csv(
-                            cast(Any, csv_file),
+                        # Test read with pandas
+                        pd.read_csv(
+                            BytesIO(csv_file.read(10000)),  # Read first 10KB to test
                             encoding=encoding,
-                            separator=";",
-                            ignore_errors=True,
-                            n_rows=100,
+                            sep=";",
+                            on_bad_lines="skip",
+                            nrows=100,
                         )
                         working_encoding = encoding
                         logger.debug(
@@ -332,138 +362,218 @@ class Extractor:
                     f"(tried {', '.join(encodings_to_try)})",
                 )
 
-            # Now process file in chunks using streaming approach
-            first_write = True
+            # Now process file in chunks using pandas
             total_rows = 0
+            writer = None  # Will hold ParquetWriter for append mode
 
-            with zip_file.open(csv_filename) as csv_file:
-                # Use scan_csv for lazy loading (more memory efficient)
-                try:
-                    # Read and process in chunks
-                    reader = pl.read_csv_batched(
-                        cast(Any, csv_file),
-                        encoding=working_encoding,
-                        separator=";",
-                        ignore_errors=True,
-                        batch_size=safe_chunk_size,
-                    )
+            try:
+                with zip_file.open(csv_filename) as csv_file:
+                    try:
+                        # Use TextIOWrapper to stream decode without loading full content
+                        import io
 
-                    batches = reader.next_batches(1)
-                    while batches:
-                        for chunk in batches:
-                            if chunk is not None and chunk.height > 0:
+                        text_wrapper = io.TextIOWrapper(
+                            csv_file, encoding=working_encoding, newline=""
+                        )
+
+                        # Read CSV in chunks - now truly streaming!
+                        csv_reader = pd.read_csv(
+                            text_wrapper,
+                            sep=";",
+                            on_bad_lines="skip",
+                            chunksize=safe_chunk_size,
+                        )
+
+                        for chunk_df in csv_reader:
+                            if len(chunk_df) > 0:
                                 try:
                                     # Convert to Arrow table
-                                    table = chunk.to_arrow()
+                                    table = pa.Table.from_pandas(chunk_df)
 
-                                    # Write or append to Parquet
-                                    if first_write:
-                                        pq.write_table(
-                                            table,
+                                    # Use ParquetWriter for true append (more efficient)
+                                    if writer is None:
+                                        # First chunk: create writer
+                                        writer = pq.ParquetWriter(
                                             parquet_path,
+                                            table.schema,
                                             compression="zstd",
                                             compression_level=3,
                                         )
-                                        first_write = False
                                         logger.debug(f"Created {parquet_filename}")
-                                    else:
-                                        # Append using ParquetWriter for efficiency
-                                        parquet_file = pq.ParquetFile(parquet_path)
-                                        existing_table = parquet_file.read()
-                                        combined = pa.concat_tables(
-                                            [existing_table, table]
-                                        )
-                                        pq.write_table(
-                                            combined,
-                                            parquet_path,
-                                            compression="zstd",
-                                            compression_level=3,
-                                        )
-                                        logger.debug(
-                                            f"Appended chunk to {parquet_filename}"
-                                        )
 
-                                    total_rows += chunk.height
+                                    # Write chunk to file (true append, no re-read)
+                                    writer.write_table(table)
+                                    total_rows += len(chunk_df)
+                                    logger.debug(
+                                        f"Wrote {len(chunk_df)} rows to {parquet_filename}"
+                                    )
 
                                 except OSError as e:
                                     if "No space left on device" in str(e):
                                         raise DiskFullError(str(parquet_path))
                                     raise
 
-                        # Get next batch
-                        batches = reader.next_batches(1)
+                        # CRITICAL FIX: Close writer in success path
+                        if writer is not None:
+                            writer.close()
+                            writer = None  # Mark as closed
+                            logger.debug(
+                                f"Completed {csv_filename}: {total_rows} rows written to {parquet_filename}"
+                            )
 
-                    logger.debug(
-                        f"Completed {csv_filename}: {total_rows} rows written to {parquet_filename}"
-                    )
+                    except Exception as e:
+                        # CRITICAL FIX: Always close writer on any error
+                        if writer is not None:
+                            try:
+                                writer.close()
+                                writer = None
+                                logger.debug(
+                                    f"Writer closed after error for {csv_filename}"
+                                )
+                            except Exception as close_err:
+                                logger.error(
+                                    f"CRITICAL: Failed to close writer for {csv_filename}: {close_err}"
+                                )
+                                # Raise compound exception to signal both failures
+                                raise ExtractionError(
+                                    str(parquet_path),
+                                    f"Extraction failed AND writer close failed: {e} | {close_err}",
+                                )
 
-                except pl.exceptions.ComputeError as e:
-                    # Fallback to traditional approach if streaming fails
-                    logger.warning(
-                        f"Streaming read failed for {csv_filename}, falling back to traditional approach: {e}"
-                    )
+                        # Re-raise original error
+                        raise
 
-                    # Clean up partial file
-                    if parquet_path.exists():
-                        try:
-                            parquet_path.unlink()
-                        except Exception:
-                            pass
+            finally:
+                # CRITICAL FIX: Final safety net to ensure writer is closed
+                if writer is not None:
+                    try:
+                        writer.close()
+                        logger.warning(
+                            f"Writer closed in finally block for {csv_filename} "
+                            "(should have been closed earlier)"
+                        )
+                    except Exception as final_close_err:
+                        logger.error(
+                            f"CRITICAL: Failed to close writer in finally block: {final_close_err}"
+                        )
+                        # Don't raise here as we're already handling an exception
 
-                    # Retry with traditional approach
-                    with zip_file.open(csv_filename) as csv_file_retry:
-                        # Same cast here for the fallback (synchronous) read
-                        csv_data = pl.read_csv(
-                            cast(Any, csv_file_retry),
-                            encoding=working_encoding,
-                            separator=";",
-                            ignore_errors=True,
+                        # Fallback to loading entire file if chunking fails
+                        logger.warning(
+                            f"Chunked read failed for {csv_filename}, loading entire file: {final_close_err}"
                         )
 
-                        # Write in smaller chunks
-                        for chunk_start in range(0, csv_data.height, safe_chunk_size):
-                            chunk = csv_data[
+                    # CRITICAL FIX: Clean up partial file with robust error handling
+                    if parquet_path.exists():
+                        cleanup_attempt = 0
+                        max_cleanup_attempts = 3
+                        cleanup_success = False
+
+                        while (
+                            cleanup_attempt < max_cleanup_attempts
+                            and not cleanup_success
+                        ):
+                            try:
+                                parquet_path.unlink()
+                                cleanup_success = True
+                                logger.debug(
+                                    f"Cleaned up partial file: {parquet_filename} "
+                                    f"(attempt {cleanup_attempt + 1})"
+                                )
+                            except Exception as cleanup_error:
+                                cleanup_attempt += 1
+                                if cleanup_attempt >= max_cleanup_attempts:
+                                    logger.error(
+                                        f"CRITICAL: Failed to delete partial file {parquet_path} "
+                                        f"after {max_cleanup_attempts} attempts. "
+                                        f"Cannot proceed with fallback extraction to avoid data corruption. "
+                                        f"Error: {cleanup_error}"
+                                    )
+                                    # Re-raise to prevent writing over corrupted file
+                                    raise ExtractionError(
+                                        str(parquet_path),
+                                        f"Cannot cleanup partial file before retry: {cleanup_error}. "
+                                        f"Manual intervention required to remove: {parquet_path}",
+                                    )
+                                else:
+                                    # Wait a bit before retry (file might be locked)
+                                    import time
+
+                                    time.sleep(0.1 * cleanup_attempt)
+                                    logger.debug(
+                                        f"Retrying cleanup of {parquet_filename} "
+                                        f"(attempt {cleanup_attempt + 1}/{max_cleanup_attempts})"
+                                    )
+
+                    # Retry with entire file (CAUTION: loads full file in memory)
+                    with zip_file.open(csv_filename) as csv_file_retry:
+                        try:
+                            csv_content = csv_file_retry.read()
+                            logger.warning(
+                                f"Loaded entire file in memory: {csv_filename} "
+                                f"({len(csv_content) / 1024 / 1024:.2f} MB)"
+                            )
+                        except MemoryError as mem_err:
+                            raise ExtractionError(
+                                str(parquet_path),
+                                f"File too large to load in memory: {csv_filename}. "
+                                f"Consider increasing chunk_size or available RAM: {mem_err}",
+                            )
+
+                        df = pd.read_csv(
+                            BytesIO(csv_content),
+                            encoding=working_encoding,
+                            sep=";",
+                            on_bad_lines="skip",
+                        )
+
+                        # Write in smaller chunks using efficient ParquetWriter
+                        fallback_writer = None
+                        for chunk_start in range(0, len(df), safe_chunk_size):
+                            chunk_df = df.iloc[
                                 chunk_start : chunk_start + safe_chunk_size
                             ]
-                            table = chunk.to_arrow()
+                            table = pa.Table.from_pandas(chunk_df)
 
-                            if chunk_start == 0:
-                                pq.write_table(
-                                    table,
+                            if fallback_writer is None:
+                                # First chunk: create writer
+                                fallback_writer = pq.ParquetWriter(
                                     parquet_path,
-                                    compression="zstd",
-                                    compression_level=3,
-                                )
-                            else:
-                                existing = pq.read_table(parquet_path)
-                                combined = pa.concat_tables([existing, table])
-                                pq.write_table(
-                                    combined,
-                                    parquet_path,
+                                    table.schema,
                                     compression="zstd",
                                     compression_level=3,
                                 )
 
-        except pl.exceptions.ComputeError as e:
-            # Clean up partial file if it exists
+                            # Write chunk (true append)
+                            fallback_writer.write_table(table)
+
+                        # Close writer to finalize
+                        if fallback_writer is not None:
+                            fallback_writer.close()
+
+        except DiskFullError:
+            # Clean up partial file on disk full
             if parquet_path.exists():
                 try:
                     parquet_path.unlink()
-                except Exception:
-                    pass
-            raise ExtractionError(
-                str(parquet_path),
-                f"Invalid CSV format in {csv_filename}: {e}",
-            )
-        except DiskFullError:
+                    logger.warning(
+                        f"Removed partial file due to disk full: {parquet_path}"
+                    )
+                except Exception as cleanup_err:
+                    logger.error(
+                        f"Failed to remove partial file {parquet_path}: {cleanup_err}"
+                    )
             raise  # Re-raise disk full errors
         except Exception as e:
             # Clean up partial file if it exists
             if parquet_path.exists():
                 try:
                     parquet_path.unlink()
-                except Exception:
-                    pass
+                    logger.warning(f"Removed partial file due to error: {parquet_path}")
+                except Exception as cleanup_err:
+                    logger.error(
+                        f"Failed to remove partial file {parquet_path}: {cleanup_err}"
+                    )
             raise ExtractionError(
                 str(parquet_path),
                 f"Error converting {csv_filename} to Parquet: {e}",
