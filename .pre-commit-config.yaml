@@ -14,13 +14,6 @@ repos:
       - id: debug-statements
       - id: check-ast
 
-  # Formatação: Black
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        args: [--line-length=88]
-
   # Linting e formatação: Ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.4

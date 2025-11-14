@@ -33,8 +33,6 @@ class TestZipCleanup:
         return zip_path
 
     def test_zip_deleted_after_successful_extraction(self, tmp_path, mock_zip):
-        from src.macro_infra import Extractor
-
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
@@ -43,9 +41,8 @@ class TestZipCleanup:
 
         print(f"✓ ZIP created: {mock_zip.name} ({zip_size} bytes)")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(mock_zip), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(mock_zip), destination_dir=str(output_dir))
 
         parquet_file = output_dir / "data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
@@ -64,7 +61,6 @@ class TestZipCleanup:
 
     def test_zip_kept_on_extraction_failure(self, tmp_path):
         from src.macro_exceptions import CorruptedZipError
-        from src.macro_infra import Extractor
 
         corrupted_zip = tmp_path / "corrupted.zip"
         with open(corrupted_zip, "wb") as f:
@@ -75,11 +71,11 @@ class TestZipCleanup:
 
         print(f"✓ Corrupted ZIP created: {corrupted_zip.name}")
 
+        extractor = ParquetExtractor(chunk_size=50000)
         with pytest.raises(CorruptedZipError):
-            Extractor.extract_zip_to_parquet(
-                chunk_size=50000,
-                zip_path=str(corrupted_zip),
-                output_dir=str(output_dir),
+            extractor.extract(
+                source_path=str(corrupted_zip),
+                destination_dir=str(output_dir),
             )
 
         assert corrupted_zip.exists(), "Corrupted ZIP was deleted prematurely! It should be kept for retry or investigation."
@@ -87,8 +83,6 @@ class TestZipCleanup:
         print("✅ ZIP kept after extraction failure")
 
     def test_zip_kept_if_no_parquet_generated(self, tmp_path):
-        from src.macro_infra import Extractor
-
         zip_path = tmp_path / "no_csv.zip"
 
         with zipfile.ZipFile(zip_path, "w") as z:
@@ -100,9 +94,8 @@ class TestZipCleanup:
 
         print(f"✓ ZIP without CSVs created: {zip_path.name}")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         parquet_files = list(output_dir.glob("*.parquet"))
         assert len(parquet_files) == 0, "Parquets were created unexpectedly"
@@ -125,10 +118,9 @@ class TestZipCleanup:
 
         print(f"✓ ZIP 'downloaded': {downloaded_zip.name}")
 
-        from src.macro_infra import Extractor
-
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(downloaded_zip), output_dir=str(output_dir)
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(
+            source_path=str(downloaded_zip), destination_dir=str(output_dir)
         )
 
         parquet_files = list(output_dir.glob("**/*.parquet"))
@@ -163,11 +155,8 @@ class TestZipCleanup:
 
         print("✓ 3 ZIPs created")
 
-        from src.macro_infra import Extractor
-
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip1), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip1), destination_dir=str(output_dir))
 
         from src.core import remove_file
 

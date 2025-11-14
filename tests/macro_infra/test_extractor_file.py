@@ -361,15 +361,6 @@ class TestExtractorReadTxtFromZipAsync:
 
 
 class TestExtractorEdgeCases:
-    def test_extractor_handles_nested_directories_in_zip(self, tmp_path):
-        pytest.skip("Requires full polars/pyarrow integration testing")
-
-    def test_extractor_chunk_size_affects_processing(self, tmp_path):
-        pytest.skip("Requires full polars/pyarrow integration testing")
-
-    def test_extractor_preserves_filename_stem(self, tmp_path):
-        pytest.skip("Requires full polars/pyarrow integration testing")
-
     @pytest.mark.asyncio
     async def test_concurrent_async_reads(self, tmp_path):
         zip_files = []

@@ -3,7 +3,9 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from src.macro_infra import Extractor
+from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractor,
+)
 
 
 class TestAtomicRollback:
@@ -33,11 +35,12 @@ class TestAtomicRollback:
 
         from src.macro_exceptions import CorruptedZipError
 
+        extractor = ParquetExtractor(chunk_size=50000)
+
         with pytest.raises(CorruptedZipError):
-            Extractor.extract_zip_to_parquet(
-                chunk_size=50000,
-                zip_path=str(corrupted_zip),
-                output_dir=str(output_dir),
+            extractor.extract(
+                source_path=str(corrupted_zip),
+                destination_dir=str(output_dir),
             )
 
         assert existing_file.exists(), "CRITICAL: existing file was DELETED!"
@@ -68,9 +71,8 @@ class TestAtomicRollback:
             df2 = pd.DataFrame({"c": [3, 4], "d": ["z", "w"]})
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         assert (output_dir / "file1.parquet").exists()
         assert (output_dir / "file2.parquet").exists()
@@ -88,8 +90,9 @@ class TestAtomicRollback:
         with zipfile.ZipFile(corrupted_zip, "w") as z:
             z.writestr("not_a_csv.txt", b"This is not a CSV file")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(corrupted_zip), output_dir=str(output_dir)
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(
+            source_path=str(corrupted_zip), destination_dir=str(output_dir)
         )
 
         parquet_files = list(output_dir.glob("*.parquet"))
@@ -119,9 +122,8 @@ class TestAtomicRollback:
                 "new_file.csv", df2.to_csv(sep=";", index=False).encode("latin-1")
             )
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_skip = pd.read_parquet(existing)
         assert "old" in df_skip.columns, "Existing file was overwritten!"

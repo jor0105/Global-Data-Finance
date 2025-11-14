@@ -81,25 +81,26 @@ class TestRequestsAdapterDownload:
     @patch("src.macro_infra.requests_adapter.httpx.AsyncClient")
     @patch("builtins.open", new_callable=MagicMock)
     async def test_async_download_file_success(self, mock_open, mock_client_class):
-        mock_response = AsyncMock()
-        mock_response.raise_for_status = Mock()
-        mock_response.aiter_bytes = AsyncMock()
-
         async def chunk_generator():
             yield b"chunk1"
             yield b"chunk2"
 
-        mock_response.aiter_bytes.return_value = chunk_generator()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
+        mock_response = AsyncMock()
+        mock_response.raise_for_status = Mock()
+        mock_response.aiter_bytes = MagicMock(return_value=chunk_generator())
+
+        mock_stream = AsyncMock()
+        mock_stream.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream.__aexit__ = AsyncMock(return_value=None)
 
         mock_client = AsyncMock()
-        mock_client.stream.return_value = mock_response
-        mock_client.__aenter__.return_value = mock_client
+        mock_client.stream = MagicMock(return_value=mock_stream)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_open.return_value.__enter__.return_value = mock_file
+        mock_open.return_value = mock_file
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
@@ -109,6 +110,7 @@ class TestRequestsAdapterDownload:
         assert mock_file.write.call_count == 2
         mock_file.write.assert_any_call(b"chunk1")
         mock_file.write.assert_any_call(b"chunk2")
+        mock_file.close.assert_called_once()
 
     @pytest.mark.asyncio
     @patch("src.macro_infra.requests_adapter.httpx.AsyncClient")
@@ -116,24 +118,26 @@ class TestRequestsAdapterDownload:
     async def test_async_download_file_with_custom_chunk_size(
         self, mock_open, mock_client_class
     ):
+        async def chunk_generator():
+            if False:
+                yield b""
+
         mock_response = AsyncMock()
         mock_response.raise_for_status = Mock()
-        mock_response.aiter_bytes = AsyncMock()
+        mock_response.aiter_bytes = MagicMock(return_value=chunk_generator())
 
-        async def chunk_generator():
-            pass
-
-        mock_response.aiter_bytes.return_value = chunk_generator()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
+        mock_stream = AsyncMock()
+        mock_stream.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream.__aexit__ = AsyncMock(return_value=None)
 
         mock_client = AsyncMock()
-        mock_client.stream.return_value = mock_response
-        mock_client.__aenter__.return_value = mock_client
+        mock_client.stream = MagicMock(return_value=mock_stream)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_open.return_value.__enter__.return_value = mock_file
+        mock_open.return_value = mock_file
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
@@ -144,20 +148,31 @@ class TestRequestsAdapterDownload:
 
     @pytest.mark.asyncio
     @patch("src.macro_infra.requests_adapter.httpx.AsyncClient")
-    @patch("builtins.open", new_callable=MagicMock)
+    @patch("src.macro_infra.requests_adapter.open", new_callable=MagicMock)
     @patch("os.path.exists")
     @patch("os.remove")
     async def test_async_download_file_handles_http_error(
         self, mock_remove, mock_exists, mock_open, mock_client_class
     ):
+        async def chunk_generator():
+            if False:
+                yield b""
+
+        def raise_http_error():
+            raise Exception("HTTP Error")
+
         mock_response = AsyncMock()
-        mock_response.raise_for_status.side_effect = Exception("HTTP Error")
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
+        mock_response.raise_for_status = Mock(side_effect=raise_http_error)
+        mock_response.aiter_bytes = MagicMock(return_value=chunk_generator())
+
+        mock_stream = AsyncMock()
+        mock_stream.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream.__aexit__ = AsyncMock(return_value=None)
 
         mock_client = AsyncMock()
-        mock_client.stream.return_value = mock_response
-        mock_client.__aenter__.return_value = mock_client
+        mock_client.stream = MagicMock(return_value=mock_stream)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
         mock_exists.return_value = True
@@ -178,24 +193,26 @@ class TestRequestsAdapterDownload:
     async def test_async_download_file_handles_disk_write_error(
         self, mock_remove, mock_exists, mock_open, mock_client_class
     ):
-        mock_response = AsyncMock()
-        mock_response.raise_for_status = Mock()
-
         async def chunk_generator():
             yield b"chunk1"
 
-        mock_response.aiter_bytes.return_value = chunk_generator()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
+        mock_response = AsyncMock()
+        mock_response.raise_for_status = Mock()
+        mock_response.aiter_bytes = MagicMock(return_value=chunk_generator())
+
+        mock_stream = AsyncMock()
+        mock_stream.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream.__aexit__ = AsyncMock(return_value=None)
 
         mock_client = AsyncMock()
-        mock_client.stream.return_value = mock_response
-        mock_client.__aenter__.return_value = mock_client
+        mock_client.stream = MagicMock(return_value=mock_stream)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
         mock_file.write.side_effect = OSError("Disk full")
-        mock_open.return_value.__enter__.return_value = mock_file
+        mock_open.return_value = mock_file
 
         mock_exists.return_value = True
 

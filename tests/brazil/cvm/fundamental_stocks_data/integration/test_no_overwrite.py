@@ -2,7 +2,9 @@ import zipfile
 
 import pandas as pd  # type: ignore
 
-from src.macro_infra import Extractor
+from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractor,
+)
 
 
 class TestNoOverwrite:
@@ -43,9 +45,8 @@ class TestNoOverwrite:
 
         print("✓ ZIP with new data created (should be ignored)")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         assert existing_file.exists(), "CRITICAL: File was DELETED!"
 
@@ -87,8 +88,9 @@ class TestNoOverwrite:
                 csv_content = new_data.to_csv(sep=";", index=False)
                 z.writestr("test.csv", csv_content.encode("latin-1"))
 
-            Extractor.extract_zip_to_parquet(
-                chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
+            extractor = ParquetExtractor(chunk_size=50000)
+            extractor.extract(
+                source_path=str(zip_path), destination_dir=str(output_dir)
             )
 
         df_final = pd.read_parquet(parquet_file)
@@ -114,13 +116,10 @@ class TestNoOverwrite:
                 csv_content = data.to_csv(sep=";", index=False)
                 z.writestr("data.csv", csv_content.encode("latin-1"))
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip1), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip1), destination_dir=str(output_dir))
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip2), output_dir=str(output_dir)
-        )
+        extractor.extract(source_path=str(zip2), destination_dir=str(output_dir))
 
         df_result = pd.read_parquet(output_dir / "data.parquet")
 
@@ -147,9 +146,8 @@ class TestNoOverwrite:
             df2 = pd.DataFrame({"id": [10, 20], "new_file": [True] * 2})
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=50000, zip_path=str(zip_path), output_dir=str(output_dir)
-        )
+        extractor = ParquetExtractor(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_file1 = pd.read_parquet(existing_file)
         assert df_file1.equals(existing_data), "CRITICAL: existing file1 was modified!"
