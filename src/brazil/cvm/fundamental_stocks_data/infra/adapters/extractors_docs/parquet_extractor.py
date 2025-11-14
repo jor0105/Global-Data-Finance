@@ -1,4 +1,4 @@
-from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+from src.brazil.cvm.fundamental_stocks_data.application import (
     FileExtractorRepository,
 )
 from src.core import get_logger

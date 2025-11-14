@@ -426,8 +426,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
         zip_path = output_dir / "file.zip"
 
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
+        # Generate 150KB of random data to ensure it passes size validation
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
         csv_data = "col1,col2,col3,col4\n" + "\n".join(
             [
@@ -449,7 +451,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None  # No Content-Length available
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()
@@ -482,12 +488,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
             zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", "col1,col2\n1,2\n")
 
         (output_dir / "file1.parquet").touch()
         (output_dir / "file2.parquet").touch()
@@ -500,7 +508,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()
@@ -534,12 +546,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
             zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", "col1,col2\n1,2\n")
 
         mock_extractor = MagicMock()
         adapter = HttpxAsyncDownloadAdapter(
@@ -549,7 +563,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()
@@ -582,12 +600,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
             zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", "col1,col2\n1,2\n")
 
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = ExtractionError("/tmp/file.zip", "Bad CSV")
@@ -599,7 +619,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()
@@ -629,12 +653,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
             zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", "col1,col2\n1,2\n")
 
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = DiskFullError("/tmp/output")
@@ -646,7 +672,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()
@@ -678,12 +708,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
+        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
-            random.choices(string.ascii_letters + string.digits, k=5000)
+            random.choices(string.ascii_letters + string.digits, k=150_000)
         )
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
             zf.writestr("test.txt", random_data)
+            zf.writestr("data.csv", "col1,col2\n1,2\n")
 
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = RuntimeError("Unexpected error")
@@ -695,7 +727,11 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         async def mock_download_with_retry(url, filepath, doc_name, year):
             return True, None
 
+        async def mock_get_content_length(url):
+            return None
+
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = mock_get_content_length
 
         mock_progress = MagicMock()
         result = DownloadResult()

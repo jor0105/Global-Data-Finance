@@ -1,11 +1,3 @@
-"""
-RequestsAdapter - Full wrapper for the httpx library.
-
-This adapter encapsulates all important httpx functionality,
-allowing the use of synchronous and asynchronous HTTP requests
-without importing httpx directly in the code.
-"""
-
 from typing import Any, Dict, Optional
 
 import httpx
@@ -321,6 +313,36 @@ class RequestsAdapter:
             http2=self.http2,
         ) as client:
             return await client.delete(url, headers=headers, **kwargs)
+
+    async def async_head(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: Optional[float] = None,
+        **kwargs,
+    ) -> httpx.Response:
+        """
+        Asynchronous HEAD request to get headers without downloading body.
+
+        Useful for checking Content-Length, Content-Type, etc. before download.
+
+        Args:
+            url: Request URL
+            headers: Custom headers
+            timeout: Specific timeout for this request
+            **kwargs: Additional httpx arguments
+
+        Returns:
+            httpx.Response: Request response (no body, only headers)
+        """
+        async with httpx.AsyncClient(
+            timeout=timeout or self.timeout,
+            follow_redirects=True,
+            max_redirects=self.max_redirects,
+            verify=self.verify,
+            http2=self.http2,
+        ) as client:
+            return await client.head(url, headers=headers, **kwargs)
 
     async def async_stream_get(
         self,

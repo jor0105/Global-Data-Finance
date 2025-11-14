@@ -21,7 +21,7 @@ start_time = time.time()
 cvm.download(
     destination_path="/home/jordan/Downloads/Docs_Cvm",
     list_docs=[],
-    initial_year=2024,
+    initial_year=2009,
     last_year=2025,
     automatic_extractor=True,
 )
