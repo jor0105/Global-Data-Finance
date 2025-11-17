@@ -1,6 +1,6 @@
 from datetime import date
 
-from src.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinc.brazil.dados_b3.historical_quotes.application.use_cases import (
     GetAvailableYearsUseCase,
 )
 

@@ -3,8 +3,8 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
-    ParquetExtractor,
+from datafinc.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractorCVM,
 )
 
 
@@ -32,7 +32,7 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(csv_zip), destination_dir=str(output_dir))
 
         parquet_file = output_dir / "data.parquet"
@@ -73,7 +73,7 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_result = pd.read_parquet(output_dir / "special.parquet")
@@ -106,7 +106,7 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_result = pd.read_parquet(output_dir / "numeric.parquet")
@@ -131,7 +131,7 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         valid_parquet = output_dir / "valid.parquet"

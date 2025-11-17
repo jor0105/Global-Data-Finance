@@ -1,7 +1,7 @@
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.infra.zip_reader import ZipFileReader
-from src.macro_exceptions import CorruptedZipError, ExtractionError
+from datafinc.brazil.dados_b3.historical_quotes.infra.zip_reader import ZipFileReader
+from datafinc.macro_exceptions import CorruptedZipError, ExtractionError
 
 
 class TestZipFileReader:

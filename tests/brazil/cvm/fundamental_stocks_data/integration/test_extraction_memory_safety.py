@@ -4,8 +4,8 @@ import pandas as pd  # type: ignore
 import psutil  # type: ignore
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
-    ParquetExtractor,
+from datafinc.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractorCVM,
 )
 
 
@@ -42,7 +42,7 @@ class TestMemorySafety:
 
         mem_before = process.memory_info().rss / 1024 / 1024
 
-        extractor = ParquetExtractor(chunk_size=10_000)
+        extractor = ParquetExtractorCVM(chunk_size=10_000)
         extractor.extract(
             source_path=str(large_csv_zip),
             destination_dir=str(output_dir),
@@ -100,7 +100,7 @@ class TestMemorySafety:
         mem_readings = []
 
         for i, zip_file in enumerate(zip_files):
-            extractor = ParquetExtractor(chunk_size=10_000)
+            extractor = ParquetExtractorCVM(chunk_size=10_000)
             extractor.extract(
                 source_path=str(zip_file), destination_dir=str(output_dir)
             )

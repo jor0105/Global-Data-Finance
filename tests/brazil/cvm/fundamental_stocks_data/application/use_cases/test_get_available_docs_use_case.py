@@ -3,34 +3,34 @@ from unittest.mock import patch
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    AvailableDocs,
-    GetAvailableDocsUseCase,
+from datafinc.brazil.cvm.fundamental_stocks_data import (
+    AvailableDocsCVM,
+    GetAvailableDocsUseCaseCVM,
 )
 
 
 @pytest.mark.unit
 class TestGetAvailableDocsUseCase:
     def test_initialization_succeeds(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         assert use_case is not None
 
     def test_initialization_creates_available_docs_instance(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         assert hasattr(use_case, "_GetAvailableDocsUseCase__available_docs")
 
     def test_execute_returns_dict(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
         assert isinstance(result, dict)
 
     def test_execute_returns_non_empty_dict(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
         assert len(result) > 0
 
     def test_execute_returns_expected_document_types(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         expected_docs = ["DFP", "ITR", "FRE", "FCA", "CGVN", "IPE", "VLMO"]
@@ -38,12 +38,12 @@ class TestGetAvailableDocsUseCase:
             assert doc in result, f"Expected document '{doc}' not found in results"
 
     def test_execute_returns_exact_document_count(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
         assert len(result) == 7
 
     def test_execute_all_values_are_strings(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         for key, value in result.items():
@@ -51,21 +51,21 @@ class TestGetAvailableDocsUseCase:
             assert isinstance(value, str)
 
     def test_execute_all_keys_are_uppercase(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         for key in result.keys():
             assert key.isupper()
 
     def test_execute_values_are_non_empty(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         for key, value in result.items():
             assert len(value) > 0
 
     def test_execute_returns_copy_not_reference(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result1 = use_case.execute()
         result2 = use_case.execute()
 
@@ -73,7 +73,7 @@ class TestGetAvailableDocsUseCase:
         assert "TEST" not in result2
 
     def test_execute_returns_consistent_results(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result1 = use_case.execute()
         result2 = use_case.execute()
 
@@ -81,12 +81,12 @@ class TestGetAvailableDocsUseCase:
 
     def test_initialization_logs_debug_message(self, caplog):
         with caplog.at_level(logging.DEBUG):
-            GetAvailableDocsUseCase()
+            GetAvailableDocsUseCaseCVM()
 
         assert any("initialized" in record.message.lower() for record in caplog.records)
 
     def test_execute_logs_info_message(self, caplog):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with caplog.at_level(logging.INFO):
             use_case.execute()
@@ -94,7 +94,7 @@ class TestGetAvailableDocsUseCase:
         assert any("retrieving" in record.message.lower() for record in caplog.records)
 
     def test_execute_logs_debug_message_on_success(self, caplog):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with caplog.at_level(logging.DEBUG):
             use_case.execute()
@@ -102,7 +102,7 @@ class TestGetAvailableDocsUseCase:
         assert any("retrieved" in record.message.lower() for record in caplog.records)
 
     def test_execute_raises_exception_when_available_docs_fails(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -113,7 +113,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_logs_error_on_exception(self, caplog):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -127,7 +127,7 @@ class TestGetAvailableDocsUseCase:
             assert any("failed" in record.message.lower() for record in caplog.records)
 
     def test_execute_raises_runtime_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -138,7 +138,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_raises_value_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -149,7 +149,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_raises_timeout_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -160,7 +160,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_raises_type_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -171,7 +171,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_returns_specific_doc_descriptions(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         assert len(result["DFP"]) > 20
@@ -179,8 +179,8 @@ class TestGetAvailableDocsUseCase:
         assert len(result["FRE"]) > 20
 
     def test_multiple_instances_are_independent(self):
-        use_case1 = GetAvailableDocsUseCase()
-        use_case2 = GetAvailableDocsUseCase()
+        use_case1 = GetAvailableDocsUseCaseCVM()
+        use_case2 = GetAvailableDocsUseCaseCVM()
 
         result1 = use_case1.execute()
         result2 = use_case2.execute()
@@ -189,7 +189,7 @@ class TestGetAvailableDocsUseCase:
         assert use_case1 is not use_case2
 
     def test_execute_returns_immutable_data(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         result1 = use_case.execute()
         result1.clear()
@@ -198,16 +198,16 @@ class TestGetAvailableDocsUseCase:
         assert len(result2) == 7
 
     def test_execute_with_available_docs_instance(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
-        available_docs = AvailableDocs()
+        available_docs = AvailableDocsCVM()
         expected_result = available_docs.get_available_docs()
 
         assert result == expected_result
 
     def test_execute_dfp_document_exists_and_valid(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         assert "DFP" in result
@@ -215,7 +215,7 @@ class TestGetAvailableDocsUseCase:
         assert len(result["DFP"]) > 0
 
     def test_execute_all_documents_have_valid_structure(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         required_docs = ["DFP", "ITR", "FRE", "FCA", "CGVN", "IPE", "VLMO"]
@@ -225,7 +225,7 @@ class TestGetAvailableDocsUseCase:
             assert len(result[doc]) > 10
 
     def test_execute_returns_mocked_data(self):
-        use_case_instance = GetAvailableDocsUseCase()
+        use_case_instance = GetAvailableDocsUseCaseCVM()
         mock_data = {"TEST": "Test document"}
 
         with patch.object(
@@ -237,7 +237,7 @@ class TestGetAvailableDocsUseCase:
             assert result == mock_data
 
     def test_execute_with_empty_dict_from_available_docs(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -249,7 +249,7 @@ class TestGetAvailableDocsUseCase:
             assert isinstance(result, dict)
 
     def test_execute_with_large_dataset(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         large_mock_data = {f"DOC_{i}": f"Description {i}" for i in range(1000)}
 
         with patch.object(
@@ -262,7 +262,7 @@ class TestGetAvailableDocsUseCase:
             assert isinstance(result, dict)
 
     def test_execute_propagates_generic_exception(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -273,7 +273,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_propagates_attribute_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -284,7 +284,7 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_propagates_os_error(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
             use_case._GetAvailableDocsUseCase__available_docs,
@@ -295,19 +295,19 @@ class TestGetAvailableDocsUseCase:
                 use_case.execute()
 
     def test_execute_return_type_is_dict(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
         assert isinstance(result, dict)
 
     def test_execute_with_special_characters_in_values(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result = use_case.execute()
 
         for key, value in result.items():
             assert isinstance(value, str)
 
     def test_execute_dict_keys_remain_constant(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         keys1 = set(use_case.execute().keys())
         keys2 = set(use_case.execute().keys())
         keys3 = set(use_case.execute().keys())
@@ -315,7 +315,7 @@ class TestGetAvailableDocsUseCase:
         assert keys1 == keys2 == keys3
 
     def test_execute_dict_values_remain_constant(self):
-        use_case = GetAvailableDocsUseCase()
+        use_case = GetAvailableDocsUseCaseCVM()
         result1 = use_case.execute()
         result2 = use_case.execute()
         result3 = use_case.execute()

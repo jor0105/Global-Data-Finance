@@ -1,7 +1,9 @@
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.domain import DocsToExtractor
-from src.brazil.dados_b3.historical_quotes.domain.builders import DocsToExtractorBuilder
+from datafinc.brazil.dados_b3.historical_quotes.domain import DocsToExtractorB3
+from datafinc.brazil.dados_b3.historical_quotes.domain.builders import (
+    DocsToExtractorBuilder,
+)
 
 
 class TestDocsToExtractorBuilder:
@@ -22,7 +24,7 @@ class TestDocsToExtractorBuilder:
             .build()
         )
 
-        assert isinstance(result, DocsToExtractor)
+        assert isinstance(result, DocsToExtractorB3)
         assert result.path_of_docs == path_of_docs
         assert result.set_assets == set_assets
         assert result.range_years == range_years
@@ -40,7 +42,7 @@ class TestDocsToExtractorBuilder:
             .build()
         )
 
-        assert isinstance(result, DocsToExtractor)
+        assert isinstance(result, DocsToExtractorB3)
         assert result.set_documents_to_download == set()
 
     def test_build_fails_without_path_of_docs(self):

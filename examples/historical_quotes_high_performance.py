@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import time
 
-from src.core import setup_logging
-from src.presentation import HistoricalQuotes
+from datafinc import HistoricalQuotes
+from src.datafinc.core import setup_logging
 
 setup_logging(level="ERROR")
 

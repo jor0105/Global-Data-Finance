@@ -2,10 +2,10 @@ from datetime import date
 
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinc.brazil.dados_b3.historical_quotes.application.use_cases import (
     CreateRangeYearsUseCase,
 )
-from src.brazil.dados_b3.historical_quotes.domain.exceptions import (
+from datafinc.brazil.dados_b3.historical_quotes.domain.exceptions import (
     InvalidFirstYear,
     InvalidLastYear,
 )

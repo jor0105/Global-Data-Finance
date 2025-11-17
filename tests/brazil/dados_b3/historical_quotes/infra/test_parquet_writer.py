@@ -3,9 +3,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.infra.parquet_writer import ParquetWriter
-from src.core import ResourceState
-from src.macro_exceptions import DiskFullError
+from datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer import (
+    ParquetWriter,
+)
+from datafinc.core import ResourceState
+from datafinc.macro_exceptions import DiskFullError
 
 
 class FakeDataFrame:
@@ -63,7 +65,7 @@ class WriterResourceMonitor:
 @pytest.fixture(autouse=True)
 def fake_polars(monkeypatch):
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.pl",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.pl",
         FakePolarsModule,
     )
 
@@ -84,7 +86,7 @@ async def test_parquet_writer_raises_on_memory_exhaustion(monkeypatch, tmp_path)
     writer = ParquetWriter(resource_monitor=monitor)
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -109,7 +111,7 @@ async def test_parquet_writer_overwrite_mode(monkeypatch, tmp_path):
         fake_write,
     )
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -132,7 +134,7 @@ async def test_parquet_writer_append_uses_streaming(monkeypatch, tmp_path):
 
     monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -159,7 +161,7 @@ async def test_parquet_writer_append_uses_streaming_when_low_memory(
 
     monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -174,7 +176,7 @@ async def test_parquet_writer_append_uses_streaming_when_low_memory(
 def test_parquet_writer_check_disk_space_raises(monkeypatch, tmp_path):
     free_space = (ParquetWriter.MIN_FREE_SPACE_MB - 10) * 1024 * 1024
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.shutil.disk_usage",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.shutil.disk_usage",
         lambda _path: SimpleNamespace(free=free_space),
     )
 
@@ -192,7 +194,7 @@ async def test_parquet_writer_translates_oserror_disk_full(monkeypatch, tmp_path
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -210,7 +212,7 @@ async def test_parquet_writer_raises_ioerror_for_other_oserror(monkeypatch, tmp_
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -230,7 +232,7 @@ async def test_parquet_writer_propagates_unexpected_exception(monkeypatch, tmp_p
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 

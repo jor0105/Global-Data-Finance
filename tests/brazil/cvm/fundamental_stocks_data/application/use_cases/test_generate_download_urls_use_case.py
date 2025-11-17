@@ -1,7 +1,7 @@
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    GenerateUrlsUseCase,
+from datafinc.brazil.cvm.fundamental_stocks_data import (
+    GenerateUrlsUseCaseCVM,
     InvalidDocName,
     InvalidFirstYear,
     InvalidLastYear,
@@ -11,7 +11,7 @@ from src.brazil.cvm.fundamental_stocks_data import (
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseSuccess:
     def test_generate_urls_for_single_doc_single_year(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2023, last_year=2023
         )
@@ -22,7 +22,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert "dfp_cia_aberta" in urls["DFP"][0].lower()
 
     def test_generate_urls_for_single_doc_multiple_years(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2020, last_year=2023
         )
@@ -36,7 +36,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert len(years_in_urls) == 4
 
     def test_generate_urls_for_multiple_docs_single_year(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP", "ITR"], initial_year=2023, last_year=2023
@@ -49,7 +49,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert len(urls["ITR"]) == 1
 
     def test_generate_urls_for_multiple_docs_multiple_years(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP", "ITR", "FRE"], initial_year=2020, last_year=2022
@@ -66,7 +66,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert len(urls["FRE"]) == 3
 
     def test_generate_urls_contains_valid_cvm_url_pattern(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2023, last_year=2023
@@ -78,7 +78,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert "2023.zip" in url
 
     def test_generate_urls_for_all_available_doc_types(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         all_docs = ["CGVN", "FRE", "FCA", "DFP", "ITR", "IPE", "VLMO"]
         urls, _ = generator.execute(
@@ -91,7 +91,7 @@ class TestGenerateUrlsUseCaseSuccess:
             assert len(urls[doc]) > 0
 
     def test_generate_urls_returns_correct_year_count(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         start = 2015
         end = 2023
@@ -104,7 +104,7 @@ class TestGenerateUrlsUseCaseSuccess:
         assert len(urls["DFP"]) == expected_count
 
     def test_generate_urls_for_minimum_year_range(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2010, last_year=2012
@@ -117,7 +117,7 @@ class TestGenerateUrlsUseCaseSuccess:
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseDocTypeErrors:
     def test_generate_urls_with_invalid_doc_type_raises_error(self):
-        use_case = GenerateUrlsUseCase()
+        use_case = GenerateUrlsUseCaseCVM()
 
         with pytest.raises(InvalidDocName):
             use_case.execute(
@@ -125,7 +125,7 @@ class TestGenerateUrlsUseCaseDocTypeErrors:
             )
 
     def test_generate_urls_with_mixed_valid_invalid_raises_error(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         with pytest.raises(InvalidDocName):
             generator.execute(
@@ -136,7 +136,7 @@ class TestGenerateUrlsUseCaseDocTypeErrors:
         pass
 
     def test_generate_urls_with_none_doc_type_uses_all_docs(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         # None should download all available docs
         urls, new_set_docs = generator.execute(
@@ -151,25 +151,25 @@ class TestGenerateUrlsUseCaseDocTypeErrors:
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseYearErrors:
     def test_generate_urls_with_start_year_too_old_raises_error(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         with pytest.raises(InvalidFirstYear):
             generator.execute(list_docs=["DFP"], initial_year=1990, last_year=2020)
 
     def test_generate_urls_with_future_end_year_raises_error(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         with pytest.raises(InvalidLastYear):
             generator.execute(list_docs=["DFP"], initial_year=2020, last_year=2050)
 
     def test_generate_urls_with_start_greater_than_end_raises_error(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         with pytest.raises(InvalidLastYear):
             generator.execute(list_docs=["DFP"], initial_year=2023, last_year=2020)
 
     def test_generate_urls_with_non_integer_year_raises_error(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         with pytest.raises((TypeError, InvalidFirstYear)):
             generator.execute(
@@ -182,7 +182,7 @@ class TestGenerateUrlsUseCaseYearErrors:
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseEdgeCases:
     def test_generate_urls_preserves_doc_type_order(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         doc_types = ["ITR", "DFP", "FRE"]  # Non-alphabetical
         urls, _ = generator.execute(
@@ -193,7 +193,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
         assert list(urls.keys()) == doc_types
 
     def test_generate_urls_handles_case_insensitive_docs(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         # Lowercase should work (gets normalized)
         urls, _ = generator.execute(
@@ -205,7 +205,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
         assert len(urls) == 2
 
     def test_generate_urls_returns_unique_urls(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2020, last_year=2023
@@ -215,7 +215,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
         assert len(url_list) == len(set(url_list))  # No duplicates
 
     def test_generate_urls_large_year_range(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2010, last_year=2024
@@ -224,7 +224,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
         assert len(urls["DFP"]) == 15  # 2010-2024 inclusive
 
     def test_generate_urls_multiple_calls_consistent(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls1, _ = generator.execute(
             list_docs=["DFP", "ITR"], initial_year=2020, last_year=2022
@@ -240,7 +240,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseIntegration:
     def test_generate_urls_uses_dict_zips_to_download(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP"], initial_year=2023, last_year=2023
@@ -252,7 +252,7 @@ class TestGenerateUrlsUseCaseIntegration:
         assert all(isinstance(url, str) for url in urls["DFP"])
 
     def test_generate_urls_all_urls_are_valid_http(self):
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         urls, _ = generator.execute(
             list_docs=["DFP", "ITR"], initial_year=2022, last_year=2023
@@ -268,7 +268,7 @@ class TestGenerateUrlsUseCaseIntegration:
 
         caplog.set_level(logging.INFO)
 
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
         generator.execute(list_docs=["DFP"], initial_year=2023, last_year=2023)
 
         # Check that info log was generated
@@ -280,7 +280,7 @@ class TestGenerateUrlsUseCasePerformance:
     def test_generate_urls_performance_many_docs_and_years(self):
         import time
 
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         start_time = time.time()
         urls, _ = generator.execute(
@@ -300,7 +300,7 @@ class TestGenerateUrlsUseCasePerformance:
     def test_generate_urls_memory_efficiency(self):
         import sys
 
-        generator = GenerateUrlsUseCase()
+        generator = GenerateUrlsUseCaseCVM()
 
         # Generate many URLs
         urls, _ = generator.execute(

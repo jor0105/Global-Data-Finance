@@ -1,7 +1,7 @@
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
-from src.brazil.dados_b3.historical_quotes.infra.extraction_service_factory import (
+from datafinc.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
+from datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service_factory import (
     ExtractionServiceFactory,
 )
 
@@ -22,7 +22,7 @@ def test_extraction_service_factory_creates_fast_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
         FakeService,
     )
 
@@ -53,7 +53,7 @@ def test_extraction_service_factory_creates_slow_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
         FakeService,
     )
 

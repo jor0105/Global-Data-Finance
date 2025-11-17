@@ -4,7 +4,7 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from src.presentation import HistoricalQuotes
+from datafinc.application import HistoricalQuotes
 
 
 class TestFastModeExtraction:

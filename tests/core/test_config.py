@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 
 def test_defaults_imported_settings():
-    from src.core import config
+    from datafinc.core import config
 
     settings = config.settings
 
@@ -19,7 +19,7 @@ def test_defaults_imported_settings():
 def test_env_overrides_reflect_after_reload(monkeypatch):
     monkeypatch.setenv("DATAFIN_NETWORK_TIMEOUT", "60")
 
-    from src.core import config as cfg_mod
+    from datafinc.core import config as cfg_mod
 
     importlib.reload(cfg_mod)
 
@@ -28,7 +28,7 @@ def test_env_overrides_reflect_after_reload(monkeypatch):
 
 
 def test_network_settings_bounds_validation():
-    from src.core.config import NetworkSettings
+    from datafinc.core.config import NetworkSettings
 
     with pytest.raises(ValidationError):
         NetworkSettings(timeout=10)

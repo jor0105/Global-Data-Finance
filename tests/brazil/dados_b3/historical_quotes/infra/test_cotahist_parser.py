@@ -3,7 +3,9 @@ from decimal import Decimal
 
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.infra.cotahist_parser import CotahistParser
+from datafinc.brazil.dados_b3.historical_quotes.infra.cotahist_parser import (
+    CotahistParser,
+)
 
 
 class TestCotahistParser:

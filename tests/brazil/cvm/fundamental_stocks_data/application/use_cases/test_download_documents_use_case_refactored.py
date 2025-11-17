@@ -3,33 +3,33 @@ import tempfile
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    DownloadDocsCVMRepository,
-    DownloadDocumentsUseCase,
-    DownloadResult,
+from datafinc.brazil.cvm.fundamental_stocks_data import (
+    DownloadDocsCVMRepositoryCVM,
+    DownloadDocumentsUseCaseCVM,
+    DownloadResultCVM,
     InvalidDocName,
     InvalidFirstYear,
     InvalidRepositoryTypeError,
 )
 
 
-class MockRepository(DownloadDocsCVMRepository):
+class MockRepository(DownloadDocsCVMRepositoryCVM):
     def __init__(self):
         self.download_docs_called = False
         self.last_tasks = None
 
-    def download_docs(self, tasks: list) -> DownloadResult:
+    def download_docs(self, tasks: list) -> DownloadResultCVM:
         self.download_docs_called = True
         self.last_tasks = tasks
 
-        return DownloadResult(successful_downloads=["DFP_2020", "DFP_2021"])
+        return DownloadResultCVM(successful_downloads=["DFP_2020", "DFP_2021"])
 
 
 @pytest.mark.unit
 class TestDownloadDocumentsUseCaseOrchestration:
     def test_orchestrator_calls_repository(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -44,7 +44,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_passes_validated_data_to_repository(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -66,7 +66,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_returns_download_result(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -75,7 +75,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
             last_year=2023,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert result.success_count_downloads > 0
 
     def test_orchestrator_creates_directory_via_validator(self):
@@ -83,7 +83,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
             new_path = os.path.join(tmpdir, "new_dir")
 
             mock_repo = MockRepository()
-            use_case = DownloadDocumentsUseCase(mock_repo)
+            use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
                 destination_path=new_path,
@@ -96,7 +96,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_generates_correct_tasks(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -116,7 +116,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_respects_year_constraints_for_itr(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -133,7 +133,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_respects_year_constraints_for_cgvn(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -154,7 +154,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 class TestDownloadDocumentsUseCaseBackwardCompatibility:
     def test_same_interface_as_before(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -163,11 +163,11 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
             last_year=2023,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
     def test_handles_none_doc_types(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -176,12 +176,12 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
             last_year=2020,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert len(mock_repo.last_tasks) > 1
 
     def test_handles_none_years(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -190,7 +190,7 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
             last_year=None,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert mock_repo.download_docs_called
 
     def test_creates_directory_if_not_exists(self):
@@ -198,7 +198,7 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
             new_path = os.path.join(tmpdir, "new_dir")
 
             mock_repo = MockRepository()
-            use_case = DownloadDocumentsUseCase(mock_repo)
+            use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
                 destination_path=new_path,
@@ -214,7 +214,7 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
 class TestDownloadDocumentsUseCaseErrorHandling:
     def test_validation_error_stops_execution(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         with pytest.raises(InvalidDocName):
             use_case.execute(
@@ -228,7 +228,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
 
     def test_invalid_year_error_stops_execution(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         with pytest.raises(InvalidFirstYear):
             use_case.execute(
@@ -241,12 +241,12 @@ class TestDownloadDocumentsUseCaseErrorHandling:
         assert not mock_repo.download_docs_called
 
     def test_repository_error_is_propagated(self, tmp_path):
-        class ErrorRepository(DownloadDocsCVMRepository):
+        class ErrorRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(self, tasks):
                 raise RuntimeError("Download failed")
 
         error_repo = ErrorRepository()
-        use_case = DownloadDocumentsUseCase(error_repo)
+        use_case = DownloadDocumentsUseCaseCVM(error_repo)
 
         with pytest.raises(RuntimeError, match="Download failed"):
             use_case.execute(
@@ -261,7 +261,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
 class TestDownloadDocumentsUseCaseInitialization:
     def test_init_with_valid_repository(self):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         assert use_case is not None
         assert use_case._DownloadDocumentsUseCase__repository is mock_repo
@@ -271,15 +271,15 @@ class TestDownloadDocumentsUseCaseInitialization:
             InvalidRepositoryTypeError,
             match="The repository must be a valid repository instance",
         ):
-            DownloadDocumentsUseCase("not a repository")
+            DownloadDocumentsUseCaseCVM("not a repository")
 
     def test_init_with_none_repository_raises_error(self):
         with pytest.raises(InvalidRepositoryTypeError):
-            DownloadDocumentsUseCase(None)
+            DownloadDocumentsUseCaseCVM(None)
 
     def test_init_creates_sub_use_cases(self):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         assert hasattr(use_case, "_DownloadDocumentsUseCase__url_generator")
         assert hasattr(use_case, "_DownloadDocumentsUseCase__range_years_generator")
@@ -295,7 +295,7 @@ class TestDownloadDocumentsUseCaseLogging:
         caplog.set_level(logging.INFO)
 
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -314,7 +314,7 @@ class TestDownloadDocumentsUseCaseLogging:
         caplog.set_level(logging.INFO)
 
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -330,7 +330,7 @@ class TestDownloadDocumentsUseCaseLogging:
 class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
     def test_full_integration_with_real_sub_use_cases(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -339,7 +339,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
             last_year=2023,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
         assert len(mock_repo.last_tasks) == 2
 
@@ -351,7 +351,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
 
     def test_integration_with_multiple_docs_and_years(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -360,7 +360,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
             last_year=2022,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
         assert len(mock_repo.last_tasks) == 9
 
@@ -372,7 +372,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
 class TestDownloadDocumentsUseCaseTaskPreparation:
     def test_tasks_contain_correct_structure(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -395,7 +395,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
     def test_tasks_match_years_from_docs_paths(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -412,7 +412,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
     def test_tasks_urls_match_years(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -428,7 +428,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
     def test_tasks_destination_paths_are_valid(self, tmp_path):
         """Destination paths in tasks should exist and be writable."""
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -448,7 +448,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         import logging
 
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         with caplog.at_level(logging.WARNING):
             result = use_case.execute(
@@ -458,11 +458,11 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
                 last_year=2020,
             )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
     def test_tasks_with_all_document_types(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         all_docs = ["CGVN", "FRE", "FCA", "DFP", "ITR", "IPE", "VLMO"]
 
@@ -479,7 +479,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
     def test_task_urls_contain_correct_doc_type(self, tmp_path):
         """URL should contain the correct document type identifier."""
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -496,7 +496,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
     def test_task_urls_end_with_zip(self, tmp_path):
         """All task URLs should end with .zip extension."""
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -511,7 +511,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
     def test_tasks_for_multiple_years_ordered_correctly(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -529,7 +529,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
     def test_tasks_preserve_absolute_paths(self, tmp_path):
         """All destination paths in tasks should be absolute."""
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -544,7 +544,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
     def test_empty_tasks_when_no_valid_years(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         result = use_case.execute(
             destination_path=str(tmp_path),
@@ -553,12 +553,12 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
             last_year=2017,
         )
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert len(mock_repo.last_tasks) == 0
 
     def test_tasks_count_matches_valid_years_count(self, tmp_path):
         mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCase(mock_repo)
+        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         use_case.execute(
             destination_path=str(tmp_path),

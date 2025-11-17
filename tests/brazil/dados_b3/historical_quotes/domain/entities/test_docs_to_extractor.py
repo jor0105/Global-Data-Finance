@@ -1,4 +1,4 @@
-from src.brazil.dados_b3.historical_quotes.domain import DocsToExtractor
+from datafinc.brazil.dados_b3.historical_quotes.domain import DocsToExtractorB3
 
 
 class TestDocsToExtractor:
@@ -8,7 +8,7 @@ class TestDocsToExtractor:
         range_years = range(2020, 2024)
         destination_path = "/path/to/output"
         set_documents = {"COTAHIST_A2020.ZIP", "COTAHIST_A2021.ZIP"}
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -26,7 +26,7 @@ class TestDocsToExtractor:
         set_assets = {"ações"}
         range_years = range(2020, 2021)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -39,7 +39,7 @@ class TestDocsToExtractor:
         set_assets = set()
         range_years = range(2020, 2024)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -52,7 +52,7 @@ class TestDocsToExtractor:
         set_assets = {"ações"}
         range_years = range(2020, 2021)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -65,7 +65,7 @@ class TestDocsToExtractor:
         set_assets = {"ações"}
         range_years = range(2020, 2020)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -78,17 +78,17 @@ class TestDocsToExtractor:
         set_assets = {"ações"}
         range_years = range(2020, 2024)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
             destination_path=destination_path,
         )
-        assert "DocsToExtractor" in repr(docs)
+        assert "DocsToExtractorB3" in repr(docs)
         assert path_of_docs in repr(docs)
 
     def test_docs_to_extractor_fields_are_mutable(self):
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs="/path/to/docs",
             set_assets={"ações"},
             range_years=range(2020, 2024),
@@ -110,7 +110,7 @@ class TestDocsToExtractor:
         destination_path = "/output/path/with.dots/and@symbols"
         set_assets = {"ações"}
         range_years = range(2020, 2021)
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -132,7 +132,7 @@ class TestDocsToExtractor:
         }
         range_years = range(2020, 2024)
         destination_path = "/path/to/output"
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -147,7 +147,7 @@ class TestDocsToExtractor:
         range_years = range(1986, 2025)
         destination_path = "/path/to/output"
         set_documents = {f"COTAHIST_A{year}.ZIP" for year in range(1986, 2025)}
-        docs = DocsToExtractor(
+        docs = DocsToExtractorB3(
             path_of_docs=path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
@@ -159,13 +159,13 @@ class TestDocsToExtractor:
         assert "COTAHIST_A2024.ZIP" in docs.set_documents_to_download
 
     def test_docs_to_extractor_equality(self):
-        docs1 = DocsToExtractor(
+        docs1 = DocsToExtractorB3(
             path_of_docs="/path/to/docs",
             set_assets={"ações"},
             range_years=range(2020, 2024),
             destination_path="/path/to/output",
         )
-        docs2 = DocsToExtractor(
+        docs2 = DocsToExtractorB3(
             path_of_docs="/path/to/docs",
             set_assets={"ações"},
             range_years=range(2020, 2024),
@@ -174,13 +174,13 @@ class TestDocsToExtractor:
         assert docs1 == docs2
 
     def test_docs_to_extractor_inequality(self):
-        docs1 = DocsToExtractor(
+        docs1 = DocsToExtractorB3(
             path_of_docs="/path/to/docs",
             set_assets={"ações"},
             range_years=range(2020, 2024),
             destination_path="/path/to/output",
         )
-        docs2 = DocsToExtractor(
+        docs2 = DocsToExtractorB3(
             path_of_docs="/different/path",
             set_assets={"etf"},
             range_years=range(2021, 2023),

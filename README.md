@@ -117,7 +117,7 @@ A biblioteca suporta os seguintes tipos de documentos CVM:
 
 DataFinance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
 
-#### 1. **HttpxAsyncDownloadAdapter** (Recomendado) ⭐
+#### 1. **HttpxAsyncDownloadAdapterCVM** (Recomendado) ⭐
 
 - **Velocidade**: 3-5x mais rápido que wget
 - **Características**: Paralelo (8 workers), sem dependências externas
@@ -160,10 +160,10 @@ brew install aria2
 
 ```python
 from src.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
-from src.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCase
+from src.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
 
 adapter = Aria2cAdapter(max_concurrent_downloads=16)
-use_case = DownloadDocumentsUseCase(adapter)
+use_case = DownloadDocumentsUseCaseCVM(adapter)
 result = use_case.execute(
     destination_path="/data",
     doc_types=["DFP", "ITR"],
@@ -180,11 +180,11 @@ result = use_case.execute(
 
 ### Comparação de Performance
 
-| Adapter                       | Velocidade       | Dependências | Melhor Para        |
-| ----------------------------- | ---------------- | ------------ | ------------------ |
-| **WgetDownloadAdapter**       | ⭐ 1x (baseline) | wget         | Compatibilidade    |
-| **HttpxAsyncDownloadAdapter** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
-| **Aria2cAdapter**             | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
+| Adapter                          | Velocidade       | Dependências | Melhor Para        |
+| -------------------------------- | ---------------- | ------------ | ------------------ |
+| **WgetDownloadAdapter**          | ⭐ 1x (baseline) | wget         | Compatibilidade    |
+| **HttpxAsyncDownloadAdapterCVM** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
+| **Aria2cAdapter**                | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
 
 ### Documentação Detalhada de Adapters
 
@@ -274,12 +274,12 @@ result = adapter.download_docs(path, dict_zips)
 # Interface abstrata
 class DownloadDocsCVMRepository(ABC):
     @abstractmethod
-    def download_docs(...) -> DownloadResult:
+    def download_docs(...) -> DownloadResultCVM:
         pass
 
 # Implementação
 class WgetDownloadAdapter(DownloadDocsCVMRepository):
-    def download_docs(...) -> DownloadResult:
+    def download_docs(...) -> DownloadResultCVM:
         # Implementação concreta
 ```
 
@@ -294,7 +294,7 @@ dict_zips = dict_generator.get_dict_zips_to_download(...)
 #### 3. **Result Pattern**
 
 ```python
-# DownloadResult encapsula sucesso e erros
+# DownloadResultCVM encapsula sucesso e erros
 result = adapter.download_docs(...)
 if not result.has_errors:
     # Processar sucessos

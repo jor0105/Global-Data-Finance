@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from src.core.logging_config import (
+from datafinc.core.logging_config import (
     get_logger,
     log_execution_time,
     log_with_context,

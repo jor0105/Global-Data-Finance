@@ -3,57 +3,59 @@ from typing import List, Tuple
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    DownloadDocsCVMRepository,
-    DownloadResult,
+from datafinc.brazil.cvm.fundamental_stocks_data import (
+    DownloadDocsCVMRepositoryCVM,
+    DownloadResultCVM,
 )
 
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryInterface:
     def test_is_abstract_base_class(self):
-        assert issubclass(DownloadDocsCVMRepository, ABC)
+        assert issubclass(DownloadDocsCVMRepositoryCVM, ABC)
 
     def test_has_download_docs_method(self):
-        assert hasattr(DownloadDocsCVMRepository, "download_docs")
+        assert hasattr(DownloadDocsCVMRepositoryCVM, "download_docs")
 
     def test_cannot_instantiate_directly(self):
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            DownloadDocsCVMRepository()
+            DownloadDocsCVMRepositoryCVM()
 
     def test_download_docs_is_abstract_method(self):
-        assert hasattr(DownloadDocsCVMRepository.download_docs, "__isabstractmethod__")
-        assert DownloadDocsCVMRepository.download_docs.__isabstractmethod__
+        assert hasattr(
+            DownloadDocsCVMRepositoryCVM.download_docs, "__isabstractmethod__"
+        )
+        assert DownloadDocsCVMRepositoryCVM.download_docs.__isabstractmethod__
 
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryContract:
     def test_concrete_implementation_must_implement_download_docs(self):
-        class IncompleteRepository(DownloadDocsCVMRepository):
+        class IncompleteRepository(DownloadDocsCVMRepositoryCVM):
             pass
 
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             IncompleteRepository()
 
     def test_concrete_implementation_with_download_docs_works(self):
-        class CompleteRepository(DownloadDocsCVMRepository):
+        class CompleteRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repository = CompleteRepository()
-        assert isinstance(repository, DownloadDocsCVMRepository)
+        assert isinstance(repository, DownloadDocsCVMRepositoryCVM)
         assert callable(repository.download_docs)
 
     def test_download_docs_method_signature(self):
-        class ConcreteRepository(DownloadDocsCVMRepository):
+        class ConcreteRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repository = ConcreteRepository()
         assert repository.download_docs.__code__.co_argcount == 2
@@ -62,39 +64,39 @@ class TestDownloadDocsCVMRepositoryContract:
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryDocumentation:
     def test_class_has_docstring(self):
-        assert DownloadDocsCVMRepository.__doc__ is not None
-        assert len(DownloadDocsCVMRepository.__doc__) > 0
+        assert DownloadDocsCVMRepositoryCVM.__doc__ is not None
+        assert len(DownloadDocsCVMRepositoryCVM.__doc__) > 0
 
     def test_download_docs_method_has_docstring(self):
-        assert DownloadDocsCVMRepository.download_docs.__doc__ is not None
-        assert len(DownloadDocsCVMRepository.download_docs.__doc__) > 0
+        assert DownloadDocsCVMRepositoryCVM.download_docs.__doc__ is not None
+        assert len(DownloadDocsCVMRepositoryCVM.download_docs.__doc__) > 0
 
     def test_docstring_mentions_download(self):
-        doc = DownloadDocsCVMRepository.__doc__
+        doc = DownloadDocsCVMRepositoryCVM.__doc__
         assert "download" in doc.lower() or "cvm" in doc.lower()
 
     def test_download_docs_docstring_mentions_parameters(self):
-        doc = DownloadDocsCVMRepository.download_docs.__doc__
+        doc = DownloadDocsCVMRepositoryCVM.download_docs.__doc__
         assert "tasks" in doc.lower() or "url" in doc.lower()
 
     def test_download_docs_docstring_mentions_return(self):
-        doc = DownloadDocsCVMRepository.download_docs.__doc__
+        doc = DownloadDocsCVMRepositoryCVM.download_docs.__doc__
         assert "return" in doc.lower() or "downloadresult" in doc.lower()
 
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryConcreteImplementations:
     def test_simple_concrete_repository(self):
-        class SimpleRepository(DownloadDocsCVMRepository):
+        class SimpleRepository(DownloadDocsCVMRepositoryCVM):
             def __init__(self):
                 self.downloads = []
 
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
+            ) -> DownloadResultCVM:
                 self.downloads.append(tasks)
-                return DownloadResult()
+                return DownloadResultCVM()
 
         repository = SimpleRepository()
         tasks = [
@@ -104,17 +106,17 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 
         result = repository.download_docs(tasks)
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert len(repository.downloads) == 1
         assert repository.downloads[0] == tasks
 
     def test_repository_with_successful_downloads(self):
-        class SuccessRepository(DownloadDocsCVMRepository):
+        class SuccessRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                result = DownloadResult()
+            ) -> DownloadResultCVM:
+                result = DownloadResultCVM()
                 for url, doc_name, year, path in tasks:
                     result.add_success_downloads(f"{doc_name}_{year}")
                 return result
@@ -132,12 +134,12 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
         assert result.error_count_downloads == 0
 
     def test_repository_with_errors(self):
-        class ErrorRepository(DownloadDocsCVMRepository):
+        class ErrorRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                result = DownloadResult()
+            ) -> DownloadResultCVM:
+                result = DownloadResultCVM()
                 result.add_error_downloads("DFP_2020", "Connection timeout")
                 return result
 
@@ -152,11 +154,11 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
         assert "DFP_2020" in result.failed_downloads
 
     def test_repository_can_raise_exceptions(self):
-        class FailingRepository(DownloadDocsCVMRepository):
+        class FailingRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
+            ) -> DownloadResultCVM:
                 raise RuntimeError("Download failed")
 
         repository = FailingRepository()
@@ -171,19 +173,19 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryPolymorphism:
     def test_can_use_repository_polymorphically(self):
-        class RepoA(DownloadDocsCVMRepository):
+        class RepoA(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
-        class RepoB(DownloadDocsCVMRepository):
+        class RepoB(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repositories = [RepoA(), RepoB()]
         tasks = [
@@ -191,26 +193,26 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
         ]
 
         for repo in repositories:
-            assert isinstance(repo, DownloadDocsCVMRepository)
+            assert isinstance(repo, DownloadDocsCVMRepositoryCVM)
             result = repo.download_docs(tasks)
-            assert isinstance(result, DownloadResult)
+            assert isinstance(result, DownloadResultCVM)
 
     def test_dependency_injection_with_interface(self):
-        class MockRepository(DownloadDocsCVMRepository):
+        class MockRepository(DownloadDocsCVMRepositoryCVM):
             def __init__(self):
                 self.called = False
 
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
+            ) -> DownloadResultCVM:
                 self.called = True
-                return DownloadResult()
+                return DownloadResultCVM()
 
         def execute_download(
-            repository: DownloadDocsCVMRepository,
+            repository: DownloadDocsCVMRepositoryCVM,
             tasks: List[Tuple[str, str, str, str]],
-        ) -> DownloadResult:
+        ) -> DownloadResultCVM:
             return repository.download_docs(tasks)
 
         mock = MockRepository()
@@ -220,18 +222,18 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
         result = execute_download(mock, tasks)
 
         assert mock.called is True
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryReturnType:
     def test_download_docs_returns_download_result(self):
-        class ConcreteRepository(DownloadDocsCVMRepository):
+        class ConcreteRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repository = ConcreteRepository()
         tasks = [
@@ -239,15 +241,15 @@ class TestDownloadDocsCVMRepositoryReturnType:
         ]
         result = repository.download_docs(tasks)
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
 
     def test_download_docs_returns_populated_result(self):
-        class PopulatedRepository(DownloadDocsCVMRepository):
+        class PopulatedRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                result = DownloadResult()
+            ) -> DownloadResultCVM:
+                result = DownloadResultCVM()
                 result.add_success_downloads("DFP_2020")
                 result.add_success_downloads("DFP_2021")
                 result.add_error_downloads("ITR_2020", "Error message")
@@ -268,16 +270,16 @@ class TestDownloadDocsCVMRepositoryReturnType:
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryParameterTypes:
     def test_tasks_parameter_accepts_list_of_tuples(self):
-        class TypeCheckingRepository(DownloadDocsCVMRepository):
+        class TypeCheckingRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
+            ) -> DownloadResultCVM:
                 assert isinstance(tasks, list)
                 for task in tasks:
                     assert isinstance(task, tuple)
                     assert len(task) == 4
-                return DownloadResult()
+                return DownloadResultCVM()
 
         repository = TypeCheckingRepository()
         tasks = [
@@ -287,18 +289,18 @@ class TestDownloadDocsCVMRepositoryParameterTypes:
         repository.download_docs(tasks)
 
     def test_tasks_parameter_tuple_elements_are_strings(self):
-        class TypeCheckingRepository(DownloadDocsCVMRepository):
+        class TypeCheckingRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
+            ) -> DownloadResultCVM:
                 for task in tasks:
                     url, doc_name, year, path = task
                     assert isinstance(url, str)
                     assert isinstance(doc_name, str)
                     assert isinstance(year, str)
                     assert isinstance(path, str)
-                return DownloadResult()
+                return DownloadResultCVM()
 
         repository = TypeCheckingRepository()
         tasks = [
@@ -310,61 +312,61 @@ class TestDownloadDocsCVMRepositoryParameterTypes:
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryInstanceChecks:
     def test_isinstance_check_works(self):
-        class ConcreteRepository(DownloadDocsCVMRepository):
+        class ConcreteRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repository = ConcreteRepository()
-        assert isinstance(repository, DownloadDocsCVMRepository)
+        assert isinstance(repository, DownloadDocsCVMRepositoryCVM)
 
     def test_issubclass_check_works(self):
-        class ConcreteRepository(DownloadDocsCVMRepository):
+        class ConcreteRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
-        assert issubclass(ConcreteRepository, DownloadDocsCVMRepository)
+        assert issubclass(ConcreteRepository, DownloadDocsCVMRepositoryCVM)
 
     def test_non_repository_not_instance(self):
         class NotARepository:
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         obj = NotARepository()
-        assert not isinstance(obj, DownloadDocsCVMRepository)
+        assert not isinstance(obj, DownloadDocsCVMRepositoryCVM)
 
 
 @pytest.mark.unit
 class TestDownloadDocsCVMRepositoryEdgeCases:
     def test_repository_with_empty_tasks_list(self):
-        class EmptyHandlingRepository(DownloadDocsCVMRepository):
+        class EmptyHandlingRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                return DownloadResult()
+            ) -> DownloadResultCVM:
+                return DownloadResultCVM()
 
         repository = EmptyHandlingRepository()
         result = repository.download_docs([])
 
-        assert isinstance(result, DownloadResult)
+        assert isinstance(result, DownloadResultCVM)
         assert result.success_count_downloads == 0
 
     def test_repository_with_many_tasks(self):
-        class ManyTasksRepository(DownloadDocsCVMRepository):
+        class ManyTasksRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(
                 self,
                 tasks: List[Tuple[str, str, str, str]],
-            ) -> DownloadResult:
-                result = DownloadResult()
+            ) -> DownloadResultCVM:
+                result = DownloadResultCVM()
                 for url, doc_name, year, path in tasks:
                     result.add_success_downloads(f"{doc_name}_{year}")
                 return result

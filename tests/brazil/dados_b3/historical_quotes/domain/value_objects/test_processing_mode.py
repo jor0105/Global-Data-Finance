@@ -1,6 +1,6 @@
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.domain.value_objects import (
+from datafinc.brazil.dados_b3.historical_quotes.domain.value_objects import (
     ProcessingModeEnum,
 )
 

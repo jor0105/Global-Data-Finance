@@ -2,8 +2,8 @@ import zipfile
 
 import pandas as pd  # type: ignore
 
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
-    ParquetExtractor,
+from datafinc.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractorCVM,
 )
 
 
@@ -45,7 +45,7 @@ class TestNoOverwrite:
 
         print("✓ ZIP with new data created (should be ignored)")
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         assert existing_file.exists(), "CRITICAL: File was DELETED!"
@@ -88,7 +88,7 @@ class TestNoOverwrite:
                 csv_content = new_data.to_csv(sep=";", index=False)
                 z.writestr("test.csv", csv_content.encode("latin-1"))
 
-            extractor = ParquetExtractor(chunk_size=50000)
+            extractor = ParquetExtractorCVM(chunk_size=50000)
             extractor.extract(
                 source_path=str(zip_path), destination_dir=str(output_dir)
             )
@@ -116,7 +116,7 @@ class TestNoOverwrite:
                 csv_content = data.to_csv(sep=";", index=False)
                 z.writestr("data.csv", csv_content.encode("latin-1"))
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip1), destination_dir=str(output_dir))
 
         extractor.extract(source_path=str(zip2), destination_dir=str(output_dir))
@@ -146,7 +146,7 @@ class TestNoOverwrite:
             df2 = pd.DataFrame({"id": [10, 20], "new_file": [True] * 2})
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_file1 = pd.read_parquet(existing_file)

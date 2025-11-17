@@ -3,8 +3,8 @@ import zipfile
 
 import pytest
 
-from src.macro_exceptions import CorruptedZipError, ExtractionError
-from src.macro_infra import Extractor
+from datafinc.macro_exceptions import CorruptedZipError, ExtractionError
+from datafinc.macro_infra import ExtractorAdapter
 
 
 class TestExtractorListFilesInZip:
@@ -12,14 +12,14 @@ class TestExtractorListFilesInZip:
         zip_path = tmp_path / "nonexistent.zip"
 
         with pytest.raises(FileNotFoundError):
-            Extractor.list_files_in_zip(str(zip_path))
+            ExtractorAdapter.list_files_in_zip(str(zip_path))
 
     def test_list_files_corrupted_zip_raises_error(self, tmp_path):
         zip_path = tmp_path / "corrupted.zip"
         zip_path.write_text("Not a ZIP")
 
         with pytest.raises(CorruptedZipError):
-            Extractor.list_files_in_zip(str(zip_path))
+            ExtractorAdapter.list_files_in_zip(str(zip_path))
 
     def test_list_files_no_filter_returns_all(self, tmp_path):
         zip_path = tmp_path / "test.zip"
@@ -29,7 +29,7 @@ class TestExtractorListFilesInZip:
             zf.writestr("file2.csv", "data")
             zf.writestr("file3.json", "{}")
 
-        files = Extractor.list_files_in_zip(str(zip_path))
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path))
 
         assert len(files) == 3
         assert "file1.txt" in files
@@ -44,7 +44,7 @@ class TestExtractorListFilesInZip:
             zf.writestr("file2.csv", "data")
             zf.writestr("file3.CSV", "DATA")
 
-        files = Extractor.list_files_in_zip(str(zip_path), ".csv")
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path), ".csv")
 
         assert len(files) == 2
         assert "file2.csv" in files
@@ -56,7 +56,7 @@ class TestExtractorListFilesInZip:
         with zipfile.ZipFile(zip_path, "w") as _:
             pass
 
-        files = Extractor.list_files_in_zip(str(zip_path))
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path))
 
         assert len(files) == 0
 
@@ -67,7 +67,7 @@ class TestExtractorExtractFileFromZip:
         dest_path = str(tmp_path / "output")
 
         with pytest.raises(FileNotFoundError):
-            Extractor.extract_file_from_zip(str(zip_path), "file.txt", dest_path)
+            ExtractorAdapter.extract_file_from_zip(str(zip_path), "file.txt", dest_path)
 
     def test_extract_file_corrupted_zip_raises_error(self, tmp_path):
         zip_path = tmp_path / "corrupted.zip"
@@ -75,7 +75,7 @@ class TestExtractorExtractFileFromZip:
         dest_path = str(tmp_path / "output")
 
         with pytest.raises(CorruptedZipError):
-            Extractor.extract_file_from_zip(str(zip_path), "file.txt", dest_path)
+            ExtractorAdapter.extract_file_from_zip(str(zip_path), "file.txt", dest_path)
 
     def test_extract_file_not_in_zip_raises_error(self, tmp_path):
         zip_path = tmp_path / "test.zip"
@@ -86,7 +86,7 @@ class TestExtractorExtractFileFromZip:
             zip_file.writestr("other.txt", "content")
 
         with pytest.raises(ExtractionError) as exc_info:
-            Extractor.extract_file_from_zip(
+            ExtractorAdapter.extract_file_from_zip(
                 str(zip_path), "missing.txt", str(dest_path)
             )
 
@@ -101,7 +101,9 @@ class TestExtractorExtractFileFromZip:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("data.txt", file_content)
 
-        Extractor.extract_file_from_zip(str(zip_path), "data.txt", str(dest_path))
+        ExtractorAdapter.extract_file_from_zip(
+            str(zip_path), "data.txt", str(dest_path)
+        )
 
         extracted_file = dest_path / "data.txt"
         assert extracted_file.exists()
@@ -113,14 +115,14 @@ class TestExtractorReadFileFromZip:
         zip_path = tmp_path / "nonexistent.zip"
 
         with pytest.raises(FileNotFoundError):
-            Extractor.read_file_from_zip(str(zip_path), "file.txt")
+            ExtractorAdapter.read_file_from_zip(str(zip_path), "file.txt")
 
     def test_read_file_corrupted_zip_raises_error(self, tmp_path):
         zip_path = tmp_path / "corrupted.zip"
         zip_path.write_text("Not a ZIP")
 
         with pytest.raises(CorruptedZipError):
-            Extractor.read_file_from_zip(str(zip_path), "file.txt")
+            ExtractorAdapter.read_file_from_zip(str(zip_path), "file.txt")
 
     def test_read_file_not_in_zip_raises_error(self, tmp_path):
         zip_path = tmp_path / "test.zip"
@@ -129,7 +131,7 @@ class TestExtractorReadFileFromZip:
             zf.writestr("other.txt", "content")
 
         with pytest.raises(ExtractionError) as exc_info:
-            Extractor.read_file_from_zip(str(zip_path), "missing.txt")
+            ExtractorAdapter.read_file_from_zip(str(zip_path), "missing.txt")
 
         assert "not found in ZIP" in str(exc_info.value)
 
@@ -140,7 +142,7 @@ class TestExtractorReadFileFromZip:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("data.bin", file_content)
 
-        content = Extractor.read_file_from_zip(str(zip_path), "data.bin")
+        content = ExtractorAdapter.read_file_from_zip(str(zip_path), "data.bin")
 
         assert content == file_content
 
@@ -154,7 +156,7 @@ class TestExtractorOpenFileFromZip:
 
         with zipfile.ZipFile(zip_path, "r") as zf:
             with pytest.raises(ExtractionError) as exc_info:
-                Extractor.open_file_from_zip(zf, "missing.txt")
+                ExtractorAdapter.open_file_from_zip(zf, "missing.txt")
 
             assert "not found in ZIP" in str(exc_info.value)
 
@@ -166,7 +168,7 @@ class TestExtractorOpenFileFromZip:
             zf.writestr("data.txt", file_content)
 
         with zipfile.ZipFile(zip_path, "r") as zf:
-            handle = Extractor.open_file_from_zip(zf, "data.txt")
+            handle = ExtractorAdapter.open_file_from_zip(zf, "data.txt")
             content = handle.read()
             handle.close()
 
@@ -178,7 +180,7 @@ class TestExtractorIterateFilesInZip:
         zip_path = tmp_path / "nonexistent.zip"
 
         with pytest.raises(FileNotFoundError):
-            for _ in Extractor.iterate_files_in_zip(str(zip_path)):
+            for _ in ExtractorAdapter.iterate_files_in_zip(str(zip_path)):
                 pass
 
     def test_iterate_files_corrupted_zip_raises_error(self, tmp_path):
@@ -186,7 +188,7 @@ class TestExtractorIterateFilesInZip:
         zip_path.write_text("Not a ZIP")
 
         with pytest.raises(CorruptedZipError):
-            for _ in Extractor.iterate_files_in_zip(str(zip_path)):
+            for _ in ExtractorAdapter.iterate_files_in_zip(str(zip_path)):
                 pass
 
     def test_iterate_files_no_filter_iterates_all(self, tmp_path):
@@ -197,7 +199,7 @@ class TestExtractorIterateFilesInZip:
             zf.writestr("file2.csv", "content2")
 
         filenames = []
-        for filename, _ in Extractor.iterate_files_in_zip(str(zip_path)):
+        for filename, _ in ExtractorAdapter.iterate_files_in_zip(str(zip_path)):
             filenames.append(filename)
 
         assert len(filenames) == 2
@@ -213,7 +215,7 @@ class TestExtractorIterateFilesInZip:
             zf.writestr("file3.csv", "content3")
 
         filenames = []
-        for filename, _ in Extractor.iterate_files_in_zip(str(zip_path), ".csv"):
+        for filename, _ in ExtractorAdapter.iterate_files_in_zip(str(zip_path), ".csv"):
             filenames.append(filename)
 
         assert len(filenames) == 2
@@ -227,7 +229,9 @@ class TestExtractorIterateFilesInZip:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("data.txt", file_content)
 
-        for filename, zip_handle in Extractor.iterate_files_in_zip(str(zip_path)):
+        for filename, zip_handle in ExtractorAdapter.iterate_files_in_zip(
+            str(zip_path)
+        ):
             with zip_handle.open(filename) as f:
                 content = f.read().decode("utf-8")
                 assert content == file_content
@@ -239,7 +243,7 @@ class TestExtractorReadTxtFromZipAsync:
         zip_path = tmp_path / "nonexistent.zip"
 
         with pytest.raises(FileNotFoundError):
-            async for _ in Extractor.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -248,7 +252,7 @@ class TestExtractorReadTxtFromZipAsync:
         zip_path.write_text("Not a ZIP file")
 
         with pytest.raises(CorruptedZipError):
-            async for _ in Extractor.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -259,7 +263,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.csv", "csv,data")
 
         with pytest.raises(ExtractionError):
-            async for _ in Extractor.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -271,7 +275,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert len(lines) == 3
@@ -287,7 +291,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("empty.TXT", b"")
 
         lines = []
-        async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert len(lines) == 0
@@ -302,7 +306,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("large.TXT", txt_content.encode("latin-1"))
 
         line_count = 0
-        async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
             line_count += 1
             if line_count % 1000 == 0:
                 assert "Line" in line
@@ -318,7 +322,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert "Line 1" in lines
@@ -336,7 +340,7 @@ class TestExtractorReadTxtFromZipAsync:
 
         lines = []
         try:
-            async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+            async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
                 lines.append(line)
         except Exception:
             pass
@@ -352,7 +356,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in Extractor.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
             lines.append(line)
             if len(lines) >= 10:
                 break
@@ -372,7 +376,7 @@ class TestExtractorEdgeCases:
 
         async def read_lines(zip_path):
             lines = []
-            async for line in Extractor.read_txt_from_zip_async(zip_path):
+            async for line in ExtractorAdapter.read_txt_from_zip_async(zip_path):
                 lines.append(line)
             return lines
 

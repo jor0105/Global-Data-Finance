@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import ParquetExtractor
-from src.macro_exceptions import (
+from datafinc.brazil.cvm.fundamental_stocks_data import ParquetExtractorCVM
+from datafinc.macro_exceptions import (
     CorruptedZipError,
     ExtractionError,
     InvalidDestinationPathError,
@@ -14,39 +14,39 @@ from src.macro_exceptions import (
 @pytest.mark.unit
 class TestParquetExtractorInitialization:
     def test_init_with_default_chunk_size(self):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         assert extractor.chunk_size == 50000
 
     def test_init_with_custom_chunk_size(self):
-        extractor = ParquetExtractor(chunk_size=100000)
+        extractor = ParquetExtractorCVM(chunk_size=100000)
         assert extractor.chunk_size == 50000  # Capped at 50000
 
     def test_init_with_small_chunk_size(self):
-        extractor = ParquetExtractor(chunk_size=1000)
+        extractor = ParquetExtractorCVM(chunk_size=1000)
         assert extractor.chunk_size == 1000
 
     def test_init_with_very_large_chunk_size(self):
-        extractor = ParquetExtractor(chunk_size=1000000)
+        extractor = ParquetExtractorCVM(chunk_size=1000000)
         assert extractor.chunk_size == 50000  # Capped at 50000
 
     def test_init_with_custom_encodings(self):
         encodings = ["utf-8", "latin-1"]
-        extractor = ParquetExtractor(encodings=encodings)
+        extractor = ParquetExtractorCVM(encodings=encodings)
         assert extractor.encodings == encodings
 
     def test_init_with_default_encodings(self):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         assert extractor.encodings == ["latin-1", "utf-8", "iso-8859-1", "cp1252"]
 
     def test_init_with_custom_max_fallback_size(self):
-        extractor = ParquetExtractor(max_fallback_size_mb=1000)
+        extractor = ParquetExtractorCVM(max_fallback_size_mb=1000)
         assert extractor.max_fallback_size_mb == 1000
 
 
 @pytest.mark.unit
 class TestParquetExtractorValidateDestination:
     def test_validate_destination_creates_directory_if_not_exists(self, tmp_path):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         dest_dir = tmp_path / "new_output"
 
         extractor._validate_destination(str(dest_dir))
@@ -55,7 +55,7 @@ class TestParquetExtractorValidateDestination:
         assert dest_dir.is_dir()
 
     def test_validate_destination_raises_error_if_not_directory(self, tmp_path):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         dest_file = tmp_path / "output.txt"
         dest_file.write_text("file")
 
@@ -67,7 +67,7 @@ class TestParquetExtractorValidateDestination:
     def test_validate_destination_raises_error_if_no_write_permission(
         self, tmp_path, monkeypatch
     ):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         dest_dir = tmp_path / "protected"
         dest_dir.mkdir()
 
@@ -89,7 +89,7 @@ class TestParquetExtractorValidateDestination:
 @pytest.mark.unit
 class TestParquetExtractorErrorHandling:
     def test_extract_raises_error_on_nonexistent_zip(self, tmp_path):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         zip_path = tmp_path / "nonexistent.zip"
         output_dir = tmp_path / "output"
         output_dir.mkdir()
@@ -100,7 +100,7 @@ class TestParquetExtractorErrorHandling:
         assert "not found" in str(exc_info.value).lower()
 
     def test_extract_raises_corrupted_zip_error(self, tmp_path):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         zip_path = tmp_path / "corrupted.zip"
         zip_path.write_text("Not a ZIP")
         output_dir = tmp_path / "output"
@@ -110,7 +110,7 @@ class TestParquetExtractorErrorHandling:
             extractor.extract(str(zip_path), str(output_dir))
 
     def test_extract_wraps_unexpected_exception(self, tmp_path, monkeypatch):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         zip_path = tmp_path / "test.zip"
         output_dir = tmp_path / "output"
 
@@ -140,7 +140,7 @@ class TestParquetExtractorSuccessfulExtraction:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("test.csv", csv_content)
 
-        extractor = ParquetExtractor(chunk_size=1000)
+        extractor = ParquetExtractorCVM(chunk_size=1000)
         extractor.extract(str(zip_path), str(output_dir))
 
         parquet_files = list(output_dir.glob("*.parquet"))
@@ -156,14 +156,14 @@ class TestParquetExtractorSuccessfulExtraction:
                 csv_content = f"col1;col2\n{i};{i+1}\n"
                 zf.writestr(f"test_{i}.csv", csv_content)
 
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         extractor.extract(str(zip_path), str(output_dir))
 
         parquet_files = list(output_dir.glob("*.parquet"))
         assert len(parquet_files) == 3
 
     def test_extract_nonexistent_zip_raises_error(self, tmp_path):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         nonexistent_zip = tmp_path / "nonexistent.zip"
         output_dir = tmp_path / "output"
 
@@ -179,7 +179,7 @@ class TestParquetExtractorSuccessfulExtraction:
         with zipfile.ZipFile(zip_path, "w"):
             pass
 
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         extractor.extract(str(zip_path), str(output_dir))
 
         parquet_files = list(output_dir.glob("*.parquet"))
@@ -194,7 +194,7 @@ class TestParquetExtractorSuccessfulExtraction:
             zf.writestr("readme.txt", "This is a readme")
             zf.writestr("image.png", b"\x89PNG\r\n")
 
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         extractor.extract(str(zip_path), str(output_dir))
 
         parquet_files = list(output_dir.glob("*.parquet"))
@@ -205,19 +205,19 @@ class TestParquetExtractorSuccessfulExtraction:
 @pytest.mark.unit
 class TestParquetExtractorFileExtractorInterface:
     def test_implements_extract_method(self):
-        extractor = ParquetExtractor()
+        extractor = ParquetExtractorCVM()
         assert hasattr(extractor, "extract")
         assert callable(extractor.extract)
 
     def test_extract_signature_matches_interface(self):
         import inspect
 
-        from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-            FileExtractorRepository,
+        from datafinc.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+            FileExtractorRepositoryCVM,
         )
 
-        interface_sig = inspect.signature(FileExtractorRepository.extract)
-        impl_sig = inspect.signature(ParquetExtractor.extract)
+        interface_sig = inspect.signature(FileExtractorRepositoryCVM.extract)
+        impl_sig = inspect.signature(ParquetExtractorCVM.extract)
 
         interface_params = list(interface_sig.parameters.keys())
         impl_params = list(impl_sig.parameters.keys())
@@ -225,9 +225,9 @@ class TestParquetExtractorFileExtractorInterface:
         assert interface_params == impl_params
 
     def test_can_be_used_as_file_extractor_repository(self):
-        from src.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-            FileExtractorRepository,
+        from datafinc.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+            FileExtractorRepositoryCVM,
         )
 
-        extractor: FileExtractorRepository = ParquetExtractor()
-        assert isinstance(extractor, ParquetExtractor)
+        extractor: FileExtractorRepositoryCVM = ParquetExtractorCVM()
+        assert isinstance(extractor, ParquetExtractorCVM)

@@ -3,8 +3,8 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
-    ParquetExtractor,
+from datafinc.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractorCVM,
 )
 
 
@@ -33,9 +33,9 @@ class TestAtomicRollback:
         with open(corrupted_zip, "wb") as f:
             f.write(b"PK\x03\x04" + b"\x00" * 100)
 
-        from src.macro_exceptions import CorruptedZipError
+        from datafinc.macro_exceptions import CorruptedZipError
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
 
         with pytest.raises(CorruptedZipError):
             extractor.extract(
@@ -71,7 +71,7 @@ class TestAtomicRollback:
             df2 = pd.DataFrame({"c": [3, 4], "d": ["z", "w"]})
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         assert (output_dir / "file1.parquet").exists()
@@ -90,7 +90,7 @@ class TestAtomicRollback:
         with zipfile.ZipFile(corrupted_zip, "w") as z:
             z.writestr("not_a_csv.txt", b"This is not a CSV file")
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(
             source_path=str(corrupted_zip), destination_dir=str(output_dir)
         )
@@ -122,7 +122,7 @@ class TestAtomicRollback:
                 "new_file.csv", df2.to_csv(sep=";", index=False).encode("latin-1")
             )
 
-        extractor = ParquetExtractor(chunk_size=50000)
+        extractor = ParquetExtractorCVM(chunk_size=50000)
         extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
 
         df_skip = pd.read_parquet(existing)

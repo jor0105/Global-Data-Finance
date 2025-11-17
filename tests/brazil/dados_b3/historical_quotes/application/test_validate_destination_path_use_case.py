@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinc.brazil.dados_b3.historical_quotes.application.use_cases import (
     VerifyDestinationPathsUseCase,
 )
-from src.macro_exceptions import (
+from datafinc.macro_exceptions import (
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
     PathPermissionError,

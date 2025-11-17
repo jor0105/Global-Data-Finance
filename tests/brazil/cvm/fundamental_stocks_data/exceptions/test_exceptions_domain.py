@@ -1,6 +1,6 @@
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
+from datafinc.brazil.cvm.fundamental_stocks_data import (
     EmptyDocumentListError,
     InvalidDocName,
     InvalidFirstYear,

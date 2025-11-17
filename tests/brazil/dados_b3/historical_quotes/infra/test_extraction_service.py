@@ -3,12 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from src.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
-from src.brazil.dados_b3.historical_quotes.infra.extraction_service import (
+from datafinc.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
+from datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service import (
     ExtractionService,
     _parse_lines_batch,
 )
-from src.core import ResourceState
+from datafinc.core import ResourceState
 
 
 class FakeResourceMonitor:
@@ -141,7 +141,7 @@ def suppress_execution_time_logging(monkeypatch):
         yield
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.log_execution_time",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.log_execution_time",
         noop,
     )
 
@@ -156,7 +156,7 @@ def process_pool_spy(monkeypatch):
         return pool
 
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ThreadPoolExecutor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ThreadPoolExecutor",
         factory,
     )
     return created
@@ -165,7 +165,7 @@ def process_pool_spy(monkeypatch):
 def test_extraction_service_initialization_fast_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=6)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -186,7 +186,7 @@ def test_extraction_service_initialization_fast_mode(monkeypatch, process_pool_s
 def test_extraction_service_initialization_slow_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -208,7 +208,7 @@ def test_extraction_service_initialization_slow_mode(monkeypatch, process_pool_s
 async def test_extraction_service_wait_for_resources(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(wait_result=False)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -221,7 +221,7 @@ async def test_extraction_service_wait_for_resources(monkeypatch, process_pool_s
 
     dummy_loop = DummyLoop(result=None)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
         lambda: dummy_loop,
     )
 
@@ -238,7 +238,7 @@ async def test_extraction_service_write_buffer_to_disk(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -265,7 +265,7 @@ async def test_extraction_service_write_buffer_to_disk(
 async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -292,7 +292,7 @@ async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
 async def test_process_and_write_zip_fast_mode(monkeypatch, process_pool_spy, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -328,7 +328,7 @@ async def test_process_and_write_zip_propagates_errors(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -353,7 +353,7 @@ async def test_process_and_write_zip_propagates_errors(
 async def test_parse_lines_batch_parallel_filters_none(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -366,7 +366,7 @@ async def test_parse_lines_batch_parallel_filters_none(monkeypatch, process_pool
 
     dummy_loop = DummyLoop(result=[None, {"value": "ok"}])
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
         lambda: dummy_loop,
     )
 
@@ -389,7 +389,7 @@ def test_parse_lines_batch_filters_by_target():
 async def test_extract_from_zip_files_success(monkeypatch, tmp_path, process_pool_spy):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -448,7 +448,7 @@ async def test_extract_from_zip_files_handles_errors(
 ):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 5)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -473,7 +473,7 @@ async def test_extract_from_zip_files_handles_errors(
 def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -496,7 +496,7 @@ def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_
 def test_extraction_service_cleanup_no_pool_in_slow_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=2)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
@@ -520,7 +520,7 @@ def test_extraction_service_cleanup_handles_shutdown_errors(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "src.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinc.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 

@@ -1,6 +1,6 @@
 import pytest
 
-from src.macro_exceptions import (
+from datafinc.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     EmptyDirectoryError,
