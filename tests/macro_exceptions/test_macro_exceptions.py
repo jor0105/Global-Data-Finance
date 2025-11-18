@@ -1,6 +1,6 @@
 import pytest
 
-from datafinc.macro_exceptions import (
+from datafinance.macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
     EmptyDirectoryError,

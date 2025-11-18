@@ -117,17 +117,17 @@ A biblioteca suporta os seguintes tipos de documentos CVM:
 
 DataFinance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
 
-#### 1. **HttpxAsyncDownloadAdapterCVM** (Recomendado) ⭐
+#### 1. **AsyncDownloadAdapterCVM** (Recomendado) ⭐
 
 - **Velocidade**: 3-5x mais rápido que wget
 - **Características**: Paralelo (8 workers), sem dependências externas
 - **Melhor para**: Maioria dos casos, performance vs facilidade
-- **Status**: Padrão em `FundamentalStocksData`
+- **Status**: Padrão em `FundamentalStocksDataCVM`
 
 ```python
-from src.presentation.cvm_docs import FundamentalStocksData
+from src.presentation.cvm_docs import FundamentalStocksDataCVM
 
-cvm = FundamentalStocksData()  # Usa ThreadPool por padrão
+cvm = FundamentalStocksDataCVM()  # Usa ThreadPool por padrão
 result = cvm.download(
     destination_path="/data",
     doc_types=["DFP", "ITR"],
@@ -180,11 +180,11 @@ result = use_case.execute(
 
 ### Comparação de Performance
 
-| Adapter                          | Velocidade       | Dependências | Melhor Para        |
-| -------------------------------- | ---------------- | ------------ | ------------------ |
-| **WgetDownloadAdapter**          | ⭐ 1x (baseline) | wget         | Compatibilidade    |
-| **HttpxAsyncDownloadAdapterCVM** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
-| **Aria2cAdapter**                | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
+| Adapter                     | Velocidade       | Dependências | Melhor Para        |
+| --------------------------- | ---------------- | ------------ | ------------------ |
+| **WgetDownloadAdapter**     | ⭐ 1x (baseline) | wget         | Compatibilidade    |
+| **AsyncDownloadAdapterCVM** | ⭐⭐⭐ 3-5x      | requests     | **Recomendado** ✅ |
+| **Aria2cAdapter**           | ⭐⭐⭐⭐⭐ 5-10x | aria2c       | Máxima velocidade  |
 
 ### Documentação Detalhada de Adapters
 

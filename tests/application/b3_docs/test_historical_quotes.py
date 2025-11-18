@@ -1,16 +1,16 @@
 from unittest.mock import Mock, patch
 
-from datafinc.application.b3_docs import HistoricalQuotes
+from datafinance.application.b3_docs import HistoricalQuotesB3
 
 
 class TestHistoricalQuotes:
     def test_initialization(self):
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         assert b3 is not None
-        assert repr(b3) == "HistoricalQuotes()"
+        assert repr(b3) == "HistoricalQuotesB3()"
 
     def test_get_available_assets(self):
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         assets = b3.get_available_assets()
 
         assert isinstance(assets, list)
@@ -20,7 +20,7 @@ class TestHistoricalQuotes:
         assert "opções" in assets
 
     def test_get_available_years(self):
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         years = b3.get_available_years()
 
         assert isinstance(years, dict)
@@ -30,10 +30,10 @@ class TestHistoricalQuotes:
         assert years["current_year"] >= 2025
 
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_all_parameters(
         self, mock_extract_use_case, mock_create_docs_use_case
@@ -55,7 +55,7 @@ class TestHistoricalQuotes:
         mock_extract_instance.execute_sync.return_value = mock_result
         mock_extract_use_case.return_value = mock_extract_instance
 
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         result = b3.extract(
             path_of_docs="/data/cotahist",
             destination_path="/output",
@@ -71,10 +71,10 @@ class TestHistoricalQuotes:
         assert result["total_records"] == 1000
 
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_minimal_parameters(
         self, mock_extract_use_case, mock_create_docs_use_case
@@ -96,7 +96,7 @@ class TestHistoricalQuotes:
         mock_extract_instance.execute_sync.return_value = mock_result
         mock_extract_use_case.return_value = mock_extract_instance
 
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         result = b3.extract(
             path_of_docs="/data/cotahist", assets_list=["ações"], initial_year=2023
         )
@@ -105,10 +105,10 @@ class TestHistoricalQuotes:
         mock_create_docs_use_case.assert_called_once()
 
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinc.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_errors(
         self, mock_extract_use_case, mock_create_docs_use_case
@@ -131,7 +131,7 @@ class TestHistoricalQuotes:
         mock_extract_instance.execute_sync.return_value = mock_result
         mock_extract_use_case.return_value = mock_extract_instance
 
-        b3 = HistoricalQuotes()
+        b3 = HistoricalQuotesB3()
         result = b3.extract(
             path_of_docs="/data/cotahist", assets_list=["ações"], initial_year=2023
         )

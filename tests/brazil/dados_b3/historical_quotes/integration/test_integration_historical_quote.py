@@ -4,17 +4,17 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from datafinc.application import HistoricalQuotes
+from datafinance.application import HistoricalQuotesB3
 
 
 class TestFastModeExtraction:
     @pytest.fixture
     def historical_quotes(self):
-        return HistoricalQuotes()
+        return HistoricalQuotesB3()
 
     def test_initialization(self, historical_quotes):
         assert historical_quotes is not None
-        assert isinstance(historical_quotes, HistoricalQuotes)
+        assert isinstance(historical_quotes, HistoricalQuotesB3)
 
     def test_get_available_assets(self, historical_quotes):
         assets = historical_quotes.get_available_assets()

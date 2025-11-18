@@ -5,19 +5,18 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import time
 
-from datafinc import HistoricalQuotes
-from src.datafinc.core import setup_logging
+from datafinance import HistoricalQuotesB3
+from src.datafinance.core import setup_logging
 
-setup_logging(level="ERROR")
+setup_logging(level="INFO")
 
 
 print("=" * 80)
 print("HISTORICAL QUOTES EXTRACTION - HIGH PERFORMANCE MODE")
 print("=" * 80)
-print("\nThis example demonstrates HIGH PERFORMANCE extraction with:")
 print()
 
-b3 = HistoricalQuotes()
+b3 = HistoricalQuotesB3()
 
 print("\n" + "=" * 80)
 
@@ -25,10 +24,10 @@ start_time = time.time()
 
 result = b3.extract(
     path_of_docs="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST",
-    destination_path="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST_Extracted",
     assets_list=["ações", "etf"],
     initial_year=2000,
-    last_year=2024,
+    last_year=2025,
+    destination_path="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST_Extracted",
     output_filename="all_assets",
     processing_mode="fast",
 )

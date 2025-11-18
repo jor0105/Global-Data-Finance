@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from datafinc.brazil.dados_b3.historical_quotes.infra.file_system_service import (
+from datafinance.brazil.dados_b3.historical_quotes.infra.file_system_service import (
     FileSystemService,
 )
-from datafinc.macro_exceptions import (
+from datafinance.macro_exceptions import (
     EmptyDirectoryError,
     InvalidDestinationPathError,
     PathIsNotDirectoryError,

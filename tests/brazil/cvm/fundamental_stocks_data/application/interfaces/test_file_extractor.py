@@ -2,7 +2,7 @@ from abc import ABC
 
 import pytest
 
-from datafinc.brazil.cvm.fundamental_stocks_data import FileExtractorRepositoryCVM
+from datafinance.brazil.cvm.fundamental_stocks_data import FileExtractorRepositoryCVM
 
 
 @pytest.mark.unit
@@ -33,7 +33,7 @@ class TestFileExtractorContract:
 
     def test_concrete_implementation_with_extract_works(self):
         class CompleteExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 pass
 
         extractor = CompleteExtractor()
@@ -42,7 +42,7 @@ class TestFileExtractorContract:
 
     def test_extract_method_signature_in_concrete_class(self):
         class ConcreteExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 return None
 
         extractor = ConcreteExtractor()
@@ -76,8 +76,8 @@ class TestFileExtractorConcreteImplementations:
             def __init__(self):
                 self.extracted_files = []
 
-            def extract(self, source_path: str, destination_dir: str) -> None:
-                self.extracted_files.append((source_path, destination_dir))
+            def extract(self, source_path: str, destination_path: str) -> None:
+                self.extracted_files.append((source_path, destination_path))
 
         extractor = SimpleExtractor()
         extractor.extract("/source/file.zip", "/dest/dir")
@@ -90,7 +90,7 @@ class TestFileExtractorConcreteImplementations:
             def __init__(self):
                 self.call_count = 0
 
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 self.call_count += 1
                 if not source_path:
                     raise ValueError("Source path cannot be empty")
@@ -107,7 +107,7 @@ class TestFileExtractorConcreteImplementations:
 
     def test_extractor_can_raise_exceptions(self):
         class FailingExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 raise RuntimeError("Extraction failed")
 
         extractor = FailingExtractor()
@@ -120,11 +120,11 @@ class TestFileExtractorConcreteImplementations:
 class TestFileExtractorPolymorphism:
     def test_can_use_extractor_polymorphically(self):
         class ExtractorA(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 return None
 
         class ExtractorB(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 return None
 
         extractors = [ExtractorA(), ExtractorB()]
@@ -138,7 +138,7 @@ class TestFileExtractorPolymorphism:
             def __init__(self):
                 self.extracted = False
 
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 self.extracted = True
 
         def process_files(extractor: FileExtractorRepositoryCVM, files: list):
@@ -155,7 +155,7 @@ class TestFileExtractorPolymorphism:
 class TestFileExtractorMethodContract:
     def test_extract_returns_none(self):
         class NoneReturningExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 return None
 
         extractor = NoneReturningExtractor()
@@ -165,9 +165,9 @@ class TestFileExtractorMethodContract:
 
     def test_extract_accepts_string_parameters(self):
         class TypeCheckingExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 assert isinstance(source_path, str)
-                assert isinstance(destination_dir, str)
+                assert isinstance(destination_path, str)
 
         extractor = TypeCheckingExtractor()
         extractor.extract("/file.zip", "/dest")
@@ -181,7 +181,7 @@ class TestFileExtractorMultipleInheritance:
                 pass
 
         class LoggingExtractor(LoggingMixin, FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 self.log(f"Extracting {source_path}")
 
         extractor = LoggingExtractor()
@@ -195,7 +195,7 @@ class TestFileExtractorMultipleInheritance:
 class TestFileExtractorInstanceChecks:
     def test_isinstance_check_works(self):
         class ConcreteExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 pass
 
         extractor = ConcreteExtractor()
@@ -203,14 +203,14 @@ class TestFileExtractorInstanceChecks:
 
     def test_issubclass_check_works(self):
         class ConcreteExtractor(FileExtractorRepositoryCVM):
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 pass
 
         assert issubclass(ConcreteExtractor, FileExtractorRepositoryCVM)
 
     def test_non_extractor_not_instance(self):
         class NotAnExtractor:
-            def extract(self, source_path: str, destination_dir: str) -> None:
+            def extract(self, source_path: str, destination_path: str) -> None:
                 pass
 
         obj = NotAnExtractor()

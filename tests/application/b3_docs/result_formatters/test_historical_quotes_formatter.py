@@ -1,4 +1,4 @@
-from datafinc.application.b3_docs.result_formatters import (
+from datafinance.application.b3_docs.result_formatters import (
     HistoricalQuotesResultFormatter,
 )
 

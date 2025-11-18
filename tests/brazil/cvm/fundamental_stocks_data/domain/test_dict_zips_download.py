@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from datafinc.brazil.cvm.fundamental_stocks_data import (
+from datafinance.brazil.cvm.fundamental_stocks_data import (
     DictZipsToDownloadCVM,
     InvalidDocName,
     InvalidFirstYear,
@@ -359,10 +359,10 @@ class TestDictZipsToDownload:
         assert len(result3["ITR"]) == 1
 
     @patch(
-        "datafinc.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.UrlDocsCVM"
+        "datafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.UrlDocsCVM"
     )
     @patch(
-        "datafinc.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.AvailableYearsCVM"
+        "datafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.AvailableYearsCVM"
     )
     def test_get_dict_zips_to_download_uses_dependencies_correctly(
         self, mock_available_years, mock_url_docs

@@ -3,14 +3,14 @@ from unittest.mock import patch
 
 import pytest
 
-from datafinc.brazil.dados_b3.historical_quotes.domain.exceptions import (
+from datafinance.brazil.dados_b3.historical_quotes.domain.exceptions import (
     InvalidFirstYear,
     InvalidLastYear,
 )
-from datafinc.brazil.dados_b3.historical_quotes.domain.services import (
+from datafinance.brazil.dados_b3.historical_quotes.domain.services import (
     YearValidationService,
 )
-from datafinc.brazil.dados_b3.historical_quotes.domain.value_objects import YearRange
+from datafinance.brazil.dados_b3.historical_quotes.domain.value_objects import YearRange
 
 
 class TestGetCurrentYear:
@@ -185,7 +185,7 @@ class TestValidateAndCreateYearRange:
         initial_year = 2020
         last_year = 2023
         with patch(
-            "datafinc.brazil.dados_b3.historical_quotes.domain.services.year_validation_service.date"
+            "datafinance.brazil.dados_b3.historical_quotes.domain.services.year_validation_service.date"
         ) as mock_date:
             mock_date.today.return_value.year = 2024
             result = YearValidationService.validate_and_create_year_range(

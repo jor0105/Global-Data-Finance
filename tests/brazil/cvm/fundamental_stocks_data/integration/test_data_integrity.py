@@ -3,8 +3,8 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from datafinc.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
-    ParquetExtractorCVM,
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+    ParquetExtractorAdapterCVM,
 )
 
 
@@ -32,8 +32,8 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractorCVM(chunk_size=50000)
-        extractor.extract(source_path=str(csv_zip), destination_dir=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor.extract(source_path=str(csv_zip), destination_path=str(output_dir))
 
         parquet_file = output_dir / "data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
@@ -73,8 +73,8 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractorCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
 
         df_result = pd.read_parquet(output_dir / "special.parquet")
         for col in special_data.columns:
@@ -106,8 +106,8 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractorCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
 
         df_result = pd.read_parquet(output_dir / "numeric.parquet")
         for col in numeric_data.columns:
@@ -131,8 +131,8 @@ class TestDataIntegrity:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        extractor = ParquetExtractorCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_dir=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
 
         valid_parquet = output_dir / "valid.parquet"
         assert valid_parquet.exists(), "Valid CSV was not processed"

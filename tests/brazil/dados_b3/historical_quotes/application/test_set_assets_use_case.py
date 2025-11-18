@@ -1,9 +1,9 @@
 import pytest
 
-from datafinc.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinance.brazil.dados_b3.historical_quotes.application.use_cases import (
     CreateSetAssetsUseCase,
 )
-from datafinc.brazil.dados_b3.historical_quotes.domain.exceptions import (
+from datafinance.brazil.dados_b3.historical_quotes.domain.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
 )

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from datafinc.brazil.cvm.fundamental_stocks_data import (
+from datafinance.brazil.cvm.fundamental_stocks_data import (
     AvailableDocsCVM,
     GetAvailableDocsUseCaseCVM,
 )

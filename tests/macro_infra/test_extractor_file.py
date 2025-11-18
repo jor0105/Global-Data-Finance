@@ -3,8 +3,8 @@ import zipfile
 
 import pytest
 
-from datafinc.macro_exceptions import CorruptedZipError, ExtractionError
-from datafinc.macro_infra import ExtractorAdapter
+from datafinance.macro_exceptions import CorruptedZipError, ExtractionError
+from datafinance.macro_infra import ExtractorAdapter
 
 
 class TestExtractorListFilesInZip:
@@ -243,7 +243,7 @@ class TestExtractorReadTxtFromZipAsync:
         zip_path = tmp_path / "nonexistent.zip"
 
         with pytest.raises(FileNotFoundError):
-            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -252,7 +252,7 @@ class TestExtractorReadTxtFromZipAsync:
         zip_path.write_text("Not a ZIP file")
 
         with pytest.raises(CorruptedZipError):
-            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -263,7 +263,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.csv", "csv,data")
 
         with pytest.raises(ExtractionError):
-            async for _ in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+            async for _ in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
                 pass
 
     @pytest.mark.asyncio
@@ -275,7 +275,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert len(lines) == 3
@@ -291,7 +291,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("empty.TXT", b"")
 
         lines = []
-        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert len(lines) == 0
@@ -306,7 +306,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("large.TXT", txt_content.encode("latin-1"))
 
         line_count = 0
-        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
             line_count += 1
             if line_count % 1000 == 0:
                 assert "Line" in line
@@ -322,7 +322,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
             lines.append(line)
 
         assert "Line 1" in lines
@@ -340,7 +340,7 @@ class TestExtractorReadTxtFromZipAsync:
 
         lines = []
         try:
-            async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+            async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
                 lines.append(line)
         except Exception:
             pass
@@ -356,7 +356,7 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr("data.TXT", txt_content.encode("latin-1"))
 
         lines = []
-        async for line in ExtractorAdapter.read_txt_from_zip_async(str(zip_path)):
+        async for line in ExtractorAdapter.extract_txt_from_zip_async(str(zip_path)):
             lines.append(line)
             if len(lines) >= 10:
                 break
@@ -376,7 +376,7 @@ class TestExtractorEdgeCases:
 
         async def read_lines(zip_path):
             lines = []
-            async for line in ExtractorAdapter.read_txt_from_zip_async(zip_path):
+            async for line in ExtractorAdapter.extract_txt_from_zip_async(zip_path):
                 lines.append(line)
             return lines
 

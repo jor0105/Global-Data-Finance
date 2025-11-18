@@ -29,10 +29,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jor0105/DataFinanc"
-Repository = "https://github.com/jor0105/DataFinanc"
-Documentation = "https://github.com/jor0105/DataFinanc"
-"Bug Tracker" = "https://github.com/jor0105/DataFinanc/issues"
+Homepage = "https://github.com/jor0105/Global-Data-Finance"
+Repository = "https://github.com/jor0105/Global-Data-Finance"
+Documentation = "https://github.com/jor0105/Global-Data-Finance"
+"Bug Tracker" = "https://github.com/jor0105/Global-Data-Finance/issues"
 
 [tool.poetry]
 packages = [{include = "datafinance", from = "src"}]

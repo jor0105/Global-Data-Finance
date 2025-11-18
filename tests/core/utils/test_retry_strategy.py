@@ -1,7 +1,7 @@
 import requests
 
-from datafinc.core.utils import RetryStrategy
-from datafinc.macro_exceptions import (
+from datafinance.core.utils import RetryStrategy
+from datafinance.macro_exceptions import (
     DiskFullError,
     NetworkError,
     PathPermissionError,
