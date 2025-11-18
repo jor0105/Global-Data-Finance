@@ -75,10 +75,10 @@ seu_projeto/
 A forma mais simples é usar a interface de alto nível em `presentation/b3_docs`:
 
 ```python
-from src.presentation import HistoricalQuotes
+from src.presentation import HistoricalQuotesB3
 
 # 1) Criar cliente
-b3 = HistoricalQuotes()
+b3 = HistoricalQuotesB3()
 
 # 2) Extrair
 result = b3.extract(
@@ -103,14 +103,14 @@ Suponha que tens arquivos em `/home/jordan/Programação/DataFinance/dados/b3`:
 
 ```python
 from pathlib import Path
-from src.presentation.b3_docs import HistoricalQuotes
+from src.presentation.b3_docs import HistoricalQuotesB3
 
 # Setup
 data_path = Path.home() / "Programação/DataFinance/dados/b3"
 output_path = Path.home() / "Programação/DataFinance/output"
 
 # Extrair (alto nível)
-result = HistoricalQuotes().extract(
+result = HistoricalQuotesB3().extract(
     path_of_docs=str(data_path),
     assets_list=['ações'],
     initial_year=2023,
@@ -624,7 +624,7 @@ class ExtractHistoricalQuotesUseCaseB3:
 }
 
 Obs.: os campos `success` e `message` são adicionados pela camada de apresentação
-(`HistoricalQuotesResultFormatter.enrich_result`). Ao usar o `HistoricalQuotes`
+(`HistoricalQuotesResultFormatter.enrich_result`). Ao usar o `HistoricalQuotesB3`
 de alto nível, esses campos já virão preenchidos.
 
 ### `GetAvailableAssetsUseCaseB3`

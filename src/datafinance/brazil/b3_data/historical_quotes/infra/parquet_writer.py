@@ -385,7 +385,7 @@ class ParquetWriterB3:
                 new_table = pa.table(arrays, schema=schema)
 
             # Create writer for temp file with existing schema
-            writer = pq.ParquetWriterB3(
+            writer = pq.ParquetWriter(
                 str(temp_path),
                 schema,
                 compression="zstd",
