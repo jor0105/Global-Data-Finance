@@ -48,13 +48,30 @@ class ExtractorAdapter:
 
         try:
             with zipfile.ZipFile(zip_path, "r") as z:
+                names = z.namelist()
+
                 if extension:
-                    return [
-                        name
-                        for name in z.namelist()
-                        if name.lower().endswith(extension)
+                    matches = [name for name in names if name.lower().endswith(extension)]
+                    if matches:
+                        return matches
+
+                    # Fallbacks for archives that don't use a '.txt' extension:
+                    # 1) Prefer files without a suffix (no extension).
+                    # 2) If none, prefer domain-specific candidates such as
+                    #    files whose basename starts with 'COTAHIST'.
+                    no_suffix = [name for name in names if Path(name).suffix == ""]
+                    if no_suffix:
+                        return no_suffix
+
+                    cotahist_candidates = [
+                        name for name in names if Path(name).name.upper().startswith("COTAHIST")
                     ]
-                return z.namelist()
+                    if cotahist_candidates:
+                        return cotahist_candidates
+
+                    return []
+
+                return names
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e))
 
