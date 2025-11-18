@@ -4,10 +4,10 @@ This module provides a simple, high-level API for working with CVM
 financial documents, making it easy to download and discover available data.
 
 Example:
-    >>> from datafin.cvm_docs import FundamentalStocksData
+    >>> from datafin.cvm_docs import FundamentalStocksDataCVM
     >>>
     >>> # Initialize the client
-    >>> cvm = FundamentalStocksData()
+    >>> cvm = FundamentalStocksDataCVM()
     >>>
     >>> # See available document types
     >>> docs = cvm.get_available_docs()
@@ -42,7 +42,7 @@ from .download_result_formatter import DownloadResultFormatter
 logger = get_logger(__name__)
 
 
-class FundamentalStocksData:
+class FundamentalStocksDataCVM:
     """High-level interface for CVM fundamental stocks data operations.
 
     This class provides a simple API for downloading CVM financial documents
@@ -59,7 +59,7 @@ class FundamentalStocksData:
 
     Example:
         >>> # Basic usage (uses ThreadPool by default)
-        >>> cvm = FundamentalStocksData()
+        >>> cvm = FundamentalStocksDataCVM()
         >>>
         >>> # Download all document types for recent years
         >>> result = cvm.download(
@@ -80,7 +80,7 @@ class FundamentalStocksData:
     """
 
     def __init__(self):
-        """Initialize the FundamentalStocksData client.
+        """Initialize the FundamentalStocksDataCVM client.
 
         The automatic_extractor option can be passed per download call.
         See download() method for details.
@@ -96,7 +96,7 @@ class FundamentalStocksData:
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
-            "FundamentalStocksData client initialized with AsyncDownloadAdapterCVM "
+            "FundamentalStocksDataCVM client initialized with AsyncDownloadAdapterCVM "
             "(automatic_extractor can be set per download call)"
         )
 
@@ -152,7 +152,7 @@ class FundamentalStocksData:
             OSError: If directory cannot be created due to permissions.
 
         Example:
-            >>> cvm = FundamentalStocksData()
+            >>> cvm = FundamentalStocksDataCVM()
             >>>
             >>> # Download documents without extraction (padrão)
             >>> result = cvm.download(
@@ -217,7 +217,7 @@ class FundamentalStocksData:
             }
 
         Example:
-            >>> cvm = FundamentalStocksData()
+            >>> cvm = FundamentalStocksDataCVM()
             >>> docs = cvm.get_available_docs()
             >>>
             >>> # List all available document types
@@ -246,7 +246,7 @@ class FundamentalStocksData:
             - 'Current Year': Current year (e.g., 2025)
 
         Example:
-            >>> cvm = FundamentalStocksData()
+            >>> cvm = FundamentalStocksDataCVM()
             >>> years = cvm.get_available_years()
             >>>
             >>> # Display available year ranges
@@ -270,4 +270,4 @@ class FundamentalStocksData:
 
     def __repr__(self) -> str:
         """Return a string representation of the client."""
-        return "FundamentalStocksData()"
+        return "FundamentalStocksDataCVM()"

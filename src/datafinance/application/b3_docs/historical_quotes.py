@@ -3,10 +3,10 @@ This module provides a simple, high-level API for working with B3 COTAHIST files
 making it easy to extract historical stock quotes from ZIP files to Parquet format.
 
 Example:
-    >>> from datafin.b3_docs import HistoricalQuotes
+    >>> from datafin.b3_docs import HistoricalQuotesB3
     >>>
     >>> # Initialize the client
-    >>> b3 = HistoricalQuotes()
+    >>> b3 = HistoricalQuotesB3()
     >>>
     >>> # See available asset classes
     >>> assets = b3.get_available_assets()
@@ -44,7 +44,7 @@ from .result_formatters import HistoricalQuotesResultFormatter
 logger = get_logger(__name__)
 
 
-class HistoricalQuotes:
+class HistoricalQuotesB3:
     """High-level interface for B3 historical quotes extraction operations.
 
     This class provides a simple API for extracting historical stock quotes
@@ -68,7 +68,7 @@ class HistoricalQuotes:
 
     Example:
         >>> # Basic usage with fast processing mode
-        >>> b3 = HistoricalQuotes()
+        >>> b3 = HistoricalQuotesB3()
         >>>
         >>> # Extract stocks and ETFs data
         >>> result = b3.extract(
@@ -94,7 +94,7 @@ class HistoricalQuotes:
     """
 
     def __init__(self):
-        """Initialize the HistoricalQuotes client.
+        """Initialize the HistoricalQuotesB3 client.
 
         Sets up the extraction use case and result formatter with sensible defaults.
         """
@@ -103,7 +103,7 @@ class HistoricalQuotes:
         self.__available_years_use_case = GetAvailableYearsUseCaseB3()
         self.__result_formatter = ExtractionResultFormatter(use_colors=True)
 
-        logger.info("HistoricalQuotes client initialized")
+        logger.info("HistoricalQuotesB3 client initialized")
 
     def extract(
         self,
@@ -176,7 +176,7 @@ class HistoricalQuotes:
             OSError: If directories cannot be created or accessed.
 
         Example:
-            >>> b3 = HistoricalQuotes()
+            >>> b3 = HistoricalQuotesB3()
             >>>
             >>> # Extract stocks for recent years (fast mode)
             >>> result = b3.extract(
@@ -268,7 +268,7 @@ class HistoricalQuotes:
             - 'leilao': Auction market
 
         Example:
-            >>> b3 = HistoricalQuotes()
+            >>> b3 = HistoricalQuotesB3()
             >>> assets = b3.get_available_assets()
             >>>
             >>> # List all available asset classes
@@ -303,7 +303,7 @@ class HistoricalQuotes:
             - 'current_year': Current year (maximum year available)
 
         Example:
-            >>> b3 = HistoricalQuotes()
+            >>> b3 = HistoricalQuotesB3()
             >>> years = b3.get_available_years()
             >>>
             >>> # Display available year range
@@ -337,7 +337,7 @@ class HistoricalQuotes:
 
     def __repr__(self) -> str:
         """Return a string representation of the client."""
-        return "HistoricalQuotes()"
+        return "HistoricalQuotesB3()"
 
     def __resolve_initial_year(self, initial_year: Optional[int]) -> int:
         """Resolve initial_year to a valid value, using minimum year if None.

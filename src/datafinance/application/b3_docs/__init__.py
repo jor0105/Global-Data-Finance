@@ -1,3 +1,3 @@
-from .historical_quotes import HistoricalQuotes
+from .historical_quotes import HistoricalQuotesB3
 
-__all__ = ["HistoricalQuotes"]
+__all__ = ["HistoricalQuotesB3"]

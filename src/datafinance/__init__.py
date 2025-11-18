@@ -1,6 +1,6 @@
-from .application import FundamentalStocksData, HistoricalQuotes
+from .application import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 __all__ = [
-    "FundamentalStocksData",
-    "HistoricalQuotes",
+    "FundamentalStocksDataCVM",
+    "HistoricalQuotesB3",
 ]

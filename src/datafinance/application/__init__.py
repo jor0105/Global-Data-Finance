@@ -1,7 +1,7 @@
-from .b3_docs import HistoricalQuotes
-from .cvm_docs import FundamentalStocksData
+from .b3_docs import HistoricalQuotesB3
+from .cvm_docs import FundamentalStocksDataCVM
 
 __all__ = [
-    "FundamentalStocksData",
-    "HistoricalQuotes",
+    "FundamentalStocksDataCVM",
+    "HistoricalQuotesB3",
 ]
