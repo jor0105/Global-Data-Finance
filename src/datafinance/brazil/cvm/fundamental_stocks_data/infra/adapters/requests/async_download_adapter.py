@@ -160,7 +160,7 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
             if self.automatic_extractor:
                 try:
                     logger.info(f"Starting extraction for {doc_name}_{year}")
-                    self.file_extractor_repository.extract(dest_path)
+                    self.file_extractor_repository.extract(filepath)
 
                     # CRITICAL FIX: Verify extraction with recursive glob
                     parquet_files = list(Path(dest_path).glob("**/*.parquet"))

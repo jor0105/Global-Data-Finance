@@ -40,14 +40,14 @@ class ParquetExtractorAdapterCVM(FileExtractorRepositoryCVM):
     def __init__(self) -> None:
         self.extractor_adapter = ExtractorAdapter()
 
-    def extract(self, destination_path: str) -> None:
+    def extract(self, zip_file_path: str) -> None:
         """Extract ZIP to Parquet files with atomic transaction guarantee.
 
         Processes all CSV files found in the ZIP archive and converts them
         to Parquet format. If ANY file fails, all changes are rolled back.
 
         Args:
-            destination_path: Directory where Parquet files will be saved
+            zip_file_path: Path to the ZIP file to extract
 
         Raises:
             ExtractionError: If ZIP is invalid or CSV conversion fails
@@ -55,23 +55,20 @@ class ParquetExtractorAdapterCVM(FileExtractorRepositoryCVM):
             DiskFullError: If insufficient disk space is available
 
         Note:
-            - Automatically creates destination directory if it doesn't exist
             - Cleans up ALL partial Parquet files if ANY extraction fails (atomic)
-            - Skips existing files to prevent data loss
+            - Parquet files are created in the same directory as the ZIP file
 
         Example:
             >>> extractor = ParquetExtractorAdapterCVM()
-            >>> extractor.extract("/data/dfp_2023.zip", "/data/output")
-            # Creates /data/output/file1.parquet, /data/output/file2.parquet, etc.
+            >>> extractor.extract("/data/dfp_2023/dfp_cia_aberta_2023.zip")
+            # Creates .parquet files in /data/dfp_2023/
         """
         try:
-            logger.info(f"Starting Parquet extraction from {destination_path}")
+            logger.info(f"Starting Parquet extraction from {zip_file_path}")
 
-            self.__extract_with_transaction(destination_path)
+            self.__extract_with_transaction(zip_file_path)
 
-            logger.info(
-                f"Parquet extraction completed successfully: {destination_path}"
-            )
+            logger.info(f"Parquet extraction completed successfully: {zip_file_path}")
 
         except (
             ExtractionError,
@@ -81,11 +78,9 @@ class ParquetExtractorAdapterCVM(FileExtractorRepositoryCVM):
             raise
 
         except Exception as e:
-            logger.error(
-                f"Unexpected error during extraction of {destination_path}: {e}"
-            )
+            logger.error(f"Unexpected error during extraction of {zip_file_path}: {e}")
             raise ExtractionError(
-                destination_path,
+                zip_file_path,
                 f"Unexpected extraction error: {type(e).__name__}: {e}",
             )
 
@@ -104,14 +99,16 @@ class ParquetExtractorAdapterCVM(FileExtractorRepositoryCVM):
         failed_files = []
         created_files = []  # Track files created in THIS extraction only
 
+        # Output directory is the same directory as the ZIP file
+        output_dir = Path(zip_path).parent
+
         try:
             with zipfile.ZipFile(zip_path, "r") as z:
                 csv_files = self.extractor_adapter.list_files_in_zip(zip_path, ".csv")
 
                 for csv_filename in csv_files:
-                    output_path = Path(zip_path)
                     parquet_filename = Path(csv_filename).stem + ".parquet"
-                    parquet_path = output_path / parquet_filename
+                    parquet_path = output_dir / parquet_filename
 
                     try:
                         self.extractor_adapter.extract_csv_from_zip_to_parquet(
