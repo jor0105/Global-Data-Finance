@@ -1,5 +1,5 @@
 [project]
-name = "datafinc"
+name = "datafinance"
 version = "0.1.0"
 description = "Library for extracting, normalizing and processing global financial and economic data — including market data from exchanges worldwide, regulatory filings, company fundamentals and historical quotes; optimized for high-performance storage and analysis (e.g., Parquet)."
 readme = "README.md"
@@ -37,7 +37,7 @@ Documentation = "https://github.com/jor0105/DataFinanc"
 "Bug Tracker" = "https://github.com/jor0105/DataFinanc/issues"
 
 [tool.poetry]
-packages = [{include = "datafinc", from = "src"}]
+packages = [{include = "datafinance", from = "src"}]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.3.0"
