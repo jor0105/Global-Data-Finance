@@ -9,7 +9,7 @@ class ProcessingModeEnumB3(str, Enum):
     FAST_DESIRED_CONCURRENT_FILES = (
         15  # Process 15 files in parallel to maximize throughput on multi-core systems
     )
-    FAST_DESIRED_WORKERS = None  # Use default CPU count for thread pool executor
+    FAST_DESIRED_WORKERS = 4  # Use default CPU count for thread pool executor
     FAST_USE_PARALLEL_PARSING = (
         True  # Enable parallel parsing with ThreadPoolExecutor for faster processing
     )
@@ -36,9 +36,8 @@ class ProcessingModeEnumB3(str, Enum):
         )
 
     @property
-    def desired_workers(self):
-        # Pode ser int ou None
-        return (
+    def desired_workers(self) -> int:
+        return int(
             self.FAST_DESIRED_WORKERS
             if self == ProcessingModeEnumB3.FAST
             else self.SLOW_DESIRED_WORKERS
