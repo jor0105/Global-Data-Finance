@@ -1,16 +1,3 @@
-"""Resource monitoring and management for memory-constrained environments.
-
-This module provides real-time monitoring of system resources (RAM, CPU) and
-implements circuit breaker patterns to prevent crashes on weak hardware.
-
-Features:
-- Dynamic resource threshold calculation
-- Memory pressure detection
-- Automatic garbage collection
-- Circuit breaker for resource exhaustion
-- Configurable safety margins
-"""
-
 import gc
 import os
 import platform
@@ -348,47 +335,6 @@ class ResourceMonitor:
         logger.info("Circuit breaker reset - resuming processing")
         self._circuit_breaker_active = False
         self._circuit_breaker_triggered_at = None
-
-    def get_memory_info(self) -> dict:
-        """Get detailed memory information.
-
-        Returns:
-            Dictionary with memory metrics:
-                - used_mb: System memory used (MB)
-                - available_mb: System memory available (MB)
-                - percent: System memory usage percentage
-                - process_mb: Memory used by current process (MB)
-        """
-        if psutil is None:
-            return {
-                "used_mb": 0.0,
-                "available_mb": 0.0,
-                "percent": 0.0,
-                "process_mb": 0.0,
-            }
-
-        try:
-            # System memory
-            memory = psutil.virtual_memory()
-
-            # Current process memory
-            process = psutil.Process()
-            process_memory = process.memory_info().rss / (1024**2)  # MB
-
-            return {
-                "used_mb": memory.used / (1024**2),
-                "available_mb": memory.available / (1024**2),
-                "percent": memory.percent,
-                "process_mb": process_memory,
-            }
-        except Exception as e:
-            logger.error(f"Error getting memory info: {e}", exc_info=True)
-            return {
-                "used_mb": 0.0,
-                "available_mb": 0.0,
-                "percent": 0.0,
-                "process_mb": 0.0,
-            }
 
     def get_process_memory_mb(self) -> float:
         """Get memory used by current process in MB.

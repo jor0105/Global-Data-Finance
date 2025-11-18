@@ -14,44 +14,15 @@ logger = get_logger(__name__)
 
 
 class ExtractionServiceB3:
-    """Service for extracting data from COTAHIST ZIP files with true chunk-based processing.
-
-    This service implements TRUE STREAMING with incremental flush and memory monitoring:
-    - Reads ZIP line by line (streaming)
-    - Processes in small batches
-    - Monitors RAM usage continuously
-    - Writes to temp Parquet files when memory threshold reached OR buffer full
-    - Each ZIP writes to unique temp file (prevents race conditions)
-    - Final merge of all temp files using streaming
-    - Memory usage controlled by batch sizes AND RAM thresholds
-
-    Processing modes:
-    - FAST: High concurrency (15 files parallel) + parallel parsing (threads)
-           Memory target: ~4.5 GB total (flush at 3GB)
-           Batch: 500k records per file
-    - SLOW: Low concurrency (3 files parallel) + sequential parsing
-           Memory target: ~1.5 GB total (flush at 1GB)
-           Batch: 500k records per file (same as FAST for SSD optimization)
-
-    Memory characteristics:
-    - Flush triggers: buffer size (500k) OR RAM threshold (3GB/1GB)
-    - Each ZIP writes to unique temp file (prevents race conditions)
-    - Final streaming merge of temp files (200k batch size)
-    - Never loads entire parquet in RAM
-
-    SSD write optimization:
-    - Large batches (500k) reduce write amplification on BOTH modes
-    - ~12 appends per 6M records file
-    - Streaming merge minimizes disk operations
+    """
+    Extracts data from COTAHIST ZIP files using streaming and incremental flush.
+    Supports high and low concurrency modes, memory monitoring, and efficient Parquet writing.
+    Each ZIP is processed independently and merged at the end without loading all data into RAM.
     """
 
-    # Batch sizes optimized for memory and SSD wear
-    # Both modes use same flush size for consistent SSD write performance
     # FAST mode: 500k records × 15 files × 3KB/record ≈ 22.5 GB (high performance)
     # SLOW mode: 500k records × 3 files × 3KB/record ≈ 4.5 GB (low resource usage)
-    FLUSH_BATCH_SIZE = (
-        500_000  # Write every 500k records (both modes) - Minimize SSD writes
-    )
+    FLUSH_BATCH_SIZE = 500_000
     PARSE_BATCH_SIZE = 50_000  # Parse in batches of 50k lines (faster processing)
 
     # Minimum safe batch sizes
@@ -63,16 +34,9 @@ class ExtractionServiceB3:
         zip_reader: ZipFileReaderB3,
         parser: CotahistParserB3,
         data_writer: ParquetWriterB3,
-        processing_mode: ProcessingModeEnumB3 = ProcessingModeEnumB3.FAST,
+        processing_mode: ProcessingModeEnumB3,
     ):
-        """Initialize extraction service with dependencies.
-
-        Args:
-            zip_reader: Service for reading ZIP files
-            parser: Parser for COTAHIST format
-            data_writer: Writer for output data
-            processing_mode: Resource consumption strategy
-        """
+        """Initialize with dependencies and configure concurrency and batch sizes."""
         self.zip_reader = zip_reader
         self.parser = parser
         self.data_writer = data_writer
@@ -80,23 +44,15 @@ class ExtractionServiceB3:
         self.resource_monitor = ResourceMonitor()
 
         # Configure concurrency based on mode and available resources
-        if processing_mode == ProcessingModeEnumB3.FAST:
-            desired_concurrent_files = (
-                15  # Increased from 10 to 15 for better throughput
-            )
-            desired_workers = None  # Use default (CPU count)
-            self.use_parallel_parsing = True
-        else:  # SLOW
-            desired_concurrent_files = 3  # Increased from 2 to 3
-            desired_workers = 2  # Increased from 1 to 2
-            self.use_parallel_parsing = False
+        desired_concurrent_files = processing_mode.desired_concurrent_files
+        desired_workers = processing_mode.desired_workers
+        self.use_parallel_parsing = processing_mode.use_parallel_parsing
 
         self.max_concurrent_files = min(
             desired_concurrent_files,
             self.resource_monitor.get_safe_worker_count(desired_concurrent_files),
         )
 
-        # Determine safe worker count for parallel parsing
         if self.use_parallel_parsing:
             self.max_workers = self.resource_monitor.get_safe_worker_count(
                 desired_workers
@@ -104,8 +60,6 @@ class ExtractionServiceB3:
         else:
             self.max_workers = 1
 
-        # Set batch sizes - SAME for both modes to optimize SSD writes
-        # Difference is only in concurrency and parsing strategy
         self.flush_batch_size = self.FLUSH_BATCH_SIZE
         self.parse_batch_size = self.PARSE_BATCH_SIZE
 
@@ -146,18 +100,9 @@ class ExtractionServiceB3:
     async def extract_from_zip_files(
         self, zip_files: Set[str], target_tpmerc_codes: Set[str], output_path: Path
     ) -> Dict[str, Any]:
-        """Extract data from multiple ZIP files with true incremental processing.
-
-        Each ZIP file is processed independently with immediate flush to disk.
-        No data accumulation across files - constant memory usage.
-
-        Args:
-            zip_files: Set of paths to ZIP files
-            target_tpmerc_codes: Set of TPMERC codes to filter
-            output_path: Path where to save the extracted Parquet file
-
-        Returns:
-            Dictionary with extraction statistics (no data arrays)
+        """
+        Extracts from multiple ZIP files, writing each to a temp file and merging at the end.
+        Returns extraction statistics only.
         """
         self._adjust_batch_sizes()
 
@@ -186,7 +131,7 @@ class ExtractionServiceB3:
             semaphore = asyncio.Semaphore(self.max_concurrent_files)
 
             async def process_single_file(zip_file: str):
-                """Process single ZIP file with direct write to temp file."""
+                # Process a single ZIP file and write to a temp file
                 nonlocal success_count, error_count, errors
 
                 # Check resources before processing
@@ -295,19 +240,7 @@ class ExtractionServiceB3:
         target_tpmerc_codes: Set[str],
         output_path: Path,
     ) -> Dict[str, Any]:
-        """Process a single ZIP file with incremental flush to disk.
-
-        Each ZIP writes to its own temporary file to avoid race conditions
-        in parallel processing. Returns info about temp file for later merge.
-
-        Args:
-            zip_file: Path to ZIP file
-            target_tpmerc_codes: Set of TPMERC codes to filter
-            output_path: Base path for output (used to generate temp file name)
-
-        Returns:
-            Dictionary with 'records' (int) and 'temp_file' (str) keys
-        """
+        """Processes a single ZIP file, writing to a unique temp file. Returns record count and temp file path."""
         # Generate unique temporary file name for this ZIP
         zip_basename = Path(zip_file).stem  # e.g., "COTAHIST_A2023"
         temp_output = (
@@ -400,7 +333,7 @@ class ExtractionServiceB3:
                         buffer.clear()
                         gc.collect()
 
-                    # Check resources every 1000 lines
+                    # Check resources every 5000 lines
                     line_count += 1
                     if (
                         line_count % 5000 == 0
@@ -431,24 +364,6 @@ class ExtractionServiceB3:
                 exc_info=True,
             )
 
-            # Try to save buffer to emergency file before clearing
-            if buffer:
-                emergency_file = temp_output.with_suffix(".emergency.json")
-                try:
-                    import json
-
-                    with open(emergency_file, "w", encoding="utf-8") as f:
-                        json.dump(buffer, f, ensure_ascii=False, indent=2)
-                    logger.warning(
-                        f"Buffer saved to emergency file: {emergency_file}",
-                        extra={"records_saved": len(buffer)},
-                    )
-                except Exception as save_error:
-                    logger.error(
-                        f"Failed to save emergency buffer: {save_error}",
-                        extra={"buffer_size": len(buffer)},
-                    )
-
             # Clear buffer after attempting emergency save
             buffer.clear()
             gc.collect()
@@ -466,15 +381,7 @@ class ExtractionServiceB3:
     async def _parse_lines_batch_parallel(
         self, lines: List[str], target_tpmerc_codes: Set[str]
     ) -> List[Dict[str, Any]]:
-        """Parse a batch of lines in parallel using ThreadPoolExecutor.
-
-        Args:
-            lines: List of lines to parse
-            target_tpmerc_codes: Set of TPMERC codes to filter
-
-        Returns:
-            List of parsed records (excludes None values)
-        """
+        """Parse a batch of lines in parallel using ThreadPoolExecutor."""
         loop = asyncio.get_event_loop()
         parsed_batch = await loop.run_in_executor(
             self.executor_pool,
@@ -487,16 +394,7 @@ class ExtractionServiceB3:
     async def _write_buffer_to_disk(
         self, buffer: List[Dict[str, Any]], output_path: Path, mode: str
     ) -> None:
-        """Write buffer to Parquet file with retry mechanism.
-
-        Args:
-            buffer: List of records to write
-            output_path: Path to Parquet file
-            mode: Write mode ('overwrite' or 'append')
-
-        Raises:
-            IOError: If all retry attempts fail
-        """
+        """Write buffer to Parquet file with retries on failure."""
         if not buffer:
             return
 
@@ -551,11 +449,7 @@ class ExtractionServiceB3:
                 raise MemoryError("Unable to recover from resource exhaustion")
 
     def _adjust_batch_sizes(self) -> None:
-        """Dynamically adjust batch sizes based on current memory state.
-
-        Under memory pressure, reduces batch sizes to prevent OOM errors.
-        Both modes use same base batch size for consistent SSD write performance.
-        """
+        """Adjust batch sizes based on current memory state."""
         memory_state = self.resource_monitor.check_resources()
 
         # Both modes use same base flush size for SSD optimization
@@ -577,19 +471,10 @@ class ExtractionServiceB3:
             self.parse_batch_size = max(new_parse_size, self.MIN_PARSE_BATCH)
 
     def _should_flush_by_memory(self) -> bool:
-        """Check if should flush based on current RAM usage.
-
-        Returns:
-            True if process memory usage exceeds mode-specific threshold
-        """
+        """Return True if process memory usage exceeds mode-specific threshold."""
         process_memory_mb = self.resource_monitor.get_process_memory_mb()
 
-        if self.processing_mode == ProcessingModeEnumB3.FAST:
-            # Fast mode: flush at 2.5GB (leaves 500MB margin for 3GB target)
-            threshold_mb = 3500
-        else:  # SLOW
-            # Slow mode: flush at 800MB (leaves 200MB margin for 1GB target)
-            threshold_mb = 1000
+        threshold_mb = self.processing_mode.memory_threshold_mb
 
         should_flush = process_memory_mb >= threshold_mb
 
@@ -610,20 +495,9 @@ class ExtractionServiceB3:
         temp_files: List[Path],
         final_output: Path,
     ) -> int:
-        """Merge multiple parquet files using PyArrow streaming.
-
-        This method never loads entire files in RAM, processing in batches
-        to maintain constant memory usage.
-
-        Args:
-            temp_files: List of temporary parquet files to merge
-            final_output: Final output path for merged data
-
-        Returns:
-            Total number of records in final file
-
-        Raises:
-            IOError: If merge fails
+        """
+        Merge multiple parquet files using PyArrow streaming, never loading all data in RAM.
+        Returns total number of records in the final file.
         """
         import pyarrow.parquet as pq  # type: ignore
 
@@ -653,7 +527,7 @@ class ExtractionServiceB3:
             schema = first_file.schema_arrow
 
             # Create writer for merged file
-            writer = pq.ParquetWriterB3(
+            writer = pq.ParquetWriter(
                 str(temp_merge),
                 schema,
                 compression="zstd",
@@ -732,14 +606,7 @@ class ExtractionServiceB3:
             raise IOError(f"Merge operation failed: {e}")
 
     def _count_parquet_rows(self, path: Path) -> int:
-        """Count rows in parquet file without loading into RAM.
-
-        Args:
-            path: Path to parquet file
-
-        Returns:
-            Number of rows in file
-        """
+        """Count rows in parquet file without loading into RAM."""
         import pyarrow.parquet as pq  # type: ignore
 
         try:
@@ -751,14 +618,7 @@ class ExtractionServiceB3:
             return 0
 
     async def _wait_for_resources(self, timeout_seconds: int = 30) -> bool:
-        """Wait for resources to become available.
-
-        Args:
-            timeout_seconds: Maximum time to wait
-
-        Returns:
-            True if resources became available, False if timeout
-        """
+        """Wait for resources to become available, up to timeout."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             None,
@@ -771,17 +631,7 @@ class ExtractionServiceB3:
 def _parse_lines_batch(
     lines: List[str], target_tpmerc_codes: Set[str]
 ) -> List[Dict[str, Any]]:
-    """Parse a batch of lines using a fresh parser instance.
-
-    Module-level function for use with ThreadPoolExecutor.
-
-    Args:
-        lines: List of lines to parse
-        target_tpmerc_codes: Set of TPMERC codes to filter
-
-    Returns:
-        List of parsed records (may include None for non-matching lines)
-    """
+    """Parse a batch of lines using a fresh parser instance (for ThreadPoolExecutor)."""
     parser = CotahistParserB3()
     parsed = [parser.parse_line(line, target_tpmerc_codes) for line in lines]
     return [record for record in parsed if record is not None]

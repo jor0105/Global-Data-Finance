@@ -208,6 +208,7 @@ class HistoricalQuotesB3:
             ...             print(f"  - {error}")
         """
         initial_year = self.__resolve_initial_year(initial_year)
+
         last_year = self.__resolve_last_year(last_year)
 
         output_filename_with_ext = self.__ensure_parquet_extension(output_filename)

@@ -409,11 +409,3 @@ def remove_file(filepath: str, log_on_error: bool = True) -> None:
     except Exception as e:
         if log_on_error:
             logger.warning(f"Failed to remove file {filepath}: {e}")
-
-
-# ============================================================================
-# NOTE: Logging is NOT auto-configured on import
-# ============================================================================
-# This is intentional to keep the library clean and non-intrusive.
-# Users must explicitly call setup_logging() if they want to see logs.
-# This follows the Python library best practice of lazy initialization.

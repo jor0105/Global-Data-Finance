@@ -71,11 +71,11 @@ class CreateDocsToExtractUseCaseB3:
             range_years, self.path_of_docs
         )
 
-        builder = DocsToExtractorB3(
+        docs_to_extract = DocsToExtractorB3(
             path_of_docs=self.path_of_docs,
             set_assets=set_assets,
             range_years=range_years,
             destination_path=self.destination_path,
             set_documents_to_download=set_documents_to_download,
         )
-        return builder
+        return docs_to_extract
