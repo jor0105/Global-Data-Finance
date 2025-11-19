@@ -52,7 +52,7 @@ class NetworkSettings(BaseSettings):
     class Config:
         """Network configuration class."""
 
-        env_prefix = "DATAFINC_NETWORK_"
+        env_prefix = "DATAFINANCE_NETWORK_"
         case_sensitive = False
 
 
@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     class Config:
         """Settings configuration class."""
 
-        env_prefix = "DATAFINC_"
+        env_prefix = "DATAFINANCE_"
         case_sensitive = False
         env_file = ".env"
         env_file_encoding = "utf-8"

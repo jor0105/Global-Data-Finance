@@ -211,7 +211,7 @@ class HistoricalQuotesB3:
 
         last_year = self.__resolve_last_year(last_year)
 
-        output_filename_with_ext = self.__ensure_parquet_extension(output_filename)
+        output_filename_with_ext = self._ensure_parquet_extension(output_filename)
 
         logger.info(
             f"Extraction requested: path={path_of_docs}, "
@@ -370,7 +370,7 @@ class HistoricalQuotesB3:
             return resolved
         return last_year
 
-    def __ensure_parquet_extension(self, filename: str) -> str:
+    def _ensure_parquet_extension(self, filename: str) -> str:
         """Ensure filename has .parquet extension.
 
         Args:
