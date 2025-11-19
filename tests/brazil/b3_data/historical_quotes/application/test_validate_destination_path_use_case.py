@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.application.use_cases import (
-    VerifyDestinationPathsUseCase,
+from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+    VerifyDestinationPathsUseCaseB3,
 )
 from datafinance.macro_exceptions import (
     InvalidDestinationPathError,
@@ -14,18 +14,18 @@ from datafinance.macro_exceptions import (
 )
 
 
-class TestVerifyDestinationPathsUseCase:
+class TestVerifyDestinationPathsUseCaseB3:
     def test_execute_with_valid_existing_directory(self, tmp_path):
         test_dir = tmp_path / "test_output"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     def test_execute_creates_non_existing_directory(self, tmp_path):
         test_dir = tmp_path / "new_output"
         assert not test_dir.exists()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
         assert test_dir.exists()
         assert test_dir.is_dir()
@@ -34,38 +34,38 @@ class TestVerifyDestinationPathsUseCase:
         nested_dir = tmp_path / "level1" / "level2" / "level3"
         assert not nested_dir.exists()
 
-        VerifyDestinationPathsUseCase.execute(str(nested_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(nested_dir))
 
         assert nested_dir.exists()
         assert nested_dir.is_dir()
 
     def test_execute_raises_type_error_for_non_string(self):
         with pytest.raises(TypeError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(123)
+            VerifyDestinationPathsUseCaseB3.execute(123)
 
         assert "must be a string" in str(exc_info.value)
 
     def test_execute_raises_type_error_for_none(self):
         with pytest.raises(TypeError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(None)
+            VerifyDestinationPathsUseCaseB3.execute(None)
 
         assert "must be a string" in str(exc_info.value)
 
     def test_execute_raises_type_error_for_list(self):
         with pytest.raises(TypeError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(["/path/to/output"])
+            VerifyDestinationPathsUseCaseB3.execute(["/path/to/output"])
 
         assert "must be a string" in str(exc_info.value)
 
     def test_execute_raises_invalid_destination_path_for_empty_string(self):
         with pytest.raises(InvalidDestinationPathError) as exc_info:
-            VerifyDestinationPathsUseCase.execute("")
+            VerifyDestinationPathsUseCaseB3.execute("")
 
         assert "cannot be empty" in str(exc_info.value)
 
     def test_execute_raises_invalid_destination_path_for_whitespace(self):
         with pytest.raises(InvalidDestinationPathError) as exc_info:
-            VerifyDestinationPathsUseCase.execute("   ")
+            VerifyDestinationPathsUseCaseB3.execute("   ")
 
         assert "cannot be empty or whitespace" in str(exc_info.value)
 
@@ -74,7 +74,7 @@ class TestVerifyDestinationPathsUseCase:
         test_file.write_text("content")
 
         with pytest.raises(PathIsNotDirectoryError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(str(test_file))
+            VerifyDestinationPathsUseCaseB3.execute(str(test_file))
 
         assert "must be a directory" in str(exc_info.value)
         assert str(test_file) in str(exc_info.value)
@@ -88,7 +88,7 @@ class TestVerifyDestinationPathsUseCase:
         mock_access.return_value = False
 
         with pytest.raises(PathPermissionError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(str(test_dir))
+            VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
         assert "Permission denied" in str(exc_info.value)
         assert "No write permission" in str(exc_info.value)
@@ -98,7 +98,7 @@ class TestVerifyDestinationPathsUseCase:
             mock_expand.return_value = tmp_path / "expanded"
             (tmp_path / "expanded").mkdir()
 
-            VerifyDestinationPathsUseCase.execute("~/test_output")
+            VerifyDestinationPathsUseCaseB3.execute("~/test_output")
 
             mock_expand.assert_called()
 
@@ -109,7 +109,7 @@ class TestVerifyDestinationPathsUseCase:
         with patch.object(Path, "resolve") as mock_resolve:
             mock_resolve.return_value = test_dir
 
-            VerifyDestinationPathsUseCase.execute("./relative/path")
+            VerifyDestinationPathsUseCaseB3.execute("./relative/path")
 
             mock_resolve.assert_called()
 
@@ -117,26 +117,26 @@ class TestVerifyDestinationPathsUseCase:
         test_dir = tmp_path / "path with spaces"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     def test_execute_handles_path_with_special_characters(self, tmp_path):
         test_dir = tmp_path / "path-with_special.chars"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     def test_execute_is_static_method(self, tmp_path):
         test_dir = tmp_path / "static_test"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     def test_execute_with_existing_writable_directory(self, tmp_path):
         test_dir = tmp_path / "writable"
         test_dir.mkdir()
         assert os.access(str(test_dir), os.W_OK)
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     @patch("pathlib.Path.mkdir")
     def test_execute_raises_permission_error_on_mkdir_failure(
@@ -146,7 +146,7 @@ class TestVerifyDestinationPathsUseCase:
         mock_mkdir.side_effect = PermissionError("Cannot create directory")
 
         with pytest.raises(PathPermissionError):
-            VerifyDestinationPathsUseCase.execute(str(test_dir))
+            VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
     @patch("pathlib.Path.mkdir")
     def test_execute_raises_os_error_on_mkdir_failure(self, mock_mkdir, tmp_path):
@@ -154,7 +154,7 @@ class TestVerifyDestinationPathsUseCase:
         mock_mkdir.side_effect = OSError("Generic OS error")
 
         with pytest.raises(OSError) as exc_info:
-            VerifyDestinationPathsUseCase.execute(str(test_dir))
+            VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
         assert "Failed to create directory" in str(exc_info.value)
 
@@ -166,7 +166,7 @@ class TestVerifyDestinationPathsUseCase:
 
         original_mtime = test_file.stat().st_mtime
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))
 
         assert test_file.exists()
         assert test_file.read_text() == "content"
@@ -176,10 +176,10 @@ class TestVerifyDestinationPathsUseCase:
         test_dir = tmp_path / "absolute"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir.absolute()))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir.absolute()))
 
     def test_execute_normalizes_path(self, tmp_path):
         test_dir = tmp_path / "normalize"
         test_dir.mkdir()
 
-        VerifyDestinationPathsUseCase.execute(str(test_dir))
+        VerifyDestinationPathsUseCaseB3.execute(str(test_dir))

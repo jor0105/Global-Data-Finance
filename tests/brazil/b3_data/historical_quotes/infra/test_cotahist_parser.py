@@ -3,15 +3,15 @@ from decimal import Decimal
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.infra.cotahist_parser import (
-    CotahistParser,
+from datafinance.brazil.b3_data.historical_quotes.infra.cotahist_parser import (
+    CotahistParserB3,
 )
 
 
-class TestCotahistParser:
+class TestCotahistParserB3:
     @pytest.fixture
     def parser(self):
-        return CotahistParser()
+        return CotahistParserB3()
 
     @pytest.fixture
     def target_codes(self):
@@ -111,10 +111,10 @@ class TestCotahistParser:
         assert result is None or isinstance(result, dict)
 
 
-class TestCotahistParserFieldParsing:
+class TestCotahistParserB3FieldParsing:
     @pytest.fixture
     def parser(self):
-        return CotahistParser()
+        return CotahistParserB3()
 
     def test_parse_date_valid(self, parser):
         date_str = "20230615"
@@ -233,10 +233,10 @@ class TestCotahistParserFieldParsing:
         assert result == ""
 
 
-class TestCotahistParserEdgeCases:
+class TestCotahistParserB3EdgeCases:
     @pytest.fixture
     def parser(self):
-        return CotahistParser()
+        return CotahistParserB3()
 
     @pytest.fixture
     def target_codes(self):
@@ -319,10 +319,10 @@ class TestCotahistParserEdgeCases:
         assert result["numero_negocios"] == 0
 
 
-class TestCotahistParserIntegration:
+class TestCotahistParserB3Integration:
     @pytest.fixture
     def parser(self):
-        return CotahistParser()
+        return CotahistParserB3()
 
     def test_parse_complete_cotahist_sample(self, parser):
         lines = [

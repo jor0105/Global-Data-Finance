@@ -12,6 +12,15 @@ from datafinance.core.logging_config import (
 )
 
 
+import os
+import tempfile
+from datafinance.core.logging_config import (
+    remove_file,
+    is_logging_configured,
+    get_logging_settings,
+)
+
+
 class TestLoggingConfiguration:
     def test_get_logger_returns_logger(self):
         logger = get_logger("test_module")
@@ -80,3 +89,23 @@ class TestLoggingConfiguration:
 
             content = log_file.read_text()
             assert "test_setup_logging_with_detailed_format" in content
+
+    def test_remove_file_removes_existing_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = os.path.join(tmpdir, "to_remove.txt")
+            with open(file_path, "w") as f:
+                f.write("test")
+            assert os.path.exists(file_path)
+            remove_file(file_path)
+            assert not os.path.exists(file_path)
+
+    def test_remove_file_nonexistent_does_not_raise(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = os.path.join(tmpdir, "does_not_exist.txt")
+            remove_file(file_path)
+            assert not os.path.exists(file_path)
+
+    def test_is_logging_configured_and_get_logging_settings(self):
+        assert isinstance(is_logging_configured(), bool)
+        settings = get_logging_settings()
+        assert hasattr(settings, "level")

@@ -3,7 +3,7 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 
@@ -29,13 +29,10 @@ class TestDataIntegrity:
         return zip_path
 
     def test_no_data_loss_during_extraction(self, csv_zip, tmp_path, sample_data):
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(csv_zip))
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(csv_zip), destination_path=str(output_dir))
-
-        parquet_file = output_dir / "data.parquet"
+        parquet_file = tmp_path / "data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
         df_result = pd.read_parquet(parquet_file)
         assert len(df_result) == len(sample_data), (
@@ -70,13 +67,11 @@ class TestDataIntegrity:
         with zipfile.ZipFile(zip_path, "w") as z:
             csv_content = special_data.to_csv(sep=";", index=False)
             z.writestr("special.csv", csv_content.encode("latin-1"))
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
-        df_result = pd.read_parquet(output_dir / "special.parquet")
+        df_result = pd.read_parquet(tmp_path / "special.parquet")
         for col in special_data.columns:
             for i, (original, result) in enumerate(
                 zip(special_data[col], df_result[col])
@@ -103,13 +98,10 @@ class TestDataIntegrity:
         with zipfile.ZipFile(zip_path, "w") as z:
             csv_content = numeric_data.to_csv(sep=";", index=False)
             z.writestr("numeric.csv", csv_content.encode("latin-1"))
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
-
-        df_result = pd.read_parquet(output_dir / "numeric.parquet")
+        df_result = pd.read_parquet(tmp_path / "numeric.parquet")
         for col in numeric_data.columns:
             if numeric_data[col].dtype == "float64":
                 assert (
@@ -128,13 +120,10 @@ class TestDataIntegrity:
             valid_data = pd.DataFrame({"col1": [1, 2], "col2": ["a", "b"]})
             csv_content = valid_data.to_csv(sep=";", index=False)
             z.writestr("valid.csv", csv_content.encode("latin-1"))
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
-
-        valid_parquet = output_dir / "valid.parquet"
+        valid_parquet = tmp_path / "valid.parquet"
         assert valid_parquet.exists(), "Valid CSV was not processed"
         df_result = pd.read_parquet(valid_parquet)
         assert len(df_result) == 2, "Valid CSV data was lost"

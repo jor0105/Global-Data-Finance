@@ -18,8 +18,8 @@ class TestGenerateRangeYearsUseCasesInitialization:
 
     def test_initialization_creates_available_years_instance(self):
         use_case = GenerateRangeYearsUseCasesCVM()
-        assert hasattr(use_case, "_GenerateRangeYearsUseCases__range_years")
-        assert use_case._GenerateRangeYearsUseCases__range_years is not None
+        assert hasattr(use_case, "_GenerateRangeYearsUseCasesCVM__range_years")
+        assert use_case._GenerateRangeYearsUseCasesCVM__range_years is not None
 
     def test_initialization_logs_debug_message(self, caplog):
         with caplog.at_level(logging.DEBUG):

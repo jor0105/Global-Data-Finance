@@ -2,11 +2,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
     CreateDocsToExtractUseCaseB3,
 )
-from datafinance.brazil.dados_b3.historical_quotes.domain import DocsToExtractorB3
-from datafinance.brazil.dados_b3.historical_quotes.domain.exceptions import (
+from datafinance.brazil.b3_data.historical_quotes.domain import DocsToExtractorB3
+from datafinance.brazil.b3_data.historical_quotes.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
     InvalidFirstYear,
@@ -70,16 +70,16 @@ class TestCreateDocsToExtractUseCaseInitialization:
 
 class TestCreateDocsToExtractUseCaseExecute:
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_returns_docs_to_extractor(
         self,
@@ -104,16 +104,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         assert isinstance(result, DocsToExtractorB3)
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_calls_set_assets_use_case(
         self,
@@ -137,16 +137,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_set_assets.execute.assert_called_once_with(["ações"])
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_calls_range_years_use_case(
         self,
@@ -170,16 +170,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_range_years.execute.assert_called_once_with(2020, 2024)
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_calls_verify_destination_path_use_case(
         self,
@@ -205,16 +205,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_verify_instance.execute.assert_called_once_with("/output")
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_calls_set_to_download_use_case(
         self,
@@ -239,16 +239,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_set_download.execute.assert_called_once_with(year_range, "/path/to/docs")
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_builds_entity_with_correct_data(
         self,
@@ -283,7 +283,7 @@ class TestCreateDocsToExtractUseCaseExecute:
         }
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     def test_execute_raises_empty_asset_list_error(self, mock_set_assets):
         mock_set_assets.execute.side_effect = EmptyAssetListError()
@@ -298,7 +298,7 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     def test_execute_raises_invalid_assets_name(self, mock_set_assets):
         mock_set_assets.execute.side_effect = InvalidAssetsName(
@@ -315,10 +315,10 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     def test_execute_raises_invalid_first_year(self, mock_range_years, mock_set_assets):
         mock_set_assets.execute.return_value = {"ações"}
@@ -334,10 +334,10 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     def test_execute_raises_invalid_last_year(self, mock_range_years, mock_set_assets):
         mock_set_assets.execute.return_value = {"ações"}
@@ -353,16 +353,16 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_with_single_asset(
         self,
@@ -387,16 +387,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         assert "ações" in result.set_assets
 
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3"
     )
     @patch(
-        "datafinance.brazil.dados_b3.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCase"
+        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3"
     )
     def test_execute_with_all_assets(
         self,

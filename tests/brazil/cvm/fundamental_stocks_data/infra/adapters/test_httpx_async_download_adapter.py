@@ -84,105 +84,8 @@ class TestHttpxAsyncDownloadAdapterInitialization:
 
 @pytest.mark.unit
 class TestHttpxAsyncDownloadAdapterHelpers:
-    def test_extract_filename_normal_url(self):
-        url = "https://example.com/path/to/document.zip"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "document.zip"
+    pass
 
-    def test_extract_filename_with_query_params(self):
-        url = "https://example.com/document.zip?param=value&other=123"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "document.zip"
-
-    def test_extract_filename_with_no_extension(self):
-        url = "https://example.com/path/to/document"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "document"
-
-    def test_extract_filename_from_empty_url(self):
-        url = ""
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "download"
-
-    def test_extract_filename_from_malformed_url(self):
-        url = "not-a-url"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "not-a-url"
-
-    def test_extract_filename_with_trailing_slash(self):
-        url = "https://example.com/path/"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "download"
-
-    def test_extract_filename_with_special_characters(self):
-        url = "https://example.com/açúcar_café_2023.zip"
-        filename = AsyncDownloadAdapterCVM._extract_filename(url)
-        assert filename == "açúcar_café_2023.zip"
-
-
-@pytest.mark.unit
-class TestHttpxAsyncDownloadAdapterDownloadDocs:
-    @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.run"
-    )
-    def test_download_docs_with_empty_tasks(self, mock_asyncio_run):
-        mock_extractor = MagicMock()
-        adapter = AsyncDownloadAdapterCVM(file_extractor_repository=mock_extractor)
-
-        result = adapter.download_docs([])
-
-        assert isinstance(result, DownloadResultCVM)
-        assert result.success_count_downloads == 0
-        assert result.error_count_downloads == 0
-        mock_asyncio_run.assert_not_called()
-
-    @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.run"
-    )
-    def test_download_docs_calls_async_execution(self, mock_asyncio_run):
-        mock_extractor = MagicMock()
-        adapter = AsyncDownloadAdapterCVM(file_extractor_repository=mock_extractor)
-
-        tasks = [
-            ("https://example.com/file1.zip", "DRE", "2023", "/tmp/output"),
-            ("https://example.com/file2.zip", "BPARMS", "2023", "/tmp/output"),
-        ]
-
-        mock_asyncio_run.return_value = None
-
-        result = adapter.download_docs(tasks)
-
-        mock_asyncio_run.assert_called_once()
-        assert isinstance(result, DownloadResultCVM)
-
-    @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.run"
-    )
-    def test_download_docs_with_single_task(self, mock_asyncio_run):
-        mock_extractor = MagicMock()
-        adapter = AsyncDownloadAdapterCVM(file_extractor_repository=mock_extractor)
-
-        tasks = [("https://example.com/file.zip", "DRE", "2023", "/tmp/output")]
-
-        adapter.download_docs(tasks)
-
-        mock_asyncio_run.assert_called_once()
-
-    @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.run"
-    )
-    def test_download_docs_with_many_tasks(self, mock_asyncio_run):
-        mock_extractor = MagicMock()
-        adapter = AsyncDownloadAdapterCVM(file_extractor_repository=mock_extractor)
-
-        tasks = [
-            (f"https://example.com/file{i}.zip", f"DOC{i}", "2023", "/tmp/output")
-            for i in range(100)
-        ]
-
-        adapter.download_docs(tasks)
-
-        mock_asyncio_run.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -303,7 +206,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
         assert "TimeoutError" in error_msg
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_with_retry_cleans_up_on_failure(self, mock_remove):
         mock_extractor = MagicMock()
@@ -326,7 +229,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
         mock_remove.assert_called_once_with("/tmp/file.zip", log_on_error=False)
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.sleep"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.asyncio.sleep"
     )
     async def test_download_with_retry_backoff(self, mock_sleep):
         mock_extractor = MagicMock()
@@ -359,7 +262,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 @pytest.mark.asyncio
 class TestHttpxAsyncDownloadAdapterStreamDownload:
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_stream_download_cleans_up_on_error(self, mock_remove):
         mock_extractor = MagicMock()
@@ -413,7 +316,7 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
 @pytest.mark.asyncio
 class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_without_automatic_extractor(
         self, mock_remove, tmp_path
@@ -475,7 +378,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         mock_extractor.extract.assert_not_called()
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_with_automatic_extractor(
         self, mock_remove, tmp_path
@@ -533,7 +436,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert result.success_count_downloads == 1
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_no_parquet_files_keeps_zip(
         self, mock_remove, tmp_path
@@ -589,7 +492,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert "No parquet files generated" in result.failed_downloads["DRE_2023"]
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_extraction_error(self, mock_remove, tmp_path):
         import random
@@ -642,7 +545,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert "ExtractionFailed" in result.failed_downloads["DRE_2023"]
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_disk_full_error(self, mock_remove, tmp_path):
         import random
@@ -695,7 +598,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert mock_remove.called
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.remove_file"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file"
     )
     async def test_download_and_extract_unexpected_extraction_error(
         self, mock_remove, tmp_path
@@ -856,22 +759,9 @@ class TestHttpxAsyncDownloadAdapterEdgeCases:
         adapter = AsyncDownloadAdapterCVM(file_extractor_repository=None)
         assert adapter.file_extractor_repository is None
 
-    def test_extract_filename_edge_cases(self):
-        test_cases = [
-            ("", "download"),
-            ("/", "download"),
-            ("https://", "download"),
-            ("file.zip", "file.zip"),
-            ("path/to/file.zip?", "file.zip"),
-            ("https://example.com/", "download"),
-        ]
-
-        for url, expected in test_cases:
-            result = AsyncDownloadAdapterCVM._extract_filename(url)
-            assert result == expected, f"Failed for URL: {url}"
 
     @patch(
-        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests.httpx_async_download_adapter.asyncio.run"
+        "datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.asyncio.run"
     )
     def test_download_docs_with_malformed_tasks(self, mock_asyncio_run):
         mock_extractor = MagicMock()

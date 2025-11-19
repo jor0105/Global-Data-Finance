@@ -181,3 +181,25 @@ class TestResourceMonitor:
         state = monitor.check_resources()
 
         assert state == ResourceState.EXHAUSTED
+
+
+    @patch("datafinance.core.utils.resource_monitor.psutil")
+    def test_get_process_memory_mb_returns_float(self, mock_psutil):
+        ResourceMonitor._instance = None
+        mock_process = Mock()
+        mock_process.memory_info.return_value.rss = 1024 * 1024 * 123
+        mock_psutil.Process.return_value = mock_process
+        mock_memory = Mock()
+        mock_memory.total = 8 * 1024**3
+        mock_memory.available = 2 * 1024**3
+        mock_psutil.virtual_memory.return_value = mock_memory
+        monitor = ResourceMonitor()
+        result = monitor.get_process_memory_mb()
+        assert isinstance(result, float)
+        assert result > 0
+
+    def test_maybe_force_gc_runs_without_error(self):
+        ResourceMonitor._instance = None
+        monitor = ResourceMonitor()
+        monitor._last_gc_time = 0
+        monitor._maybe_force_gc()

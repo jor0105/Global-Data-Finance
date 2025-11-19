@@ -264,7 +264,7 @@ class TestDownloadDocumentsUseCaseInitialization:
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
         assert use_case is not None
-        assert use_case._DownloadDocumentsUseCase__repository is mock_repo
+        assert use_case._DownloadDocumentsUseCaseCVM__repository is mock_repo
 
     def test_init_with_invalid_repository_raises_error(self):
         with pytest.raises(
@@ -281,10 +281,10 @@ class TestDownloadDocumentsUseCaseInitialization:
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
-        assert hasattr(use_case, "_DownloadDocumentsUseCase__url_generator")
-        assert hasattr(use_case, "_DownloadDocumentsUseCase__range_years_generator")
-        assert use_case._DownloadDocumentsUseCase__url_generator is not None
-        assert use_case._DownloadDocumentsUseCase__range_years_generator is not None
+        assert hasattr(use_case, "_DownloadDocumentsUseCaseCVM__url_generator")
+        assert hasattr(use_case, "_DownloadDocumentsUseCaseCVM__range_years_generator")
+        assert use_case._DownloadDocumentsUseCaseCVM__url_generator is not None
+        assert use_case._DownloadDocumentsUseCaseCVM__range_years_generator is not None
 
 
 @pytest.mark.unit

@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer import (
-    ParquetWriter,
+from datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer import (
+    ParquetWriterB3,
 )
 from datafinance.core import ResourceState
 from datafinance.macro_exceptions import DiskFullError
@@ -65,7 +65,7 @@ class WriterResourceMonitor:
 @pytest.fixture(autouse=True)
 def fake_polars(monkeypatch):
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.pl",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.pl",
         FakePolarsModule,
     )
 
@@ -73,7 +73,7 @@ def fake_polars(monkeypatch):
 @pytest.mark.asyncio
 async def test_parquet_writer_skips_empty_data(tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     await writer.write_to_parquet([], tmp_path / "out.parquet")
 
@@ -83,10 +83,10 @@ async def test_parquet_writer_skips_empty_data(tmp_path):
 @pytest.mark.asyncio
 async def test_parquet_writer_raises_on_memory_exhaustion(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.EXHAUSTED])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -97,7 +97,7 @@ async def test_parquet_writer_raises_on_memory_exhaustion(monkeypatch, tmp_path)
 @pytest.mark.asyncio
 async def test_parquet_writer_overwrite_mode(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     calls: list[dict] = []
 
@@ -111,7 +111,7 @@ async def test_parquet_writer_overwrite_mode(monkeypatch, tmp_path):
         fake_write,
     )
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -125,7 +125,7 @@ async def test_parquet_writer_overwrite_mode(monkeypatch, tmp_path):
 @pytest.mark.asyncio
 async def test_parquet_writer_append_uses_streaming(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY, ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     streaming_calls: list[int] = []
 
@@ -134,7 +134,7 @@ async def test_parquet_writer_append_uses_streaming(monkeypatch, tmp_path):
 
     monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -151,7 +151,7 @@ async def test_parquet_writer_append_uses_streaming_when_low_memory(
     monkeypatch, tmp_path
 ):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY, ResourceState.CRITICAL])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     streaming_calls: list[int] = []
 
@@ -161,7 +161,7 @@ async def test_parquet_writer_append_uses_streaming_when_low_memory(
 
     monkeypatch.setattr(writer, "_append_with_streaming", fake_stream)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -174,27 +174,27 @@ async def test_parquet_writer_append_uses_streaming_when_low_memory(
 
 
 def test_parquet_writer_check_disk_space_raises(monkeypatch, tmp_path):
-    free_space = (ParquetWriter.MIN_FREE_SPACE_MB - 10) * 1024 * 1024
+    free_space = (ParquetWriterB3.MIN_FREE_SPACE_MB - 10) * 1024 * 1024
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.shutil.disk_usage",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.shutil.disk_usage",
         lambda _path: SimpleNamespace(free=free_space),
     )
 
     with pytest.raises(DiskFullError):
-        ParquetWriter._check_disk_space(tmp_path / "file.parquet")
+        ParquetWriterB3._check_disk_space(tmp_path / "file.parquet")
 
 
 @pytest.mark.asyncio
 async def test_parquet_writer_translates_oserror_disk_full(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     async def failing_write(*_args, **_kwargs):
         raise OSError("No space left on device")
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -205,14 +205,14 @@ async def test_parquet_writer_translates_oserror_disk_full(monkeypatch, tmp_path
 @pytest.mark.asyncio
 async def test_parquet_writer_raises_ioerror_for_other_oserror(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     async def failing_write(*_args, **_kwargs):
         raise OSError("Permission denied")
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 
@@ -225,14 +225,14 @@ async def test_parquet_writer_raises_ioerror_for_other_oserror(monkeypatch, tmp_
 @pytest.mark.asyncio
 async def test_parquet_writer_propagates_unexpected_exception(monkeypatch, tmp_path):
     monitor = WriterResourceMonitor([ResourceState.HEALTHY])
-    writer = ParquetWriter(resource_monitor=monitor)
+    writer = ParquetWriterB3(resource_monitor=monitor)
 
     async def failing_write(*_args, **_kwargs):
         raise RuntimeError("unexpected")
 
     monkeypatch.setattr(writer, "_write_dataframe", failing_write)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.parquet_writer.ParquetWriter._check_disk_space",
+        "datafinance.brazil.b3_data.historical_quotes.infra.parquet_writer.ParquetWriterB3._check_disk_space",
         staticmethod(lambda *args, **kwargs: None),
     )
 

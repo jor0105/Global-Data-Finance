@@ -1,4 +1,4 @@
-from datafinance.b3_docs.extraction_result_formatter import ExtractionResultFormatter
+from datafinance.application.b3_docs.extraction_result_formatter import ExtractionResultFormatter
 
 
 class TestExtractionResultFormatter:

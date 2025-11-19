@@ -2,7 +2,7 @@ import zipfile
 
 import pandas as pd  # type: ignore
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 

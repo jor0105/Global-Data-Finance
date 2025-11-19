@@ -119,9 +119,9 @@ class TestUrlDocs:
 
     def test_url_docs_initialization(self, url_docs):
         assert url_docs is not None
-        assert hasattr(url_docs, "_UrlDocs__available_docs")
+        assert hasattr(url_docs, "_UrlDocsCVM__available_docs")
         assert isinstance(
-            getattr(url_docs, "_UrlDocs__available_docs"), AvailableDocsCVM
+            getattr(url_docs, "_UrlDocsCVM__available_docs"), AvailableDocsCVM
         )
 
     def test_get_url_docs_without_parameters_returns_all_urls(self, url_docs):

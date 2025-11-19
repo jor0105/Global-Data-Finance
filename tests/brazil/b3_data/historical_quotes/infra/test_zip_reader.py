@@ -1,13 +1,13 @@
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.infra.zip_reader import ZipFileReader
+from datafinance.brazil.b3_data.historical_quotes.infra.zip_reader import ZipFileReaderB3
 from datafinance.macro_exceptions import CorruptedZipError, ExtractionError
 
 
 class TestZipFileReader:
     @pytest.fixture
     def reader(self):
-        return ZipFileReader()
+        return ZipFileReaderB3()
 
     @pytest.mark.asyncio
     async def test_read_lines_from_zip_file_not_found(self, reader):
@@ -34,7 +34,7 @@ class TestZipFileReader:
         dir_path = tmp_path / "test_dir"
         dir_path.mkdir()
 
-        with pytest.raises((CorruptedZipError, ExtractionError, FileNotFoundError)):
+        with pytest.raises((CorruptedZipError, ExtractionError, FileNotFoundError, IsADirectoryError)):
             async for _ in reader.read_lines_from_zip(str(dir_path)):
                 pass
 
@@ -256,7 +256,7 @@ class TestZipFileReader:
 class TestZipFileReaderIntegration:
     @pytest.fixture
     def reader(self):
-        return ZipFileReader()
+        return ZipFileReaderB3()
 
     @pytest.mark.asyncio
     async def test_read_real_world_cotahist_structure(self, reader, tmp_path):
@@ -345,7 +345,7 @@ class TestZipFileReaderIntegration:
 class TestZipFileReaderEdgeCases:
     @pytest.fixture
     def reader(self):
-        return ZipFileReader()
+        return ZipFileReaderB3()
 
     @pytest.mark.asyncio
     async def test_zip_with_nested_directories(self, reader, tmp_path):

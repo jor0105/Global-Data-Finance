@@ -1,40 +1,11 @@
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.domain.exceptions import (
+from datafinance.brazil.b3_data.historical_quotes.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
     InvalidFirstYear,
     InvalidLastYear,
-    InvalidRepositoryTypeError,
 )
-
-
-class TestInvalidRepositoryTypeError:
-    def test_exception_with_int_type(self):
-        actual_type = int
-        exception = InvalidRepositoryTypeError(actual_type)
-        assert isinstance(exception, TypeError)
-        assert "Repository must be a string" in str(exception)
-        assert "int" in str(exception)
-
-    def test_exception_with_list_type(self):
-        actual_type = list
-        exception = InvalidRepositoryTypeError(actual_type)
-        assert "list" in str(exception)
-
-    def test_exception_with_dict_type(self):
-        actual_type = dict
-        exception = InvalidRepositoryTypeError(actual_type)
-        assert "dict" in str(exception)
-
-    def test_exception_is_type_error(self):
-        exception = InvalidRepositoryTypeError(int)
-        assert isinstance(exception, TypeError)
-
-    def test_exception_can_be_raised(self):
-        with pytest.raises(InvalidRepositoryTypeError) as exc_info:
-            raise InvalidRepositoryTypeError(float)
-        assert "float" in str(exc_info.value)
 
 
 class TestInvalidFirstYear:

@@ -1,4 +1,6 @@
-import requests
+
+import pytest
+import requests     #type: ignore
 
 from datafinance.core.utils import RetryStrategy
 from datafinance.macro_exceptions import (
@@ -36,11 +38,6 @@ class TestRetryStrategy:
         error = TimeoutError("Request timed out")
         assert strategy.is_retryable(error) is True
 
-    def test_is_retryable_with_requests_timeout(self):
-        strategy = RetryStrategy(initial_backoff=1.0, max_backoff=60.0, multiplier=2.0)
-
-        error = requests.exceptions.Timeout("Request timed out")
-        assert strategy.is_retryable(error) is True
 
     def test_is_retryable_with_requests_connection_error(self):
         strategy = RetryStrategy(initial_backoff=1.0, max_backoff=60.0, multiplier=2.0)

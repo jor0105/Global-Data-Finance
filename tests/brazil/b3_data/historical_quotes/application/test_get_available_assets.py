@@ -1,4 +1,4 @@
-from datafinance.brazil.dados_b3.historical_quotes.application.use_cases import (
+from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
     GetAvailableAssetsUseCaseB3,
 )
 

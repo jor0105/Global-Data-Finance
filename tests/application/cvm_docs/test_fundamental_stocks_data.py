@@ -189,7 +189,7 @@ class TestFundamentalStocksData:
 
         cvm = FundamentalStocksDataCVM()
         with patch.object(
-            cvm, "_FundamentalStocksData__result_formatter"
+            cvm, "_FundamentalStocksDataCVM__result_formatter"
         ) as mock_formatter:
             cvm.download(destination_path="/data/cvm")
             mock_formatter.print_result.assert_called_once_with(mock_result)
@@ -245,10 +245,10 @@ class TestFundamentalStocksData:
 
     def test_initialization_creates_use_cases(self):
         cvm = FundamentalStocksDataCVM()
-        assert hasattr(cvm, "_FundamentalStocksData__download_use_case")
-        assert hasattr(cvm, "_FundamentalStocksData__available_docs_use_case")
-        assert hasattr(cvm, "_FundamentalStocksData__available_years_use_case")
-        assert hasattr(cvm, "_FundamentalStocksData__result_formatter")
+        assert hasattr(cvm, "_FundamentalStocksDataCVM__download_use_case")
+        assert hasattr(cvm, "_FundamentalStocksDataCVM__available_docs_use_case")
+        assert hasattr(cvm, "_FundamentalStocksDataCVM__available_years_use_case")
+        assert hasattr(cvm, "_FundamentalStocksDataCVM__result_formatter")
 
     @patch(
         "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"

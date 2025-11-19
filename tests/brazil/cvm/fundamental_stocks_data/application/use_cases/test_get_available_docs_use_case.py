@@ -17,7 +17,7 @@ class TestGetAvailableDocsUseCase:
 
     def test_initialization_creates_available_docs_instance(self):
         use_case = GetAvailableDocsUseCaseCVM()
-        assert hasattr(use_case, "_GetAvailableDocsUseCase__available_docs")
+        assert hasattr(use_case, "_GetAvailableDocsUseCaseCVM__available_docs")
 
     def test_execute_returns_dict(self):
         use_case = GetAvailableDocsUseCaseCVM()
@@ -105,7 +105,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=Exception("Database connection failed"),
         ):
@@ -116,7 +116,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=Exception("Test error"),
         ):
@@ -130,7 +130,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=RuntimeError("Runtime error"),
         ):
@@ -141,7 +141,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=ValueError("Invalid value"),
         ):
@@ -152,7 +152,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=TimeoutError("Request timeout"),
         ):
@@ -163,7 +163,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=TypeError("Type error"),
         ):
@@ -229,7 +229,7 @@ class TestGetAvailableDocsUseCase:
         mock_data = {"TEST": "Test document"}
 
         with patch.object(
-            use_case_instance._GetAvailableDocsUseCase__available_docs,
+            use_case_instance._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             return_value=mock_data,
         ):
@@ -240,7 +240,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             return_value={},
         ):
@@ -253,7 +253,7 @@ class TestGetAvailableDocsUseCase:
         large_mock_data = {f"DOC_{i}": f"Description {i}" for i in range(1000)}
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             return_value=large_mock_data,
         ):
@@ -265,7 +265,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=Exception("Generic error"),
         ):
@@ -276,7 +276,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=AttributeError("Attribute not found"),
         ):
@@ -287,7 +287,7 @@ class TestGetAvailableDocsUseCase:
         use_case = GetAvailableDocsUseCaseCVM()
 
         with patch.object(
-            use_case._GetAvailableDocsUseCase__available_docs,
+            use_case._GetAvailableDocsUseCaseCVM__available_docs,
             "get_available_docs",
             side_effect=OSError("File not found"),
         ):

@@ -4,7 +4,7 @@ import pandas as pd  # type: ignore
 import psutil  # type: ignore
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 
@@ -35,23 +35,17 @@ class TestMemorySafety:
     def test_extraction_does_not_load_full_file_in_memory(
         self, large_csv_zip, tmp_path
     ):
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         process = psutil.Process()
 
         mem_before = process.memory_info().rss / 1024 / 1024
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=10_000)
-        extractor.extract(
-            source_path=str(large_csv_zip),
-            destination_path=str(output_dir),
-        )
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(large_csv_zip))
 
         mem_after = process.memory_info().rss / 1024 / 1024
         mem_increase = mem_after - mem_before
 
-        parquet_file = output_dir / "large_data.parquet"
+        parquet_file = tmp_path / "large_data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
 
         file_size_mb = parquet_file.stat().st_size / 1024 / 1024

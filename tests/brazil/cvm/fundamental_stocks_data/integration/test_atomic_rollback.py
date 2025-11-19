@@ -3,7 +3,7 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 
@@ -35,12 +35,11 @@ class TestAtomicRollback:
 
         from datafinance.macro_exceptions import CorruptedZipError
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor = ParquetExtractorAdapterCVM()
 
         with pytest.raises(CorruptedZipError):
             extractor.extract(
-                source_path=str(corrupted_zip),
-                destination_path=str(output_dir),
+                zip_file_path=str(corrupted_zip)
             )
 
         assert existing_file.exists(), "CRITICAL: existing file was DELETED!"
@@ -59,23 +58,18 @@ class TestAtomicRollback:
         print("✅ Rollback preserved existing file")
 
     def test_partial_success_triggers_atomic_rollback(self, tmp_path):
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         zip_path = tmp_path / "test.zip"
-
         with zipfile.ZipFile(zip_path, "w") as z:
             df1 = pd.DataFrame({"a": [1, 2], "b": ["x", "y"]})
             z.writestr("file1.csv", df1.to_csv(sep=";", index=False).encode("latin-1"))
-
             df2 = pd.DataFrame({"c": [3, 4], "d": ["z", "w"]})
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
-        assert (output_dir / "file1.parquet").exists()
-        assert (output_dir / "file2.parquet").exists()
+        assert (tmp_path / "file1.parquet").exists()
+        assert (tmp_path / "file2.parquet").exists()
 
         print("✅ Atomic extraction: both files created")
 
@@ -90,16 +84,12 @@ class TestAtomicRollback:
         with zipfile.ZipFile(corrupted_zip, "w") as z:
             z.writestr("not_a_csv.txt", b"This is not a CSV file")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(
-            source_path=str(corrupted_zip), destination_path=str(output_dir)
-        )
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(corrupted_zip))
 
-        parquet_files = list(output_dir.glob("*.parquet"))
-        assert (
-            len(parquet_files) == 1
-        ), f"Partial files found: {[f.name for f in parquet_files]}"
-        assert parquet_files[0].name == "keep_me.parquet"
+        parquet_files = list(tmp_path.glob("*.parquet"))
+        assert len(parquet_files) == 0, f"Partial files found: {[f.name for f in parquet_files]}"
+        assert existing.exists(), "Existing file was removed!"
 
         print("✅ No partial files left")
 
@@ -122,13 +112,13 @@ class TestAtomicRollback:
                 "new_file.csv", df2.to_csv(sep=";", index=False).encode("latin-1")
             )
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
         df_skip = pd.read_parquet(existing)
         assert "old" in df_skip.columns, "Existing file was overwritten!"
 
-        new_file = output_dir / "new_file.parquet"
+        new_file = tmp_path / "new_file.parquet"
         assert new_file.exists(), "New file was not created"
 
         print("✅ Tracking correct: skip detected, new file created")

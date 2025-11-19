@@ -3,10 +3,10 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests import (
+from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter import (
     AsyncDownloadAdapterCVM,
 )
 

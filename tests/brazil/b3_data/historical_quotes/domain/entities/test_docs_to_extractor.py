@@ -1,4 +1,4 @@
-from datafinance.brazil.dados_b3.historical_quotes.domain import DocsToExtractorB3
+from datafinance.brazil.b3_data.historical_quotes.domain import DocsToExtractorB3
 
 
 class TestDocsToExtractor:

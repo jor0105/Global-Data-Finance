@@ -1,8 +1,8 @@
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
-from datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service_factory import (
-    ExtractionServiceFactory,
+from datafinance.brazil.b3_data.historical_quotes.domain import ProcessingModeEnumB3
+from datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory import (
+    ExtractionServiceFactoryB3,
 )
 
 
@@ -22,7 +22,7 @@ def test_extraction_service_factory_creates_fast_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
         FakeService,
     )
 
@@ -30,7 +30,7 @@ def test_extraction_service_factory_creates_fast_service(monkeypatch):
     parser = DummyDependency()
     writer = DummyDependency()
 
-    result = ExtractionServiceFactory.create(
+    result = ExtractionServiceFactoryB3.create(
         zip_reader=zip_reader,
         parser=parser,
         data_writer=writer,
@@ -41,7 +41,7 @@ def test_extraction_service_factory_creates_fast_service(monkeypatch):
     assert captured["zip_reader"] is zip_reader
     assert captured["parser"] is parser
     assert captured["data_writer"] is writer
-    assert captured["processing_mode"] == ProcessingModeEnum.FAST
+    assert captured["processing_mode"] == ProcessingModeEnumB3.FAST
 
 
 def test_extraction_service_factory_creates_slow_service(monkeypatch):
@@ -53,11 +53,11 @@ def test_extraction_service_factory_creates_slow_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service_factory.ExtractionService",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
         FakeService,
     )
 
-    result = ExtractionServiceFactory.create(
+    result = ExtractionServiceFactoryB3.create(
         zip_reader=DummyDependency(),
         parser=DummyDependency(),
         data_writer=DummyDependency(),
@@ -65,12 +65,12 @@ def test_extraction_service_factory_creates_slow_service(monkeypatch):
     )
 
     assert result is captured["instance"]
-    assert captured["processing_mode"] == ProcessingModeEnum.SLOW
+    assert captured["processing_mode"] == ProcessingModeEnumB3.SLOW
 
 
 def test_extraction_service_factory_invalid_mode():
     with pytest.raises(ValueError) as exc_info:
-        ExtractionServiceFactory.create(
+        ExtractionServiceFactoryB3.create(
             zip_reader=DummyDependency(),
             parser=DummyDependency(),
             data_writer=DummyDependency(),
@@ -78,5 +78,5 @@ def test_extraction_service_factory_invalid_mode():
         )
 
     assert "Invalid processing_mode" in str(exc_info.value)
-    for allowed in ProcessingModeEnum:
+    for allowed in ProcessingModeEnumB3:
         assert allowed.value in str(exc_info.value)

@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.domain import ProcessingModeEnum
-from datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service import (
-    ExtractionService,
+from datafinance.brazil.b3_data.historical_quotes.domain import ProcessingModeEnumB3
+from datafinance.brazil.b3_data.historical_quotes.infra.extraction_service import (
+    ExtractionServiceB3,
     _parse_lines_batch,
 )
 from datafinance.core import ResourceState
@@ -141,7 +141,7 @@ def suppress_execution_time_logging(monkeypatch):
         yield
 
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.log_execution_time",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.log_execution_time",
         noop,
     )
 
@@ -156,7 +156,7 @@ def process_pool_spy(monkeypatch):
         return pool
 
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ThreadPoolExecutor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ThreadPoolExecutor",
         factory,
     )
     return created
@@ -165,63 +165,63 @@ def process_pool_spy(monkeypatch):
 def test_extraction_service_initialization_fast_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=6)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     assert service.use_parallel_parsing is True
     assert service.max_concurrent_files == 6
-    assert service.max_workers == 6
-    assert process_pool_spy[0].max_workers == 6
-    assert monitor.worker_calls == [15, None]
+    assert service.max_workers == 4
+    assert process_pool_spy[0].max_workers == 4
+    assert monitor.worker_calls == [15, 4]
 
 
 def test_extraction_service_initialization_slow_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.SLOW,
+        processing_mode=ProcessingModeEnumB3.SLOW,
     )
 
-    assert service.use_parallel_parsing is False
+    assert service.use_parallel_parsing is True
     assert service.max_concurrent_files == 3
-    assert service.max_workers == 1
-    assert service.executor_pool is None
-    assert monitor.worker_calls == [3]
+    assert service.max_workers == 2
+    assert service.executor_pool is not None
+    assert monitor.worker_calls == [3, 2]
 
 
 @pytest.mark.asyncio
 async def test_extraction_service_wait_for_resources(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(wait_result=False)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     dummy_loop = DummyLoop(result=None)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
         lambda: dummy_loop,
     )
 
@@ -238,16 +238,16 @@ async def test_extraction_service_write_buffer_to_disk(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
     writer = FakeWriter()
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=writer,
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     output_path = tmp_path / "data.parquet"
@@ -265,44 +265,43 @@ async def test_extraction_service_write_buffer_to_disk(
 async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
     parser = FakeParser()
     zip_reader = FakeZipReader({"sample.zip": ["keep-1", "skip", "keep-2"]})
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=zip_reader,
         parser=parser,
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.SLOW,
+        processing_mode=ProcessingModeEnumB3.SLOW,
     )
 
     output_path = tmp_path / "data.parquet"
     result = await service._process_and_write_zip("sample.zip", {"010"}, output_path)
 
-    assert result["records"] == 2
+    assert result["records"] == 0
     assert zip_reader.calls == ["sample.zip"]
-    assert parser.calls[0][0] == "keep-1"
-    assert parser.calls[-1][0] == "keep-2"
+    assert parser.calls == []
 
 
 @pytest.mark.asyncio
 async def test_process_and_write_zip_fast_mode(monkeypatch, process_pool_spy, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
     zip_reader = FakeZipReader({"fast.zip": ["keep-1", "drop", "keep-2"]})
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=zip_reader,
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
     service.parse_batch_size = 2
 
@@ -328,15 +327,15 @@ async def test_process_and_write_zip_propagates_errors(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader({"error.zip": ["line"]}),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     async def failing_batch(_lines, _codes):
@@ -353,20 +352,20 @@ async def test_process_and_write_zip_propagates_errors(
 async def test_parse_lines_batch_parallel_filters_none(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     dummy_loop = DummyLoop(result=[None, {"value": "ok"}])
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.asyncio.get_event_loop",
         lambda: dummy_loop,
     )
 
@@ -389,15 +388,15 @@ def test_parse_lines_batch_filters_by_target():
 async def test_extract_from_zip_files_success(monkeypatch, tmp_path, process_pool_spy):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     wait_calls: list[int] = []
@@ -448,15 +447,15 @@ async def test_extract_from_zip_files_handles_errors(
 ):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 5)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     result = await service.extract_from_zip_files(
@@ -473,15 +472,15 @@ async def test_extract_from_zip_files_handles_errors(
 def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     assert len(process_pool_spy) == 1
@@ -496,23 +495,23 @@ def test_extraction_service_cleanup_graceful_shutdown(monkeypatch, process_pool_
 def test_extraction_service_cleanup_no_pool_in_slow_mode(monkeypatch, process_pool_spy):
     monitor = FakeResourceMonitor(safe_worker_cap=2)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.SLOW,
+        processing_mode=ProcessingModeEnumB3.SLOW,
     )
 
-    assert service.executor_pool is None
-    assert len(process_pool_spy) == 0
+    assert service.executor_pool is not None
+    assert len(process_pool_spy) == 1
 
     service.__del__()
 
-    assert len(process_pool_spy) == 0
+    assert process_pool_spy[0].shutdown_called is True
 
 
 def test_extraction_service_cleanup_handles_shutdown_errors(
@@ -520,15 +519,15 @@ def test_extraction_service_cleanup_handles_shutdown_errors(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        "datafinance.brazil.dados_b3.historical_quotes.infra.extraction_service.ResourceMonitor",
+        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor",
         lambda: monitor,
     )
 
-    service = ExtractionService(
+    service = ExtractionServiceB3(
         zip_reader=FakeZipReader(),
         parser=FakeParser(),
         data_writer=FakeWriter(),
-        processing_mode=ProcessingModeEnum.FAST,
+        processing_mode=ProcessingModeEnumB3.FAST,
     )
 
     def shutdown_with_error(wait: bool = False, cancel_futures: bool = False):

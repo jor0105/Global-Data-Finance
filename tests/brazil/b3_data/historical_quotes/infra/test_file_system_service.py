@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from datafinance.brazil.dados_b3.historical_quotes.infra.file_system_service import (
-    FileSystemService,
+from datafinance.brazil.b3_data.historical_quotes.infra.file_system_service import (
+    FileSystemServiceB3,
 )
 from datafinance.macro_exceptions import (
     EmptyDirectoryError,
@@ -16,7 +16,7 @@ from datafinance.macro_exceptions import (
 class TestFileSystemService:
     @pytest.fixture
     def service(self):
-        return FileSystemService()
+        return FileSystemServiceB3()
 
     def test_validate_directory_path_valid(self, service, tmp_path):
         test_dir = tmp_path / "test_dir"
@@ -98,7 +98,7 @@ class TestFileSystemService:
 class TestFileSystemServiceSecurityValidation:
     @pytest.fixture
     def service(self):
-        return FileSystemService()
+        return FileSystemServiceB3()
 
     def test_validate_path_safety_blocks_etc(self, service):
         with pytest.raises(SecurityError):
@@ -152,7 +152,7 @@ class TestFileSystemServiceSecurityValidation:
 class TestFileSystemServiceFindFiles:
     @pytest.fixture
     def service(self):
-        return FileSystemService()
+        return FileSystemServiceB3()
 
     def test_find_files_by_years_single_year(self, service, tmp_path):
         test_dir = tmp_path / "data"
@@ -287,7 +287,7 @@ class TestFileSystemServiceFindFiles:
 class TestFileSystemServiceIntegration:
     @pytest.fixture
     def service(self):
-        return FileSystemService()
+        return FileSystemServiceB3()
 
     def test_validate_and_find_workflow(self, service, tmp_path):
         data_dir = tmp_path / "cotahist_data"
@@ -353,7 +353,7 @@ class TestFileSystemServiceIntegration:
 class TestFileSystemServiceEdgeCases:
     @pytest.fixture
     def service(self):
-        return FileSystemService()
+        return FileSystemServiceB3()
 
     def test_directory_with_special_characters(self, service, tmp_path):
         special_dir = tmp_path / "dir with spaces & special!chars"
