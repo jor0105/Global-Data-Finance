@@ -1,67 +1,113 @@
-# Global-Data-Finance 📊
+# DataFinance 📊
 
-Uma biblioteca Python profissional para web scraping de dados fundamentalistas e econômicos dos EUA e do Brasil.
+**Biblioteca Python profissional para extração e processamento de dados financeiros globais**
+
+[![PyPI version](https://img.shields.io/pypi/v/datafinance.svg)](https://pypi.org/project/datafinance/)
+[![Python](https://img.shields.io/pypi/pyversions/datafinance.svg)](https://pypi.org/project/datafinance/)
+[![License](https://img.shields.io/github/license/jor0105/Global-Data-Finance.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
+
+---
 
 ## Visão Geral
 
-Global-Data-Finance é uma biblioteca modular e extensível que facilita a coleta automatizada de dados financeiros de fontes autorizadas, com foco especial em documentos da CVM (Comissão de Valores Mobiliários) brasileiro.
+**DataFinance** é uma biblioteca Python moderna e de alto desempenho projetada para facilitar a extração, normalização e processamento de dados financeiros e econômicos do mercado brasileiro. Com foco em simplicidade de uso e performance, a biblioteca oferece interfaces intuitivas para acessar dados fundamentalistas da CVM e cotações históricas da B3.
 
 ### Características Principais
 
-✅ **Arquitetura Limpa** - Baseada em Clean Architecture com separação clara de responsabilidades
-✅ **Type Hints Completos** - Código totalmente tipado para melhor segurança e autocompletar
-✅ **Testes Abrangentes** - Suite completa de testes unitários e de integração
-✅ **Logging Integrado** - Rastreamento detalhado de operações
-✅ **Tratamento Robusto de Erros** - Exceções específicas para diferentes cenários
-✅ **Extensível** - Fácil adicionar novos adapters e fontes de dados
+✨ **Interface Simples e Intuitiva** - API de alto nível fácil de usar  
+⚡ **Alto Desempenho** - Processamento otimizado com múltiplos workers  
+📊 **Formato Parquet** - Exportação direta para formato otimizado  
+🏗️ **Arquitetura Limpa** - Código bem estruturado seguindo princípios SOLID  
+🔒 **Type Hints Completos** - Código totalmente tipado  
+📝 **Logging Integrado** - Rastreamento detalhado de operações  
+🧪 **Testado Extensivamente** - Suite completa de testes
 
-## Estrutura do Projeto
-
-```
-Global-Data-Finance/
-├── src/
-│   ├── brazil/
-│   │   └── cvm/
-│   │       └── fundamental_stocks_data/
-│   │           ├── application/           # Camada de aplicação
-│   │           │   ├── interfaces/        # Interfaces (Repository Pattern)
-│   │           │   └── use_cases/         # Casos de uso (orquestração)
-│   │           ├── domain/                # Entidades de domínio
-│   │           ├── infra/                 # Implementações de infraestrutura
-│   │           │   └── adapters/          # Adapters (wget, requests, etc)
-│   │           └── exceptions/            # Exceções específicas do domínio
-│   └── macro_exceptions/                  # Exceções globais do projeto
-├── tests/                                 # Suite de testes
-├── pyproject.toml                         # Configuração do projeto
-└── README.md                              # Este arquivo
-```
+---
 
 ## Instalação
 
-### Pré-requisitos
-
-- Python 3.10+
-- pip ou poetry
-
-### Via Poetry (Recomendado)
+### Via pip (PyPI)
 
 ```bash
-poetry install
+pip install datafinance
 ```
 
-### Via pip
+### Via Poetry
 
 ```bash
-pip install -r requirements.txt
+poetry add datafinance
 ```
 
-### Dependências
+### Requisitos
 
+- Python 3.12 ou superior
+- Dependências principais: `httpx`, `pandas`, `polars`, `pyarrow`, `pydantic-settings`
+
+📖 **[Guia completo de instalação](https://jor0105.github.io/Global-Data-Finance/user-guide/installation/)**
+
+---
+
+## Início Rápido
+
+### Documentos CVM
+
+```python
+from datafinance import FundamentalStocksDataCVM
+
+cvm = FundamentalStocksDataCVM()
+cvm.download(
+    destination_path="/data/cvm",
+    list_docs=["DFP", "ITR"],
+    initial_year=2020,
+    last_year=2023,
+    automatic_extractor=True  # Extrai para Parquet
+)
 ```
-pandas >= 2.3.3
-requests >= 2.32.5
-wget >= 3.2
+
+### Cotações B3
+
+```python
+from datafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+result = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações", "etf"],
+    initial_year=2020,
+    processing_mode="fast"
+)
+
+print(f"✓ Extraídos {result['total_records']:,} registros")
 ```
+
+📖 **[Guia de início rápido completo](https://jor0105.github.io/Global-Data-Finance/user-guide/quickstart/)**
+
+---
+
+## Documentação Completa
+
+A documentação completa está disponível em: **[https://jor0105.github.io/Global-Data-Finance/](https://jor0105.github.io/Global-Data-Finance/)**
+
+### Para Usuários
+
+- 📦 **[Instalação](https://jor0105.github.io/Global-Data-Finance/user-guide/installation/)** - Como instalar e configurar
+- 🚀 **[Início Rápido](https://jor0105.github.io/Global-Data-Finance/user-guide/quickstart/)** - Primeiros passos
+- 📄 **[Documentos CVM](https://jor0105.github.io/Global-Data-Finance/user-guide/cvm-docs/)** - Guia completo da API CVM
+- 📈 **[Cotações B3](https://jor0105.github.io/Global-Data-Finance/user-guide/b3-docs/)** - Guia completo da API B3
+- 💻 **[Exemplos Práticos](https://jor0105.github.io/Global-Data-Finance/user-guide/examples/)** - Casos de uso reais
+- ❓ **[FAQ](https://jor0105.github.io/Global-Data-Finance/user-guide/faq/)** - Perguntas frequentes
+
+### Para Desenvolvedores
+
+- 🏗️ **[Arquitetura](https://jor0105.github.io/Global-Data-Finance/dev-guide/architecture/)** - Estrutura e padrões
+- 📖 **[Referência da API](https://jor0105.github.io/Global-Data-Finance/dev-guide/api-reference/)** - Documentação completa
+- 🤝 **[Como Contribuir](https://jor0105.github.io/Global-Data-Finance/dev-guide/contributing/)** - Guia para contribuidores
+- 🧪 **[Testes](https://jor0105.github.io/Global-Data-Finance/dev-guide/testing/)** - Como executar testes
+- 🔧 **[Uso Avançado](https://jor0105.github.io/Global-Data-Finance/dev-guide/advanced-usage/)** - Customização
+
+---
+
+## Estrutura do Projeto
 
 ## Início Rápido
 

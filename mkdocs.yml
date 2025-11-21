@@ -1,0 +1,88 @@
+site_name: DataFinance
+site_description: Biblioteca Python para extração e processamento de dados financeiros globais
+site_url: https://github.com/jor0105/Global-Data-Finance
+repo_url: https://github.com/jor0105/Global-Data-Finance
+repo_name: jor0105/Global-Data-Finance
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Alternar para modo escuro
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Alternar para modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search:
+      lang: pt
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Início: index.md
+  - Guia do Usuário:
+      - Instalação: user-guide/installation.md
+      - Início Rápido: user-guide/quickstart.md
+      - Documentos CVM: user-guide/cvm-docs.md
+      - Cotações B3: user-guide/b3-docs.md
+      - Exemplos Práticos: user-guide/examples.md
+      - FAQ: user-guide/faq.md
+  - Guia do Desenvolvedor:
+      - Arquitetura: dev-guide/architecture.md
+      - Referência da API: dev-guide/api-reference.md
+      - Como Contribuir: dev-guide/contributing.md
+      - Testes: dev-guide/testing.md
+      - Uso Avançado: dev-guide/advanced-usage.md
+  - Referência Técnica:
+      - API CVM: reference/cvm-api.md
+      - API B3: reference/b3-api.md
+      - Exceções: reference/exceptions.md
+      - Formatos de Dados: reference/data-formats.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jor0105/Global-Data-Finance
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/datafinance/
