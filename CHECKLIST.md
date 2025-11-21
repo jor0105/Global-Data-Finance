@@ -1,0 +1,3 @@
+- [ ] Arrumar testes;
+- [ ] Criar todos os docs do projeto;
+- [ ] Criar validador de todos os codigos da cvm e dados_b3;

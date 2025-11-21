@@ -4,7 +4,13 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
-from .....core import ResourceMonitor, ResourceState, get_logger, log_execution_time
+from .....core import (
+    ResourceMonitor,
+    ResourceState,
+    SimpleProgressBar,
+    get_logger,
+    log_execution_time,
+)
 from ..domain import ProcessingModeEnumB3
 from .cotahist_parser import CotahistParserB3
 from .parquet_writer import ParquetWriterB3
@@ -128,6 +134,9 @@ class ExtractionServiceB3:
             errors = {}
             temp_files: List[Path] = []  # Collect temp files for merge
 
+            progress_bar = SimpleProgressBar(
+                total=len(zip_files), desc="Extracting (async)"
+            )
             semaphore = asyncio.Semaphore(self.max_concurrent_files)
 
             async def process_single_file(zip_file: str):
@@ -138,6 +147,7 @@ class ExtractionServiceB3:
                 if not await self._wait_for_resources(timeout_seconds=30):
                     error_msg = "Resources exhausted"
                     logger.error(f"Skipping {zip_file} - {error_msg}")
+                    progress_bar.update(1)
                     return (zip_file, Exception(error_msg))
 
                 async with semaphore:
@@ -156,18 +166,22 @@ class ExtractionServiceB3:
                                 "temp_file": result_data["temp_file"],
                             },
                         )
-
+                        progress_bar.update(1)
                         return (zip_file, result_data)
 
                     except Exception as e:
                         logger.error(f"Error processing {zip_file}: {e}", exc_info=True)
+                        progress_bar.update(1)
                         return (zip_file, e)
 
-            # Process all files with controlled concurrency
-            results = await asyncio.gather(
-                *[process_single_file(zip_file) for zip_file in zip_files],
-                return_exceptions=True,
-            )
+            try:
+                # Process all files with controlled concurrency
+                results = await asyncio.gather(
+                    *[process_single_file(zip_file) for zip_file in zip_files],
+                    return_exceptions=True,
+                )
+            finally:
+                progress_bar.close()
 
             # Aggregate statistics and collect temp files
             for result in results:
