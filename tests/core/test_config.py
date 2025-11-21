@@ -41,16 +41,19 @@ def test_network_settings_bounds_validation():
 class TestSettingsScenarios:
     def test_scenarios_debug_flag(self):
         from datafinance.core import config
+
         assert hasattr(config.settings, "debug")
         assert isinstance(config.settings.debug, bool)
 
     def test_scenarios_network_user_agent(self):
         from datafinance.core import config
+
         assert isinstance(config.settings.network.user_agent, str)
-        assert "DataFinance" in config.settings.network.user_agent
+        assert "Global-Data-Finance" in config.settings.network.user_agent
 
     def test_scenarios_network_retry_backoff_bounds(self):
         from datafinance.core.config import NetworkSettings
+
         with pytest.raises(ValidationError):
             NetworkSettings(retry_backoff=0.05)
         with pytest.raises(ValidationError):
@@ -58,6 +61,7 @@ class TestSettingsScenarios:
 
     def test_scenarios_network_max_retries_bounds(self):
         from datafinance.core.config import NetworkSettings
+
         with pytest.raises(ValidationError):
             NetworkSettings(max_retries=-1)
         with pytest.raises(ValidationError):
@@ -65,6 +69,7 @@ class TestSettingsScenarios:
 
     def test_scenarios_network_timeout_bounds(self):
         from datafinance.core.config import NetworkSettings
+
         with pytest.raises(ValidationError):
             NetworkSettings(timeout=5)
         with pytest.raises(ValidationError):

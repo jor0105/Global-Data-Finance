@@ -1,4 +1,4 @@
-"""Centralized logging configuration for DataFinance library.
+"""Centralized logging configuration for Global-Data-Finance library.
 
 This module provides a unified, production-ready logging system with:
 - Lazy initialization (logging disabled by default)
@@ -163,7 +163,7 @@ def setup_logging(
     structured: bool = False,
     use_detailed_format: bool = False,
 ) -> None:
-    """Setup logging for DataFinance library.
+    """Setup logging for Global-Data-Finance library.
 
     Call this function at application start if you want to see log messages.
     By default, logging is disabled to keep your application clean.

@@ -1,10 +1,10 @@
-# DataFinance 📊
+# Global-Data-Finance 📊
 
 Uma biblioteca Python profissional para web scraping de dados fundamentalistas e econômicos dos EUA e do Brasil.
 
 ## Visão Geral
 
-DataFinance é uma biblioteca modular e extensível que facilita a coleta automatizada de dados financeiros de fontes autorizadas, com foco especial em documentos da CVM (Comissão de Valores Mobiliários) brasileiro.
+Global-Data-Finance é uma biblioteca modular e extensível que facilita a coleta automatizada de dados financeiros de fontes autorizadas, com foco especial em documentos da CVM (Comissão de Valores Mobiliários) brasileiro.
 
 ### Características Principais
 
@@ -18,7 +18,7 @@ DataFinance é uma biblioteca modular e extensível que facilita a coleta automa
 ## Estrutura do Projeto
 
 ```
-DataFinance/
+Global-Data-Finance/
 ├── src/
 │   ├── brazil/
 │   │   └── cvm/
@@ -115,7 +115,7 @@ A biblioteca suporta os seguintes tipos de documentos CVM:
 
 ### ⚡ Download Adapters (Performance)
 
-DataFinance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
+Global-Data-Finance oferece múltiplos adapters de download, cada um otimizado para diferentes cenários:
 
 #### 1. **AsyncDownloadAdapterCVM** (Recomendado) ⭐
 

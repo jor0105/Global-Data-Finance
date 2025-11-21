@@ -1,4 +1,4 @@
-"""Centralized configuration module for global DataFinance settings.
+"""Centralized configuration module for global Global-Data-Finance settings.
 
 This module provides type-safe, validated configuration management
 with support for environment variables and default values.
@@ -45,7 +45,7 @@ class NetworkSettings(BaseSettings):
     )
 
     user_agent: str = Field(
-        default="DataFinance/1.0 (Python Financial Data Library)",
+        default="Global-Data-Finance/1.0 (Python Financial Data Library)",
         description="User agent for HTTP requests",
     )
 
