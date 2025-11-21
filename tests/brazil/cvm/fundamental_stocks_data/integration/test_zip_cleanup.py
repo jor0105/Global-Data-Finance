@@ -33,29 +33,26 @@ class TestZipCleanup:
         return zip_path
 
     def test_zip_deleted_after_successful_extraction(self, tmp_path, mock_zip):
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         assert mock_zip.exists(), "Test ZIP was not created"
         zip_size = mock_zip.stat().st_size
 
         print(f"✓ ZIP created: {mock_zip.name} ({zip_size} bytes)")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(mock_zip), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(mock_zip))
 
-        parquet_file = output_dir / "data.parquet"
+        parquet_file = tmp_path / "data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
 
         from datafinance.core import remove_file
 
-        parquet_files = list(output_dir.glob("**/*.parquet"))
+        parquet_files = list(tmp_path.glob("**/*.parquet"))
         if parquet_files:
             remove_file(str(mock_zip), log_on_error=True)
 
-        assert (
-            not mock_zip.exists()
-        ), "CRITICAL: ZIP was not deleted after successful extraction!"
+        assert not mock_zip.exists(), (
+            "CRITICAL: ZIP was not deleted after successful extraction!"
+        )
 
         print("✅ ZIP deleted after successful extraction")
 
@@ -66,19 +63,15 @@ class TestZipCleanup:
         with open(corrupted_zip, "wb") as f:
             f.write(b"PK\x03\x04" + b"\x00" * 50)
 
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         print(f"✓ Corrupted ZIP created: {corrupted_zip.name}")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
+        extractor = ParquetExtractorAdapterCVM()
         with pytest.raises(CorruptedZipError):
-            extractor.extract(
-                source_path=str(corrupted_zip),
-                destination_path=str(output_dir),
-            )
+            extractor.extract(zip_file_path=str(corrupted_zip))
 
-        assert corrupted_zip.exists(), "Corrupted ZIP was deleted prematurely! It should be kept for retry or investigation."
+        assert corrupted_zip.exists(), (
+            "Corrupted ZIP was deleted prematurely! It should be kept for retry or investigation."
+        )
 
         print("✅ ZIP kept after extraction failure")
 
@@ -89,20 +82,17 @@ class TestZipCleanup:
             z.writestr("readme.txt", b"This is not a CSV")
             z.writestr("image.png", b"\x89PNG\r\n\x1a\n")
 
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         print(f"✓ ZIP without CSVs created: {zip_path.name}")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip_path), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip_path))
 
-        parquet_files = list(output_dir.glob("*.parquet"))
+        parquet_files = list(tmp_path.glob("*.parquet"))
         assert len(parquet_files) == 0, "Parquets were created unexpectedly"
 
-        assert (
-            zip_path.exists()
-        ), "ZIP was deleted even though no parquets were generated!"
+        assert zip_path.exists(), (
+            "ZIP was deleted even though no parquets were generated!"
+        )
 
         print("✅ ZIP kept when no parquet is generated")
 
@@ -118,10 +108,8 @@ class TestZipCleanup:
 
         print(f"✓ ZIP 'downloaded': {downloaded_zip.name}")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(
-            source_path=str(downloaded_zip), destination_path=str(output_dir)
-        )
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(downloaded_zip))
 
         parquet_files = list(output_dir.glob("**/*.parquet"))
 
@@ -155,8 +143,8 @@ class TestZipCleanup:
 
         print("✓ 3 ZIPs created")
 
-        extractor = ParquetExtractorAdapterCVM(chunk_size=50000)
-        extractor.extract(source_path=str(zip1), destination_path=str(output_dir))
+        extractor = ParquetExtractorAdapterCVM()
+        extractor.extract(zip_file_path=str(zip1))
 
         from datafinance.core import remove_file
 

@@ -8,7 +8,7 @@ import time
 from datafinance import HistoricalQuotesB3
 from src.datafinance.core import setup_logging
 
-setup_logging(level="INFO")
+setup_logging(level="ERROR")
 
 
 print("=" * 80)
@@ -18,14 +18,12 @@ print()
 
 b3 = HistoricalQuotesB3()
 
-print("\n" + "=" * 80)
-
 start_time = time.time()
 
 result = b3.extract(
     path_of_docs="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST",
     assets_list=["ações", "etf"],
-    initial_year=2000,
+    initial_year=2021,
     last_year=2025,
     destination_path="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST_Extracted",
     output_filename="all_assets",

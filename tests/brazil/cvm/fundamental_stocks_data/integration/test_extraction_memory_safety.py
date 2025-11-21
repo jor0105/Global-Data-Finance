@@ -88,21 +88,16 @@ class TestMemorySafety:
 
             zip_files.append(zip_path)
 
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-
         mem_readings = []
 
         for i, zip_file in enumerate(zip_files):
-            extractor = ParquetExtractorAdapterCVM(chunk_size=10_000)
-            extractor.extract(
-                source_path=str(zip_file), destination_path=str(output_dir)
-            )
+            extractor = ParquetExtractorAdapterCVM()
+            extractor.extract(zip_file_path=str(zip_file))
 
             mem_after = process.memory_info().rss / 1024 / 1024
             mem_readings.append(mem_after)
 
-            print(f"  File {i+1}: Memory = {mem_after:.2f} MB")
+            print(f"  File {i + 1}: Memory = {mem_after:.2f} MB")
 
         mem_growth = mem_readings[-1] - mem_readings[0]
 
@@ -113,7 +108,7 @@ class TestMemorySafety:
             f"Suspected memory leak."
         )
 
-        parquet_files = list(output_dir.glob("*.parquet"))
+        parquet_files = list(tmp_path.glob("*.parquet"))
         assert len(parquet_files) == 3, "Not all parquets were created"
         print(f"✅ Memory stable: {len(parquet_files)} files processed")
 

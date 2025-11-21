@@ -28,12 +28,12 @@ class ExtractorAdapter:
     CHUNK_SIZE_PARQUET = 50000
 
     @staticmethod
-    def list_files_in_zip(zip_path: str, extension: str = "") -> list[str]:
+    def list_files_in_zip(zip_path: str, extension: str) -> list[str]:
         """List files in ZIP archive with optional extension filter.
 
         Args:
             zip_path: Path to the ZIP file
-            extension: Optional file extension to filter (e.g., '.csv', '.txt')
+            extension: File extension to filter (e.g., '.csv', '.txt')
 
         Returns:
             List of filenames in the ZIP
@@ -49,29 +49,7 @@ class ExtractorAdapter:
         try:
             with zipfile.ZipFile(zip_path, "r") as z:
                 names = z.namelist()
-
-                if extension:
-                    matches = [name for name in names if name.lower().endswith(extension)]
-                    if matches:
-                        return matches
-
-                    # Fallbacks for archives that don't use a '.txt' extension:
-                    # 1) Prefer files without a suffix (no extension).
-                    # 2) If none, prefer domain-specific candidates such as
-                    #    files whose basename starts with 'COTAHIST'.
-                    no_suffix = [name for name in names if Path(name).suffix == ""]
-                    if no_suffix:
-                        return no_suffix
-
-                    cotahist_candidates = [
-                        name for name in names if Path(name).name.upper().startswith("COTAHIST")
-                    ]
-                    if cotahist_candidates:
-                        return cotahist_candidates
-
-                    return []
-
-                return names
+                return [name for name in names if name.lower().endswith(extension)]
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e))
 
