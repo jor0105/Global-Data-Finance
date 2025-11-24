@@ -1,6 +1,6 @@
 # Início Rápido
 
-Bem-vindo ao **DataFinance**! Este guia irá ajudá-lo a dar os primeiros passos com a biblioteca através de exemplos práticos e simples.
+Bem-vindo ao **Global-Data-Finance**! Este guia irá ajudá-lo a dar os primeiros passos com a biblioteca através de exemplos práticos e simples.
 
 ---
 
@@ -8,7 +8,7 @@ Bem-vindo ao **DataFinance**! Este guia irá ajudá-lo a dar os primeiros passos
 
 Antes de começar, certifique-se de que você:
 
-- ✅ Instalou o DataFinance ([ver guia de instalação](installation.md))
+- ✅ Instalou o Global-Data-Finance ([ver guia de instalação](installation.md))
 - ✅ Possui Python 3.12 ou superior
 - ✅ Tem acesso à internet para downloads
 
@@ -337,4 +337,4 @@ Agora que você conhece o básico, explore:
 ---
 
 !!! success "Parabéns!"
-Você completou o guia de início rápido! Agora você está pronto para explorar todo o potencial do DataFinance. 🚀
+Você completou o guia de início rápido! Agora você está pronto para explorar todo o potencial do Global-Data-Finance. 🚀

@@ -1,12 +1,12 @@
 # Instalação
 
-Este guia fornece instruções detalhadas para instalar e configurar a biblioteca **DataFinance** em diferentes ambientes.
+Este guia fornece instruções detalhadas para instalar e configurar a biblioteca **Global-Data-Finance** em diferentes ambientes.
 
 ---
 
 ## Requisitos do Sistema
 
-Antes de instalar o DataFinance, certifique-se de que seu sistema atende aos seguintes requisitos:
+Antes de instalar o Global-Data-Finance, certifique-se de que seu sistema atende aos seguintes requisitos:
 
 ### Requisitos Obrigatórios
 
@@ -24,13 +24,13 @@ python3 --version
 ```
 
 !!! warning "Versão do Python"
-O DataFinance requer Python 3.12 ou superior. Se você possui uma versão anterior, será necessário atualizar o Python antes de prosseguir.
+O Global-Data-Finance requer Python 3.12 ou superior. Se você possui uma versão anterior, será necessário atualizar o Python antes de prosseguir.
 
 ---
 
 ## Instalação via pip (Recomendado)
 
-A forma mais simples de instalar o DataFinance é através do PyPI usando o `pip`:
+A forma mais simples de instalar o Global-Data-Finance é através do PyPI usando o `pip`:
 
 ```bash
 pip install datafinance
@@ -38,7 +38,7 @@ pip install datafinance
 
 ### Instalação em Ambiente Virtual (Recomendado)
 
-É altamente recomendado instalar o DataFinance em um ambiente virtual para evitar conflitos de dependências:
+É altamente recomendado instalar o Global-Data-Finance em um ambiente virtual para evitar conflitos de dependências:
 
 ```bash
 # Criar ambiente virtual
@@ -51,7 +51,7 @@ source venv/bin/activate
 # No Windows:
 venv\Scripts\activate
 
-# Instalar DataFinance
+# Instalar Global-Data-Finance
 pip install datafinance
 ```
 
@@ -118,7 +118,7 @@ pip install -e ".[dev]"
 
 ## Dependências
 
-O DataFinance possui as seguintes dependências principais:
+O Global-Data-Finance possui as seguintes dependências principais:
 
 ### Dependências Obrigatórias
 
@@ -159,7 +159,7 @@ python
 
 # Tentar importar a biblioteca
 >>> from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
->>> print("✓ DataFinance instalado com sucesso!")
+>>> print("✓ Global-Data-Finance instalado com sucesso!")
 ```
 
 ### 2. Verificar Versão
@@ -267,7 +267,7 @@ pip install datafinance
 
 ## Desinstalação
 
-Para remover o DataFinance do seu sistema:
+Para remover o Global-Data-Finance do seu sistema:
 
 ```bash
 pip uninstall datafinance
@@ -277,7 +277,7 @@ pip uninstall datafinance
 
 ## Próximos Passos
 
-Agora que você instalou o DataFinance com sucesso, explore:
+Agora que você instalou o Global-Data-Finance com sucesso, explore:
 
 - 🚀 **[Início Rápido](quickstart.md)** - Primeiros passos e exemplos básicos
 - 📄 **[Documentos CVM](cvm-docs.md)** - Guia completo da API CVM

@@ -1,6 +1,6 @@
 # Exemplos Práticos
 
-Esta página apresenta exemplos completos e práticos de uso do DataFinance em cenários reais.
+Esta página apresenta exemplos completos e práticos de uso do Global-Data-Finance em cenários reais.
 
 ---
 
@@ -358,7 +358,7 @@ python script.py --tipo ambos --destino /data --verbose
 
 ## Exemplo 8: Integração com Jupyter Notebook
 
-Usar DataFinance em notebooks Jupyter para análise interativa.
+Usar Global-Data-Finance em notebooks Jupyter para análise interativa.
 
 ```python
 # Célula 1: Imports e configuração

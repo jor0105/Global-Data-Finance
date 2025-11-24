@@ -3,6 +3,8 @@ name = "datafinance"
 version = "0.1.0"
 description = "Library for extracting, normalizing and processing global financial and economic data — including market data from exchanges worldwide, regulatory filings, company fundamentals and historical quotes; optimized for high-performance storage and analysis (e.g., Parquet)."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     { name = "Jordan Estralioto", email = "estraliotojordan@gmail.com" }
 ]
@@ -21,11 +23,11 @@ requires-python = ">=3.12,<4.0"
 
 dependencies = [
     "pydantic-settings>=2.11.0,<3.0.0",
-    "pyarrow (>=22.0.0,<23.0.0)",
-    "httpx[http2] (>=0.28.1,<0.29.0)",
+    "pyarrow>=22.0.0,<23.0.0",
+    "httpx[http2]>=0.28.1,<0.29.0",
     "polars>=1.0.0,<2.0.0",
     "psutil>=5.9.0,<7.0.0",
-    "pandas (>=2.3.3,<3.0.0)",
+    "pandas>=2.3.3,<3.0.0",
 ]
 
 [project.urls]
@@ -34,8 +36,11 @@ Repository = "https://github.com/jor0105/Global-Data-Finance"
 Documentation = "https://github.com/jor0105/Global-Data-Finance"
 "Bug Tracker" = "https://github.com/jor0105/Global-Data-Finance/issues"
 
+[tool.setuptools.package-data]
+datafinance = ["*.txt", "*.md"]
+
 [tool.poetry]
-packages = [{include = "datafinance", from = "src"}]
+packages = [{ include = "datafinance", from = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.3.0"
@@ -62,4 +67,3 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-explicit_package_bases = true

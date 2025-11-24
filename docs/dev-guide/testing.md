@@ -1,6 +1,6 @@
 # Testes
 
-Guia completo sobre testes no DataFinance.
+Guia completo sobre testes no Global-Data-Finance.
 
 ---
 
@@ -91,7 +91,7 @@ def test_get_available_docs():
     """Testa obtenção de documentos disponíveis."""
     cvm = FundamentalStocksDataCVM()
     docs = cvm.get_available_docs()
-    
+
     assert isinstance(docs, dict)
     assert len(docs) > 0
     assert "DFP" in docs
@@ -138,6 +138,7 @@ open htmlcov/index.html
 ## CI/CD
 
 Testes são executados automaticamente em:
+
 - Push para `main` ou `develop`
 - Pull Requests
 - Releases
@@ -145,5 +146,6 @@ Testes são executados automaticamente em:
 ---
 
 Veja também:
+
 - [Como Contribuir](contributing.md)
 - [Arquitetura](architecture.md)

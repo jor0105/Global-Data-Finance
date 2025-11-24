@@ -1,12 +1,12 @@
 # Arquitetura
 
-Documentação completa da arquitetura do DataFinance, padrões de design e estrutura do projeto.
+Documentação completa da arquitetura do Global-Data-Finance, padrões de design e estrutura do projeto.
 
 ---
 
 ## Visão Geral
 
-O DataFinance é construído seguindo princípios de **Clean Architecture**, com separação clara entre camadas de domínio, aplicação e infraestrutura. Esta arquitetura garante:
+O Global-Data-Finance é construído seguindo princípios de **Clean Architecture**, com separação clara entre camadas de domínio, aplicação e infraestrutura. Esta arquitetura garante:
 
 - ✅ **Testabilidade**: Fácil criação de testes unitários e de integração
 - ✅ **Manutenibilidade**: Código organizado e fácil de entender

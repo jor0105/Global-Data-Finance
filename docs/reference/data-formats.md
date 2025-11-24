@@ -1,6 +1,6 @@
 # Formatos de Dados
 
-Documentação dos formatos de dados utilizados pelo DataFinance.
+Documentação dos formatos de dados utilizados pelo Global-Data-Finance.
 
 ---
 
@@ -31,6 +31,7 @@ dfp_cia_aberta_2023/
 ```
 
 **Vantagens do Parquet**:
+
 - ✅ Compressão eficiente (~70% menor)
 - ✅ Leitura muito mais rápida
 - ✅ Suporte a schemas tipados
@@ -51,22 +52,22 @@ COTAHIST_A2023.ZIP
 
 ### Formato Parquet Gerado
 
-DataFinance converte para Parquet com schema estruturado:
+Global-Data-Finance converte para Parquet com schema estruturado:
 
 **Colunas principais**:
 
-| Coluna | Tipo | Descrição |
-|--------|------|-----------|
-| `data` | `date` | Data da cotação |
-| `codigo_negociacao` | `string` | Ticker (ex: PETR4) |
-| `nome_empresa` | `string` | Nome da empresa |
-| `preco_abertura` | `float64` | Preço de abertura |
-| `preco_maximo` | `float64` | Preço máximo |
-| `preco_minimo` | `float64` | Preço mínimo |
-| `preco_fechamento` | `float64` | Preço de fechamento |
-| `volume_negociado` | `float64` | Volume financeiro |
-| `quantidade_negocios` | `int64` | Número de negócios |
-| `tipo_mercado` | `int32` | Código do mercado |
+| Coluna                | Tipo      | Descrição           |
+| --------------------- | --------- | ------------------- |
+| `data`                | `date`    | Data da cotação     |
+| `codigo_negociacao`   | `string`  | Ticker (ex: PETR4)  |
+| `nome_empresa`        | `string`  | Nome da empresa     |
+| `preco_abertura`      | `float64` | Preço de abertura   |
+| `preco_maximo`        | `float64` | Preço máximo        |
+| `preco_minimo`        | `float64` | Preço mínimo        |
+| `preco_fechamento`    | `float64` | Preço de fechamento |
+| `volume_negociado`    | `float64` | Volume financeiro   |
+| `quantidade_negocios` | `int64`   | Número de negócios  |
+| `tipo_mercado`        | `int32`   | Código do mercado   |
 
 ---
 
@@ -114,7 +115,7 @@ class DownloadResultCVM:
     error_count_downloads: int
     successful_downloads: Dict[str, List[int]]
     failed_downloads: Dict[str, str]
-    
+
     def has_errors(self) -> bool:
         return self.error_count_downloads > 0
 ```
@@ -140,23 +141,24 @@ class DownloadResultCVM:
 
 ### CVM (por ano)
 
-| Documento | ZIP | Parquet | Compressão |
-|-----------|-----|---------|------------|
-| DFP | ~50 MB | ~15 MB | 70% |
-| ITR | ~200 MB | ~60 MB | 70% |
-| FRE | ~100 MB | ~30 MB | 70% |
+| Documento | ZIP     | Parquet | Compressão |
+| --------- | ------- | ------- | ---------- |
+| DFP       | ~50 MB  | ~15 MB  | 70%        |
+| ITR       | ~200 MB | ~60 MB  | 70%        |
+| FRE       | ~100 MB | ~30 MB  | 70%        |
 
 ### B3 (por ano)
 
 | Classe | Registros | Parquet |
-|--------|-----------|---------|
-| Ações | ~250k | ~100 MB |
-| ETF | ~50k | ~20 MB |
-| Opções | ~500k | ~200 MB |
+| ------ | --------- | ------- |
+| Ações  | ~250k     | ~100 MB |
+| ETF    | ~50k      | ~20 MB  |
+| Opções | ~500k     | ~200 MB |
 
 ---
 
 Veja também:
+
 - [API CVM](cvm-api.md)
 - [API B3](b3-api.md)
 - [Exemplos](../user-guide/examples.md)

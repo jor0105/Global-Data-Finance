@@ -1,6 +1,6 @@
 # Uso Avançado
 
-Técnicas avançadas e customização do DataFinance.
+Técnicas avançadas e customização do Global-Data-Finance.
 
 ---
 
@@ -16,7 +16,7 @@ from datafinance.brazil.cvm.fundamental_stocks_data.domain import DownloadResult
 
 class MyCustomAdapter(DownloadDocsCVMRepository):
     """Adapter personalizado para download."""
-    
+
     def download_docs(
         self,
         destination_path: str,
@@ -115,7 +115,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     schedule_interval='@daily'
 ) as dag:
-    
+
     download = PythonOperator(
         task_id='download_cvm',
         python_callable=download_cvm_task
@@ -217,5 +217,6 @@ for year in tqdm(years, desc="Extraindo anos"):
 ---
 
 Veja também:
+
 - [Arquitetura](architecture.md)
 - [Exemplos Práticos](../user-guide/examples.md)

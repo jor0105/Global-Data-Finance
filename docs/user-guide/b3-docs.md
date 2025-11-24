@@ -514,7 +514,7 @@ COTAHIST_A2023.ZIP
 └── COTAHIST_A2023.TXT  (arquivo de texto com largura fixa)
 ```
 
-O DataFinance processa automaticamente este formato e converte para Parquet.
+O Global-Data-Finance processa automaticamente este formato e converte para Parquet.
 
 ---
 

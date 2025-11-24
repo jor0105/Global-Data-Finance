@@ -1,64 +1,114 @@
-site_name: DataFinance
-site_description: Biblioteca Python para extração e processamento de dados financeiros globais
-site_url: https://github.com/jor0105/Global-Data-Finance
-repo_url: https://github.com/jor0105/Global-Data-Finance
+---
+# Project Information
+site_name: Global-Data-Finance
+site_author: Jordan Estralioto
+site_description: >-
+  Biblioteca Python para extração e processamento de dados financeiros globais
+site_url: https://jor0105.github.io/Global-Data-Finance/
+# Repository
 repo_name: jor0105/Global-Data-Finance
+repo_url: https://github.com/jor0105/Global-Data-Finance
 edit_uri: edit/main/docs/
 
+# Copyright
+copyright: Copyright &copy; 2025 Jordan Estralioto
+
+# Configuration
 theme:
   name: material
-  language: pt-BR
+  language: pt
   palette:
-    # Palette toggle for light mode
     - scheme: default
       primary: indigo
-      accent: blue
+      accent: indigo
       toggle:
-        icon: material/brightness-7
-        name: Alternar para modo escuro
-    # Palette toggle for dark mode
+        icon: material/weather-night
+        name: Mudar para tema escuro
     - scheme: slate
       primary: indigo
-      accent: blue
+      accent: indigo
       toggle:
-        icon: material/brightness-4
-        name: Alternar para modo claro
+        icon: material/weather-sunny
+        name: Mudar para tema claro
+  font:
+    text: Roboto
+    code: Roboto Mono
   features:
-    - navigation.tabs
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - header.autohide
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.sections
+    - navigation.tabs
     - navigation.top
     - navigation.tracking
-    - search.suggest
     - search.highlight
-    - content.code.copy
-    - content.code.annotate
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+  navigation_depth: 4
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jor0105/Global-Data-Finance
+      name: Código-fonte
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/datafinance/
+      name: PyPI
+    - icon: material/email
+      link: mailto:contato@exemplo.com
+      name: Contato
+
+extra_css:
+  - https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap
+  - assets/stylesheets/custom.css
+
+extra_javascript:
+  - assets/javascripts/wide-toggle.js
 
 plugins:
   - search:
       lang: pt
 
+# Extensions
 markdown_extensions:
+  - abbr
   - admonition
-  - pymdownx.details
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.tabbed:
-      alternate_style: true
-  - tables
   - attr_list
-  - md_in_html
+  - codehilite:
+      guess_lang: false
+      linenums: true
+      use_pygments: true
+  - def_list
+  - fenced_code
+  - footnotes
+  - meta
+  - nl2br
+  - sane_lists
+  - smarty
+  - tables
   - toc:
       permalink: true
+      permalink_title: Link para esta seção
+      toc_depth: 3
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.magiclink
 
+# Navigation
 nav:
   - Início: index.md
   - Guia do Usuário:
@@ -79,10 +129,3 @@ nav:
       - API B3: reference/b3-api.md
       - Exceções: reference/exceptions.md
       - Formatos de Dados: reference/data-formats.md
-
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/jor0105/Global-Data-Finance
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/datafinance/

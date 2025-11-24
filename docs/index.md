@@ -1,4 +1,4 @@
-# DataFinance
+# Global-Data-Finance
 
 **Biblioteca Python profissional para extração e processamento de dados financeiros globais**
 
@@ -10,16 +10,16 @@
 
 ## Visão Geral
 
-**DataFinance** é uma biblioteca Python moderna e de alto desempenho projetada para facilitar a extração, normalização e processamento de dados financeiros e econômicos do mercado brasileiro. Com foco em simplicidade de uso e performance, a biblioteca oferece interfaces intuitivas para acessar dados fundamentalistas da CVM e cotações históricas da B3.
+**Global-Data-Finance** é uma biblioteca Python moderna e de alto desempenho projetada para facilitar a extração, normalização e processamento de dados financeiros e econômicos do mercado brasileiro. Com foco em simplicidade de uso e performance, a biblioteca oferece interfaces intuitivas para acessar dados fundamentalistas da CVM e cotações históricas da B3.
 
 ### Características Principais
 
-✨ **Interface Simples e Intuitiva** - API de alto nível fácil de usar, ideal para análise de dados e pesquisa  
-⚡ **Alto Desempenho** - Processamento otimizado com suporte a múltiplos workers e modos de performance  
-📊 **Formato Parquet** - Exportação direta para formato Parquet otimizado para análise  
-🏗️ **Arquitetura Limpa** - Código bem estruturado seguindo princípios SOLID e Clean Architecture  
-🔒 **Type Hints Completos** - Código totalmente tipado para melhor segurança e autocompletar  
-📝 **Logging Integrado** - Rastreamento detalhado de operações para debugging e monitoramento  
+✨ **Interface Simples e Intuitiva** - API de alto nível fácil de usar, ideal para análise de dados e pesquisa
+⚡ **Alto Desempenho** - Processamento otimizado com suporte a múltiplos workers e modos de performance
+📊 **Formato Parquet** - Exportação direta para formato Parquet otimizado para análise
+🏗️ **Arquitetura Limpa** - Código bem estruturado seguindo princípios SOLID e Clean Architecture
+🔒 **Type Hints Completos** - Código totalmente tipado para melhor segurança e autocompletar
+📝 **Logging Integrado** - Rastreamento detalhado de operações para debugging e monitoramento
 🧪 **Testado Extensivamente** - Suite completa de testes unitários e de integração
 
 ---
@@ -141,7 +141,7 @@ print(f"✓ Extraídos {result['total_records']:,} registros")
 
 ---
 
-## Por Que DataFinance?
+## Por Que Global-Data-Finance?
 
 ### 🎯 Simplicidade
 

@@ -1,6 +1,6 @@
 # Como Contribuir
 
-Guia para contribuir com o projeto DataFinance.
+Guia para contribuir com o projeto Global-Data-Finance.
 
 ---
 
@@ -50,14 +50,14 @@ def download_docs(
     list_docs: Optional[List[str]] = None
 ) -> DownloadResultCVM:
     """Baixa documentos CVM.
-    
+
     Args:
         destination_path: Diretório onde salvar arquivos.
         list_docs: Lista de tipos de documentos. Se None, baixa todos.
-    
+
     Returns:
         Objeto DownloadResultCVM com resultados do download.
-    
+
     Raises:
         InvalidDocName: Se tipo de documento for inválido.
         NetworkError: Se houver erro de rede.
@@ -92,7 +92,7 @@ def test_get_available_docs():
     """Testa obtenção de documentos disponíveis."""
     cvm = FundamentalStocksDataCVM()
     docs = cvm.get_available_docs()
-    
+
     assert isinstance(docs, dict)
     assert "DFP" in docs
     assert len(docs) > 0

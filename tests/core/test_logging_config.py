@@ -1,4 +1,5 @@
 import logging
+import os
 import tempfile
 from pathlib import Path
 
@@ -6,18 +7,12 @@ import pytest
 
 from datafinance.core.logging_config import (
     get_logger,
+    get_logging_settings,
+    is_logging_configured,
     log_execution_time,
     log_with_context,
-    setup_logging,
-)
-
-
-import os
-import tempfile
-from datafinance.core.logging_config import (
     remove_file,
-    is_logging_configured,
-    get_logging_settings,
+    setup_logging,
 )
 
 

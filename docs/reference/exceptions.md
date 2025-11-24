@@ -1,6 +1,6 @@
 # Exceções
 
-Catálogo completo de exceções do DataFinance.
+Catálogo completo de exceções do Global-Data-Finance.
 
 ---
 
@@ -16,6 +16,7 @@ class NetworkError(Exception):
 **Quando ocorre**: Problemas de conexão HTTP
 
 **Como tratar**:
+
 ```python
 try:
     cvm.download(...)
@@ -92,6 +93,7 @@ class InvalidDocName(Exception):
 **Quando ocorre**: Documento não está na lista de disponíveis
 
 **Como tratar**:
+
 ```python
 try:
     cvm.download(list_docs=["INVALID"])
@@ -141,6 +143,7 @@ class InvalidAssetsName(Exception):
 **Quando ocorre**: Ativo não está na lista de disponíveis
 
 **Como tratar**:
+
 ```python
 try:
     b3.extract(assets_list=["invalid"])
@@ -218,6 +221,7 @@ except Exception as e:
 ---
 
 Veja também:
+
 - [API CVM](cvm-api.md)
 - [API B3](b3-api.md)
 - [FAQ](../user-guide/faq.md)

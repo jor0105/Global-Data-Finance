@@ -1,12 +1,12 @@
 # FAQ - Perguntas Frequentes
 
-Respostas para as perguntas mais comuns sobre o DataFinance.
+Respostas para as perguntas mais comuns sobre o Global-Data-Finance.
 
 ---
 
 ## Instalação e Configuração
 
-### Como instalar o DataFinance?
+### Como instalar o Global-Data-Finance?
 
 ```bash
 pip install datafinance
@@ -16,7 +16,7 @@ Veja o [guia completo de instalação](installation.md) para mais detalhes.
 
 ### Qual versão do Python é necessária?
 
-DataFinance requer **Python 3.12 ou superior**. Versões anteriores não são suportadas.
+Global-Data-Finance requer **Python 3.12 ou superior**. Versões anteriores não são suportadas.
 
 ### Posso usar em ambiente virtual?
 
@@ -115,7 +115,7 @@ A biblioteca possui retry automático. Para maior robustez, implemente sua próp
 
 ### Onde obter arquivos COTAHIST?
 
-Baixe do site oficial da B3:  
+Baixe do site oficial da B3:
 🔗 [https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)
 
 ### Qual a diferença entre modo fast e slow?
@@ -173,7 +173,7 @@ result = b3.extract(
 
 ### Como acelerar downloads?
 
-O DataFinance já usa download paralelo por padrão (`AsyncDownloadAdapterCVM`), que é 3-5x mais rápido que download sequencial.
+O Global-Data-Finance já usa download paralelo por padrão (`AsyncDownloadAdapterCVM`), que é 3-5x mais rápido que download sequencial.
 
 ### Como acelerar extração de cotações?
 
@@ -300,7 +300,7 @@ print(list(docs.keys()))
 
 ### Posso usar em produção?
 
-Sim! O DataFinance é estável e testado. Recomendações:
+Sim! O Global-Data-Finance é estável e testado. Recomendações:
 
 - Use logging apropriado
 - Implemente tratamento de erros robusto
@@ -318,7 +318,7 @@ Use `cron` (Linux/macOS) ou Task Scheduler (Windows):
 
 ### Como integrar com pipelines de dados?
 
-DataFinance funciona bem com:
+Global-Data-Finance funciona bem com:
 
 - **Apache Airflow**: Crie DAGs para orquestração
 - **Prefect**: Use como tasks em flows
@@ -357,7 +357,7 @@ Veja o [guia de contribuição](../dev-guide/contributing.md) para detalhes comp
 
 ### Como reportar bugs?
 
-Abra uma issue no GitHub:  
+Abra uma issue no GitHub:
 🔗 [https://github.com/jor0105/Global-Data-Finance/issues](https://github.com/jor0105/Global-Data-Finance/issues)
 
 ### Como sugerir novas funcionalidades?
@@ -368,7 +368,7 @@ Abra uma issue com a tag `enhancement` no GitHub.
 
 ## Licença e Uso
 
-### Qual a licença do DataFinance?
+### Qual a licença do Global-Data-Finance?
 
 MIT License - uso livre para projetos comerciais e não-comerciais.
 
