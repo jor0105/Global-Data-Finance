@@ -10,10 +10,6 @@ Baixar demonstrações financeiras padronizadas de empresas brasileiras.
 
 ```python
 from datafinance import FundamentalStocksDataCVM
-from datafinance.core import setup_logging
-
-# Configurar logging
-setup_logging(level="INFO")
 
 # Criar cliente
 cvm = FundamentalStocksDataCVM()
@@ -75,11 +71,8 @@ Pipeline completo de download CVM e extração B3.
 
 ```python
 from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
-from datafinance.core import setup_logging
 import os
 
-# Configurar logging
-setup_logging(level="INFO")
 
 # Diretórios
 base_dir = "/home/usuario/dados_financeiros"
@@ -212,65 +205,7 @@ print(f"  Preço máximo: R$ {petr4['preco_maximo'].max():.2f}")
 
 ---
 
-## Exemplo 6: Tratamento Robusto de Erros
-
-Implementar tratamento completo de erros com retry logic.
-
-```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.macro_exceptions import NetworkError, TimeoutError
-import time
-import logging
-
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def download_with_retry(max_retries=3, backoff_factor=2):
-    """Download com retry exponencial."""
-    cvm = FundamentalStocksDataCVM()
-
-    for attempt in range(max_retries):
-        try:
-            logger.info(f"Tentativa {attempt + 1}/{max_retries}")
-
-            cvm.download(
-                destination_path="/data/cvm",
-                list_docs=["DFP"],
-                initial_year=2022,
-                last_year=2023
-            )
-
-            logger.info("✓ Download concluído com sucesso!")
-            return True
-
-        except (NetworkError, TimeoutError) as e:
-            if attempt < max_retries - 1:
-                wait_time = backoff_factor ** attempt
-                logger.warning(f"Erro: {e}")
-                logger.info(f"Aguardando {wait_time}s antes de tentar novamente...")
-                time.sleep(wait_time)
-            else:
-                logger.error(f"✗ Falha após {max_retries} tentativas")
-                raise
-
-        except Exception as e:
-            logger.error(f"✗ Erro inesperado: {e}")
-            raise
-
-    return False
-
-# Executar
-if __name__ == "__main__":
-    try:
-        download_with_retry()
-    except Exception as e:
-        logger.error(f"Download falhou: {e}")
-```
-
----
-
-## Exemplo 7: Automação com Script
+## Exemplo 6: Automação com Script
 
 Script completo para automação de downloads.
 
@@ -284,7 +219,6 @@ import argparse
 import sys
 from pathlib import Path
 from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
-from datafinance.core import setup_logging
 
 def main():
     parser = argparse.ArgumentParser(description="Download dados financeiros")
@@ -295,10 +229,6 @@ def main():
     parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
-
-    # Configurar logging
-    level = "DEBUG" if args.verbose else "INFO"
-    setup_logging(level=level)
 
     # Criar diretório de destino
     dest_path = Path(args.destino)
@@ -356,7 +286,7 @@ python script.py --tipo ambos --destino /data --verbose
 
 ---
 
-## Exemplo 8: Integração com Jupyter Notebook
+## Exemplo 7: Integração com Jupyter Notebook
 
 Usar Global-Data-Finance em notebooks Jupyter para análise interativa.
 

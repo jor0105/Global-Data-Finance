@@ -34,17 +34,18 @@ def extract(
 
 **Parâmetros**:
 
-| Nome | Tipo | Obrigatório | Padrão | Descrição |
-|------|------|-------------|--------|-----------|
-| `path_of_docs` | `str` | Sim | - | Diretório com ZIPs COTAHIST |
-| `assets_list` | `List[str]` | Sim | - | Classes de ativos |
-| `initial_year` | `Optional[int]` | Não | `1986` | Ano inicial |
-| `last_year` | `Optional[int]` | Não | Ano atual | Ano final |
-| `destination_path` | `Optional[str]` | Não | `path_of_docs` | Diretório de saída |
-| `output_filename` | `str` | Não | `"cotahist_extracted"` | Nome do arquivo |
-| `processing_mode` | `str` | Não | `"fast"` | Modo: "fast" ou "slow" |
+| Nome               | Tipo            | Obrigatório | Padrão                 | Descrição                   |
+| ------------------ | --------------- | ----------- | ---------------------- | --------------------------- |
+| `path_of_docs`     | `str`           | Sim         | -                      | Diretório com ZIPs COTAHIST |
+| `assets_list`      | `List[str]`     | Sim         | -                      | Classes de ativos           |
+| `initial_year`     | `Optional[int]` | Não         | `1986`                 | Ano inicial                 |
+| `last_year`        | `Optional[int]` | Não         | Ano atual              | Ano final                   |
+| `destination_path` | `Optional[str]` | Não         | `path_of_docs`         | Diretório de saída          |
+| `output_filename`  | `str`           | Não         | `"cotahist_extracted"` | Nome do arquivo             |
+| `processing_mode`  | `str`           | Não         | `"fast"`               | Modo: "fast" ou "slow"      |
 
 **Retorno**: Dicionário com chaves:
+
 - `success` (bool): Sucesso da operação
 - `message` (str): Mensagem resumida
 - `total_files` (int): Total de arquivos processados
@@ -55,6 +56,7 @@ def extract(
 - `errors` (List[str]): Lista de erros (se houver)
 
 **Exceções**:
+
 - `EmptyAssetListError`: Lista de ativos vazia
 - `InvalidAssetsName`: Ativo inválido
 - `InvalidFirstYear`: Ano inicial inválido
@@ -63,6 +65,7 @@ def extract(
 - `ExtractionError`: Erro na extração
 
 **Exemplo**:
+
 ```python
 b3 = HistoricalQuotesB3()
 result = b3.extract(
@@ -86,6 +89,7 @@ def get_available_assets(self) -> List[str]
 **Retorno**: Lista de strings
 
 **Exemplo**:
+
 ```python
 assets = b3.get_available_assets()
 # ['ações', 'etf', 'opções', ...]
@@ -100,41 +104,44 @@ def get_available_years(self) -> Dict[str, int]
 **Descrição**: Retorna intervalo de anos disponível.
 
 **Retorno**: Dicionário com chaves:
+
 - `"minimal_year"`: 1986
 - `"current_year"`: Ano atual
 
 **Exemplo**:
+
 ```python
 years = b3.get_available_years()
-# {'minimal_year': 1986, 'current_year': 2025}
+# {'minimal_year': 1986, 'current_year': ano atual}
 ```
 
 ---
 
 ## Classes de Ativos
 
-| Código | Descrição | Mercados |
-|--------|-----------|----------|
-| ações | Ações | 010 (à vista), 012 (fracionário) |
-| etf | ETFs | Exchange Traded Funds |
-| opções | Opções | 070 (call), 080 (put) |
-| termo | Mercado a Termo | Contratos a termo |
-| exercicio_opcoes | Exercício de Opções | Exercício de opções |
-| forward | Mercado Forward | Contratos forward |
-| leilao | Leilão | Mercado de leilão |
+| Código           | Descrição           | Mercados                         |
+| ---------------- | ------------------- | -------------------------------- |
+| ações            | Ações               | 010 (à vista), 012 (fracionário) |
+| etf              | ETFs                | Exchange Traded Funds            |
+| opções           | Opções              | 070 (call), 080 (put)            |
+| termo            | Mercado a Termo     | Contratos a termo                |
+| exercicio_opcoes | Exercício de Opções | Exercício de opções              |
+| forward          | Mercado Forward     | Contratos forward                |
+| leilao           | Leilão              | Mercado de leilão                |
 
 ---
 
 ## Modos de Processamento
 
-| Modo | Performance | CPU | RAM | Uso |
-|------|-------------|-----|-----|-----|
-| fast | Alta | Alto | ~500MB | Padrão, máquinas com bons recursos |
-| slow | Moderada | Baixo | ~200MB | Recursos limitados |
+| Modo | Performance | CPU   | RAM    | Uso                                |
+| ---- | ----------- | ----- | ------ | ---------------------------------- |
+| fast | Alta        | Alto  | ~2GB   | Padrão, máquinas com bons recursos |
+| slow | Moderada    | Baixo | ~500MB | Recursos limitados                 |
 
 ---
 
 Veja também:
+
 - [Guia de Uso B3](../user-guide/b3-docs.md)
 - [Exceções](exceptions.md)
 - [Formatos de Dados](data-formats.md)

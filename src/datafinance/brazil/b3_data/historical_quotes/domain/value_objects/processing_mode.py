@@ -14,7 +14,7 @@ class ProcessingModeEnumB3(str, Enum):
         True  # Enable parallel parsing with ThreadPoolExecutor for faster processing
     )
     FAST_MEMORY_THRESHOLD_MB = (
-        3500  # Flush buffer at 3.5GB to leave 500MB margin for 4.5GB total target
+        3500  # Flush buffer at 3.5GB to leave 2GB margin for 4.5GB total target
     )
 
     # SLOW mode configuration: Conservative resource usage for low-end systems
@@ -24,7 +24,7 @@ class ProcessingModeEnumB3(str, Enum):
     SLOW_DESIRED_WORKERS = 2  # Use only 2 workers to approach sequential processing
     SLOW_USE_PARALLEL_PARSING = False  # Disable parallel parsing for lower CPU overhead
     SLOW_MEMORY_THRESHOLD_MB = (
-        1000  # Flush buffer at 1GB to leave 200MB margin for 1.5GB total target
+        1000  # Flush buffer at 1GB to leave 500MB margin for 1.5GB total target
     )
 
     @property

@@ -4,7 +4,7 @@ Documentação completa da API pública do Global-Data-Finance.
 
 ---
 
-## Módulo `datafinance.application`
+## Módulo `datafinance.brazil`
 
 ### `FundamentalStocksDataCVM`
 
@@ -122,21 +122,6 @@ Retorna intervalo de anos disponível.
 
 ---
 
-## Módulo `datafinance.core`
-
-### `setup_logging()`
-
-```python
-def setup_logging(level: str = "INFO") -> None
-```
-
-Configura logging global.
-
-**Parâmetros**:
-
-- `level` (str): Nível de logging ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-
----
 
 Veja também:
 

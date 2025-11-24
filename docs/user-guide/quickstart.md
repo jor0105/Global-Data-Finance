@@ -143,7 +143,7 @@ FRE: Formulário de Referência
 FCA: Formulário Cadastral
 ...
 
-Dados disponíveis de 1998 até 2025
+Dados disponíveis de 2010 até o ano atual
 ```
 
 ### Descobrir Classes de Ativos B3
@@ -176,7 +176,7 @@ Classes de ativos disponíveis:
   • forward
   • leilao
 
-Dados disponíveis de 1986 até 2025
+Dados disponíveis de 1986 até o ano atual
 ```
 
 ---
@@ -187,10 +187,6 @@ Aqui está um exemplo mais completo que combina download e extração:
 
 ```python
 from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
-from datafinance.core import setup_logging
-
-# Configurar logging para ver progresso detalhado
-setup_logging(level="INFO")
 
 # === PARTE 1: Download de Documentos CVM ===
 print("=" * 60)
@@ -277,38 +273,6 @@ print(f"Memória: {df.estimated_size('mb'):.2f} MB")
 
 ---
 
-## Tratamento de Erros Básico
-
-É importante tratar erros adequadamente:
-
-```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.macro_exceptions import NetworkError, TimeoutError
-
-cvm = FundamentalStocksDataCVM()
-
-try:
-    cvm.download(
-        destination_path="/home/usuario/dados_cvm",
-        list_docs=["DFP"],
-        initial_year=2022
-    )
-    print("✓ Download concluído com sucesso!")
-
-except NetworkError as e:
-    print(f"✗ Erro de rede: {e}")
-    print("  Verifique sua conexão com a internet")
-
-except TimeoutError as e:
-    print(f"✗ Timeout: {e}")
-    print("  Tente novamente mais tarde")
-
-except Exception as e:
-    print(f"✗ Erro inesperado: {e}")
-```
-
----
-
 ## Dicas para Iniciantes
 
 !!! tip "Comece Pequeno"
@@ -319,9 +283,6 @@ Para extração de cotações B3, o modo `"fast"` é recomendado na maioria dos 
 
 !!! tip "Verifique Espaço em Disco"
 Documentos CVM e cotações históricas podem ocupar bastante espaço. Certifique-se de ter espaço suficiente antes de baixar muitos anos.
-
-!!! tip "Ative Logging"
-Use `setup_logging(level="INFO")` para ver o progresso detalhado das operações, especialmente útil para downloads longos.
 
 ---
 

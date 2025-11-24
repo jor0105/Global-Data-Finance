@@ -2,9 +2,8 @@
 
 **Biblioteca Python profissional para extração e processamento de dados financeiros globais**
 
-[![PyPI version](https://img.shields.io/pypi/v/datafinance.svg)](https://pypi.org/project/datafinance/)
-[![Python](https://img.shields.io/pypi/pyversions/datafinance.svg)](https://pypi.org/project/datafinance/)
-[![License](https://img.shields.io/github/license/jor0105/Global-Data-Finance.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
 
 ---
 

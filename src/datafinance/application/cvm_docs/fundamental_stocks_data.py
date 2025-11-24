@@ -240,7 +240,7 @@ class FundamentalStocksDataCVM:
 
         Returns:
             Dictionary with year information:
-            - 'Geral Docs': Minimum year for general documents (e.g., 1998)
+            - 'Geral Docs': Minimum year for general documents (e.g., 2000)
             - 'ITR Documents': Minimum year for ITR documents (e.g., 2011)
             - 'CGVN and VLMO Documents': Minimum year for CGVN/VLMO (e.g., 2017)
             - 'Current Year': Current year (e.g., 2025)

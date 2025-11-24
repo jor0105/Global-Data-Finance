@@ -243,7 +243,7 @@ print(f"Dados disponíveis de {years['minimal_year']} até {years['current_year'
 **Saída**:
 
 ```
-Dados disponíveis de 1986 até 2025
+Dados disponíveis de 1986 até ano atual
 ```
 
 ---
@@ -286,8 +286,8 @@ result = b3.extract(
 
 | Modo     | Tempo (100k registros) | CPU   | RAM    | Recomendado        |
 | -------- | ---------------------- | ----- | ------ | ------------------ |
-| **fast** | ~5s                    | Alto  | ~500MB | ✅ Sim (padrão)    |
-| **slow** | ~15s                   | Baixo | ~200MB | Recursos limitados |
+| **fast** | ~5s                    | Alto  | ~2GB   | ✅ Sim (padrão)    |
+| **slow** | ~15s                   | Baixo | ~500MB | Recursos limitados |
 
 ---
 
@@ -341,27 +341,6 @@ for year in range(2020, 2024):
         print(f"✓ {year}: {result['total_records']:,} registros")
     else:
         print(f"✗ {year}: Erro na extração")
-```
-
-### Processamento com Progress Callback
-
-```python
-from datafinance import HistoricalQuotesB3
-from datafinance.core import setup_logging
-
-# Ativar logging para ver progresso detalhado
-setup_logging(level="INFO")
-
-b3 = HistoricalQuotesB3()
-
-result = b3.extract(
-    path_of_docs="/data/cotahist",
-    assets_list=["ações", "etf"],
-    initial_year=2020,
-    last_year=2023
-)
-
-# O progresso será exibido automaticamente no console
 ```
 
 ### Validação Antes da Extração
@@ -419,71 +398,6 @@ result = b3.extract(
 | `InvalidLastYear`     | `last_year` inválido             | Usar `initial_year` ≤ ano ≤ ano atual  |
 | `EmptyDirectoryError` | Diretório sem arquivos COTAHIST  | Verificar caminho e arquivos           |
 | `ExtractionError`     | Erro ao processar ZIP            | Verificar integridade dos arquivos     |
-
-### Exemplo de Tratamento Completo
-
-```python
-from datafinance import HistoricalQuotesB3
-from datafinance.brazil.b3_data.historical_quotes.exceptions import (
-    EmptyAssetListError,
-    InvalidAssetsName,
-    InvalidFirstYear,
-    InvalidLastYear
-)
-from datafinance.macro_exceptions import (
-    EmptyDirectoryError,
-    ExtractionError
-)
-
-b3 = HistoricalQuotesB3()
-
-try:
-    result = b3.extract(
-        path_of_docs="/data/cotahist",
-        assets_list=["ações", "etf"],
-        initial_year=2020,
-        last_year=2023
-    )
-
-    if result['success']:
-        print(f"✓ Extração concluída!")
-        print(f"  Registros: {result['total_records']:,}")
-        print(f"  Arquivo: {result['output_file']}")
-    else:
-        print(f"⚠️  Extração com erros: {result['message']}")
-        if result.get('errors'):
-            for error in result['errors']:
-                print(f"  • {error}")
-
-except EmptyAssetListError:
-    print("✗ Lista de ativos está vazia")
-    print(f"Ativos disponíveis: {b3.get_available_assets()}")
-
-except InvalidAssetsName as e:
-    print(f"✗ Classe de ativo inválida: {e}")
-    print(f"Ativos válidos: {b3.get_available_assets()}")
-
-except InvalidFirstYear as e:
-    print(f"✗ Ano inicial inválido: {e}")
-    years = b3.get_available_years()
-    print(f"Intervalo válido: {years['minimal_year']} - {years['current_year']}")
-
-except InvalidLastYear as e:
-    print(f"✗ Ano final inválido: {e}")
-
-except EmptyDirectoryError as e:
-    print(f"✗ Diretório vazio ou sem arquivos COTAHIST: {e}")
-    print("Certifique-se de que os arquivos COTAHIST_AXXXX.ZIP estão no diretório")
-
-except ExtractionError as e:
-    print(f"✗ Erro ao extrair dados: {e}")
-    print("Verifique a integridade dos arquivos ZIP")
-
-except Exception as e:
-    print(f"✗ Erro inesperado: {e}")
-    import traceback
-    traceback.print_exc()
-```
 
 ---
 
@@ -572,7 +486,7 @@ print(f"Memória: {df.estimated_size('mb'):.2f} MB")
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    initial_year=2000,  # 23+ anos
+    initial_year=1986,  # 23+ anos
     processing_mode="fast"
 )
 ```
@@ -614,18 +528,6 @@ else:
     pass
 ```
 
-### 4. Use Logging para Monitoramento
-
-```python
-from datafinance.core import setup_logging
-
-# Ativar logging INFO para ver progresso
-setup_logging(level="INFO")
-
-# Agora as extrações mostrarão progresso detalhado
-result = b3.extract(...)
-```
-
 ---
 
 ## Performance e Benchmarks
@@ -647,8 +549,8 @@ _Benchmark em Intel i7-10700K, 32GB RAM, SSD NVMe_
 
 | Modo     | CPU    | RAM (pico) | Disco (temp) |
 | -------- | ------ | ---------- | ------------ |
-| **fast** | 60-80% | ~500MB     | ~100MB       |
-| **slow** | 20-30% | ~200MB     | ~50MB        |
+| **fast** | 60-80% | ~2GB       | ~100MB       |
+| **slow** | 20-30% | ~500MB     | ~50MB        |
 
 ---
 

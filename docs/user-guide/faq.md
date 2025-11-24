@@ -122,8 +122,8 @@ Baixe do site oficial da B3:
 
 | Modo     | Performance | CPU   | RAM    | Quando usar                         |
 | -------- | ----------- | ----- | ------ | ----------------------------------- |
-| **fast** | Alta        | Alto  | ~500MB | Máquinas com bons recursos (padrão) |
-| **slow** | Moderada    | Baixo | ~200MB | Recursos limitados                  |
+| **fast** | Alta        | Alto  | ~2GB   | Máquinas com bons recursos (padrão) |
+| **slow** | Moderada    | Baixo | ~500MB | Recursos limitados                  |
 
 ```python
 # Modo fast (padrão)

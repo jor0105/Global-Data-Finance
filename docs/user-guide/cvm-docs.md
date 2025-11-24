@@ -25,16 +25,16 @@ A CVM disponibiliza os seguintes tipos de documentos:
 
 | Código   | Nome Completo                       | Descrição                              | Disponível desde |
 | -------- | ----------------------------------- | -------------------------------------- | ---------------- |
-| **DFP**  | Demonstração Financeira Padronizada | Balanços anuais completos              | 1998             |
+| **DFP**  | Demonstração Financeira Padronizada | Balanços anuais completos              | 2010             |
 | **ITR**  | Informação Trimestral               | Demonstrações financeiras trimestrais  | 2011             |
-| **FRE**  | Formulário de Referência            | Informações detalhadas sobre a empresa | 1998             |
-| **FCA**  | Formulário Cadastral                | Dados cadastrais da empresa            | 1998             |
+| **FRE**  | Formulário de Referência            | Informações detalhadas sobre a empresa | 2010             |
+| **FCA**  | Formulário Cadastral                | Dados cadastrais da empresa            | 2010             |
 | **CGVN** | Código de Governança                | Práticas de governança corporativa     | 2018             |
 | **VLMO** | Valores Mobiliários                 | Informações sobre valores mobiliários  | 2018             |
-| **IPE**  | Informações Periódicas e Eventuais  | Documentos periódicos e eventuais      | 1998             |
+| **IPE**  | Informações Periódicas e Eventuais  | Documentos periódicos e eventuais      | 2010             |
 
 !!! info "Dados Históricos"
-A maioria dos documentos está disponível desde 1998, exceto ITR (2011) e CGVN/VLMO (2018).
+A maioria dos documentos está disponível desde 2010, exceto ITR (2011) e CGVN/VLMO (2018).
 
 ---
 
@@ -196,7 +196,7 @@ Dicionário com informações de anos disponíveis:
 
 | Chave                       | Descrição                                |
 | --------------------------- | ---------------------------------------- |
-| `"Geral Docs"`              | Ano mínimo para documentos gerais (1998) |
+| `"Geral Docs"`              | Ano mínimo para documentos gerais (2010) |
 | `"ITR Documents"`           | Ano mínimo para ITR (2011)               |
 | `"CGVN and VLMO Documents"` | Ano mínimo para CGVN/VLMO (2018)         |
 | `"Current Year"`            | Ano atual                                |
@@ -290,35 +290,6 @@ else:
     )
 ```
 
-### Download com Logging Personalizado
-
-```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.core import setup_logging
-import logging
-
-# Configurar logging detalhado
-setup_logging(level="DEBUG")
-
-# Adicionar handler personalizado
-logger = logging.getLogger("datafinance")
-file_handler = logging.FileHandler("cvm_download.log")
-file_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
-# Executar download
-cvm = FundamentalStocksDataCVM()
-cvm.download(
-    destination_path="/data/cvm",
-    list_docs=["DFP"],
-    initial_year=2022
-)
-
-print("✓ Log salvo em: cvm_download.log")
-```
-
 ---
 
 ## Tratamento de Erros
@@ -336,60 +307,6 @@ A API pode lançar as seguintes exceções:
 | `TimeoutError`                | Timeout na requisição                   | Aumentar timeout ou tentar mais tarde      |
 | `InvalidDestinationPathError` | Caminho de destino inválido             | Verificar permissões e caminho             |
 
-### Exemplo de Tratamento Completo
-
-```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.brazil.cvm.fundamental_stocks_data.exceptions import (
-    InvalidDocName,
-    InvalidFirstYear,
-    InvalidLastYear
-)
-from datafinance.macro_exceptions import (
-    NetworkError,
-    TimeoutError,
-    InvalidDestinationPathError
-)
-
-cvm = FundamentalStocksDataCVM()
-
-try:
-    cvm.download(
-        destination_path="/data/cvm",
-        list_docs=["DFP", "ITR"],
-        initial_year=2020,
-        last_year=2023
-    )
-    print("✓ Download concluído com sucesso!")
-
-except InvalidDocName as e:
-    print(f"✗ Tipo de documento inválido: {e}")
-    print("Documentos disponíveis:", list(cvm.get_available_docs().keys()))
-
-except InvalidFirstYear as e:
-    print(f"✗ Ano inicial inválido: {e}")
-    years = cvm.get_available_years()
-    print(f"Anos disponíveis: {years['Geral Docs']} - {years['Current Year']}")
-
-except InvalidLastYear as e:
-    print(f"✗ Ano final inválido: {e}")
-
-except NetworkError as e:
-    print(f"✗ Erro de rede: {e}")
-    print("Verifique sua conexão com a internet")
-
-except TimeoutError as e:
-    print(f"✗ Timeout: {e}")
-    print("Tente novamente mais tarde ou verifique sua conexão")
-
-except InvalidDestinationPathError as e:
-    print(f"✗ Caminho de destino inválido: {e}")
-    print("Verifique se o diretório existe e você tem permissões de escrita")
-
-except Exception as e:
-    print(f"✗ Erro inesperado: {e}")
-    import traceback
-    traceback.print_exc()
 ```
 
 ---
@@ -401,6 +318,7 @@ except Exception as e:
 Após o download, os arquivos são organizados da seguinte forma:
 
 ```
+
 destination_path/
 ├── dfp_cia_aberta_2020.zip
 ├── dfp_cia_aberta_2021.zip
@@ -409,6 +327,7 @@ destination_path/
 ├── itr_cia_aberta_2020.zip
 ├── itr_cia_aberta_2021.zip
 └── ...
+
 ```
 
 ### Conteúdo dos Arquivos ZIP
@@ -416,15 +335,17 @@ destination_path/
 Cada arquivo ZIP contém múltiplos arquivos CSV com dados estruturados:
 
 ```
+
 dfp_cia_aberta_2023.zip
-├── dfp_cia_aberta_2023.csv              # Dados principais
-├── dfp_cia_aberta_BPA_con_2023.csv      # Balanço Patrimonial Ativo Consolidado
-├── dfp_cia_aberta_BPP_con_2023.csv      # Balanço Patrimonial Passivo Consolidado
-├── dfp_cia_aberta_DRE_con_2023.csv      # Demonstração do Resultado
-├── dfp_cia_aberta_DFC_MD_con_2023.csv   # Fluxo de Caixa (Método Direto)
-├── dfp_cia_aberta_DFC_MI_con_2023.csv   # Fluxo de Caixa (Método Indireto)
-├── dfp_cia_aberta_DVA_con_2023.csv      # Demonstração do Valor Adicionado
+├── dfp_cia_aberta_2023.csv # Dados principais
+├── dfp_cia_aberta_BPA_con_2023.csv # Balanço Patrimonial Ativo Consolidado
+├── dfp_cia_aberta_BPP_con_2023.csv # Balanço Patrimonial Passivo Consolidado
+├── dfp_cia_aberta_DRE_con_2023.csv # Demonstração do Resultado
+├── dfp_cia_aberta_DFC_MD_con_2023.csv # Fluxo de Caixa (Método Direto)
+├── dfp_cia_aberta_DFC_MI_con_2023.csv # Fluxo de Caixa (Método Indireto)
+├── dfp_cia_aberta_DVA_con_2023.csv # Demonstração do Valor Adicionado
 └── ...
+
 ```
 
 ### Extração Automática para Parquet
@@ -432,14 +353,16 @@ dfp_cia_aberta_2023.zip
 Quando `automatic_extractor=True`, os arquivos são convertidos para Parquet:
 
 ```
+
 destination_path/
 ├── dfp_cia_aberta_2023/
-│   ├── dfp_cia_aberta_2023.parquet
-│   ├── dfp_cia_aberta_BPA_con_2023.parquet
-│   ├── dfp_cia_aberta_BPP_con_2023.parquet
-│   └── ...
+│ ├── dfp_cia_aberta_2023.parquet
+│ ├── dfp_cia_aberta_BPA_con_2023.parquet
+│ ├── dfp_cia_aberta_BPP_con_2023.parquet
+│ └── ...
 └── ...
-```
+
+````
 
 ---
 
@@ -452,7 +375,7 @@ destination_path/
 cvm.download(
     destination_path="/data",
     list_docs=["DFP"],
-    initial_year=1998,  # 25+ anos!
+    initial_year=2010,  # 25+ anos!
     last_year=2023
 )
 
@@ -463,7 +386,7 @@ cvm.download(
     initial_year=2020,  # 3-4 anos
     last_year=2023
 )
-```
+````
 
 ### 2. Verifique Espaço em Disco
 
@@ -490,39 +413,6 @@ cvm.download(
     initial_year=2022,
     automatic_extractor=True  # Muito mais rápido para ler
 )
-```
-
-### 4. Implemente Retry Logic
-
-```python
-import time
-from datafinance import FundamentalStocksDataCVM
-from datafinance.macro_exceptions import NetworkError, TimeoutError
-
-def download_with_retry(max_retries=3):
-    cvm = FundamentalStocksDataCVM()
-
-    for attempt in range(max_retries):
-        try:
-            cvm.download(
-                destination_path="/data/cvm",
-                list_docs=["DFP"],
-                initial_year=2022
-            )
-            print("✓ Download concluído!")
-            return True
-
-        except (NetworkError, TimeoutError) as e:
-            if attempt < max_retries - 1:
-                wait_time = 2 ** attempt  # Exponential backoff
-                print(f"⚠️  Tentativa {attempt + 1} falhou: {e}")
-                print(f"Aguardando {wait_time}s antes de tentar novamente...")
-                time.sleep(wait_time)
-            else:
-                print(f"✗ Falha após {max_retries} tentativas")
-                return False
-
-download_with_retry()
 ```
 
 ---

@@ -124,4 +124,4 @@ class TestMemorySafety:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        print("✅ 500MB protection implemented (conceptual test)")
+        print("✅ 2GB protection implemented (conceptual test)")

@@ -32,15 +32,16 @@ def download(
 
 **Parâmetros**:
 
-| Nome | Tipo | Obrigatório | Padrão | Descrição |
-|------|------|-------------|--------|-----------|
-| `destination_path` | `str` | Sim | - | Diretório de destino |
-| `list_docs` | `Optional[List[str]]` | Não | `None` | Tipos de documentos (None = todos) |
-| `initial_year` | `Optional[int]` | Não | `None` | Ano inicial (None = mínimo disponível) |
-| `last_year` | `Optional[int]` | Não | `None` | Ano final (None = ano atual) |
-| `automatic_extractor` | `bool` | Não | `False` | Extrair para Parquet |
+| Nome                  | Tipo                  | Obrigatório | Padrão  | Descrição                              |
+| --------------------- | --------------------- | ----------- | ------- | -------------------------------------- |
+| `destination_path`    | `str`                 | Sim         | -       | Diretório de destino                   |
+| `list_docs`           | `Optional[List[str]]` | Não         | `None`  | Tipos de documentos (None = todos)     |
+| `initial_year`        | `Optional[int]`       | Não         | `None`  | Ano inicial (None = mínimo disponível) |
+| `last_year`           | `Optional[int]`       | Não         | `None`  | Ano final (None = ano atual)           |
+| `automatic_extractor` | `bool`                | Não         | `False` | Extrair para Parquet                   |
 
 **Exceções**:
+
 - `InvalidDocName`: Tipo de documento inválido
 - `InvalidFirstYear`: Ano inicial inválido
 - `InvalidLastYear`: Ano final inválido
@@ -49,6 +50,7 @@ def download(
 - `InvalidDestinationPathError`: Caminho inválido
 
 **Exemplo**:
+
 ```python
 cvm = FundamentalStocksDataCVM()
 cvm.download(
@@ -71,6 +73,7 @@ def get_available_docs(self) -> Dict[str, str]
 **Retorno**: Dicionário `{código: descrição}`
 
 **Exemplo**:
+
 ```python
 docs = cvm.get_available_docs()
 # {'DFP': 'Demonstração Financeira Padronizada', ...}
@@ -85,33 +88,36 @@ def get_available_years(self) -> Dict[str, int]
 **Descrição**: Retorna informações sobre anos disponíveis.
 
 **Retorno**: Dicionário com chaves:
-- `"Geral Docs"`: Ano mínimo para docs gerais (1998)
+
+- `"Geral Docs"`: Ano mínimo para docs gerais (2010)
 - `"ITR Documents"`: Ano mínimo para ITR (2011)
 - `"CGVN and VLMO Documents"`: Ano mínimo para CGVN/VLMO (2018)
 - `"Current Year"`: Ano atual
 
 **Exemplo**:
+
 ```python
 years = cvm.get_available_years()
-# {'Geral Docs': 1998, 'ITR Documents': 2011, ...}
+# {'Geral Docs': 2010, 'ITR Documents': 2011, ...}
 ```
 
 ---
 
 ## Tipos de Documentos
 
-| Código | Nome Completo | Desde |
-|--------|---------------|-------|
-| DFP | Demonstração Financeira Padronizada | 1998 |
-| ITR | Informação Trimestral | 2011 |
-| FRE | Formulário de Referência | 1998 |
-| FCA | Formulário Cadastral | 1998 |
-| CGVN | Código de Governança | 2018 |
-| VLMO | Valores Mobiliários | 2018 |
-| IPE | Informações Periódicas e Eventuais | 1998 |
+| Código | Nome Completo                       | Desde |
+| ------ | ----------------------------------- | ----- |
+| DFP    | Demonstração Financeira Padronizada | 2010  |
+| ITR    | Informação Trimestral               | 2011  |
+| FRE    | Formulário de Referência            | 2010  |
+| FCA    | Formulário Cadastral                | 2010  |
+| CGVN   | Código de Governança                | 2018  |
+| VLMO   | Valores Mobiliários                 | 2018  |
+| IPE    | Informações Periódicas e Eventuais  | 2010  |
 
 ---
 
 Veja também:
+
 - [Guia de Uso CVM](../user-guide/cvm-docs.md)
 - [Exceções](exceptions.md)
