@@ -530,30 +530,6 @@ else:
 
 ---
 
-## Performance e Benchmarks
-
-### Tempo de Processamento
-
-Tempos aproximados para extração de ações (modo fast):
-
-| Anos    | Registros | Tempo | Throughput |
-| ------- | --------- | ----- | ---------- |
-| 1 ano   | ~250k     | ~5s   | ~50k/s     |
-| 5 anos  | ~1.2M     | ~25s  | ~48k/s     |
-| 10 anos | ~2.5M     | ~50s  | ~50k/s     |
-| 20 anos | ~5M       | ~100s | ~50k/s     |
-
-_Benchmark em Intel i7-10700K, 32GB RAM, SSD NVMe_
-
-### Consumo de Recursos
-
-| Modo     | CPU    | RAM (pico) | Disco (temp) |
-| -------- | ------ | ---------- | ------------ |
-| **fast** | 60-80% | ~2GB       | ~100MB       |
-| **slow** | 20-30% | ~500MB     | ~50MB        |
-
----
-
 ## Próximos Passos
 
 - 📄 **[Documentos CVM](cvm-docs.md)** - Aprenda a baixar documentos CVM

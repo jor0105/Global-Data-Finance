@@ -41,12 +41,17 @@ O fluxo de execução é orquestrado pelo caso de uso `DownloadDocumentsUseCaseC
 
 ### Componentes Chave
 
-| Componente                     | Tipo      | Responsabilidade                                                      |
-| ------------------------------ | --------- | --------------------------------------------------------------------- |
-| `DownloadDocumentsUseCaseCVM`  | Use Case  | Ponto central de controle. Coordena todo o processo de download.      |
-| `DownloadDocsCVMRepositoryCVM` | Interface | Contrato que define como os downloads devem ser realizados.           |
-| `DownloadResultCVM`            | Entity    | Objeto rico que agrega estatísticas e detalhes de sucesso/erro.       |
-| `GenerateUrlsUseCaseCVM`       | Service   | Constrói as URLs corretas da CVM baseadas no tipo de documento e ano. |
+| Camada             | Componente                    | Tipo       | Responsabilidade                                                             |
+| ------------------ | ----------------------------- | ---------- | ---------------------------------------------------------------------------- |
+| **Application**    | `DownloadDocumentsUseCaseCVM` | Use Case   | Orquestra todo o fluxo de download, validações e chamadas de infraestrutura. |
+| **Application**    | `GenerateUrlsUseCaseCVM`      | Service    | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.               |
+| **Application**    | `VerifyPathsUseCasesCVM`      | Service    | Cria e valida a estrutura de diretórios de destino.                          |
+| **Domain**         | `DownloadResultCVM`           | Entity     | Resultado agregado contendo sucessos, falhas e contadores.                   |
+| **Domain**         | `DictZipsToDownloadCVM`       | Repository | Fornece o mapeamento de documentos → URLs por ano.                           |
+| **Infrastructure** | `CVMRepositoryAdapter`        | Adapter    | Implementa `DownloadDocsCVMRepositoryCVM` usando `AsyncDownloadAdapterCVM`.  |
+| **Infrastructure** | `AsyncDownloadAdapterCVM`     | Adapter    | Realiza downloads assíncronos com retry/back‑off e validação de integridade. |
+| **Infrastructure** | `ParquetExtractorAdapterCVM`  | Adapter    | Converte CSVs dentro do ZIP para Parquet com garantia de transação atômica.  |
+
 
 ## 🚀 Guia de Uso
 
@@ -139,3 +144,30 @@ Exceções comuns definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_
 
 > [!TIP] > **Estrutura de Pastas**
 > O sistema cria automaticamente subpastas para cada tipo de documento dentro de `destination_path`. Não é necessário criá-las manualmente.
+
+## 🔎 Como funciona a extração dos arquivos da CVM
+
+A extração dos arquivos baixados da CVM é realizada pelo **ParquetExtractorAdapterCVM**, que implementa a interface de extração de arquivos (`FileExtractorRepositoryCVM`). O fluxo completo pode ser resumido nos passos abaixo:
+
+1. **Listagem dos CSVs dentro do ZIP**
+   - O adaptador delega a `ExtractorAdapter.list_files_in_zip` para obter a lista de arquivos com extensão `.csv` presentes no ZIP.
+2. **Conversão individual para Parquet**
+   - Para cada CSV, o método `extract_csv_from_zip_to_parquet` converte o conteúdo para Parquet usando o `ExtractorAdapter`. O caminho de destino é construído a partir do nome do CSV (`<nome>.parquet`).
+3. **Rastreamento de arquivos criados**
+   - Só após a verificação de existência (`parquet_path.exists()`) o caminho é adicionado à lista `created_files`. Isso garante que apenas arquivos realmente gravados sejam considerados para rollback.
+4. **Transação atômica (all‑or‑nothing)**
+   - Se **qualquer** arquivo falhar, o método `__rollback_extraction` é acionado. Ele remove todos os arquivos listados em `created_files` e lança `ExtractionError` com um resumo das falhas.
+5. **Tratamento de exceções específicas**
+   - `CorruptedZipError` – ZIP inválido ou corrompido.
+   - `DiskFullError` – Falta de espaço em disco (propagado imediatamente).
+   - `ExtractionError` – Qualquer erro durante a conversão, que dispara o rollback.
+6. **Limpeza e logging**
+   - O método `__cleanup_files` centraliza a remoção de arquivos, registrando sucessos e erros. O logger fornece detalhes de cada etapa, facilitando a depuração.
+
+### Por que essa abordagem?
+
+- **Atomicidade**: garante que o diretório de destino nunca fique em estado parcial, essencial para pipelines de dados que dependem de consistência.
+- **Escalabilidade**: o processamento em chunks (`chunk_size`) permite lidar com arquivos CSV de grande porte sem esgotar a memória.
+- **Resiliência**: back‑off e retries são implementados no adaptador de download; na extração, falhas são capturadas e revertidas de forma controlada.
+
+> **Nota**: Caso deseje desabilitar a extração automática (por exemplo, para apenas baixar os ZIPs), basta configurar o cliente `FundamentalStocksDataCVM` com `automatic_extractor=False`.

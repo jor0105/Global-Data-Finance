@@ -124,6 +124,9 @@ nav:
       - Como Contribuir: dev-guide/contributing.md
       - Testes: dev-guide/testing.md
       - Uso Avançado: dev-guide/advanced-usage.md
+      - Sistema de Logging: dev-guide/logging-system.md
+      - Resource Monitoring: dev-guide/resource-monitoring.md
+      - Retry Strategy: dev-guide/retry-strategy.md
   - Referência Técnica:
       - API CVM: reference/cvm-api.md
       - API B3: reference/b3-api.md

@@ -4,6 +4,121 @@ Técnicas avançadas e customização do Global-Data-Finance.
 
 ---
 
+## Core Utilities
+
+### Sistema de Logging
+
+Habilite logging profissional para rastreamento e debugging:
+
+```python
+from globaldatafinance.core import setup_logging, get_logger, log_execution_time
+
+# Configurar logging
+setup_logging(level="INFO", log_file="app.log")
+
+# Obter logger
+logger = get_logger(__name__)
+
+# Logging estruturado
+logger.info(
+    "Download iniciado",
+    extra={"doc_type": "DFP", "year": 2023}
+)
+
+# Performance timing
+with log_execution_time(logger, "Download CVM", total=5):
+    cvm.download(...)
+```
+
+[Ver documentação completa →](logging-system.md)
+
+### Configuração Global
+
+Customize network settings via environment variables:
+
+```bash
+# Aumentar timeout para conexões lentas
+export DATAFINANCE_NETWORK_TIMEOUT=900
+
+# Mais tentativas de retry
+export DATAFINANCE_NETWORK_MAX_RETRIES=10
+
+# Backoff mais agressivo
+export DATAFINANCE_NETWORK_RETRY_BACKOFF=3.0
+```
+
+```python
+from globaldatafinance.core.config import settings
+
+# Verificar configurações atuais
+print(f"Timeout: {settings.network.timeout}s")
+print(f"Max retries: {settings.network.max_retries}")
+```
+
+[Ver documentação completa →](configuration.md)
+
+### Resource Monitoring
+
+Monitore e gerencie recursos automaticamente:
+
+```python
+from globaldatafinance.core.utils.resource_monitor import (
+    ResourceMonitor,
+    ResourceState,
+    ResourceLimits
+)
+
+# Criar monitor
+monitor = ResourceMonitor()
+
+# Verificar estado
+state = monitor.check_resources()
+if state == ResourceState.CRITICAL:
+    print("Recursos críticos!")
+
+# Calcular workers seguros
+safe_workers = monitor.get_safe_worker_count(max_workers=16)
+print(f"Usando {safe_workers} workers")
+
+# Aguardar recursos disponíveis
+monitor.wait_for_resources(timeout_seconds=120)
+```
+
+[Ver documentação completa →](resource-monitoring.md)
+
+### Retry Strategy
+
+Implemente retry customizado:
+
+```python
+from globaldatafinance.core.utils.retry_strategy import RetryStrategy
+import time
+
+strategy = RetryStrategy(
+    initial_backoff=1.0,
+    max_backoff=30.0,
+    multiplier=2.0
+)
+
+max_retries = 5
+for attempt in range(max_retries):
+    try:
+        result = risky_operation()
+        break
+    except Exception as e:
+        if not strategy.is_retryable(e):
+            raise
+
+        if attempt < max_retries - 1:
+            backoff = strategy.calculate_backoff(attempt)
+            print(f"Retry {attempt + 1} após {backoff}s...")
+            time.sleep(backoff)
+```
+
+[Ver documentação completa →](retry-strategy.md)
+
+---
+
 ## Customização de Adapters
 
 ### Criar Adapter Personalizado

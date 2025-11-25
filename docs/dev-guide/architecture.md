@@ -156,7 +156,7 @@ class DownloadDocumentsUseCaseCVM:
 
 **Componentes**:
 
-- Adapters de download (ex: `AsyncDownloadAdapterCVM`, `Aria2cAdapter`)
+- Adapters de download (ex: `AsyncDownloadAdapterCVM`)
 - Adapters de extração (ex: `ParquetExtractorAdapterCVM`)
 - Clientes HTTP, manipuladores de arquivos, etc.
 
@@ -347,9 +347,9 @@ Subtipos podem substituir tipos base:
 # Qualquer implementação de DownloadDocsCVMRepository pode ser usada
 adapter: DownloadDocsCVMRepository = AsyncDownloadAdapterCVM()
 # ou
-adapter: DownloadDocsCVMRepository = Aria2cAdapter()
+adapter: DownloadDocsCVMRepository = AsyncDownloadAdapterCVM()
 # ou
-adapter: DownloadDocsCVMRepository = WgetDownloadAdapter()
+adapter: DownloadDocsCVMRepository = AsyncDownloadAdapterCVM()
 
 use_case = DownloadDocumentsUseCaseCVM(adapter)
 ```
