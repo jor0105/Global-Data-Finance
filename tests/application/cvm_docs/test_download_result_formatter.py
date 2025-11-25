@@ -1,7 +1,7 @@
-from datafinance.application.cvm_docs.download_result_formatter import (
+from globaldatafinance.application.cvm_docs.download_result_formatter import (
     DownloadResultFormatter,
 )
-from datafinance.brazil import DownloadResultCVM
+from globaldatafinance.brazil import DownloadResultCVM
 
 
 class TestDownloadResultFormatter:

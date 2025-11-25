@@ -5,7 +5,7 @@
 **Biblioteca Python profissional para extração e processamento de dados financeiros globais com arquitetura limpa e alto desempenho.**
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://img.shields.io/pypi/v/datafinance.svg)](https://pypi.org/project/datafinance/)
+[![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
 [![License](https://img.shields.io/github/license/jor0105/Global-Data-Finance.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
@@ -71,10 +71,10 @@
 
 ```bash
 # Instalação básica
-pip install datafinance
+pip install globaldatafinance
 
 # OU com Poetry
-poetry add datafinance
+poetry add globaldatafinance
 ```
 
 ### Configuração
@@ -109,7 +109,7 @@ poetry run pre-commit install
 ### Exemplo Básico - Documentos CVM
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # Criar cliente CVM
 cvm = FundamentalStocksDataCVM()
@@ -127,7 +127,7 @@ cvm.download(
 ### Exemplo Básico - Cotações B3
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 # Criar cliente B3
 b3 = HistoricalQuotesB3()
@@ -147,10 +147,10 @@ print(f"✓ Extraídos {result['total_records']:,} registros")
 
 ```python
 # Opção 1: Import direto (recomendado)
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 # Opção 2: Import específico do módulo Brazil
-from datafinance.brazil import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance.brazil import FundamentalStocksDataCVM, HistoricalQuotesB3
 ```
 
 Ambas as formas funcionam perfeitamente e retornam as mesmas classes!
@@ -162,7 +162,7 @@ Ambas as formas funcionam perfeitamente e retornam as mesmas classes!
 ### Exemplo 1: Download com Máxima Performance
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # Usar adapter padrão (AsyncDownloadAdapterCVM - 3-5x mais rápido)
 cvm = FundamentalStocksDataCVM()
@@ -186,8 +186,8 @@ for doc_name, years in result.successful_downloads.items():
 ### Exemplo 2: Usando Aria2c (Máxima Velocidade)
 
 ```python
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
-from datafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
 
 # Instalar aria2c primeiro:
 # Linux: sudo apt-get install aria2
@@ -210,7 +210,7 @@ print(f"Download concluído em tempo recorde! ⚡")
 ### Exemplo 3: Cotações B3 com Filtros
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 
@@ -236,7 +236,7 @@ print(df.head())
 ### Exemplo 4: Documentos CVM Disponíveis
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 
@@ -263,12 +263,12 @@ cvm.download(
 ### Exemplo 5: Tratamento de Erros
 
 ```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.brazil.cvm.fundamental_stocks_data.exceptions import (
+from globaldatafinance import FundamentalStocksDataCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import (
     InvalidDocName,
     InvalidFirstYear
 )
-from datafinance.macro_exceptions import (
+from globaldatafinance.macro_exceptions import (
     NetworkError,
     TimeoutError,
     PermissionError
@@ -403,7 +403,7 @@ poetry run mkdocs serve
 ### Configuração do AsyncDownloadAdapterCVM (Padrão)
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # Já vem configurado por padrão!
 cvm = FundamentalStocksDataCVM()
@@ -431,8 +431,8 @@ brew install aria2
 ```
 
 ```python
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
-from datafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters import Aria2cAdapter
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
 
 # Configurar com 16 downloads simultâneos
 adapter = Aria2cAdapter(
@@ -463,7 +463,7 @@ logging.basicConfig(
 )
 
 # Os adapters registrarão automaticamente informações sobre downloads
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 cvm.download(...)  # Logs automáticos

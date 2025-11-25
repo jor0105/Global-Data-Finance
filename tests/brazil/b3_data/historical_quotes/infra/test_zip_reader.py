@@ -1,7 +1,9 @@
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.infra.zip_reader import ZipFileReaderB3
-from datafinance.macro_exceptions import CorruptedZipError, ExtractionError
+from globaldatafinance.brazil.b3_data.historical_quotes.infra.zip_reader import (
+    ZipFileReaderB3,
+)
+from globaldatafinance.macro_exceptions import CorruptedZipError, ExtractionError
 
 
 class TestZipFileReader:
@@ -34,7 +36,9 @@ class TestZipFileReader:
         dir_path = tmp_path / "test_dir"
         dir_path.mkdir()
 
-        with pytest.raises((CorruptedZipError, ExtractionError, FileNotFoundError, IsADirectoryError)):
+        with pytest.raises(
+            (CorruptedZipError, ExtractionError, FileNotFoundError, IsADirectoryError)
+        ):
             async for _ in reader.read_lines_from_zip(str(dir_path)):
                 pass
 

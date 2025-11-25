@@ -43,7 +43,7 @@ Cotações históricas da B3 estão disponíveis desde **1986** até o ano atual
 ### Importação
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 ```
 
 ### Criar Instância
@@ -296,7 +296,7 @@ result = b3.extract(
 ### Extração de Todos os Ativos
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 
@@ -317,7 +317,7 @@ print(f"✓ Extraídos {result['total_records']:,} registros de {len(all_assets)
 ### Extração Incremental por Ano
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 import os
 
 b3 = HistoricalQuotesB3()
@@ -346,7 +346,7 @@ for year in range(2020, 2024):
 ### Validação Antes da Extração
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 import os
 
 b3 = HistoricalQuotesB3()

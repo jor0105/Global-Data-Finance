@@ -33,7 +33,7 @@ O Global-Data-Finance requer Python 3.12 ou superior. Se você possui uma versã
 A forma mais simples de instalar o Global-Data-Finance é através do PyPI usando o `pip`:
 
 ```bash
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Instalação em Ambiente Virtual (Recomendado)
@@ -52,13 +52,13 @@ source venv/bin/activate
 venv\Scripts\activate
 
 # Instalar Global-Data-Finance
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Atualizar para Última Versão
 
 ```bash
-pip install --upgrade datafinance
+pip install --upgrade globaldatafinance
 ```
 
 ---
@@ -69,10 +69,10 @@ Se você usa Poetry para gerenciamento de dependências:
 
 ```bash
 # Adicionar ao projeto
-poetry add datafinance
+poetry add globaldatafinance
 
 # Ou instalar em modo desenvolvimento
-poetry add --group dev datafinance
+poetry add --group dev globaldatafinance
 ```
 
 ---
@@ -158,22 +158,22 @@ Após a instalação, verifique se tudo está funcionando corretamente:
 python
 
 # Tentar importar a biblioteca
->>> from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+>>> from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 >>> print("✓ Global-Data-Finance instalado com sucesso!")
 ```
 
 ### 2. Verificar Versão
 
 ```python
->>> import datafinance
->>> print(datafinance.__version__)
+>>> import globaldatafinance
+>>> print(globaldatafinance.__version__)
 0.1.0
 ```
 
 ### 3. Teste Básico
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # Criar instância
 cvm = FundamentalStocksDataCVM()
@@ -193,7 +193,7 @@ Se todos os comandos acima executarem sem erros, a instalação foi bem-sucedida
 
 ## Solução de Problemas
 
-### Erro: "No module named 'datafinance'"
+### Erro: "No module named 'globaldatafinance'"
 
 **Causa**: A biblioteca não foi instalada corretamente ou o ambiente virtual não está ativado.
 
@@ -205,7 +205,7 @@ which python  # Linux/macOS
 where python  # Windows
 
 # Reinstalar a biblioteca
-pip install --force-reinstall datafinance
+pip install --force-reinstall globaldatafinance
 ```
 
 ### Erro: "Python version 3.12 or higher required"
@@ -220,7 +220,7 @@ pip install --force-reinstall datafinance
 ```bash
 python3.12 -m venv venv
 source venv/bin/activate
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Erro de Dependências
@@ -233,7 +233,7 @@ pip install datafinance
 # Criar ambiente virtual limpo
 python -m venv venv_clean
 source venv_clean/bin/activate
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Erro de Permissão (Linux/macOS)
@@ -247,7 +247,7 @@ pip install datafinance
 # Em vez disso, use ambiente virtual:
 python -m venv venv
 source venv/bin/activate
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Problemas com Proxy Corporativo
@@ -260,7 +260,7 @@ export HTTP_PROXY="http://proxy.empresa.com:8080"
 export HTTPS_PROXY="http://proxy.empresa.com:8080"
 
 # Instalar com pip
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ---
@@ -270,7 +270,7 @@ pip install datafinance
 Para remover o Global-Data-Finance do seu sistema:
 
 ```bash
-pip uninstall datafinance
+pip uninstall globaldatafinance
 ```
 
 ---

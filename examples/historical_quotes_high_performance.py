@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import time
 
-from datafinance import HistoricalQuotesB3
-from src.datafinance.core import setup_logging
+from globaldatafinance import HistoricalQuotesB3
+from src.globaldatafinance.core import setup_logging
 
 setup_logging(level="ERROR")
 

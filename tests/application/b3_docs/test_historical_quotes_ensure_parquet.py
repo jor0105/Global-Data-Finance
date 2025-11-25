@@ -1,4 +1,4 @@
-from datafinance.application import HistoricalQuotesB3
+from globaldatafinance.application import HistoricalQuotesB3
 
 
 class TestEnsureParquetExtension:

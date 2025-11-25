@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from datafinance.core.logging_config import (
+from globaldatafinance.core.logging_config import (
     get_logger,
     get_logging_settings,
     is_logging_configured,

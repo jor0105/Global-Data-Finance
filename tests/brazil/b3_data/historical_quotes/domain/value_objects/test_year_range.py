@@ -2,7 +2,9 @@ from datetime import date
 
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.domain.value_objects import YearRangeB3
+from globaldatafinance.brazil.b3_data.historical_quotes.domain.value_objects import (
+    YearRangeB3,
+)
 
 
 class TestYearRangeB3Creation:

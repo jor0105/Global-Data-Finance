@@ -1,6 +1,6 @@
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data import DownloadResultCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import DownloadResultCVM
 
 
 @pytest.mark.unit

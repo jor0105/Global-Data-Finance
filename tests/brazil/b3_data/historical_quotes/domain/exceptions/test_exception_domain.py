@@ -1,6 +1,6 @@
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
     InvalidFirstYear,

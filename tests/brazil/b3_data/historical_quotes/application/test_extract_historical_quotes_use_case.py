@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
     ExtractHistoricalQuotesUseCaseB3,
 )
-from datafinance.brazil.b3_data.historical_quotes.domain import DocsToExtractorB3
+from globaldatafinance.brazil.b3_data.historical_quotes.domain import DocsToExtractorB3
 
 
 class TestExtractHistoricalQuotesUseCaseInitialization:
@@ -32,10 +32,10 @@ class TestExtractHistoricalQuotesUseCaseInitialization:
 class TestExecuteAsyncMethod:
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_returns_dict(self, mock_assets_service, mock_factory):
         mock_service = AsyncMock()
@@ -64,10 +64,10 @@ class TestExecuteAsyncMethod:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_calls_extraction_service_factory(
         self, mock_assets_service, mock_factory
@@ -98,10 +98,10 @@ class TestExecuteAsyncMethod:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_calls_get_tpmerc_codes(
         self, mock_assets_service, mock_factory
@@ -127,10 +127,10 @@ class TestExecuteAsyncMethod:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_returns_empty_result_for_no_files(
         self, mock_assets_service, mock_factory
@@ -156,10 +156,10 @@ class TestExecuteAsyncMethod:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_with_custom_output_filename(
         self, mock_assets_service, mock_factory
@@ -195,10 +195,10 @@ class TestExecuteAsyncMethod:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_execute_with_slow_processing_mode(
         self, mock_assets_service, mock_factory
@@ -224,10 +224,10 @@ class TestExecuteAsyncMethod:
 
 class TestExecuteSyncMethod:
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     def test_execute_sync_returns_dict(self, mock_assets_service, mock_factory):
         mock_service = AsyncMock()
@@ -255,10 +255,10 @@ class TestExecuteSyncMethod:
         assert isinstance(result, dict)
 
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     def test_execute_sync_with_all_parameters(self, mock_assets_service, mock_factory):
         mock_service = AsyncMock()
@@ -281,10 +281,10 @@ class TestExecuteSyncMethod:
         assert isinstance(result, dict)
 
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     def test_execute_sync_handles_empty_files(self, mock_assets_service, mock_factory):
         mock_assets_service.get_tpmerc_codes_for_assets.return_value = {"010"}
@@ -306,10 +306,10 @@ class TestExecuteSyncMethod:
 class TestOutputPathGeneration:
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_generates_correct_output_path(
         self, mock_assets_service, mock_factory
@@ -335,10 +335,10 @@ class TestOutputPathGeneration:
 
     @pytest.mark.asyncio
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.ExtractionServiceFactoryB3"
     )
     @patch(
-        "datafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
+        "globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.extract_historical_quotes_use_case.AvailableAssetsServiceB3"
     )
     async def test_uses_default_filename(self, mock_assets_service, mock_factory):
         mock_service = AsyncMock()

@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     DownloadDocsCVMRepositoryCVM,
     DownloadResultCVM,
 )

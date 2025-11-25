@@ -4,7 +4,7 @@ Documentação completa da API pública do Global-Data-Finance.
 
 ---
 
-## Módulo `datafinance.brazil`
+## Módulo `globaldatafinance.brazil`
 
 ### `FundamentalStocksDataCVM`
 
@@ -121,7 +121,6 @@ def get_available_years(self) -> Dict[str, int]
 Retorna intervalo de anos disponível.
 
 ---
-
 
 Veja também:
 

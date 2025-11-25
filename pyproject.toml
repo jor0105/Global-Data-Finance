@@ -1,5 +1,5 @@
 [project]
-name = "datafinance"
+name = "globaldatafinance"
 version = "0.1.0"
 description = "Library for extracting, normalizing and processing global financial and economic data — including market data from exchanges worldwide, regulatory filings, company fundamentals and historical quotes; optimized for high-performance storage and analysis (e.g., Parquet)."
 readme = "README.md"
@@ -37,10 +37,10 @@ Documentation = "https://github.com/jor0105/Global-Data-Finance"
 "Bug Tracker" = "https://github.com/jor0105/Global-Data-Finance/issues"
 
 [tool.setuptools.package-data]
-datafinance = ["*.txt", "*.md"]
+globaldatafinance = ["*.txt", "*.md"]
 
 [tool.poetry]
-packages = [{ include = "datafinance", from = "src" }]
+packages = [{ include = "globaldatafinance", from = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.3.0"

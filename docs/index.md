@@ -36,7 +36,7 @@ Baixe documentos oficiais da Comissão de Valores Mobiliários (CVM) com facilid
 - E muito mais...
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 cvm.download(
@@ -60,7 +60,7 @@ Extraia e processe cotações históricas da B3 (COTAHIST) de forma eficiente:
 - Mercado a termo, forward, leilão e mais
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 result = b3.extract(
@@ -81,13 +81,13 @@ result = b3.extract(
 ### Instalação
 
 ```bash
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### Primeiro Exemplo
 
 ```python
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 # Download de documentos CVM
 cvm = FundamentalStocksDataCVM()

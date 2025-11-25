@@ -2,7 +2,9 @@ from abc import ABC
 
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data import FileExtractorRepositoryCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    FileExtractorRepositoryCVM,
+)
 
 
 @pytest.mark.unit

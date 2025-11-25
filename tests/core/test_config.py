@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 
 def test_defaults_imported_settings():
-    from datafinance.core import config
+    from globaldatafinance.core import config
 
     settings = config.settings
 
@@ -19,7 +19,7 @@ def test_defaults_imported_settings():
 def test_env_overrides_reflect_after_reload(monkeypatch):
     monkeypatch.setenv("DATAFINANCE_NETWORK_TIMEOUT", "60")
 
-    from datafinance.core import config as cfg_mod
+    from globaldatafinance.core import config as cfg_mod
 
     importlib.reload(cfg_mod)
 
@@ -28,7 +28,7 @@ def test_env_overrides_reflect_after_reload(monkeypatch):
 
 
 def test_network_settings_bounds_validation():
-    from datafinance.core.config import NetworkSettings
+    from globaldatafinance.core.config import NetworkSettings
 
     with pytest.raises(ValidationError):
         NetworkSettings(timeout=10)
@@ -40,19 +40,19 @@ def test_network_settings_bounds_validation():
 @pytest.mark.unit
 class TestSettingsScenarios:
     def test_scenarios_debug_flag(self):
-        from datafinance.core import config
+        from globaldatafinance.core import config
 
         assert hasattr(config.settings, "debug")
         assert isinstance(config.settings.debug, bool)
 
     def test_scenarios_network_user_agent(self):
-        from datafinance.core import config
+        from globaldatafinance.core import config
 
         assert isinstance(config.settings.network.user_agent, str)
         assert "Global-Data-Finance" in config.settings.network.user_agent
 
     def test_scenarios_network_retry_backoff_bounds(self):
-        from datafinance.core.config import NetworkSettings
+        from globaldatafinance.core.config import NetworkSettings
 
         with pytest.raises(ValidationError):
             NetworkSettings(retry_backoff=0.05)
@@ -60,7 +60,7 @@ class TestSettingsScenarios:
             NetworkSettings(retry_backoff=20.0)
 
     def test_scenarios_network_max_retries_bounds(self):
-        from datafinance.core.config import NetworkSettings
+        from globaldatafinance.core.config import NetworkSettings
 
         with pytest.raises(ValidationError):
             NetworkSettings(max_retries=-1)
@@ -68,7 +68,7 @@ class TestSettingsScenarios:
             NetworkSettings(max_retries=11)
 
     def test_scenarios_network_timeout_bounds(self):
-        from datafinance.core.config import NetworkSettings
+        from globaldatafinance.core.config import NetworkSettings
 
         with pytest.raises(ValidationError):
             NetworkSettings(timeout=5)

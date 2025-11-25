@@ -86,7 +86,7 @@ pytest -m unit
 
 ```python
 import pytest
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 def test_get_available_docs():
     """Testa obtenção de documentos disponíveis."""

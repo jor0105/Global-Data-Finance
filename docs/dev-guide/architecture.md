@@ -18,8 +18,8 @@ O Global-Data-Finance é construído seguindo princípios de **Clean Architectur
 ## Estrutura do Projeto
 
 ```
-datafinance/
-├── src/datafinance/
+globaldatafinance/
+├── src/globaldatafinance/
 │   ├── __init__.py
 │   ├── application/          # Camada de aplicação (API pública)
 │   │   ├── b3_docs/          # Interface B3

@@ -1,7 +1,7 @@
 import io
 from unittest.mock import patch
 
-from datafinance.core.utils import SimpleProgressBar
+from globaldatafinance.core.utils import SimpleProgressBar
 
 
 class TestSimpleProgressBar:

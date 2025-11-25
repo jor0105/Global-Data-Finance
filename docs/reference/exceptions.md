@@ -192,9 +192,9 @@ OSError
 ## Exemplo de Tratamento Completo
 
 ```python
-from datafinance import FundamentalStocksDataCVM
-from datafinance.brazil.cvm.fundamental_stocks_data.exceptions import *
-from datafinance.macro_exceptions import *
+from globaldatafinance import FundamentalStocksDataCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import *
+from globaldatafinance.macro_exceptions import *
 
 cvm = FundamentalStocksDataCVM()
 

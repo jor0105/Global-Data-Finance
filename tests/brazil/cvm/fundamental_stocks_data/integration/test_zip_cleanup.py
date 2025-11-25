@@ -3,10 +3,10 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter import (
     AsyncDownloadAdapterCVM,
 )
 
@@ -39,12 +39,12 @@ class TestZipCleanup:
         print(f"✓ ZIP created: {mock_zip.name} ({zip_size} bytes)")
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(mock_zip))
+        extractor.extract(source_path=str(mock_zip), destination_path=str(tmp_path))
 
         parquet_file = tmp_path / "data.parquet"
         assert parquet_file.exists(), "Parquet was not created"
 
-        from datafinance.core import remove_file
+        from globaldatafinance.core import remove_file
 
         parquet_files = list(tmp_path.glob("**/*.parquet"))
         if parquet_files:
@@ -57,7 +57,7 @@ class TestZipCleanup:
         print("✅ ZIP deleted after successful extraction")
 
     def test_zip_kept_on_extraction_failure(self, tmp_path):
-        from datafinance.macro_exceptions import CorruptedZipError
+        from globaldatafinance.macro_exceptions import CorruptedZipError
 
         corrupted_zip = tmp_path / "corrupted.zip"
         with open(corrupted_zip, "wb") as f:
@@ -67,7 +67,9 @@ class TestZipCleanup:
 
         extractor = ParquetExtractorAdapterCVM()
         with pytest.raises(CorruptedZipError):
-            extractor.extract(zip_file_path=str(corrupted_zip))
+            extractor.extract(
+                source_path=str(corrupted_zip), destination_path=str(tmp_path)
+            )
 
         assert corrupted_zip.exists(), (
             "Corrupted ZIP was deleted prematurely! It should be kept for retry or investigation."
@@ -85,7 +87,7 @@ class TestZipCleanup:
         print(f"✓ ZIP without CSVs created: {zip_path.name}")
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(zip_path))
+        extractor.extract(source_path=str(zip_path), destination_path=str(tmp_path))
 
         parquet_files = list(tmp_path.glob("*.parquet"))
         assert len(parquet_files) == 0, "Parquets were created unexpectedly"
@@ -109,14 +111,16 @@ class TestZipCleanup:
         print(f"✓ ZIP 'downloaded': {downloaded_zip.name}")
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(downloaded_zip))
+        extractor.extract(
+            source_path=str(downloaded_zip), destination_path=str(output_dir)
+        )
 
         parquet_files = list(output_dir.glob("**/*.parquet"))
 
         if parquet_files:
             print(f"✓ {len(parquet_files)} parquet(s) created")
 
-            from datafinance.core import remove_file
+            from globaldatafinance.core import remove_file
 
             remove_file(str(downloaded_zip), log_on_error=True)
 
@@ -144,9 +148,9 @@ class TestZipCleanup:
         print("✓ 3 ZIPs created")
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(zip1))
+        extractor.extract(source_path=str(zip1), destination_path=str(output_dir))
 
-        from datafinance.core import remove_file
+        from globaldatafinance.core import remove_file
 
         parquet_files = list(output_dir.glob("**/*.parquet"))
         if parquet_files:

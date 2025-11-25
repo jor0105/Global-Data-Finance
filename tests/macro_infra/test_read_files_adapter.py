@@ -4,7 +4,7 @@ import zipfile
 import pandas as pd
 import pytest
 
-from datafinance.macro_infra import ReadFilesAdapter
+from globaldatafinance.macro_infra import ReadFilesAdapter
 
 
 @pytest.mark.unit

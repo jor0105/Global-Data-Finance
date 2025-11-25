@@ -3,8 +3,8 @@ import zipfile
 
 import pytest
 
-from datafinance.macro_exceptions import CorruptedZipError, ExtractionError
-from datafinance.macro_infra import ExtractorAdapter
+from globaldatafinance.macro_exceptions import CorruptedZipError, ExtractionError
+from globaldatafinance.macro_infra import ExtractorAdapter
 
 
 class TestExtractorListFilesInZip:

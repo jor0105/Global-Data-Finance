@@ -1,11 +1,11 @@
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.domain.services import (
+    AvailableAssetsServiceB3,
+)
+from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
     EmptyAssetListError,
     InvalidAssetsName,
-)
-from datafinance.brazil.b3_data.historical_quotes.domain.services import (
-    AvailableAssetsServiceB3,
 )
 
 

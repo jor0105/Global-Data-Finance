@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-from datafinance.application.b3_docs import HistoricalQuotesB3
+from globaldatafinance.application.b3_docs import HistoricalQuotesB3
 
 
 class TestHistoricalQuotes:
@@ -30,10 +30,10 @@ class TestHistoricalQuotes:
         assert years["current_year"] >= 2025
 
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_all_parameters(
         self, mock_extract_use_case, mock_create_docs_use_case
@@ -71,10 +71,10 @@ class TestHistoricalQuotes:
         assert result["total_records"] == 1000
 
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_minimal_parameters(
         self, mock_extract_use_case, mock_create_docs_use_case
@@ -105,10 +105,10 @@ class TestHistoricalQuotes:
         mock_create_docs_use_case.assert_called_once()
 
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3"
     )
     @patch(
-        "datafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
+        "globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3"
     )
     def test_extract_with_errors(
         self, mock_extract_use_case, mock_create_docs_use_case

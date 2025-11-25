@@ -9,7 +9,7 @@ Respostas para as perguntas mais comuns sobre o Global-Data-Finance.
 ### Como instalar o Global-Data-Finance?
 
 ```bash
-pip install datafinance
+pip install globaldatafinance
 ```
 
 Veja o [guia completo de instalação](installation.md) para mais detalhes.
@@ -25,7 +25,7 @@ Sim, e é altamente recomendado! Use `venv` ou `conda`:
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ---
@@ -189,7 +189,7 @@ Sim! Você pode executar múltiplas extrações em paralelo usando `multiprocess
 
 ```python
 from concurrent.futures import ProcessPoolExecutor
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 def extract_year(year):
     b3 = HistoricalQuotesB3()
@@ -251,14 +251,14 @@ petr4 = df[df['codigo_negociacao'] == 'PETR4']
 
 ## Erros Comuns
 
-### "No module named 'datafinance'"
+### "No module named 'globaldatafinance'"
 
 **Causa**: Biblioteca não instalada ou ambiente virtual não ativado.
 
 **Solução**:
 
 ```bash
-pip install datafinance
+pip install globaldatafinance
 ```
 
 ### "Python version not supported"
@@ -330,7 +330,7 @@ Exemplo com Airflow:
 ```python
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 def download_cvm():
     cvm = FundamentalStocksDataCVM()

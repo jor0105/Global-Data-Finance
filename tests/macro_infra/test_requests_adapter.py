@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from datafinance.macro_infra import RequestsAdapter
+from globaldatafinance.macro_infra import RequestsAdapter
 
 
 class TestRequestsAdapterInitialization:
@@ -25,7 +25,7 @@ class TestRequestsAdapterInitialization:
 
 class TestRequestsAdapterAsyncMethods:
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     async def test_async_head_request_success(self, mock_client_class):
         mock_response = Mock()
         mock_response.status_code = 200
@@ -44,7 +44,7 @@ class TestRequestsAdapterAsyncMethods:
         mock_client.head.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     async def test_async_head_with_custom_headers(self, mock_client_class):
         mock_response = Mock()
         mock_client = AsyncMock()
@@ -60,7 +60,7 @@ class TestRequestsAdapterAsyncMethods:
         assert call_args[1]["headers"] == headers
 
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     async def test_async_head_with_custom_timeout(self, mock_client_class):
         mock_response = Mock()
         mock_client = AsyncMock()
@@ -78,7 +78,7 @@ class TestRequestsAdapterAsyncMethods:
 
 class TestRequestsAdapterDownload:
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     @patch("builtins.open", new_callable=MagicMock)
     async def test_async_download_file_success(self, mock_open, mock_client_class):
         async def chunk_generator():
@@ -113,7 +113,7 @@ class TestRequestsAdapterDownload:
         mock_file.close.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     @patch("builtins.open", new_callable=MagicMock)
     async def test_async_download_file_with_custom_chunk_size(
         self, mock_open, mock_client_class
@@ -147,8 +147,10 @@ class TestRequestsAdapterDownload:
         mock_response.aiter_bytes.assert_called_once_with(chunk_size=16384)
 
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
-    @patch("datafinance.macro_infra.requests_adapter.open", new_callable=MagicMock)
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch(
+        "globaldatafinance.macro_infra.requests_adapter.open", new_callable=MagicMock
+    )
     @patch("os.path.exists")
     @patch("os.remove")
     async def test_async_download_file_handles_http_error(
@@ -186,7 +188,7 @@ class TestRequestsAdapterDownload:
         mock_remove.assert_called_once_with("/tmp/file.zip")
 
     @pytest.mark.asyncio
-    @patch("datafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
     @patch("builtins.open", new_callable=MagicMock)
     @patch("os.path.exists")
     @patch("os.remove")

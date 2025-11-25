@@ -43,7 +43,7 @@ A maioria dos documentos está disponível desde 2010, exceto ITR (2011) e CGVN/
 ### Importação
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 ```
 
 ### Criar Instância
@@ -222,7 +222,7 @@ Baixar apenas anos que ainda não foram baixados:
 
 ```python
 import os
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 base_path = "/data/cvm"
@@ -260,7 +260,7 @@ else:
 Validar documentos antes de baixar:
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 

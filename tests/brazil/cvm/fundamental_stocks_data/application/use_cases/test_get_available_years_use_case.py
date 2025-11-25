@@ -1,6 +1,8 @@
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data import GetAvailableYearsUseCaseCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    GetAvailableYearsUseCaseCVM,
+)
 
 
 @pytest.mark.unit

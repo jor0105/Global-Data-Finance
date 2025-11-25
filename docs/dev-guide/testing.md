@@ -62,8 +62,8 @@ pytest -m "not requires_network"
 
 ```python
 import pytest
-from datafinance.brazil.cvm.fundamental_stocks_data.domain import AvailableDocs
-from datafinance.brazil.cvm.fundamental_stocks_data.exceptions import InvalidDocName
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.domain import AvailableDocs
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import InvalidDocName
 
 @pytest.mark.unit
 def test_validate_valid_doc():
@@ -83,7 +83,7 @@ def test_validate_invalid_doc():
 
 ```python
 import pytest
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 @pytest.mark.integration
 @pytest.mark.requires_network

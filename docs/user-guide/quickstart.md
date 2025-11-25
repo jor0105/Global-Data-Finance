@@ -21,7 +21,7 @@ Vamos começar baixando documentos fundamentalistas da CVM (Comissão de Valores
 ### Código Básico
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # 1. Criar instância do cliente CVM
 cvm = FundamentalStocksDataCVM()
@@ -68,7 +68,7 @@ Agora vamos extrair cotações históricas da B3 (Bolsa de Valores do Brasil).
 ### Código Básico
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 # 1. Criar instância do cliente B3
 b3 = HistoricalQuotesB3()
@@ -120,7 +120,7 @@ Antes de baixar ou extrair dados, você pode descobrir o que está disponível.
 ### Descobrir Documentos CVM
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 cvm = FundamentalStocksDataCVM()
 
@@ -149,7 +149,7 @@ Dados disponíveis de 2010 até o ano atual
 ### Descobrir Classes de Ativos B3
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 
@@ -186,7 +186,7 @@ Dados disponíveis de 1986 até o ano atual
 Aqui está um exemplo mais completo que combina download e extração:
 
 ```python
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 # === PARTE 1: Download de Documentos CVM ===
 print("=" * 60)

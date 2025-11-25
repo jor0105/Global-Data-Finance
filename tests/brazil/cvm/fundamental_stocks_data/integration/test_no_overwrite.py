@@ -2,7 +2,7 @@ import zipfile
 
 import pandas as pd  # type: ignore
 
-from datafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 
@@ -44,7 +44,7 @@ class TestNoOverwrite:
         print("✓ ZIP with new data created (should overwrite)")
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(zip_path))
+        extractor.extract(source_path=str(zip_path), destination_path=str(tmp_path))
 
         new_stat = existing_file.stat()
         new_size = new_stat.st_size
@@ -90,7 +90,7 @@ class TestNoOverwrite:
                 z.writestr("test.csv", csv_content.encode("latin-1"))
 
             extractor = ParquetExtractorAdapterCVM()
-            extractor.extract(zip_file_path=str(zip_path))
+            extractor.extract(source_path=str(zip_path), destination_path=str(tmp_path))
 
         df_final = pd.read_parquet(parquet_file)
 
@@ -114,8 +114,8 @@ class TestNoOverwrite:
                 z.writestr("data.csv", csv_content.encode("latin-1"))
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(zip1))
-        extractor.extract(zip_file_path=str(zip2))
+        extractor.extract(source_path=str(zip1), destination_path=str(tmp_path))
+        extractor.extract(source_path=str(zip2), destination_path=str(tmp_path))
 
         df_result = pd.read_parquet(tmp_path / "data.parquet")
 
@@ -140,7 +140,7 @@ class TestNoOverwrite:
             z.writestr("file2.csv", df2.to_csv(sep=";", index=False).encode("latin-1"))
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(zip_file_path=str(zip_path))
+        extractor.extract(source_path=str(zip_path), destination_path=str(tmp_path))
 
         df_file1 = pd.read_parquet(existing_file)
         pd.testing.assert_frame_equal(

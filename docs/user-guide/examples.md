@@ -9,7 +9,7 @@ Esta página apresenta exemplos completos e práticos de uso do Global-Data-Fina
 Baixar demonstrações financeiras padronizadas de empresas brasileiras.
 
 ```python
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 # Criar cliente
 cvm = FundamentalStocksDataCVM()
@@ -33,7 +33,7 @@ print("✓ Download e extração concluídos!")
 Extrair cotações históricas de ações e ETFs com alto desempenho.
 
 ```python
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 import time
 
 # Criar cliente
@@ -70,7 +70,7 @@ if result['success']:
 Pipeline completo de download CVM e extração B3.
 
 ```python
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 import os
 
 
@@ -126,7 +126,7 @@ Analisar dados extraídos usando Pandas.
 
 ```python
 import pandas as pd
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 # 1. Extrair dados
 b3 = HistoricalQuotesB3()
@@ -168,7 +168,7 @@ Usar Polars para processamento de alto desempenho.
 
 ```python
 import polars as pl
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 # Extrair dados
 b3 = HistoricalQuotesB3()
@@ -218,7 +218,7 @@ Script de automação para download e processamento de dados financeiros.
 import argparse
 import sys
 from pathlib import Path
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 def main():
     parser = argparse.ArgumentParser(description="Download dados financeiros")
@@ -292,7 +292,7 @@ Usar Global-Data-Finance em notebooks Jupyter para análise interativa.
 
 ```python
 # Célula 1: Imports e configuração
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 import polars as pl
 import matplotlib.pyplot as plt
 import seaborn as sns

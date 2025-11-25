@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
     VerifyDestinationPathsUseCaseB3,
 )
-from datafinance.macro_exceptions import (
+from globaldatafinance.macro_exceptions import (
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
     PathPermissionError,

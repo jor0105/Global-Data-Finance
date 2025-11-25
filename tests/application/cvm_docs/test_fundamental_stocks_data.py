@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-from datafinance.application import FundamentalStocksDataCVM
+from globaldatafinance.application import FundamentalStocksDataCVM
 
 
 class TestFundamentalStocksData:
@@ -28,7 +28,7 @@ class TestFundamentalStocksData:
         assert len(years) > 0
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_all_parameters(self, mock_download_use_case):
         mock_result = Mock()
@@ -57,7 +57,7 @@ class TestFundamentalStocksData:
         assert call_args[1]["last_year"] == 2023
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_minimal_parameters(self, mock_download_use_case):
         mock_result = Mock()
@@ -75,7 +75,7 @@ class TestFundamentalStocksData:
         mock_download_instance.execute.assert_called_once()
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_enables_automatic_extractor_when_true(
         self, mock_download_use_case
@@ -96,7 +96,7 @@ class TestFundamentalStocksData:
         assert cvm.download_adapter.automatic_extractor is True
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_specific_docs(self, mock_download_use_case):
         mock_result = Mock()
@@ -115,7 +115,7 @@ class TestFundamentalStocksData:
         assert call_args[1]["list_docs"] == ["DFP"]
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_year_range(self, mock_download_use_case):
         mock_result = Mock()
@@ -135,7 +135,7 @@ class TestFundamentalStocksData:
         assert call_args[1]["last_year"] == 2023
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_errors(self, mock_download_use_case):
         mock_result = Mock()
@@ -153,7 +153,7 @@ class TestFundamentalStocksData:
         assert mock_result.error_count_downloads == 1
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_without_automatic_extractor(self, mock_download_use_case):
         mock_result = Mock()
@@ -175,7 +175,7 @@ class TestFundamentalStocksData:
         assert repr(cvm) == "FundamentalStocksDataCVM()"
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_calls_result_formatter(self, mock_download_use_case):
         mock_result = Mock()
@@ -195,7 +195,7 @@ class TestFundamentalStocksData:
             mock_formatter.print_result.assert_called_once_with(mock_result)
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_none_list_docs(self, mock_download_use_case):
         mock_result = Mock()
@@ -214,7 +214,7 @@ class TestFundamentalStocksData:
         assert call_args[1]["list_docs"] is None
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_with_none_years(self, mock_download_use_case):
         mock_result = Mock()
@@ -251,7 +251,7 @@ class TestFundamentalStocksData:
         assert hasattr(cvm, "_FundamentalStocksDataCVM__result_formatter")
 
     @patch(
-        "datafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
+        "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
     def test_download_returns_none(self, mock_download_use_case):
         mock_result = Mock()

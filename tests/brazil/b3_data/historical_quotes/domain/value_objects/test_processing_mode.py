@@ -1,6 +1,6 @@
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.domain.value_objects import (
+from globaldatafinance.brazil.b3_data.historical_quotes.domain.value_objects import (
     ProcessingModeEnumB3,
 )
 
@@ -67,7 +67,11 @@ class TestProcessingModeEnumB3:
             ProcessingModeEnumB3["INVALID"]
 
     def test_enum_iteration(self):
-        modes = [member for member in ProcessingModeEnumB3 if member in [ProcessingModeEnumB3.FAST, ProcessingModeEnumB3.SLOW]]
+        modes = [
+            member
+            for member in ProcessingModeEnumB3
+            if member in [ProcessingModeEnumB3.FAST, ProcessingModeEnumB3.SLOW]
+        ]
         assert len(modes) == 2
         assert ProcessingModeEnumB3.FAST in modes
         assert ProcessingModeEnumB3.SLOW in modes
@@ -78,7 +82,11 @@ class TestProcessingModeEnumB3:
         assert "SLOW" in names
 
     def test_enum_values_property(self):
-        values = [member.value for member in ProcessingModeEnumB3 if member in [ProcessingModeEnumB3.FAST, ProcessingModeEnumB3.SLOW]]
+        values = [
+            member.value
+            for member in ProcessingModeEnumB3
+            if member in [ProcessingModeEnumB3.FAST, ProcessingModeEnumB3.SLOW]
+        ]
         assert "fast" in values
         assert "slow" in values
 

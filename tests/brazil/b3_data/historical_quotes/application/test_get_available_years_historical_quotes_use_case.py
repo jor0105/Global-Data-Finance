@@ -1,6 +1,6 @@
 from datetime import date
 
-from datafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
     GetAvailableYearsUseCaseB3,
 )
 

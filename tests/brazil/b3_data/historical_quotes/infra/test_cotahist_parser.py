@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.infra.cotahist_parser import (
+from globaldatafinance.brazil.b3_data.historical_quotes.infra.cotahist_parser import (
     CotahistParserB3,
 )
 

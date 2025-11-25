@@ -1,7 +1,9 @@
 import pytest
 
-from datafinance.brazil.b3_data.historical_quotes.domain import ProcessingModeEnumB3
-from datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory import (
+from globaldatafinance.brazil.b3_data.historical_quotes.domain import (
+    ProcessingModeEnumB3,
+)
+from globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory import (
     ExtractionServiceFactoryB3,
 )
 
@@ -22,7 +24,7 @@ def test_extraction_service_factory_creates_fast_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
+        "globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
         FakeService,
     )
 
@@ -53,7 +55,7 @@ def test_extraction_service_factory_creates_slow_service(monkeypatch):
             captured["instance"] = self
 
     monkeypatch.setattr(
-        "datafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
+        "globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service_factory.ExtractionServiceB3",
         FakeService,
     )
 

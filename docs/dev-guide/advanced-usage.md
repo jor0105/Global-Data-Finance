@@ -9,10 +9,10 @@ Técnicas avançadas e customização do Global-Data-Finance.
 ### Criar Adapter Personalizado
 
 ```python
-from datafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
     DownloadDocsCVMRepository
 )
-from datafinance.brazil.cvm.fundamental_stocks_data.domain import DownloadResultCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.domain import DownloadResultCVM
 
 class MyCustomAdapter(DownloadDocsCVMRepository):
     """Adapter personalizado para download."""
@@ -27,7 +27,7 @@ class MyCustomAdapter(DownloadDocsCVMRepository):
         return DownloadResultCVM(...)
 
 # Uso
-from datafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import (
     DownloadDocumentsUseCaseCVM
 )
 
@@ -44,13 +44,13 @@ result = use_case.execute(...)
 
 ```python
 import logging
-from datafinance.core import get_logger
+from globaldatafinance.core import get_logger
 
 # Criar logger personalizado
 logger = get_logger("meu_modulo")
 
 # Adicionar handler para arquivo
-file_handler = logging.FileHandler("datafinance.log")
+file_handler = logging.FileHandler("globaldatafinance.log")
 file_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -70,7 +70,7 @@ logger.info("Iniciando processamento...")
 
 ```python
 from concurrent.futures import ProcessPoolExecutor
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 def extract_year(year):
     b3 = HistoricalQuotesB3()
@@ -100,7 +100,7 @@ for year, result in zip(years, results):
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
-from datafinance import FundamentalStocksDataCVM
+from globaldatafinance import FundamentalStocksDataCVM
 
 def download_cvm_task():
     cvm = FundamentalStocksDataCVM()
@@ -126,7 +126,7 @@ with DAG(
 
 ```python
 from prefect import flow, task
-from datafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
+from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 @task
 def download_cvm():
@@ -200,7 +200,7 @@ for chunk in pd.read_parquet(
 
 ```python
 from tqdm import tqdm
-from datafinance import HistoricalQuotesB3
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 

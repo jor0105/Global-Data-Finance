@@ -1,6 +1,6 @@
 import pytest
 
-from datafinance.brazil.cvm.fundamental_stocks_data import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     EmptyDocumentListError,
     InvalidDocName,
     InvalidFirstYear,
@@ -271,9 +271,9 @@ class TestDomainExceptionsIntegration:
             EmptyDocumentListError(),
         ]
         for exc in exceptions:
-            assert isinstance(
-                exc, Exception
-            ), f"{type(exc).__name__} is not an Exception"
+            assert isinstance(exc, Exception), (
+                f"{type(exc).__name__} is not an Exception"
+            )
 
     def test_catch_all_as_generic_exception(self):
         exceptions = [
@@ -305,9 +305,9 @@ class TestDomainExceptionsIntegration:
         for exc in exceptions:
             exc_str = str(exc)
             assert len(exc_str) > 0, f"{type(exc).__name__} has empty message"
-            assert isinstance(
-                exc_str, str
-            ), f"{type(exc).__name__} message is not string"
+            assert isinstance(exc_str, str), (
+                f"{type(exc).__name__} message is not string"
+            )
 
     def test_validation_workflow(self):
         def validate_document_selection(

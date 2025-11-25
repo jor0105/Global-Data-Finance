@@ -59,7 +59,7 @@ extra:
       link: https://github.com/jor0105/Global-Data-Finance
       name: Código-fonte
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/datafinance/
+      link: https://pypi.org/project/globaldatafinance/
       name: PyPI
     - icon: material/email
       link: mailto:contato@exemplo.com
