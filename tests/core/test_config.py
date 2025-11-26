@@ -74,3 +74,40 @@ class TestSettingsScenarios:
             NetworkSettings(timeout=5)
         with pytest.raises(ValidationError):
             NetworkSettings(timeout=4000)
+
+
+def test_extra_fields_in_env_file_are_ignored(tmp_path, monkeypatch):
+    """Test that Settings class ignores extra fields without validation errors.
+
+    This test simulates the real-world scenario where users have .env files
+    with variables for other projects (e.g., openai_api_key from other tools).
+    """
+    from globaldatafinance.core.config import Settings
+
+    # Create a temporary .env file with both valid and extra fields
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "openai_api_key=sk-proj-test123\n"
+        "some_random_var=value\n"
+        "another_extra_field=12345\n"
+    )
+
+    # Change to the directory with the .env file
+    monkeypatch.chdir(tmp_path)
+
+    # The key test: this should NOT raise ValidationError despite extra fields
+    try:
+        settings = Settings()
+        # If we got here, the test passed - extra fields were ignored
+        assert True
+    except Exception as e:
+        # If we get a validation error about extra fields, the fix didn't work
+        if "Extra inputs are not permitted" in str(e):
+            pytest.fail(f"Settings rejected extra fields in .env file: {e}")
+        else:
+            # Some other error, re-raise it
+            raise
+
+    # Verify that extra fields are not accessible on the settings object
+    assert not hasattr(settings, "openai_api_key")
+    assert not hasattr(settings, "some_random_var")

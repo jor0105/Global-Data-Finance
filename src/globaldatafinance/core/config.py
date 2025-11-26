@@ -54,6 +54,7 @@ class NetworkSettings(BaseSettings):
 
         env_prefix = "DATAFINANCE_NETWORK_"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra fields from .env files
 
 
 class Settings(BaseSettings):
@@ -76,6 +77,7 @@ class Settings(BaseSettings):
         case_sensitive = False
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # Ignore extra fields from .env files
 
 
 # Singleton instance
