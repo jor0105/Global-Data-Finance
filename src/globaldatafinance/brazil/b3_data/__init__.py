@@ -4,6 +4,7 @@ from .historical_quotes import (
     ExtractHistoricalQuotesUseCaseB3,
     GetAvailableAssetsUseCaseB3,
     GetAvailableYearsUseCaseB3,
+    ValidateExtractionConfigUseCaseB3,
 )
 
 __all__ = [
@@ -12,6 +13,7 @@ __all__ = [
     "ExtractHistoricalQuotesUseCaseB3",
     "GetAvailableAssetsUseCaseB3",
     "GetAvailableYearsUseCaseB3",
+    "ValidateExtractionConfigUseCaseB3",
     # Domain Layer - Services
     "DocsToExtractorB3",
 ]

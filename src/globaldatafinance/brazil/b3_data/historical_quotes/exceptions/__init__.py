@@ -3,6 +3,8 @@ from .exceptions import (
     InvalidAssetsName,
     InvalidFirstYear,
     InvalidLastYear,
+    InvalidOutputFilename,
+    InvalidProcessingMode,
 )
 
 __all__ = [
@@ -10,4 +12,6 @@ __all__ = [
     "InvalidFirstYear",
     "InvalidLastYear",
     "EmptyAssetListError",
+    "InvalidOutputFilename",
+    "InvalidProcessingMode",
 ]

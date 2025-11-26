@@ -16,7 +16,21 @@ class CreateSetToDownloadUseCaseB3:
 
         Returns:
             Set of file paths matching the year criteria
+
+        Raises:
+            TypeError: If path is not a string
+            InvalidDestinationPathError: If path is empty or whitespace
         """
+        if not isinstance(path, str):
+            raise TypeError(f"path_of_docs must be a string, got {type(path).__name__}")
+
+        if not path or path.isspace():
+            from .....macro_exceptions import InvalidDestinationPathError
+
+            raise InvalidDestinationPathError(
+                "path_of_docs cannot be empty or whitespace"
+            )
+
         file_system = FileSystemServiceB3()
         validated_path = file_system.validate_directory_path(path)
         return file_system.find_files_by_years(validated_path, range_years)

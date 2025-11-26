@@ -5,6 +5,7 @@ from .b3_data import (
     ExtractHistoricalQuotesUseCaseB3,
     GetAvailableAssetsUseCaseB3,
     GetAvailableYearsUseCaseB3,
+    ValidateExtractionConfigUseCaseB3,
 )
 from .cvm import (
     AsyncDownloadAdapterCVM,
@@ -21,6 +22,7 @@ __all__ = [
     "ExtractHistoricalQuotesUseCaseB3",
     "GetAvailableAssetsUseCaseB3",
     "GetAvailableYearsUseCaseB3",
+    "ValidateExtractionConfigUseCaseB3",
     "DocsToExtractorB3",
     # CVM - Low-level
     "DownloadResultCVM",

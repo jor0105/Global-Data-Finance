@@ -70,6 +70,8 @@ class AvailableAssetsServiceB3:
                 list_available_assets=cls.get_available_assets(),
             )
 
+        assets_list = [asset.lower() for asset in assets_list]
+
         if not all(asset in cls.__AVAILABLE_ASSETS.keys() for asset in assets_list):
             raise InvalidAssetsName(
                 assets_list=assets_list,

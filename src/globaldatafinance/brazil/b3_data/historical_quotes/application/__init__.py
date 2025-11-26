@@ -6,6 +6,7 @@ from .use_cases import (
     ExtractHistoricalQuotesUseCaseB3,
     GetAvailableAssetsUseCaseB3,
     GetAvailableYearsUseCaseB3,
+    ValidateExtractionConfigUseCaseB3,
     VerifyDestinationPathsUseCaseB3,
 )
 
@@ -18,4 +19,5 @@ __all__ = [
     "CreateSetAssetsUseCaseB3",
     "CreateSetToDownloadUseCaseB3",
     "VerifyDestinationPathsUseCaseB3",
+    "ValidateExtractionConfigUseCaseB3",
 ]

@@ -37,6 +37,7 @@ from ...brazil import (
     ExtractHistoricalQuotesUseCaseB3,
     GetAvailableAssetsUseCaseB3,
     GetAvailableYearsUseCaseB3,
+    ValidateExtractionConfigUseCaseB3,
 )
 from ...core import get_logger
 from .extraction_result_formatter import ExtractionResultFormatter
@@ -102,6 +103,7 @@ class HistoricalQuotesB3:
         self.__extract_use_case = ExtractHistoricalQuotesUseCaseB3()
         self.__available_assets_use_case = GetAvailableAssetsUseCaseB3()
         self.__available_years_use_case = GetAvailableYearsUseCaseB3()
+        self.__validate_config_use_case = ValidateExtractionConfigUseCaseB3()
         self.__result_formatter = ExtractionResultFormatter(use_colors=True)
 
         logger.info("HistoricalQuotesB3 client initialized")
@@ -212,7 +214,12 @@ class HistoricalQuotesB3:
 
         last_year = self.__resolve_last_year(last_year)
 
-        output_filename_with_ext = self._ensure_parquet_extension(output_filename)
+        processing_mode, output_filename_with_ext = (
+            self.__validate_config_use_case.execute(
+                processing_mode=processing_mode,
+                output_filename=output_filename,
+            )
+        )
 
         logger.info(
             f"Extraction requested: path={path_of_docs}, "
@@ -379,16 +386,3 @@ class HistoricalQuotesB3:
             logger.debug(f"last_year not provided, using current year: {resolved}")
             return resolved
         return last_year
-
-    def _ensure_parquet_extension(self, filename: str) -> str:
-        """Ensure filename has .parquet extension.
-
-        Args:
-            filename: Filename with or without .parquet extension
-
-        Returns:
-            Filename with .parquet extension
-        """
-        if not filename.lower().endswith(".parquet"):
-            return f"{filename}.parquet"
-        return filename

@@ -25,3 +25,15 @@ class InvalidAssetsName(Exception):
 class EmptyAssetListError(Exception):
     def __init__(self, message: str = "Asset list cannot be empty."):
         super().__init__(message)
+
+
+class InvalidProcessingMode(Exception):
+    def __init__(self, mode: str, valid_modes: List[str]):
+        super().__init__(
+            f"Invalid processing_mode '{mode}'. Must be one of: {valid_modes}"
+        )
+
+
+class InvalidOutputFilename(Exception):
+    def __init__(self, message: str):
+        super().__init__(f"Invalid output filename: {message}")
