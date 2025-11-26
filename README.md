@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
-[![License](https://img.shields.io/github/license/jor0105/Global-Data-Finance.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/globaldatafinance.svg)](https://github.com/jor0105/Global-Data-Finance/blob/main/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
@@ -203,6 +203,7 @@ Extrator de cotações históricas da B3.
 | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
 | **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast") -> dict` | Processa arquivos ZIP da B3 e gera um arquivo Parquet consolidado. |
 | **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                      | Retorna tipos de ativos suportados (ex: 'ações', 'opções').        |
+| **`get_available_years`**  | `() -> dict`                                                                                                                                                                                           | Retorna o intervalo de anos disponíveis para os dados históricos.  |
 
 ---
 
