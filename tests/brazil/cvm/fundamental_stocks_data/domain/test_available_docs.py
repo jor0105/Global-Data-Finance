@@ -1,10 +1,10 @@
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    AvailableDocs,
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    AvailableDocsCVM,
     InvalidDocName,
     InvalidTypeDoc,
-    UrlDocs,
+    UrlDocsCVM,
 )
 
 
@@ -12,7 +12,7 @@ from src.brazil.cvm.fundamental_stocks_data import (
 class TestAvailableDocs:
     @pytest.fixture
     def available_docs(self):
-        return AvailableDocs()
+        return AvailableDocsCVM()
 
     def test_get_available_docs_returns_dict(self, available_docs):
         docs = available_docs.get_available_docs()
@@ -115,12 +115,14 @@ class TestAvailableDocs:
 class TestUrlDocs:
     @pytest.fixture
     def url_docs(self):
-        return UrlDocs()
+        return UrlDocsCVM()
 
     def test_url_docs_initialization(self, url_docs):
         assert url_docs is not None
-        assert hasattr(url_docs, "_UrlDocs__available_docs")
-        assert isinstance(getattr(url_docs, "_UrlDocs__available_docs"), AvailableDocs)
+        assert hasattr(url_docs, "_UrlDocsCVM__available_docs")
+        assert isinstance(
+            getattr(url_docs, "_UrlDocsCVM__available_docs"), AvailableDocsCVM
+        )
 
     def test_get_url_docs_without_parameters_returns_all_urls(self, url_docs):
         urls, set_docs = url_docs.get_url_docs()

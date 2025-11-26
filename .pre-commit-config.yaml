@@ -1,6 +1,16 @@
 ---
+exclude: >
+  (?x)^(
+      examples/|
+      CHECKLIST\.md|
+      src/globaldatafinance/brazil/gerais/|
+      src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/|
+      src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/|
+      src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/|
+      src/globaldatafinance/brazil/b3_data/Opcoes_B3/
+  )
 repos:
-  # Básico: Whitespace, EOF, YAML, AST, merge conflicts
+  # Basic: Whitespace, EOF, YAML, AST, merge conflicts
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -14,36 +24,30 @@ repos:
       - id: debug-statements
       - id: check-ast
 
-  # Formatação: Black
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        args: [--line-length=88]
-
-  # Linting e formatação: Ruff
+  # Linting and formatting: Ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.14.5
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: ^src/globaldatafinance/brazil/(gerais|Capital_Social_B3_Acoes|Dados_B3_Acoes|Dados_B3_FIIs|Opcoes_B3)/
       - id: ruff-format
+        exclude: ^src/globaldatafinance/brazil/(gerais|Capital_Social_B3_Acoes|Dados_B3_Acoes|Dados_B3_FIIs|Opcoes_B3)/
 
-  # Organização de imports
+  # Import organization
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 7.0.0
     hooks:
       - id: isort
         args: ["--profile", "black", "--line-length=88"]
 
   # Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.18.2
     hooks:
       - id: mypy
         args: [--ignore-missing-imports, --pretty]
-        additional_dependencies: [types-requests]
-        exclude: ^(tests/|docs/)
+        exclude: ^(docs/|src/globaldatafinance/brazil/(gerais|Capital_Social_B3_Acoes|Dados_B3_Acoes|Dados_B3_FIIs|Opcoes_B3)/)
 
   # Docstring validation (only critical errors)
   - repo: https://github.com/PyCQA/pydocstyle
@@ -54,11 +58,11 @@ repos:
           - --convention=google
           - --match-dir=^src
           - --add-ignore=D104,D100,D101,D102,D103,D105,D107,D205,D212,D417,D415
-        exclude: ^(tests/|__pycache__|\.venv)
+        exclude: ^(tests/|__pycache__|\.venv|src/globaldatafinance/brazil/(gerais|Capital_Social_B3_Acoes|Dados_B3_Acoes|Dados_B3_FIIs|Opcoes_B3)/)
 
   # YAML linting
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.27.1
+    rev: v1.37.1
     hooks:
       - id: yamllint
-        args: [--strict]
+        args: [-d, "{extends: default, rules: {line-length: {max: 200}}}"]

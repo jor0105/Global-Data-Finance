@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -181,3 +182,13 @@ metrics.prom
 *.tmp
 *.bak
 *.backup
+
+
+# Project specific folders
+examples/
+CHECKLIST.md
+src/globaldatafinance/brazil/gerais/
+src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/
+src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/
+src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/
+src/globaldatafinance/brazil/b3_data/Opcoes_B3/

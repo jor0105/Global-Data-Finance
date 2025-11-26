@@ -3,9 +3,9 @@ import os
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     EmptyDocumentListError,
-    VerifyPathsUseCases,
+    VerifyPathsUseCasesCVM,
 )
 
 
@@ -15,7 +15,7 @@ class TestVerifyPathsUseCasesInitialization:
         new_set_docs = {"DFP", "ITR"}
         range_years = range(2020, 2024)
 
-        use_case_instance = VerifyPathsUseCases(
+        use_case_instance = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -30,7 +30,7 @@ class TestVerifyPathsUseCasesInitialization:
         new_set_docs = {"DFP"}
         range_years = range(2020, 2024)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -40,7 +40,7 @@ class TestVerifyPathsUseCasesInitialization:
 
     def test_initialization_with_empty_doc_set_raises_error(self, tmp_path):
         with pytest.raises(EmptyDocumentListError):
-            VerifyPathsUseCases(
+            VerifyPathsUseCasesCVM(
                 destination_path=str(tmp_path),
                 new_set_docs=set(),
                 range_years=range(2020, 2024),
@@ -48,7 +48,7 @@ class TestVerifyPathsUseCasesInitialization:
 
     def test_initialization_logs_debug_message(self, tmp_path, caplog):
         with caplog.at_level(logging.DEBUG):
-            VerifyPathsUseCases(
+            VerifyPathsUseCasesCVM(
                 destination_path=str(tmp_path),
                 new_set_docs={"DFP"},
                 range_years=range(2020, 2024),
@@ -63,7 +63,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP", "ITR"}
         range_years = range(2020, 2022)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -80,7 +80,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP"}
         range_years = range(2020, 2023)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -98,7 +98,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP", "ITR", "FRE"}
         range_years = range(2020, 2024)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -115,7 +115,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP", "ITR"}
         range_years = range(2020, 2022)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -134,7 +134,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP"}
         range_years = range(2020, 2023)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -156,7 +156,7 @@ class TestVerifyPathsUseCasesExecute:
             for year in range_years:
                 os.makedirs(os.path.join(tmp_path, doc, str(year)), exist_ok=True)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -167,7 +167,7 @@ class TestVerifyPathsUseCasesExecute:
         assert os.path.exists(os.path.join(tmp_path, "DFP", "2020"))
 
     def test_execute_logs_success_message(self, tmp_path, caplog):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2020, 2022),
@@ -182,7 +182,7 @@ class TestVerifyPathsUseCasesExecute:
         )
 
     def test_execute_prints_message(self, tmp_path, capsys):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2020, 2022),
@@ -197,7 +197,7 @@ class TestVerifyPathsUseCasesExecute:
         )
 
     def test_execute_with_single_doc_single_year(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2023, 2024),
@@ -213,7 +213,7 @@ class TestVerifyPathsUseCasesExecute:
         new_set_docs = {"DFP", "ITR", "FRE", "FCA", "CGVN"}
         range_years = range(2010, 2025)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -239,7 +239,7 @@ class TestVerifyPathsUseCasesEdgeCases:
     def test_execute_with_path_containing_spaces(self, tmp_path):
         path_with_spaces = os.path.join(tmp_path, "path with spaces")
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=path_with_spaces,
             new_set_docs={"DFP"},
             range_years=range(2020, 2022),
@@ -252,7 +252,7 @@ class TestVerifyPathsUseCasesEdgeCases:
     def test_execute_with_unicode_path(self, tmp_path):
         unicode_path = os.path.join(tmp_path, "路径_测试")
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=unicode_path,
             new_set_docs={"DFP"},
             range_years=range(2020, 2022),
@@ -263,7 +263,7 @@ class TestVerifyPathsUseCasesEdgeCases:
         assert os.path.exists(unicode_path)
 
     def test_execute_handles_long_year_range(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2010, 2025),  # Changed from 2000 to 2010 (min year)
@@ -277,7 +277,7 @@ class TestVerifyPathsUseCasesEdgeCases:
         new_set_docs = {"DFP", "ITR", "FRE"}
         range_years = range(2020, 2023)
 
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -290,7 +290,7 @@ class TestVerifyPathsUseCasesEdgeCases:
         assert len(docs_paths["ITR"]) == len(range_years)
 
     def test_execute_is_idempotent(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2020, 2022),
@@ -305,7 +305,7 @@ class TestVerifyPathsUseCasesEdgeCases:
 @pytest.mark.unit
 class TestVerifyPathsUseCasesDocumentYearValidation:
     def test_itr_skips_years_before_2011(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"ITR"},
             range_years=range(2010, 2013),  # 2010, 2011, 2012
@@ -320,7 +320,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["ITR"]) == 2
 
     def test_cgvn_skips_years_before_2018(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"CGVN"},
             range_years=range(2016, 2020),  # 2016, 2017, 2018, 2019
@@ -336,7 +336,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["CGVN"]) == 2
 
     def test_vlmo_skips_years_before_2018(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"VLMO"},
             range_years=range(2016, 2020),
@@ -352,7 +352,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["VLMO"]) == 2
 
     def test_dfp_accepts_all_years_from_2010(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range(2010, 2013),
@@ -368,7 +368,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["DFP"]) == 3
 
     def test_fre_accepts_all_years_from_2010(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"FRE"},
             range_years=range(2010, 2013),
@@ -380,7 +380,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["FRE"]) == 3
 
     def test_mixed_documents_different_year_constraints(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP", "ITR", "CGVN"},
             range_years=range(2010, 2020),  # 2010-2019
@@ -400,7 +400,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert 2018 in docs_paths["CGVN"]
 
     def test_itr_with_only_valid_years(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"ITR"},
             range_years=range(2015, 2020),
@@ -413,7 +413,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
             assert year in docs_paths["ITR"]
 
     def test_cgvn_with_only_invalid_years(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"CGVN"},
             range_years=range(2010, 2018),  # All years before 2018
@@ -425,7 +425,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
         assert len(docs_paths["CGVN"]) == 0
 
     def test_case_insensitive_document_name_validation(self, tmp_path):
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"itr"},  # lowercase
             range_years=range(2010, 2013),
@@ -439,7 +439,7 @@ class TestVerifyPathsUseCasesDocumentYearValidation:
 
     def test_all_doc_types_with_full_year_range(self, tmp_path):
         all_docs = {"DFP", "ITR", "FRE", "FCA", "CGVN", "IPE", "VLMO"}
-        use_case = VerifyPathsUseCases(
+        use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=all_docs,
             range_years=range(2010, 2020),
@@ -462,7 +462,7 @@ class TestVerifyPathsUseCasesIntegration:
         new_set_docs = {"DFP", "ITR"}
         range_years = range(2020, 2023)
 
-        verify_paths_instance = VerifyPathsUseCases(
+        verify_paths_instance = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -483,7 +483,7 @@ class TestVerifyPathsUseCasesIntegration:
         new_set_docs = set(["DFP", "ITR", "FRE"])
         range_years = range(2020, 2023)
 
-        use_case_instance = VerifyPathsUseCases(
+        use_case_instance = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs=new_set_docs,
             range_years=range_years,
@@ -496,7 +496,7 @@ class TestVerifyPathsUseCasesIntegration:
     def test_verify_paths_accepts_range_from_generate_range_years(self, tmp_path):
         range_years = range(2020, 2024)
 
-        use_case_instance = VerifyPathsUseCases(
+        use_case_instance = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),
             new_set_docs={"DFP"},
             range_years=range_years,

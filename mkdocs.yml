@@ -1,0 +1,133 @@
+---
+# Project Information
+site_name: Global-Data-Finance
+site_author: Jordan Estralioto
+site_description: >-
+  Biblioteca Python para extração e processamento de dados financeiros globais
+site_url: https://jor0105.github.io/Global-Data-Finance/
+# Repository
+repo_name: jor0105/Global-Data-Finance
+repo_url: https://github.com/jor0105/Global-Data-Finance
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 Jordan Estralioto
+
+# Configuration
+theme:
+  name: material
+  language: pt
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Mudar para tema escuro
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Mudar para tema claro
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - header.autohide
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+  navigation_depth: 4
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jor0105/Global-Data-Finance
+      name: Código-fonte
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/globaldatafinance/
+      name: PyPI
+    - icon: material/email
+      link: mailto:contato@exemplo.com
+      name: Contato
+
+extra_css:
+  - https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap
+  - assets/stylesheets/custom.css
+
+extra_javascript:
+  - assets/javascripts/wide-toggle.js
+
+plugins:
+  - search:
+      lang: pt
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+      linenums: true
+      use_pygments: true
+  - def_list
+  - fenced_code
+  - footnotes
+  - meta
+  - nl2br
+  - sane_lists
+  - smarty
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Link para esta seção
+      toc_depth: 3
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.magiclink
+
+# Navigation
+nav:
+  - Início: index.md
+  - Guia do Usuário:
+      - Instalação: user-guide/installation.md
+      - Início Rápido: user-guide/quickstart.md
+      - Documentos CVM: user-guide/cvm-docs.md
+      - Cotações B3: user-guide/b3-docs.md
+      - Exemplos Práticos: user-guide/examples.md
+      - FAQ: user-guide/faq.md
+  - Guia do Desenvolvedor:
+      - Arquitetura: dev-guide/architecture.md
+      - Referência da API: dev-guide/api-reference.md
+      - Como Contribuir: dev-guide/contributing.md
+      - Testes: dev-guide/testing.md
+      - Uso Avançado: dev-guide/advanced-usage.md
+      - Sistema de Logging: dev-guide/logging-system.md
+      - Resource Monitoring: dev-guide/resource-monitoring.md
+      - Retry Strategy: dev-guide/retry-strategy.md
+  - Referência Técnica:
+      - API CVM: reference/cvm-api.md
+      - API B3: reference/b3-api.md
+      - Exceções: reference/exceptions.md

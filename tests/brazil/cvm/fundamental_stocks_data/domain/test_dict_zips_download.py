@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    DictZipsToDownload,
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    DictZipsToDownloadCVM,
     InvalidDocName,
     InvalidFirstYear,
     InvalidLastYear,
@@ -16,7 +16,7 @@ from src.brazil.cvm.fundamental_stocks_data import (
 class TestDictZipsToDownload:
     @pytest.fixture
     def dict_zips(self):
-        return DictZipsToDownload()
+        return DictZipsToDownloadCVM()
 
     def test_initialization(self, dict_zips):
         assert dict_zips is not None
@@ -358,9 +358,11 @@ class TestDictZipsToDownload:
         assert len(result3["DFP"]) == 1
         assert len(result3["ITR"]) == 1
 
-    @patch("src.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.UrlDocs")
     @patch(
-        "src.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.AvailableYears"
+        "globaldatafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.UrlDocsCVM"
+    )
+    @patch(
+        "globaldatafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.AvailableYearsCVM"
     )
     def test_get_dict_zips_to_download_uses_dependencies_correctly(
         self, mock_available_years, mock_url_docs
@@ -378,7 +380,7 @@ class TestDictZipsToDownload:
         )
         mock_url_docs.return_value = mock_url_instance
 
-        dict_zips_test = DictZipsToDownload()
+        dict_zips_test = DictZipsToDownloadCVM()
         result, set_docs = dict_zips_test.get_dict_zips_to_download(["DFP"], 2020, 2021)
 
         mock_years_instance.return_range_years.assert_called_once_with(2020, 2021)

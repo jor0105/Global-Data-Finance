@@ -2,8 +2,8 @@ from datetime import date
 
 import pytest
 
-from src.brazil.cvm.fundamental_stocks_data import (
-    AvailableYears,
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    AvailableYearsCVM,
     InvalidFirstYear,
     InvalidLastYear,
 )
@@ -13,7 +13,7 @@ from src.brazil.cvm.fundamental_stocks_data import (
 class TestAvailableYears:
     @pytest.fixture
     def available_years(self):
-        return AvailableYears()
+        return AvailableYearsCVM()
 
     def test_get_atual_year_returns_current_year(self, available_years):
         atual_year = available_years.get_current_year()
@@ -159,17 +159,17 @@ class TestAvailableYears:
     def test_return_range_years_respects_mocked_current_year(
         self, available_years, monkeypatch
     ):
-        # The AvailableYears class captures the current year at class-definition time
+        # The AvailableYearsCVM class captures the current year at class-definition time
         # so patching the datetime.date symbol after import won't change it. Here we
         # monkeypatch the attribute that holds the current year so the test
         # can control the value used by the class. Use raising=False to allow
         # setting even if the exact mangled name differs across Python versions.
         monkeypatch.setattr(
-            AvailableYears, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
+            AvailableYearsCVM, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
         )
 
         # Also set on the instance in case the implementation uses an instance attr
-        available_years_mocked = AvailableYears()
+        available_years_mocked = AvailableYearsCVM()
         monkeypatch.setattr(
             available_years_mocked, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
         )

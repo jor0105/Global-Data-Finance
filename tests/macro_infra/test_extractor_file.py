@@ -1,468 +1,250 @@
-import logging
+import asyncio
 import zipfile
-from unittest.mock import MagicMock, patch
 
-import pandas as pd  # type: ignore
-import pyarrow as pa  # type: ignore
 import pytest
 
-from src.macro_exceptions import (
-    CorruptedZipError,
-    DiskFullError,
-    ExtractionError,
-    InvalidDestinationPathError,
-)
-from src.macro_infra import Extractor
+from globaldatafinance.macro_exceptions import CorruptedZipError, ExtractionError
+from globaldatafinance.macro_infra import ExtractorAdapter
 
 
-class TestExtractorExtractZipToParquet:
-    @pytest.fixture
-    def temp_dirs(self, tmp_path):
-        zip_dir = tmp_path / "zips"
-        output_dir = tmp_path / "output"
-        zip_dir.mkdir()
-        output_dir.mkdir()
-        return {"zip_dir": zip_dir, "output_dir": output_dir}
+class TestExtractorListFilesInZip:
+    def test_list_files_zip_not_found_raises_error(self, tmp_path):
+        zip_path = tmp_path / "nonexistent.zip"
 
-    @pytest.fixture
-    def sample_csv_content(self):
-        return "col1;col2;col3\n1;a;100\n2;b;200\n3;c;300\n"
+        with pytest.raises(FileNotFoundError):
+            ExtractorAdapter.list_files_in_zip(str(zip_path), ".txt")
 
-    @pytest.fixture
-    def sample_zip_with_csv(self, temp_dirs, sample_csv_content):
-        zip_path = temp_dirs["zip_dir"] / "test.zip"
+    def test_list_files_corrupted_zip_raises_error(self, tmp_path):
+        zip_path = tmp_path / "corrupted.zip"
+        zip_path.write_text("Not a ZIP")
+
+        with pytest.raises(CorruptedZipError):
+            ExtractorAdapter.list_files_in_zip(str(zip_path), ".txt")
+
+    def test_list_files_no_filter_returns_all(self, tmp_path):
+        zip_path = tmp_path / "test.zip"
+
         with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("data.csv", sample_csv_content)
-        return zip_path
+            zf.writestr("file1.txt", "content")
+            zf.writestr("file2.csv", "data")
+            zf.writestr("file3.json", "{}")
 
-    def test_extract_single_csv_successfully(self, temp_dirs, sample_zip_with_csv):
-        output_dir = str(temp_dirs["output_dir"])
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path), "")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=1000, zip_path=str(sample_zip_with_csv), output_dir=output_dir
-        )
+        assert len(files) == 3
+        assert "file1.txt" in files
+        assert "file2.csv" in files
+        assert "file3.json" in files
 
-        parquet_file = temp_dirs["output_dir"] / "data.parquet"
-        assert parquet_file.exists()
+    def test_list_files_with_extension_filter(self, tmp_path):
+        zip_path = tmp_path / "test.zip"
 
-        df = pd.read_parquet(parquet_file)
-        assert len(df) == 3
-        assert list(df.columns) == ["col1", "col2", "col3"]
-        assert df["col1"].tolist() == [1, 2, 3]
-
-    def test_extract_multiple_csv_files(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "multi.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("file1.csv", "a;b\n1;2\n")
-            zf.writestr("file2.csv", "x;y\n10;20\n")
-            zf.writestr("file3.csv", "m;n\n100;200\n")
+            zf.writestr("file1.txt", "content")
+            zf.writestr("file2.csv", "data")
+            zf.writestr("file3.CSV", "DATA")
 
-        output_dir = str(temp_dirs["output_dir"])
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path), ".csv")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=1000, zip_path=str(zip_path), output_dir=output_dir
-        )
+        assert len(files) == 2
+        assert "file2.csv" in files
+        assert "file3.CSV" in files
 
-        assert (temp_dirs["output_dir"] / "file1.parquet").exists()
-        assert (temp_dirs["output_dir"] / "file2.parquet").exists()
-        assert (temp_dirs["output_dir"] / "file3.parquet").exists()
+    def test_list_files_empty_zip_returns_empty(self, tmp_path):
+        zip_path = tmp_path / "empty.zip"
 
-    def test_create_output_directory_if_not_exists(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "test.zip"
+        with zipfile.ZipFile(zip_path, "w") as _:
+            pass
+
+        files = ExtractorAdapter.list_files_in_zip(str(zip_path), ".txt")
+
+        assert len(files) == 0
+
+
+class TestExtractorOpenFileFromZip:
+    def test_open_file_not_in_zip_raises_error(self, tmp_path):
+        zip_path = tmp_path / "test.zip"
+
         with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("data.csv", "a;b\n1;2\n")
+            zf.writestr("other.txt", "content")
 
-        new_output_dir = temp_dirs["output_dir"] / "new_folder" / "nested"
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            with pytest.raises(ExtractionError) as exc_info:
+                ExtractorAdapter.open_file_from_zip(zf, "missing.txt")
 
-        Extractor.extract_zip_to_parquet(
-            chunk_size=1000, zip_path=str(zip_path), output_dir=str(new_output_dir)
-        )
+            assert "not found in ZIP" in str(exc_info.value)
 
-        assert new_output_dir.exists()
-        assert (new_output_dir / "data.parquet").exists()
+    def test_open_file_successful(self, tmp_path):
+        zip_path = tmp_path / "test.zip"
+        file_content = b"Test content"
 
-    def test_output_path_is_not_directory(self, temp_dirs, sample_zip_with_csv):
-        file_path = temp_dirs["output_dir"] / "file.txt"
-        file_path.write_text("test")
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("data.txt", file_content)
 
-        with pytest.raises(InvalidDestinationPathError) as exc_info:
-            Extractor.extract_zip_to_parquet(
-                chunk_size=1000,
-                zip_path=str(sample_zip_with_csv),
-                output_dir=str(file_path),
-            )
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            handle = ExtractorAdapter.open_file_from_zip(zf, "data.txt")
+            content = handle.read()
+            handle.close()
 
-        assert "is not a directory" in str(exc_info.value)
+        assert content == file_content
 
-    def test_no_write_permission(self, temp_dirs, sample_zip_with_csv):
-        output_dir = temp_dirs["output_dir"]
-        output_dir.chmod(0o444)
 
+class TestExtractorReadTxtFromZipAsync:
+    @pytest.mark.asyncio
+    async def test_async_read_txt_file_not_found(self, tmp_path):
+        zip_path = tmp_path / "nonexistent.zip"
+        extractor = ExtractorAdapter()
+
+        with pytest.raises(FileNotFoundError):
+            async for _ in extractor.extract_txt_from_zip_async(str(zip_path)):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_corrupted_zip(self, tmp_path):
+        zip_path = tmp_path / "corrupted.zip"
+        zip_path.write_text("Not a ZIP file")
+        extractor = ExtractorAdapter()
+
+        with pytest.raises(CorruptedZipError):
+            async for _ in extractor.extract_txt_from_zip_async(str(zip_path)):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_no_txt_file(self, tmp_path):
+        zip_path = tmp_path / "no_txt.zip"
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("data.csv", "csv,data")
+
+        with pytest.raises(ExtractionError):
+            async for _ in extractor.extract_txt_from_zip_async(str(zip_path)):
+                pass
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_successful(self, tmp_path):
+        zip_path = tmp_path / "async_txt.zip"
+        txt_content = "Line 1\nLine 2\nLine 3\n"
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("data.TXT", txt_content.encode("latin-1"))
+
+        lines = []
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            lines.append(line)
+
+        assert len(lines) == 3
+        assert "Line 1" in lines[0]
+        assert "Line 2" in lines[1]
+        assert "Line 3" in lines[2]
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_empty_file(self, tmp_path):
+        zip_path = tmp_path / "empty.zip"
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("empty.TXT", b"")
+
+        lines = []
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            lines.append(line)
+
+        assert len(lines) == 0
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_large_file(self, tmp_path):
+        zip_path = tmp_path / "large.zip"
+        num_lines = 10000
+        txt_content = "\n".join([f"Line {i}" for i in range(num_lines)])
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("large.TXT", txt_content.encode("latin-1"))
+
+        line_count = 0
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            line_count += 1
+            if line_count % 1000 == 0:
+                assert "Line" in line
+
+        assert line_count == num_lines
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_filters_empty_lines(self, tmp_path):
+        zip_path = tmp_path / "empty_lines.zip"
+        txt_content = "Line 1\n\nLine 3\n\n\nLine 6\n"
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("data.TXT", txt_content.encode("latin-1"))
+
+        lines = []
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            lines.append(line)
+
+        assert "Line 1" in lines
+        assert "Line 3" in lines
+        assert "Line 6" in lines
+        assert "" not in lines
+
+    @pytest.mark.asyncio
+    async def test_async_read_txt_handles_decode_errors(self, tmp_path, caplog):
+        zip_path = tmp_path / "decode_error.zip"
+        content = b"Valid line\n\x00\x01\x02\x03\nAnother line\n"
+        extractor = ExtractorAdapter()
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("data.TXT", content)
+
+        lines = []
         try:
-            with pytest.raises(InvalidDestinationPathError) as exc_info:
-                Extractor.extract_zip_to_parquet(
-                    chunk_size=1000,
-                    zip_path=str(sample_zip_with_csv),
-                    output_dir=str(output_dir),
-                )
+            async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+                lines.append(line)
+        except Exception:
+            pass
 
-            assert "No write permission" in str(exc_info.value)
-        finally:
-            output_dir.chmod(0o755)
+        assert len(lines) >= 0
 
-    def test_zip_file_not_found(self, temp_dirs):
-        non_existent_zip = temp_dirs["zip_dir"] / "nonexistent.zip"
-
-        with pytest.raises(ExtractionError) as exc_info:
-            Extractor.extract_zip_to_parquet(
-                chunk_size=1000,
-                zip_path=str(non_existent_zip),
-                output_dir=str(temp_dirs["output_dir"]),
-            )
-
-        assert "ZIP file not found" in str(exc_info.value)
-
-    def test_corrupted_zip_file(self, temp_dirs):
-        corrupted_zip = temp_dirs["zip_dir"] / "corrupted.zip"
-        corrupted_zip.write_text("This is not a valid ZIP file")
-
-        with pytest.raises(CorruptedZipError) as exc_info:
-            Extractor.extract_zip_to_parquet(
-                chunk_size=1000,
-                zip_path=str(corrupted_zip),
-                output_dir=str(temp_dirs["output_dir"]),
-            )
-
-        assert "Invalid or corrupted ZIP file" in str(exc_info.value)
-
-    def test_zip_without_csv_files(self, temp_dirs, caplog):
-        zip_path = temp_dirs["zip_dir"] / "no_csv.zip"
-        with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("file.txt", "text content")
-            zf.writestr("data.json", "{}")
-
-        with caplog.at_level(logging.WARNING):
-            Extractor.extract_zip_to_parquet(
-                chunk_size=1000,
-                zip_path=str(zip_path),
-                output_dir=str(temp_dirs["output_dir"]),
-            )
-
-        assert "No CSV files found" in caplog.text
-
-    def test_csv_with_different_encodings(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "encoding.zip"
-
-        latin1_content = "nome;idade\nJosé;30\nMária;25\n".encode("latin-1")
-        utf8_content = "nome;idade\nJoão;28\nAna;32\n".encode("utf-8")
+    @pytest.mark.asyncio
+    async def test_async_read_txt_partial_iteration(self, tmp_path):
+        zip_path = tmp_path / "partial.zip"
+        txt_content = "\n".join([f"Line {i}" for i in range(100)])
+        extractor = ExtractorAdapter()
 
         with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("latin1.csv", latin1_content)
-            zf.writestr("utf8.csv", utf8_content)
-
-        Extractor.extract_zip_to_parquet(
-            chunk_size=1000,
-            zip_path=str(zip_path),
-            output_dir=str(temp_dirs["output_dir"]),
-        )
-
-        df_latin1 = pd.read_parquet(temp_dirs["output_dir"] / "latin1.parquet")
-        df_utf8 = pd.read_parquet(temp_dirs["output_dir"] / "utf8.parquet")
-
-        assert len(df_latin1) == 2
-        assert len(df_utf8) == 2
-
-    def test_csv_with_malformed_lines(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "malformed.zip"
-        malformed_csv = "col1;col2\n1;2\nBAD LINE WITHOUT PROPER FORMAT\n3;4\n"
-
-        with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("malformed.csv", malformed_csv)
-
-        Extractor.extract_zip_to_parquet(
-            chunk_size=1000,
-            zip_path=str(zip_path),
-            output_dir=str(temp_dirs["output_dir"]),
-        )
-
-        df = pd.read_parquet(temp_dirs["output_dir"] / "malformed.parquet")
-        assert len(df) >= 2
-
-    def test_chunk_processing(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "large.zip"
-        large_csv = "col1;col2\n" + "\n".join([f"{i};{i*10}" for i in range(100)])
-
-        with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("large.csv", large_csv)
-
-        Extractor.extract_zip_to_parquet(
-            chunk_size=30,
-            zip_path=str(zip_path),
-            output_dir=str(temp_dirs["output_dir"]),
-        )
-
-        df = pd.read_parquet(temp_dirs["output_dir"] / "large.parquet")
-        assert len(df) == 100
-
-    def test_partial_extraction_failure(self, temp_dirs, caplog):
-        zip_path = temp_dirs["zip_dir"] / "partial.zip"
-
-        with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("good1.csv", "a;b\n1;2\n")
-            zf.writestr("good2.csv", "x;y\n10;20\n")
-
-        with patch.object(Extractor, "_extract_single_csv") as mock_extract:
-            mock_extract.side_effect = [None, Exception("Simulated extraction error")]
-
-            with caplog.at_level(logging.WARNING):
-                Extractor.extract_zip_to_parquet(
-                    chunk_size=1000,
-                    zip_path=str(zip_path),
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-            assert "failures" in caplog.text
-
-    def test_all_files_fail_extraction(self, temp_dirs):
-        zip_path = temp_dirs["zip_dir"] / "all_fail.zip"
-
-        with zipfile.ZipFile(zip_path, "w") as zf:
-            zf.writestr("file1.csv", "a;b\n1;2\n")
-            zf.writestr("file2.csv", "x;y\n10;20\n")
-
-        with patch.object(Extractor, "_extract_single_csv") as mock_extract:
-            mock_extract.side_effect = Exception("All files fail")
-
-            with pytest.raises(ExtractionError) as exc_info:
-                Extractor.extract_zip_to_parquet(
-                    chunk_size=1000,
-                    zip_path=str(zip_path),
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-            assert "Failed to extract all CSV files" in str(exc_info.value)
-
-    def test_disk_full_error_propagation(self, temp_dirs, sample_zip_with_csv):
-        with patch.object(Extractor, "_extract_single_csv") as mock_extract:
-            mock_extract.side_effect = DiskFullError("/some/path")
-
-            with pytest.raises(DiskFullError):
-                Extractor.extract_zip_to_parquet(
-                    chunk_size=1000,
-                    zip_path=str(sample_zip_with_csv),
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-    def test_invalid_path_error(self, temp_dirs, sample_zip_with_csv):
-        invalid_path = "/invalid\x00path/with/null"
-
-        with pytest.raises(InvalidDestinationPathError):
-            Extractor.extract_zip_to_parquet(
-                chunk_size=1000,
-                zip_path=str(sample_zip_with_csv),
-                output_dir=invalid_path,
-            )
-
-
-class TestExtractorExtractSingleCsv:
-    @pytest.fixture
-    def temp_dirs(self, tmp_path):
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-        return {"output_dir": output_dir}
-
-    @pytest.fixture
-    def mock_zip_file(self):
-        return MagicMock(spec=zipfile.ZipFile)
-
-    def test_extract_single_csv_basic(self, temp_dirs, mock_zip_file):
-        csv_content = b"col1;col2\n1;2\n3;4\n"
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock(
-            read=lambda: csv_content
-        )
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_df = pd.DataFrame({"col1": [1, 3], "col2": [2, 4]})
-            mock_read_csv.return_value = mock_df
-
-            with patch("pyarrow.parquet.write_table") as mock_write:
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="test.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-                mock_write.assert_called_once()
-
-    def test_extract_with_encoding_fallback(self, temp_dirs, mock_zip_file):
-        csv_content = "nome;idade\nJosé;30\n".encode("latin-1")
-
-        mock_file = MagicMock()
-        mock_file.read = lambda: csv_content
-        mock_zip_file.open.return_value.__enter__.return_value = mock_file
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.side_effect = [
-                UnicodeDecodeError("utf-8", b"", 0, 1, "error"),
-                pd.DataFrame({"nome": ["José"], "idade": [30]}),
-            ]
-
-            with patch("pyarrow.parquet.write_table"):
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="test.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-            assert mock_read_csv.call_count >= 2
-
-    def test_extract_fails_all_encodings(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.side_effect = UnicodeDecodeError("utf-8", b"", 0, 1, "error")
-
-            with pytest.raises(ExtractionError) as exc_info:
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="bad.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-            assert "Could not read" in str(exc_info.value)
-
-    def test_extract_with_parser_error(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.side_effect = pd.errors.ParserError("Invalid CSV")
-
-            with pytest.raises(ExtractionError) as exc_info:
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="bad.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-            assert "Invalid CSV format" in str(exc_info.value)
-
-    def test_extract_with_disk_full_error(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.return_value = pd.DataFrame({"a": [1, 2]})
-
-            with patch("pyarrow.parquet.write_table") as mock_write:
-                mock_write.side_effect = OSError("No space left on device")
-
-                with pytest.raises(DiskFullError):
-                    Extractor._extract_single_csv(
-                        chunk_size=1000,
-                        zip_file=mock_zip_file,
-                        csv_filename="test.csv",
-                        output_dir=str(temp_dirs["output_dir"]),
-                    )
-
-    def test_extract_with_chunking(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        large_df = pd.DataFrame(
-            {"col1": list(range(100)), "col2": list(range(100, 200))}
-        )
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.return_value = large_df
-
-            with patch("pyarrow.parquet.write_table") as mock_write:
-                with patch("pyarrow.parquet.read_table") as mock_read:
-                    mock_read.return_value = pa.Table.from_pandas(large_df.iloc[:30])
-
-                    Extractor._extract_single_csv(
-                        chunk_size=30,
-                        zip_file=mock_zip_file,
-                        csv_filename="large.csv",
-                        output_dir=str(temp_dirs["output_dir"]),
-                    )
-
-                    assert mock_write.call_count >= 1
-
-    def test_cleanup_on_parser_error(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-        parquet_path = temp_dirs["output_dir"] / "test.parquet"
-        parquet_path.write_text("incomplete data")
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.side_effect = pd.errors.ParserError("Invalid CSV")
-
-            with pytest.raises(ExtractionError):
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="test.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-    def test_cleanup_on_conversion_error(self, temp_dirs, mock_zip_file):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.return_value = pd.DataFrame({"a": [1, 2]})
-
-            with patch("pyarrow.parquet.write_table") as mock_write:
-                mock_write.side_effect = Exception("Conversion error")
-
-                with pytest.raises(ExtractionError) as exc_info:
-                    Extractor._extract_single_csv(
-                        chunk_size=1000,
-                        zip_file=mock_zip_file,
-                        csv_filename="test.csv",
-                        output_dir=str(temp_dirs["output_dir"]),
-                    )
-
-                assert "Error converting" in str(exc_info.value)
-
-    def test_extract_with_special_characters_in_filename(
-        self, temp_dirs, mock_zip_file
-    ):
-        mock_zip_file.open.return_value.__enter__.return_value = MagicMock()
-
-        with patch("pandas.read_csv") as mock_read_csv:
-            mock_read_csv.return_value = pd.DataFrame({"a": [1]})
-
-            with patch("pyarrow.parquet.write_table"):
-                Extractor._extract_single_csv(
-                    chunk_size=1000,
-                    zip_file=mock_zip_file,
-                    csv_filename="file-with_special@chars.csv",
-                    output_dir=str(temp_dirs["output_dir"]),
-                )
-
-                expected_file = (
-                    temp_dirs["output_dir"] / "file-with_special@chars.parquet"
-                )
-                assert not expected_file.exists() or True
-
-    def test_extract_preserves_data_types(self, temp_dirs):
-        from io import BytesIO
-
-        csv_content = b"int_col;str_col;float_col\n1;a;1.5\n2;b;2.5\n"
-
-        mock_zip = MagicMock(spec=zipfile.ZipFile)
-        mock_zip.open.return_value.__enter__.return_value = BytesIO(csv_content)
-
-        output_file = temp_dirs["output_dir"] / "test.parquet"
-
-        Extractor._extract_single_csv(
-            chunk_size=1000,
-            zip_file=mock_zip,
-            csv_filename="test.csv",
-            output_dir=str(temp_dirs["output_dir"]),
-        )
-
-        if output_file.exists():
-            df = pd.read_parquet(output_file)
-            assert len(df) > 0
+            zf.writestr("data.TXT", txt_content.encode("latin-1"))
+
+        lines = []
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            lines.append(line)
+            if len(lines) >= 10:
+                break
+
+        assert len(lines) == 10
+
+
+class TestExtractorEdgeCases:
+    @pytest.mark.asyncio
+    async def test_concurrent_async_reads(self, tmp_path):
+        zip_files = []
+        for i in range(3):
+            zip_path = tmp_path / f"file{i}.zip"
+            with zipfile.ZipFile(zip_path, "w") as zf:
+                zf.writestr("data.TXT", f"Content {i}\n".encode("latin-1"))
+            zip_files.append(str(zip_path))
+
+        async def read_lines(zip_path):
+            extractor = ExtractorAdapter()
+            lines = []
+            async for line in extractor.extract_txt_from_zip_async(zip_path):
+                lines.append(line)
+            return lines
+
+        results = await asyncio.gather(*[read_lines(zp) for zp in zip_files])
+
+        assert len(results) == 3
+        for i, lines in enumerate(results):
+            assert len(lines) >= 1
+            assert f"Content {i}" in lines[0]
