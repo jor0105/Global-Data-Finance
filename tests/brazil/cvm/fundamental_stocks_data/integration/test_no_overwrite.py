@@ -1,12 +1,14 @@
 import zipfile
 
 import pandas as pd  # type: ignore
+import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
     ParquetExtractorAdapterCVM,
 )
 
 
+@pytest.mark.integration
 class TestNoOverwrite:
     def test_existing_parquet_is_never_overwritten(self, tmp_path):
         original_data = pd.DataFrame(

@@ -8,6 +8,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extract
 )
 
 
+@pytest.mark.integration
 class TestDataIntegrity:
     @pytest.fixture
     def sample_data(self):

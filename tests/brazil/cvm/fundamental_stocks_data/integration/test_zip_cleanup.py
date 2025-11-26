@@ -11,6 +11,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.request
 )
 
 
+@pytest.mark.integration
 class TestZipCleanup:
     @pytest.fixture
     def adapter(self):

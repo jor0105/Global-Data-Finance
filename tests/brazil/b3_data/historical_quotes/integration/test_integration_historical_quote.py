@@ -10,6 +10,7 @@ from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
 )
 
 
+@pytest.mark.integration
 class TestFastModeExtraction:
     @pytest.fixture
     def historical_quotes(self):

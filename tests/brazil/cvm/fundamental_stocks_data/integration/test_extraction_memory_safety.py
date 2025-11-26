@@ -9,6 +9,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extract
 )
 
 
+@pytest.mark.integration
 class TestMemorySafety:
     @pytest.fixture
     def large_csv_zip(self, tmp_path):

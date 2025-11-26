@@ -8,6 +8,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extract
 )
 
 
+@pytest.mark.integration
 class TestAtomicRollback:
     def test_rollback_preserves_existing_files(self, tmp_path):
         output_dir = tmp_path / "output"
