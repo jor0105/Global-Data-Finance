@@ -66,17 +66,17 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.domain import Availabl
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import InvalidDocName
 
 @pytest.mark.unit
-def test_validate_valid_doc():
-    """Testa validação de documento válido."""
-    docs = AvailableDocs()
-    docs.validate_docs_name("DFP")  # Não deve lançar exceção
+class TestAvailableDocs:
+    def test_validate_valid_doc(self):
+        """Testa validação de documento válido."""
+        docs = AvailableDocs()
+        docs.validate_docs_name("DFP")  # Não deve lançar exceção
 
-@pytest.mark.unit
-def test_validate_invalid_doc():
-    """Testa validação de documento inválido."""
-    docs = AvailableDocs()
-    with pytest.raises(InvalidDocName):
-        docs.validate_docs_name("INVALID")
+    def test_validate_invalid_doc(self):
+        """Testa validação de documento inválido."""
+        docs = AvailableDocs()
+        with pytest.raises(InvalidDocName):
+            docs.validate_docs_name("INVALID")
 ```
 
 ### Teste de Integração
@@ -87,14 +87,15 @@ from globaldatafinance import FundamentalStocksDataCVM
 
 @pytest.mark.integration
 @pytest.mark.requires_network
-def test_get_available_docs():
-    """Testa obtenção de documentos disponíveis."""
-    cvm = FundamentalStocksDataCVM()
-    docs = cvm.get_available_docs()
+class TestFundamentalStocksDataIntegration:
+    def test_get_available_docs(self):
+        """Testa obtenção de documentos disponíveis."""
+        cvm = FundamentalStocksDataCVM()
+        docs = cvm.get_available_docs()
 
-    assert isinstance(docs, dict)
-    assert len(docs) > 0
-    assert "DFP" in docs
+        assert isinstance(docs, dict)
+        assert len(docs) > 0
+        assert "DFP" in docs
 ```
 
 ---

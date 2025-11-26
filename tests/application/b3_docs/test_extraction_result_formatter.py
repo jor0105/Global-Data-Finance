@@ -40,11 +40,13 @@ class TestExtractionResultFormatter:
             "error_count": 0,
             "total_records": 50000,
             "output_file": "/path/to/output.parquet",
+            "assets": ["ações"],
+            "processing_mode": "fast",
+            "elapsed_time": 10.5,
         }
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "SUCCESS" in captured.out
-        assert "All files processed successfully" in captured.out
+        assert "Extraction completed successfully!" in captured.out
         assert "/path/to/output.parquet" in captured.out
 
     def test_print_result_with_errors(self, capsys):
@@ -64,7 +66,7 @@ class TestExtractionResultFormatter:
         }
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "COMPLETED WITH ERRORS" in captured.out or "ERRORS" in captured.out
+        assert "Extraction completed with errors!" in captured.out
         assert "file1.zip" in captured.out
         assert "Corrupted file" in captured.out
 
@@ -81,8 +83,11 @@ class TestExtractionResultFormatter:
         }
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "B3 HISTORICAL QUOTES EXTRACTION RESULTS" in captured.out
-        assert "=" * 70 in captured.out
+        assert "📊 B3 Historical Quotes Extraction" in captured.out
+        assert (
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            in captured.out
+        )
 
     def test_print_result_displays_statistics_section(self, capsys):
         formatter = ExtractionResultFormatter(use_colors=False)
@@ -97,7 +102,7 @@ class TestExtractionResultFormatter:
         }
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "Extraction Statistics:" in captured.out or "Statistics" in captured.out
+        assert "📈 Summary:" in captured.out
         assert "8" in captured.out
 
     def test_print_result_shows_error_details_for_dict_errors(self, capsys):
@@ -162,7 +167,7 @@ class TestExtractionResultFormatter:
         }
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "SUCCESS" in captured.out
+        assert "Extraction completed successfully!" in captured.out
 
     def test_print_result_handles_zero_records(self, capsys):
         formatter = ExtractionResultFormatter(use_colors=False)

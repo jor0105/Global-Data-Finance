@@ -36,9 +36,11 @@ class TestDownloadResultFormatter:
         result.add_success_downloads("DFP_2023.zip")
         result.add_success_downloads("ITR_2023.zip")
         output = formatter.format_result(result)
-        assert "ALL SUCCESSFUL DOWNLOADS (2)" in output
-        assert "SUMMARY: 2 succeeded out of 2 total" in output
-        assert "DOWNLOAD OPERATION COMPLETED" in output
+        assert "Documents downloaded successfully!" in output
+        assert "Summary:" in output
+        assert "Total files: 2" in output
+        assert "Success: 2" in output
+        assert "CVM Documents Download" in output
 
     def test_format_result_with_failures(self):
         formatter = DownloadResultFormatter(use_colors=False)
@@ -46,10 +48,13 @@ class TestDownloadResultFormatter:
         result.add_success_downloads("DFP_2023.zip")
         result.add_error_downloads("ITR_2023.zip", "Connection timeout")
         output = formatter.format_result(result)
-        assert "FAILED DOWNLOADS (1)" in output
-        assert "ITR_2023.zip" in output
+        assert "Download completed with some errors." in output
+        assert "Errors:" in output
+        assert "ITR - 2023.zip" in output
         assert "Connection timeout" in output
-        assert "SUMMARY: 1 succeeded, 1 failed out of 2 total" in output
+        assert "Summary:" in output
+        assert "Success: 1" in output
+        assert "Errors: 1" in output
 
     def test_format_result_only_failures(self):
         formatter = DownloadResultFormatter(use_colors=False)
@@ -57,28 +62,33 @@ class TestDownloadResultFormatter:
         result.add_error_downloads("DFP_2023.zip", "Network error")
         result.add_error_downloads("ITR_2023.zip", "File not found")
         output = formatter.format_result(result)
-        assert "FAILED DOWNLOADS (2)" in output
-        assert "DFP_2023.zip" in output
-        assert "ITR_2023.zip" in output
+        assert "Document download failed." in output
+        assert "Errors:" in output
+        assert "DFP - 2023.zip" in output
+        assert "ITR - 2023.zip" in output
         assert "Network error" in output
         assert "File not found" in output
-        assert "SUMMARY: 0 succeeded, 2 failed out of 2 total" in output
+        assert "Summary:" in output
+        assert "Success: 0" in output
+        assert "Errors: 2" in output
 
     def test_format_result_displays_header(self):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResultCVM()
         result.add_success_downloads("DFP_2023.zip")
         output = formatter.format_result(result)
-        assert "╔════════════════════════════════════════╗" in output
-        assert "║    DOWNLOAD OPERATION COMPLETED        ║" in output
-        assert "╚════════════════════════════════════════╝" in output
+        assert "CVM Documents Download" in output
+        assert (
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            in output
+        )
 
     def test_format_result_empty_result(self):
         formatter = DownloadResultFormatter(use_colors=False)
         result = DownloadResultCVM()
         output = formatter.format_result(result)
-        assert "DOWNLOAD OPERATION COMPLETED" in output
-        assert "ALL SUCCESSFUL DOWNLOADS (0)" in output
+        assert "CVM Documents Download" in output
+        assert "Document download failed." in output
 
     def test_format_result_multiple_failures(self):
         formatter = DownloadResultFormatter(use_colors=False)
@@ -88,12 +98,13 @@ class TestDownloadResultFormatter:
         result.add_error_downloads("FCA_2022.zip", "File corrupted")
         result.add_error_downloads("FRE_2022.zip", "Timeout")
         output = formatter.format_result(result)
-        assert "FAILED DOWNLOADS (3)" in output
-        assert "ITR_2022.zip" in output
+        assert "Download completed with some errors." in output
+        assert "Errors:" in output
+        assert "ITR - 2022.zip" in output
         assert "Network error" in output
-        assert "FCA_2022.zip" in output
+        assert "FCA - 2022.zip" in output
         assert "File corrupted" in output
-        assert "FRE_2022.zip" in output
+        assert "FRE - 2022.zip" in output
         assert "Timeout" in output
 
     def test_format_result_with_colors_contains_ansi_codes(self):
@@ -116,7 +127,8 @@ class TestDownloadResultFormatter:
         result.add_success_downloads("DFP_2023.zip")
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "DOWNLOAD OPERATION COMPLETED" in captured.out
+        assert "CVM Documents Download" in captured.out
+        assert "Documents downloaded successfully!" in captured.out
 
     def test_print_result_with_errors(self, capsys):
         formatter = DownloadResultFormatter(use_colors=False)
@@ -125,8 +137,8 @@ class TestDownloadResultFormatter:
         result.add_error_downloads("ITR_2023.zip", "Error")
         formatter.print_result(result)
         captured = capsys.readouterr()
-        assert "DOWNLOAD OPERATION COMPLETED" in captured.out
-        assert "FAILED DOWNLOADS" in captured.out
+        assert "CVM Documents Download" in captured.out
+        assert "Download completed with some errors." in captured.out
 
     def test_color_constants_are_defined(self):
         formatter = DownloadResultFormatter()
@@ -154,7 +166,9 @@ class TestDownloadResultFormatter:
         for i in range(3):
             result.add_error_downloads(f"error_{i}.zip", f"Error {i}")
         output = formatter.format_result(result)
-        assert "7 succeeded, 3 failed out of 10 total" in output
+        assert "Total files: 10" in output
+        assert "Success: 7" in output
+        assert "Errors: 3" in output
 
     def test_format_result_displays_error_indicators(self):
         formatter = DownloadResultFormatter(use_colors=False)

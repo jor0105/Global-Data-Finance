@@ -16,6 +16,7 @@ class DownloadResultCVM:
 
     successful_downloads: List[str] = field(default_factory=list)
     failed_downloads: Dict[str, str] = field(default_factory=dict)
+    elapsed_time: float = 0.0
 
     @property
     def success_count_downloads(self) -> int:

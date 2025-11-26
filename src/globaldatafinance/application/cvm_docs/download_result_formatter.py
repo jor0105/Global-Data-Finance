@@ -69,7 +69,7 @@ class DownloadResultFormatter:
 
         It shows only relevant sections:
         - If there are failures, it displays the failures section only.
-        - If all are successful, it displays a success summary only.
+        - If all successful, it displays a success summary only.
 
         Args:
             result: The DownloadResultCVM object to format.
@@ -116,61 +116,58 @@ class DownloadResultFormatter:
 
         # Header
         lines.append("")
+        lines.append(self._colorize("📥 CVM Documents Download", self.BOLD))
         lines.append(
             self._colorize(
-                "╔════════════════════════════════════════╗",
-                self.BOLD,
-            )
-        )
-        lines.append(
-            self._colorize(
-                "║    DOWNLOAD OPERATION COMPLETED        ║",
-                self.BOLD,
-            )
-        )
-        lines.append(
-            self._colorize(
-                "╚════════════════════════════════════════╝",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                 self.BOLD,
             )
         )
 
-        # Failed downloads (only if there are failures)
-        if result.failed_downloads:
-            lines.append("")
+        # Status message
+        if result.error_count_downloads == 0 and result.success_count_downloads > 0:
             lines.append(
-                self._colorize(
-                    f"✗ FAILED DOWNLOADS ({result.error_count_downloads})",
-                    self.RED,
-                )
+                self._colorize("✓ Documents downloaded successfully!", self.GREEN)
             )
-            lines.append(self._colorize("────────────────────────────", self.RED))
-            for item, error in result.failed_downloads.items():
-                lines.append(f"  • {item}")
-                lines.append(f"    └─ Error: {error}")
+        elif result.success_count_downloads > 0 and result.error_count_downloads > 0:
+            lines.append(
+                self._colorize("⚠ Download completed with some errors.", self.YELLOW)
+            )
         else:
-            # All successful
-            lines.append("")
-            lines.append(
-                self._colorize(
-                    f"✓ ALL SUCCESSFUL DOWNLOADS ({result.success_count_downloads})",
-                    self.GREEN,
-                )
-            )
-            lines.append(self._colorize("────────────────────────────", self.GREEN))
+            lines.append(self._colorize("✗ Document download failed.", self.RED))
 
-        # Summary line
         lines.append("")
-        if result.failed_downloads:
-            total = result.success_count_downloads + result.error_count_downloads
-            summary = (
-                f"SUMMARY: {result.success_count_downloads} succeeded, "
-                f"{result.error_count_downloads} failed out of {total} total"
-            )
-        else:
-            summary = f"SUMMARY: {result.success_count_downloads} succeeded out of {result.success_count_downloads} total"
 
-        lines.append(self._colorize(summary, self.RESET))
+        # Summary Section
+        total = result.success_count_downloads + result.error_count_downloads
+        lines.append(self._colorize("📊 Summary:", self.BOLD))
+        lines.append(f"  • Total files: {total}")
+        lines.append(
+            f"  • Success: {self._colorize(str(result.success_count_downloads), self.GREEN)}"
+        )
+        lines.append(
+            f"  • Errors: {self._colorize(str(result.error_count_downloads), self.RED if result.error_count_downloads > 0 else self.RESET)}"
+        )
+        lines.append(f"  • Elapsed time: {result.elapsed_time:.1f}s")
+
+        lines.append("")
+
+        # Files Section
+        if result.successful_downloads:
+            lines.append(self._colorize("📁 Downloaded files:", self.BOLD))
+            for item in result.successful_downloads:
+                # Clean up item name if needed (e.g., remove full path if present, though usually it's just doc_year)
+                display_name = item.replace("_", " - ")
+                lines.append(f"  {self._colorize('✓', self.GREEN)} {display_name}")
+
+        # Errors Section (if any)
+        if result.failed_downloads:
+            lines.append("")
+            lines.append(self._colorize("❌ Errors:", self.BOLD))
+            for item, error in result.failed_downloads.items():
+                display_name = item.replace("_", " - ")
+                lines.append(f"  {self._colorize('✗', self.RED)} {display_name}")
+                lines.append(f"    └─ Error: {error}")
 
         return "\n".join(lines)
 

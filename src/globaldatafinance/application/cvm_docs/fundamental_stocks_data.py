@@ -240,9 +240,9 @@ class FundamentalStocksDataCVM:
 
         Returns:
             Dictionary with year information:
-            - 'Geral Docs': Minimum year for general documents (e.g., 2000)
-            - 'ITR Documents': Minimum year for ITR documents (e.g., 2011)
-            - 'CGVN and VLMO Documents': Minimum year for CGVN/VLMO (e.g., 2017)
+            - 'General Document Years': Minimum year for general documents (e.g., 2000)
+            - 'ITR Document Years': Minimum year for ITR documents (e.g., 2011)
+            - 'CGVN and VMLO Document Years': Minimum year for CGVN/VLMO (e.g., 2017)
             - 'Current Year': Current year (e.g., 2025)
 
         Example:
@@ -250,12 +250,12 @@ class FundamentalStocksDataCVM:
             >>> years = cvm.get_available_years()
             >>>
             >>> # Display available year ranges
-            >>> print(f"General documents available from: {years['Geral Docs']}")
-            >>> print(f"ITR documents available from: {years['ITR Documents']}")
+            >>> print(f"General documents available from: {years['General Document Years']}")
+            >>> print(f"ITR documents available from: {years['ITR Document Years']}")
             >>> print(f"Current year: {years['Current Year']}")
             >>>
             >>> # Use this info to make informed download requests
-            >>> minimal_year = years['Geral Docs']
+            >>> minimal_year = years['General Document Years']
             >>> max_year = years['Current Year']
             >>> result = cvm.download(
             ...     destination_path="/data",

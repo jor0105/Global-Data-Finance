@@ -28,6 +28,7 @@ Example:
     >>> print(f"Extracted {result['total_records']} records successfully")
 """
 
+import time
 from typing import Any, Dict, List, Optional
 
 from ...brazil import (
@@ -232,15 +233,24 @@ class HistoricalQuotesB3:
             f"Found {len(docs_to_extract.set_documents_to_download)} ZIP files to process"
         )
 
+        start_time = time.time()
+
         result = self.__extract_use_case.execute_sync(
             docs_to_extract=docs_to_extract,
             processing_mode=processing_mode,
             output_filename=output_filename_with_ext,
         )
 
+        elapsed_time = time.time() - start_time
+
         result_dict: Dict[str, Any] = HistoricalQuotesResultFormatter.enrich_result(
             result
         )
+
+        # Add metadata for the formatter
+        result["assets"] = assets_list
+        result["processing_mode"] = processing_mode
+        result["elapsed_time"] = elapsed_time
 
         logger.info(
             f"Extraction completed: {result['success_count']} successful, "

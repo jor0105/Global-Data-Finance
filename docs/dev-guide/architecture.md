@@ -49,7 +49,6 @@ globaldatafinance/
 │   └── macro_infra/          # Infraestrutura compartilhada
 ├── tests/                    # Testes
 ├── docs/                     # Documentação
-├── examples/                 # Exemplos de uso
 └── pyproject.toml           # Configuração do projeto
 ```
 

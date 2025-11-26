@@ -10,7 +10,7 @@ Guia para contribuir com o projeto Global-Data-Finance.
 
 ```bash
 # Fork no GitHub, depois:
-git clone https://github.com/SEU_USUARIO/Global-Data-Finance.git
+git clone https://github.com/jor0105/Global-Data-Finance.git
 cd Global-Data-Finance
 ```
 
@@ -88,14 +88,16 @@ pytest -m unit
 import pytest
 from globaldatafinance import FundamentalStocksDataCVM
 
-def test_get_available_docs():
-    """Testa obtenção de documentos disponíveis."""
-    cvm = FundamentalStocksDataCVM()
-    docs = cvm.get_available_docs()
+@pytest.mark.unit
+class TestFundamentalStocksData:
+    def test_get_available_docs(self):
+        """Testa obtenção de documentos disponíveis."""
+        cvm = FundamentalStocksDataCVM()
+        docs = cvm.get_available_docs()
 
-    assert isinstance(docs, dict)
-    assert "DFP" in docs
-    assert len(docs) > 0
+        assert isinstance(docs, dict)
+        assert "DFP" in docs
+        assert len(docs) > 0
 ```
 
 ---

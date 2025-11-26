@@ -405,5 +405,5 @@ setup_logging(level="INFO", log_file="/tmp/app.log")
 
 Veja também:
 
-- [Configuração](configuration.md) - Configurações globais
+- [Configuração](advanced-usage.md#configuracao-global) - Configurações globais
 - [Advanced Usage](advanced-usage.md) - Uso avançado do sistema

@@ -144,4 +144,3 @@ Veja também:
 
 - [Guia de Uso B3](../user-guide/b3-docs.md)
 - [Exceções](exceptions.md)
-- [Formatos de Dados](data-formats.md)

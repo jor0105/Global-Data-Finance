@@ -89,16 +89,16 @@ def get_available_years(self) -> Dict[str, int]
 
 **Retorno**: Dicionário com chaves:
 
-- `"Geral Docs"`: Ano mínimo para docs gerais (2010)
-- `"ITR Documents"`: Ano mínimo para ITR (2011)
-- `"CGVN and VLMO Documents"`: Ano mínimo para CGVN/VLMO (2018)
+- `"General Document Years"`: Ano mínimo para docs gerais (2010)
+- `"ITR Document Years"`: Ano mínimo para ITR (2011)
+- `"CGVN and VMLO Document Years"`: Ano mínimo para CGVN/VLMO (2018)
 - `"Current Year"`: Ano atual
 
 **Exemplo**:
 
 ```python
 years = cvm.get_available_years()
-# {'Geral Docs': 2010, 'ITR Documents': 2011, ...}
+# {'General Document Years': 2010, 'ITR Document Years': 2011, ...}
 ```
 
 ---

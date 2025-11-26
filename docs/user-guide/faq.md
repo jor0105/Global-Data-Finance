@@ -57,16 +57,6 @@ assets = b3.get_available_assets()
 years = b3.get_available_years()
 ```
 
-### Quanto espaço em disco é necessário?
-
-Depende do volume de dados:
-
-| Tipo               | 1 Ano   | 5 Anos  | 10 Anos |
-| ------------------ | ------- | ------- | ------- |
-| DFP (ZIP)          | ~50 MB  | ~250 MB | ~500 MB |
-| ITR (ZIP)          | ~200 MB | ~1 GB   | ~2 GB   |
-| COTAHIST (Parquet) | ~100 MB | ~500 MB | ~1 GB   |
-
 ---
 
 ## Documentos CVM
@@ -107,7 +97,7 @@ cvm.download(
 
 ### Como lidar com downloads interrompidos?
 
-A biblioteca possui retry automático. Para maior robustez, implemente sua própria lógica de retry (veja [exemplos](examples.md#exemplo-6-tratamento-robusto-de-erros)).
+A biblioteca possui retry automático. Para maior robustez, implemente sua própria lógica de retry (veja [estratégia de retry](../dev-guide/retry-strategy.md#exemplo-de-uso)).
 
 ---
 
@@ -292,7 +282,7 @@ print(list(docs.keys()))
 
 1. Verifique sua conexão com a internet
 2. Tente novamente mais tarde
-3. Implemente retry logic (veja [exemplos](examples.md#exemplo-6-tratamento-robusto-de-erros))
+3. Implemente retry logic (veja [estratégia de retry](../dev-guide/retry-strategy.md#exemplo-de-uso))
 
 ---
 
@@ -370,11 +360,11 @@ Abra uma issue com a tag `enhancement` no GitHub.
 
 ### Qual a licença do Global-Data-Finance?
 
-MIT License - uso livre para projetos comerciais e não-comerciais.
+Apache License 2.0.
 
 ### Posso usar em projetos comerciais?
 
-Sim! A licença MIT permite uso comercial.
+Sim! A licença Apache 2.0 permite uso comercial.
 
 ### Os dados baixados têm restrições de uso?
 

@@ -54,52 +54,58 @@ class ExtractionResultFormatter:
                    - total_records (int)
                    - output_file (str)
                    - errors (list, optional)
+                   - assets (list)
+                   - processing_mode (str)
+                   - elapsed_time (float)
         """
-        print("\n" + "=" * 70)
         print(
-            self._colorize(
-                "  B3 HISTORICAL QUOTES EXTRACTION RESULTS", self.BOLD + self.CYAN
-            )
+            f"\n{self._colorize('📊 B3 Historical Quotes Extraction', self.BOLD + self.CYAN)}"
         )
-        print("=" * 70)
+        print(
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        )
 
         # Status
         if result.get("success", False):
-            status_text = "✓ SUCCESS"
+            status_text = "✓ Extraction completed successfully!"
             status_color = self.GREEN
         else:
-            status_text = "✗ COMPLETED WITH ERRORS"
+            status_text = "✗ Extraction completed with errors!"
             status_color = self.YELLOW if result.get("error_count", 0) > 0 else self.RED
 
-        print(f"\n{self._colorize(status_text, self.BOLD + status_color)}")
+        print(f"{self._colorize(status_text, self.BOLD + status_color)}")
 
-        # Summary message
-        if "message" in result:
-            print(f"\n{result['message']}")
+        # Summary
+        print(f"\n{self._colorize('📈 Summary:', self.BOLD + self.BLUE)}")
 
-        # Statistics
-        print(f"\n{self._colorize('Extraction Statistics:', self.BOLD + self.BLUE)}")
-        print(f"  Total ZIP files processed: {result.get('total_files', 0)}")
-        success_msg = f"✓ Successfully processed: {result.get('success_count', 0)}"
-        print(f"  {self._colorize(success_msg, self.GREEN)}")
+        # Files processed
+        success_count = result.get("success_count", 0)
+        print(f"  • Processed files: {success_count}")
 
-        if result.get("error_count", 0) > 0:
-            error_msg = f"✗ Failed to process: {result.get('error_count', 0)}"
-            print(f"  {self._colorize(error_msg, self.RED)}")
-
+        # Total records
         total_records = result.get("total_records", 0)
-        records_msg = f"Total records extracted: {total_records:,}"
-        print(f"  {self._colorize(records_msg, self.BOLD)}")
+        print(f"  • Total records: {total_records:,}")
+
+        # Assets
+        assets = result.get("assets", [])
+        assets_str = ", ".join(assets) if isinstance(assets, list) else str(assets)
+        print(f"  • Asset classes: {assets_str}")
+
+        # Processing mode
+        print(f"  • Processing mode: {result.get('processing_mode', 'unknown')}")
+
+        # Elapsed time
+        elapsed = result.get("elapsed_time", 0)
+        print(f"  • Elapsed time: {elapsed:.1f}s")
 
         # Output file
         if "output_file" in result:
-            print(
-                f"\n{self._colorize('Output File:', self.BOLD + self.BLUE)} {result['output_file']}"
-            )
+            print(f"\n{self._colorize('💾 Generated file:', self.BOLD + self.BLUE)}")
+            print(f"  {result['output_file']}")
 
         # Error details
         if result.get("error_count", 0) > 0 and "errors" in result:
-            print(f"\n{self._colorize('Error Details:', self.BOLD + self.RED)}")
+            print(f"\n{self._colorize('⚠️ Error details:', self.BOLD + self.RED)}")
             errors = result["errors"]
             if isinstance(errors, dict):
                 for file_path, error_msg in errors.items():
@@ -108,5 +114,3 @@ class ExtractionResultFormatter:
             else:
                 for error in errors:
                     print(f"  • {error}")
-
-        print("\n" + "=" * 70 + "\n")

@@ -194,12 +194,12 @@ def get_available_years(self) -> Dict[str, int]
 
 Dicionário com informações de anos disponíveis:
 
-| Chave                       | Descrição                                |
-| --------------------------- | ---------------------------------------- |
-| `"Geral Docs"`              | Ano mínimo para documentos gerais (2010) |
-| `"ITR Documents"`           | Ano mínimo para ITR (2011)               |
-| `"CGVN and VLMO Documents"` | Ano mínimo para CGVN/VLMO (2018)         |
-| `"Current Year"`            | Ano atual                                |
+| Chave                            | Descrição                                |
+| -------------------------------- | ---------------------------------------- |
+| `"General Document Years"`       | Ano mínimo para documentos gerais (2010) |
+| `"ITR Document Years"`           | Ano mínimo para ITR (2011)               |
+| `"CGVN and VMLO Document Years"` | Ano mínimo para CGVN/VLMO (2018)         |
+| `"Current Year"`                 | Ano atual                                |
 
 #### Exemplo
 
@@ -207,8 +207,8 @@ Dicionário com informações de anos disponíveis:
 cvm = FundamentalStocksDataCVM()
 years = cvm.get_available_years()
 
-print(f"Documentos gerais disponíveis desde: {years['Geral Docs']}")
-print(f"ITR disponível desde: {years['ITR Documents']}")
+print(f"Documentos gerais disponíveis desde: {years['General Document Years']}")
+print(f"ITR disponível desde: {years['ITR Document Years']}")
 print(f"Ano atual: {years['Current Year']}")
 ```
 
@@ -279,8 +279,8 @@ if invalid_docs:
 years_info = cvm.get_available_years()
 requested_year = 2015
 
-if requested_year < years_info['Geral Docs']:
-    print(f"⚠️  Ano {requested_year} não disponível (mínimo: {years_info['Geral Docs']})")
+if requested_year < years_info['General Document Years']:
+    print(f"⚠️  Ano {requested_year} não disponível (mínimo: {years_info['General Document Years']})")
 else:
     # Prosseguir com download
     cvm.download(
@@ -307,8 +307,6 @@ A API pode lançar as seguintes exceções:
 | `TimeoutError`                | Timeout na requisição                   | Aumentar timeout ou tentar mais tarde      |
 | `InvalidDestinationPathError` | Caminho de destino inválido             | Verificar permissões e caminho             |
 
-```
-
 ---
 
 ## Estrutura dos Arquivos Baixados
@@ -320,13 +318,43 @@ Após o download, os arquivos são organizados da seguinte forma:
 ```
 
 destination_path/
-├── dfp_cia_aberta_2020.zip
-├── dfp_cia_aberta_2021.zip
-├── dfp_cia_aberta_2022.zip
-├── dfp_cia_aberta_2023.zip
-├── itr_cia_aberta_2020.zip
-├── itr_cia_aberta_2021.zip
-└── ...
+    DFP/
+        2020/
+            dfp_cia_aberta_2020.zip
+        2021/
+            dfp_cia_aberta_2021.zip
+        2022/
+            dfp_cia_aberta_2022.zip
+        2023/
+            dfp_cia_aberta_2023.zip
+    ITR/
+        2020/
+            itr_cia_aberta_2020.zip
+        2021/
+            itr_cia_aberta_2021.zip
+        2022/
+            itr_cia_aberta_2022.zip
+        2023/
+            itr_cia_aberta_2023.zip
+    FRE/
+        2020/
+            fre_cia_aberta_2020.zip
+        2021/
+            fre_cia_aberta_2021.zip
+        2022/
+            fre_cia_aberta_2022.zip
+        2023/
+            fre_cia_aberta_2023.zip
+    FCA/
+        2020/
+            fca_cia_aberta_2020.zip
+        2021/
+            fca_cia_aberta_2021.zip
+        2022/
+            fca_cia_aberta_2022.zip
+        2023/
+            fca_cia_aberta_2023.zip
+    etc...
 
 ```
 
@@ -355,14 +383,15 @@ Quando `automatic_extractor=True`, os arquivos são convertidos para Parquet:
 ```
 
 destination_path/
-├── dfp_cia_aberta_2023/
-│ ├── dfp_cia_aberta_2023.parquet
-│ ├── dfp_cia_aberta_BPA_con_2023.parquet
-│ ├── dfp_cia_aberta_BPP_con_2023.parquet
-│ └── ...
+├── DFP/
+    2023/
+    │ ├── dfp_cia_aberta_2023.parquet
+    │ ├── dfp_cia_aberta_BPA_con_2023.parquet
+    │ ├── dfp_cia_aberta_BPP_con_2023.parquet
+    │ └── ...
 └── ...
 
-````
+```
 
 ---
 

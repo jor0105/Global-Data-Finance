@@ -77,12 +77,19 @@ class DownloadDocumentsUseCaseCVM:
         )
         docs_paths = verify_paths.execute()
 
+        import time
+
+        start_time = time.time()
+
         try:
             tasks = self.__prepare_download_tasks(dict_urls_zips, docs_paths)
             result = self.__repository.download_docs(tasks)
 
+            end_time = time.time()
+            result.elapsed_time = end_time - start_time
+
             logger.info(
-                f"Download completed: "
+                f"Download completed in {result.elapsed_time:.2f}s: "
                 f"✓ {result.success_count_downloads} successful, "
                 f"✗ {result.error_count_downloads} errors"
             )

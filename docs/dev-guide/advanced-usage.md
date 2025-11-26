@@ -55,8 +55,6 @@ print(f"Timeout: {settings.network.timeout}s")
 print(f"Max retries: {settings.network.max_retries}")
 ```
 
-[Ver documentação completa →](configuration.md)
-
 ### Resource Monitoring
 
 Monitore e gerencie recursos automaticamente:

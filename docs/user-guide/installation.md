@@ -12,8 +12,8 @@ Antes de instalar o Global-Data-Finance, certifique-se de que seu sistema atende
 
 - **Python**: Versão 3.12 ou superior
 - **Sistema Operacional**: Linux, macOS ou Windows
-- **Espaço em Disco**: Mínimo de 100 MB para a biblioteca (mais espaço para dados)
-- **Memória RAM**: Mínimo de 2 GB (recomendado 4 GB ou mais para grandes volumes)
+- **Espaço em Disco**: Mínimo de 2 GB para conseguir baixar todos os dados
+- **Memória RAM**: Mínimo de 3 GB (recomendado 6 GB ou mais para grandes volumes)
 
 ### Verificar Versão do Python
 
@@ -184,7 +184,7 @@ print(f"✓ Encontrados {len(docs)} tipos de documentos disponíveis")
 
 # Verificar anos disponíveis
 years = cvm.get_available_years()
-print(f"✓ Dados disponíveis de {years['Geral Docs']} até {years['Current Year']}")
+print(f"✓ Dados disponíveis de {years['General Document Years']} até {years['Current Year']}")
 ```
 
 Se todos os comandos acima executarem sem erros, a instalação foi bem-sucedida! ✅

@@ -181,5 +181,5 @@ from globaldatafinance.macro_exceptions import (
 Veja também:
 
 - [Exceções](../reference/exceptions.md)
-- [Configuration](configuration.md)
+- [Configuration](advanced-usage.md#configuracao-global)
 - [Advanced Usage](advanced-usage.md)

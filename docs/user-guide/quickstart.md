@@ -81,9 +81,6 @@ result = b3.extract(
     destination_path="/home/usuario/cotacoes_extraidas"
 )
 
-# 3. Verificar resultado
-print(f"✓ Extraídos {result['total_records']:,} registros")
-print(f"✓ Arquivo salvo em: {result['output_file']}")
 ```
 
 ### O que acontece?
@@ -101,11 +98,11 @@ print(f"✓ Arquivo salvo em: {result['output_file']}")
 ✓ Extração concluída com sucesso!
 
 📈 Resumo:
-  • Arquivos processados: 1
-  • Total de registros: 245,678
+  • Arquivos processados: 2
+  • Total de registros: 836,978
   • Classes de ativos: ações
   • Modo de processamento: fast
-  • Tempo decorrido: 12.4s
+  • Tempo decorrido: 77.9s
 
 💾 Arquivo gerado:
   /home/usuario/cotacoes_extraidas/cotahist_extracted.parquet
@@ -131,7 +128,7 @@ for code, description in docs.items():
 
 # Verificar anos disponíveis
 years = cvm.get_available_years()
-print(f"\nDados disponíveis de {years['Geral Docs']} até {years['Current Year']}")
+print(f"\nDados disponíveis de {years['General Document Years']} até {years['Current Year']}")
 ```
 
 **Saída**:

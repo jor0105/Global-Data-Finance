@@ -434,22 +434,32 @@ O Global-Data-Finance processa automaticamente este formato e converte para Parq
 
 ## Estrutura do Arquivo Parquet Gerado
 
-### Colunas Principais
+### Colunas
 
-O arquivo Parquet gerado contém as seguintes colunas (exemplo para ações):
+O arquivo Parquet gerado contém as seguintes colunas:
 
-| Coluna                | Tipo     | Descrição                   |
-| --------------------- | -------- | --------------------------- |
-| `data`                | `date`   | Data da cotação             |
-| `codigo_negociacao`   | `string` | Código do ativo (ex: PETR4) |
-| `nome_empresa`        | `string` | Nome da empresa             |
-| `preco_abertura`      | `float`  | Preço de abertura           |
-| `preco_maximo`        | `float`  | Preço máximo do dia         |
-| `preco_minimo`        | `float`  | Preço mínimo do dia         |
-| `preco_fechamento`    | `float`  | Preço de fechamento         |
-| `volume_negociado`    | `float`  | Volume financeiro negociado |
-| `quantidade_negocios` | `int`    | Quantidade de negócios      |
-| `tipo_mercado`        | `int`    | Código do tipo de mercado   |
+| Coluna                 | Tipo      | Descrição                              |
+| ---------------------- | --------- | -------------------------------------- |
+| `data_pregao`          | `date`    | Data do pregão                         |
+| `codigo_bdi`           | `string`  | Código BDI                             |
+| `ticker`               | `string`  | Código de negociação (ex: PETR4)       |
+| `tipo_mercado`         | `string`  | Tipo de mercado                        |
+| `nome_resumido`        | `string`  | Nome resumido da empresa               |
+| `especificacao_papel`  | `string`  | Especificação do papel (ex: ON, PN)    |
+| `preco_abertura`       | `decimal` | Preço de abertura                      |
+| `preco_maximo`         | `decimal` | Preço máximo do dia                    |
+| `preco_minimo`         | `decimal` | Preço mínimo do dia                    |
+| `preco_medio`          | `decimal` | Preço médio do dia                     |
+| `preco_fechamento`     | `decimal` | Preço de fechamento                    |
+| `melhor_oferta_compra` | `decimal` | Melhor oferta de compra                |
+| `melhor_oferta_venda`  | `decimal` | Melhor oferta de venda                 |
+| `numero_negocios`      | `int`     | Número de negócios efetuados           |
+| `quantidade_total`     | `int`     | Quantidade total de títulos negociados |
+| `volume_total`         | `decimal` | Volume total financeiro                |
+| `data_vencimento`      | `date`    | Data de vencimento (opções/termo)      |
+| `fator_cotacao`        | `int`     | Fator de cotação                       |
+| `codigo_isin`          | `string`  | Código ISIN                            |
+| `numero_distribuicao`  | `int`     | Número de distribuição                 |
 
 ### Leitura com Pandas
 
@@ -460,7 +470,7 @@ df = pd.read_parquet("/data/cotacoes_extraidas/cotahist_extracted.parquet")
 
 print(df.head())
 print(f"\nShape: {df.shape}")
-print(f"Período: {df['data'].min()} a {df['data'].max()}")
+print(f"Período: {df['data_pregao'].min()} a {df['data_pregao'].max()}")
 ```
 
 ### Leitura com Polars (Mais Rápido)
