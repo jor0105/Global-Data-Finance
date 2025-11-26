@@ -7,6 +7,7 @@ from ......macro_exceptions import (
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
     PathPermissionError,
+    SecurityError,
 )
 from ...domain import AvailableYearsCVM
 from ...exceptions import EmptyDocumentListError
@@ -83,6 +84,31 @@ class VerifyPathsUseCasesCVM:
         return year >= min_general
 
     @staticmethod
+    def __validate_path_security(path: Path) -> None:
+        """Validate path security to prevent path traversal attacks.
+
+        This prevents path traversal attacks where malicious paths like
+        '/etc/malicious' or '../../../sensitive' could write to sensitive
+        system directories.
+
+        Args:
+            path: Normalized path to validate
+
+        Raises:
+            SecurityError: If path traversal to sensitive directories is detected
+        """
+        sensitive_paths = ["/etc", "/sys", "/proc", "/dev", "/boot", "/root"]
+
+        path_str = str(path)
+        for sensitive in sensitive_paths:
+            if path_str.startswith(sensitive):
+                raise SecurityError(
+                    "Attempted write to sensitive system directory", path=path_str
+                )
+
+        logger.debug("Path security validation passed.")
+
+    @staticmethod
     def __validate_and_create_paths(path: str) -> str:
         if not isinstance(path, str):
             raise TypeError(
@@ -93,6 +119,9 @@ class VerifyPathsUseCasesCVM:
             raise InvalidDestinationPathError("path cannot be empty or whitespace")
 
         normalized_path = Path(path).expanduser().resolve()
+
+        # SECURITY: Validate against path traversal BEFORE creating directories
+        VerifyPathsUseCasesCVM.__validate_path_security(normalized_path)
 
         if normalized_path.exists():
             if not normalized_path.is_dir():

@@ -263,7 +263,8 @@ class TestFundamentalStocksData:
     @patch(
         "globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM"
     )
-    def test_download_returns_none(self, mock_download_use_case):
+    def test_download_returns_download_result(self, mock_download_use_case):
+        """Test that download() returns DownloadResultCVM object (API change)."""
         mock_result = Mock()
         mock_result.success_count_downloads = 1
         mock_result.error_count_downloads = 0
@@ -276,4 +277,5 @@ class TestFundamentalStocksData:
 
         cvm = FundamentalStocksDataCVM()
         result = cvm.download(destination_path="/data/cvm")
-        assert result is None
+        assert result is not None
+        assert result == mock_result

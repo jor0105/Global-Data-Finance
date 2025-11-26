@@ -176,6 +176,15 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                         progress_bar.update(1)
                         return
 
+                    # CRITICAL: Validate parquet file content
+                    if not self._validate_parquet_files(parquet_files, doc_name, year):
+                        result.add_error_downloads(
+                            f"{doc_name}_{year}",
+                            "Parquet validation failed: corrupted or empty files",
+                        )
+                        progress_bar.update(1)
+                        return
+
                     result.add_success_downloads(f"{doc_name}_{year}")
                     logger.info(
                         f"✓ Extraction completed for {doc_name}_{year}: "
@@ -348,7 +357,31 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                 logger.error(f"Downloaded file does not exist: {filepath}")
                 return False
 
-            # Check 2: ZIP validity and completeness
+            # Check 2: File size validation (if expected_size available)
+            if expected_size is not None:
+                actual_size = path.stat().st_size
+
+                # Allow 5% tolerance for compression/headers
+                size_diff = abs(actual_size - expected_size)
+                size_diff_pct = (
+                    (size_diff / expected_size) * 100 if expected_size > 0 else 0
+                )
+
+                if size_diff_pct > 5.0:
+                    logger.error(
+                        f"File size mismatch for {filepath}: "
+                        f"expected {expected_size:,} bytes, "
+                        f"got {actual_size:,} bytes "
+                        f"({size_diff_pct:.1f}% difference)"
+                    )
+                    return False
+
+                logger.debug(
+                    f"File size validation passed: {actual_size:,} bytes "
+                    f"(expected {expected_size:,}, diff {size_diff_pct:.2f}%)"
+                )
+
+            # Check 3: ZIP validity and completeness
             try:
                 with zipfile.ZipFile(filepath, "r") as z:
                     # Test ZIP integrity of ALL files
@@ -363,7 +396,7 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                         logger.error(f"Empty ZIP file: {filepath}")
                         return False
 
-                    # Check 3: Validate at least one CSV exists (CVM specific)
+                    # Check 4: Validate at least one CSV exists (CVM specific)
                     csv_files = [n for n in namelist if n.lower().endswith(".csv")]
                     if not csv_files:
                         logger.warning(
@@ -381,4 +414,72 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
 
         except Exception as e:
             logger.error(f"Error validating file {filepath}: {e}")
+            return False
+
+    def _validate_parquet_files(
+        self, parquet_files: List[Path], doc_name: str, year: str
+    ) -> bool:
+        """Validate that parquet files are readable and contain data.
+
+        Args:
+            parquet_files: List of parquet file paths to validate
+            doc_name: Document name for logging
+            year: Year for logging
+
+        Returns:
+            True if all parquet files are valid, False otherwise
+        """
+        try:
+            import pyarrow.parquet as pq
+
+            valid_files = 0
+            for parquet_file in parquet_files:
+                try:
+                    # Check 1: File size > 0
+                    file_size = parquet_file.stat().st_size
+                    if file_size == 0:
+                        logger.error(
+                            f"Empty parquet file (0 bytes): {parquet_file} "
+                            f"for {doc_name}_{year}"
+                        )
+                        return False
+
+                    # Check 2: Can read parquet
+                    table = pq.read_table(str(parquet_file))
+
+                    # Check 3: Has rows
+                    if table.num_rows == 0:
+                        logger.warning(
+                            f"Parquet file has no data rows: {parquet_file} "
+                            f"for {doc_name}_{year}"
+                        )
+                        # Don't fail on empty rows, just warn
+                    # Some CSVs might legitimately be empty
+
+                    valid_files += 1
+                    logger.debug(
+                        f"Parquet validated: {parquet_file.name} "
+                        f"({table.num_rows:,} rows, {file_size:,} bytes)"
+                    )
+
+                except Exception as e:
+                    logger.error(
+                        f"Invalid parquet {parquet_file} for {doc_name}_{year}: "
+                        f"{type(e).__name__}: {e}"
+                    )
+                    return False
+
+            logger.info(
+                f"All {valid_files} parquet files validated for {doc_name}_{year}"
+            )
+            return True
+
+        except ImportError:
+            logger.warning(
+                "pyarrow not available for parquet validation, skipping content check"
+            )
+            # Don't fail if pyarrow is missing, just skip validation
+            return True
+        except Exception as e:
+            logger.error(f"Unexpected error validating parquets: {e}")
             return False

@@ -32,6 +32,7 @@ from typing import Dict, List, Optional
 from ...brazil import (
     AsyncDownloadAdapterCVM,
     DownloadDocumentsUseCaseCVM,
+    DownloadResultCVM,
     GetAvailableDocsUseCaseCVM,
     GetAvailableYearsUseCaseCVM,
     ParquetExtractorAdapterCVM,
@@ -107,7 +108,7 @@ class FundamentalStocksDataCVM:
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
         automatic_extractor: bool = False,
-    ) -> None:
+    ) -> DownloadResultCVM:
         """Download CVM financial documents to a specified location.
 
         This method handles the complete download process, including:
@@ -173,6 +174,12 @@ class FundamentalStocksDataCVM:
             >>> if result.error_count_downloads > 0:
             ...     print(f"Some downloads failed: {result.failed_downloads}")
         """
+        if not isinstance(automatic_extractor, bool):
+            raise TypeError(
+                f"automatic_extractor must be a boolean (True or False), "
+                f"got {type(automatic_extractor).__name__}: {automatic_extractor!r}"
+            )
+
         # Override automatic_extractor if explicitly provided
         if automatic_extractor:
             self.download_adapter.automatic_extractor = True
@@ -186,7 +193,7 @@ class FundamentalStocksDataCVM:
             f"auto_extract={automatic_extractor}"
         )
 
-        result = self.__download_use_case.execute(
+        result: DownloadResultCVM = self.__download_use_case.execute(
             destination_path=destination_path,
             list_docs=list_docs,
             initial_year=initial_year,
@@ -200,6 +207,9 @@ class FundamentalStocksDataCVM:
 
         # Display formatted output
         self.__result_formatter.print_result(result)
+
+        # Return the result for programmatic access
+        return result
 
     def get_available_docs(self) -> Dict[str, str]:
         """Get all available CVM document types with descriptions.
