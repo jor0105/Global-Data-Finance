@@ -36,6 +36,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = ["DFP_2023.zip"]
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -65,6 +66,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = ["DFP_2023.zip"]
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -85,6 +87,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -104,6 +107,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = ["DFP_2023.zip", "DFP_2022.zip"]
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -123,6 +127,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -143,6 +148,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 1
         mock_result.successful_downloads = ["DFP_2023.zip", "DFP_2022.zip"]
         mock_result.failed_downloads = {"ITR_2023.zip": "Network error"}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -161,6 +167,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -183,6 +190,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = ["DFP_2023.zip"]
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -203,6 +211,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -222,6 +231,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
@@ -259,6 +269,7 @@ class TestFundamentalStocksData:
         mock_result.error_count_downloads = 0
         mock_result.successful_downloads = []
         mock_result.failed_downloads = {}
+        mock_result.elapsed_time = 1.5
         mock_download_instance = Mock()
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
