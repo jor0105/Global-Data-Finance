@@ -1,6 +1,0 @@
-- [ ] Criar todos os docs do projeto;
-- [ ] Testar todas as funcionalidades do projeto;
-- [ ] Criar ci/cd para: testar main, subir para o pypi e publicar gitpages;
-- [ ] Fazer merge na main;
-- [ ] Ver se docs estão corretos no github;
-- [ ] Testar biblioteca pelo pypi;
