@@ -65,9 +65,9 @@ class TestCreateSetAssetsUseCaseB3:
         with pytest.raises(InvalidAssetsName):
             CreateSetAssetsUseCaseB3.execute(["ações", 123, "etf"])
 
-    def test_execute_is_case_sensitive(self):
-        with pytest.raises(InvalidAssetsName):
-            CreateSetAssetsUseCaseB3.execute(["AÇÕES"])
+    def test_execute_is_case_insensitive(self):
+        result = CreateSetAssetsUseCaseB3.execute(["AÇÕES"])
+        assert result == {"ações"}
 
     def test_execute_with_acoes(self):
         result = CreateSetAssetsUseCaseB3.execute(["ações"])

@@ -114,10 +114,10 @@ class TestValidateAndCreateAssetSet:
         with pytest.raises(InvalidAssetsName):
             AvailableAssetsServiceB3.validate_and_create_asset_set(assets_list)
 
-    def test_is_case_sensitive(self):
+    def test_is_case_insensitive(self):
         assets_list = ["AÇÕES", "ETF"]
-        with pytest.raises(InvalidAssetsName):
-            AvailableAssetsServiceB3.validate_and_create_asset_set(assets_list)
+        result = AvailableAssetsServiceB3.validate_and_create_asset_set(assets_list)
+        assert result == {"ações", "etf"}
 
     def test_validates_with_dict_input(self):
         assets_dict = {"ações": True}

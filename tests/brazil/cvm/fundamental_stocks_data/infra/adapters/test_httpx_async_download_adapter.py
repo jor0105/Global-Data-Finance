@@ -386,11 +386,12 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         import string
         import zipfile
 
+        import polars as pl
+
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
         zip_path = output_dir / "file.zip"
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
         random_data = "".join(
             random.choices(string.ascii_letters + string.digits, k=150_000)
         )
@@ -399,8 +400,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             zf.writestr("test.txt", random_data)
             zf.writestr("data.csv", "col1,col2\n1,2\n")
 
-        (output_dir / "file1.parquet").touch()
-        (output_dir / "file2.parquet").touch()
+        df1 = pl.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
+        df2 = pl.DataFrame({"col3": [4, 5, 6], "col4": ["d", "e", "f"]})
+        df1.write_parquet(output_dir / "file1.parquet")
+        df2.write_parquet(output_dir / "file2.parquet")
 
         mock_extractor = MagicMock()
         adapter = AsyncDownloadAdapterCVM(

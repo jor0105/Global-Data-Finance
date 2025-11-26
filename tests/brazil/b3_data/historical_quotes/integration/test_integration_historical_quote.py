@@ -5,6 +5,9 @@ import polars as pl
 import pytest
 
 from globaldatafinance.application import HistoricalQuotesB3
+from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
+    InvalidProcessingMode,
+)
 
 
 class TestFastModeExtraction:
@@ -208,7 +211,7 @@ class TestFastModeExtraction:
 
     def test_invalid_processing_mode(self, historical_quotes):
         with tempfile.TemporaryDirectory() as temp_dir:
-            with pytest.raises(ValueError, match="Invalid processing_mode"):
+            with pytest.raises(InvalidProcessingMode, match="Invalid processing_mode"):
                 historical_quotes.extract(
                     path_of_docs="/home/jordan/Downloads/Databases/dados_bolsa_br/COTAHIST",
                     destination_path=temp_dir,
