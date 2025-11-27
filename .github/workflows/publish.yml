@@ -85,8 +85,8 @@ jobs:
 
       - name: Check package distribution
         run: |
-          pip install twine
-          twine check dist/*
+          poetry run pip install twine
+          poetry run twine check dist/*
 
       - name: Publish to PyPI using Trusted Publishers
         uses: pypa/gh-action-pypi-publish@release/v1
