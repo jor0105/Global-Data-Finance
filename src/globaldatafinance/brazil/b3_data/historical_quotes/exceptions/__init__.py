@@ -8,10 +8,10 @@ from .exceptions import (
 )
 
 __all__ = [
-    "InvalidAssetsName",
-    "InvalidFirstYear",
-    "InvalidLastYear",
-    "EmptyAssetListError",
-    "InvalidOutputFilename",
-    "InvalidProcessingMode",
+    'InvalidAssetsName',
+    'InvalidFirstYear',
+    'InvalidLastYear',
+    'EmptyAssetListError',
+    'InvalidOutputFilename',
+    'InvalidProcessingMode',
 ]

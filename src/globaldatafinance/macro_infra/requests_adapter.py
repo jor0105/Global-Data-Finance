@@ -1,3 +1,4 @@
+import contextlib
 from typing import Dict, Optional
 
 import httpx
@@ -94,21 +95,25 @@ class RequestsAdapter:
                 verify=self.verify,
                 http2=self.http2,
             ) as client:
-                async with client.stream("GET", url, headers=headers) as response:
+                async with client.stream(
+                    'GET', url, headers=headers
+                ) as response:
                     response.raise_for_status()
 
                     # Open file for writing
-                    file_handle = open(output_path, "wb")
+                    file_handle = open(output_path, 'wb')
 
                     try:
-                        async for chunk in response.aiter_bytes(chunk_size=chunk_size):
+                        async for chunk in response.aiter_bytes(
+                            chunk_size=chunk_size
+                        ):
                             if chunk:
                                 try:
                                     file_handle.write(chunk)
                                 except OSError as write_err:
                                     # Critical: disk full, permission error, etc
                                     raise OSError(
-                                        f"Failed to write chunk to {output_path}: {write_err}"
+                                        f'Failed to write chunk to {output_path}: {write_err}'
                                     ) from write_err
                     finally:
                         # Ensure file is closed even on error
@@ -119,19 +124,15 @@ class RequestsAdapter:
         except Exception:
             # Clean up partial file on any error
             if file_handle is not None:
-                try:
+                with contextlib.suppress(Exception):
                     file_handle.close()
-                except Exception:
-                    pass
 
             # Try to remove partial file
-            try:
+            with contextlib.suppress(Exception):
                 import os
 
                 if os.path.exists(output_path):
                     os.remove(output_path)
-            except Exception:
-                pass  # File might not exist or be locked
 
             # Re-raise original error
             raise

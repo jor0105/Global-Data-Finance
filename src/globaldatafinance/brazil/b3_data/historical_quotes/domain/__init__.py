@@ -7,10 +7,10 @@ from .services import (
 from .value_objects import ProcessingModeEnumB3, YearRangeB3
 
 __all__ = [
-    "DocsToExtractorB3",
-    "AvailableAssetsServiceB3",
-    "ExtractionConfigServiceB3",
-    "YearValidationServiceB3",
-    "ProcessingModeEnumB3",
-    "YearRangeB3",
+    'DocsToExtractorB3',
+    'AvailableAssetsServiceB3',
+    'ExtractionConfigServiceB3',
+    'YearValidationServiceB3',
+    'ProcessingModeEnumB3',
+    'YearRangeB3',
 ]

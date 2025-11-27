@@ -106,7 +106,7 @@ class HistoricalQuotesB3:
         self.__validate_config_use_case = ValidateExtractionConfigUseCaseB3()
         self.__result_formatter = ExtractionResultFormatter(use_colors=True)
 
-        logger.info("HistoricalQuotesB3 client initialized")
+        logger.info('HistoricalQuotesB3 client initialized')
 
     def extract(
         self,
@@ -115,8 +115,8 @@ class HistoricalQuotesB3:
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
         destination_path: Optional[str] = None,
-        output_filename: str = "cotahist_extracted",
-        processing_mode: str = "fast",
+        output_filename: str = 'cotahist_extracted',
+        processing_mode: str = 'fast',
     ) -> Dict[str, Any]:
         """Extract historical quotes from COTAHIST ZIP files to Parquet format.
 
@@ -222,10 +222,10 @@ class HistoricalQuotesB3:
         )
 
         logger.info(
-            f"Extraction requested: path={path_of_docs}, "
-            f"destination={destination_path or path_of_docs}, "
-            f"assets={assets_list}, years={initial_year}-{last_year}, "
-            f"mode={processing_mode}"
+            f'Extraction requested: path={path_of_docs}, '
+            f'destination={destination_path or path_of_docs}, '
+            f'assets={assets_list}, years={initial_year}-{last_year}, '
+            f'mode={processing_mode}'
         )
 
         docs_to_extract: DocsToExtractorB3 = CreateDocsToExtractUseCaseB3(
@@ -237,7 +237,7 @@ class HistoricalQuotesB3:
         ).execute()
 
         logger.info(
-            f"Found {len(docs_to_extract.set_documents_to_download)} ZIP files to process"
+            f'Found {len(docs_to_extract.set_documents_to_download)} ZIP files to process'
         )
 
         start_time = time.time()
@@ -250,19 +250,19 @@ class HistoricalQuotesB3:
 
         elapsed_time = time.time() - start_time
 
-        result_dict: Dict[str, Any] = HistoricalQuotesResultFormatter.enrich_result(
-            result
+        result_dict: Dict[str, Any] = (
+            HistoricalQuotesResultFormatter.enrich_result(result)
         )
 
         # Add metadata for the formatter
-        result["assets"] = assets_list
-        result["processing_mode"] = processing_mode
-        result["elapsed_time"] = elapsed_time
+        result['assets'] = assets_list
+        result['processing_mode'] = processing_mode
+        result['elapsed_time'] = elapsed_time
 
         logger.info(
-            f"Extraction completed: {result['success_count']} successful, "
-            f"{result['error_count']} errors, "
-            f"{result['total_records']} records extracted"
+            f'Extraction completed: {result["success_count"]} successful, '
+            f'{result["error_count"]} errors, '
+            f'{result["total_records"]} records extracted'
         )
 
         self.__result_formatter.print_result(result)
@@ -305,7 +305,7 @@ class HistoricalQuotesB3:
             ...     initial_year=2023
             ... )
         """
-        logger.debug("Retrieving available asset classes")
+        logger.debug('Retrieving available asset classes')
         result: List[str] = self.__available_assets_use_case.execute()
         return result
 
@@ -347,15 +347,15 @@ class HistoricalQuotesB3:
             ...     last_year=current
             ... )
         """
-        logger.debug("Retrieving available years information")
+        logger.debug('Retrieving available years information')
         return {
-            "minimal_year": self.__available_years_use_case.get_minimal_year(),
-            "current_year": self.__available_years_use_case.get_atual_year(),
+            'minimal_year': self.__available_years_use_case.get_minimal_year(),
+            'current_year': self.__available_years_use_case.get_atual_year(),
         }
 
     def __repr__(self) -> str:
         """Return a string representation of the client."""
-        return "HistoricalQuotesB3()"
+        return 'HistoricalQuotesB3()'
 
     def __resolve_initial_year(self, initial_year: Optional[int]) -> int:
         """Resolve initial_year to a valid value, using minimum year if None.
@@ -368,7 +368,9 @@ class HistoricalQuotesB3:
         """
         if initial_year is None:
             resolved: int = self.__available_years_use_case.get_minimal_year()
-            logger.debug(f"initial_year not provided, using minimal year: {resolved}")
+            logger.debug(
+                f'initial_year not provided, using minimal year: {resolved}'
+            )
             return resolved
         return initial_year
 
@@ -383,6 +385,8 @@ class HistoricalQuotesB3:
         """
         if last_year is None:
             resolved: int = self.__available_years_use_case.get_atual_year()
-            logger.debug(f"last_year not provided, using current year: {resolved}")
+            logger.debug(
+                f'last_year not provided, using current year: {resolved}'
+            )
             return resolved
         return last_year

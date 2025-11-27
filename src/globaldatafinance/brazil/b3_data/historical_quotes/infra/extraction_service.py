@@ -1,3 +1,4 @@
+import contextlib
 import asyncio
 import gc
 from concurrent.futures import ThreadPoolExecutor
@@ -29,7 +30,9 @@ class ExtractionServiceB3:
     # FAST mode: 500k records × 15 files × 3KB/record ≈ 22.5 GB (high performance)
     # SLOW mode: 500k records × 3 files × 3KB/record ≈ 4.5 GB (low resource usage)
     FLUSH_BATCH_SIZE = 500_000
-    PARSE_BATCH_SIZE = 50_000  # Parse in batches of 50k lines (faster processing)
+    PARSE_BATCH_SIZE = (
+        50_000  # Parse in batches of 50k lines (faster processing)
+    )
 
     # Minimum safe batch sizes
     MIN_FLUSH_BATCH = 50_000
@@ -56,7 +59,9 @@ class ExtractionServiceB3:
 
         self.max_concurrent_files = min(
             desired_concurrent_files,
-            self.resource_monitor.get_safe_worker_count(desired_concurrent_files),
+            self.resource_monitor.get_safe_worker_count(
+                desired_concurrent_files
+            ),
         )
 
         if self.use_parallel_parsing:
@@ -72,24 +77,30 @@ class ExtractionServiceB3:
         # Initialize thread pool for parallel parsing (FAST mode only)
         self.executor_pool = None
         if self.use_parallel_parsing:
-            self.executor_pool = ThreadPoolExecutor(max_workers=self.max_workers)
+            self.executor_pool = ThreadPoolExecutor(
+                max_workers=self.max_workers
+            )
 
         logger.info(
-            "ExtractionServiceB3 initialized",
+            'ExtractionServiceB3 initialized',
             extra={
-                "processing_mode": str(processing_mode),
-                "max_concurrent_files": self.max_concurrent_files,
-                "use_parallel_parsing": self.use_parallel_parsing,
-                "max_workers": self.max_workers,
-                "flush_batch_size": self.flush_batch_size,
-                "parse_batch_size": self.parse_batch_size,
-                "estimated_memory_per_file_mb": self.flush_batch_size
+                'processing_mode': str(processing_mode),
+                'max_concurrent_files': self.max_concurrent_files,
+                'use_parallel_parsing': self.use_parallel_parsing,
+                'max_workers': self.max_workers,
+                'flush_batch_size': self.flush_batch_size,
+                'parse_batch_size': self.parse_batch_size,
+                'estimated_memory_per_file_mb': self.flush_batch_size
                 * 3
                 // 1024,  # ~3KB per record
-                "estimated_total_memory_mb": (self.flush_batch_size * 3 // 1024)
+                'estimated_total_memory_mb': (
+                    self.flush_batch_size * 3 // 1024
+                )
                 * self.max_concurrent_files,
-                "executor_type": (
-                    "ThreadPoolExecutor" if self.use_parallel_parsing else "Sequential"
+                'executor_type': (
+                    'ThreadPoolExecutor'
+                    if self.use_parallel_parsing
+                    else 'Sequential'
                 ),
             },
         )
@@ -97,14 +108,14 @@ class ExtractionServiceB3:
     def __del__(self):
         """Cleanup executor pool on deletion."""
         if self.executor_pool is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self.executor_pool.shutdown(wait=True, cancel_futures=False)
-            except Exception:
-                # Ignore errors during cleanup (interpreter might be shutting down)
-                pass
 
     async def extract_from_zip_files(
-        self, zip_files: Set[str], target_tpmerc_codes: Set[str], output_path: Path
+        self,
+        zip_files: Set[str],
+        target_tpmerc_codes: Set[str],
+        output_path: Path,
     ) -> Dict[str, Any]:
         """
         Extracts from multiple ZIP files, writing each to a temp file and merging at the end.
@@ -113,19 +124,19 @@ class ExtractionServiceB3:
         self._adjust_batch_sizes()
 
         logger.info(
-            "Starting extraction with incremental flush",
+            'Starting extraction with incremental flush',
             extra={
-                "total_files": len(zip_files),
-                "target_codes_count": len(target_tpmerc_codes),
-                "output_path": str(output_path),
-                "processing_mode": str(self.processing_mode),
-                "flush_batch_size": self.flush_batch_size,
-                "parse_batch_size": self.parse_batch_size,
+                'total_files': len(zip_files),
+                'target_codes_count': len(target_tpmerc_codes),
+                'output_path': str(output_path),
+                'processing_mode': str(self.processing_mode),
+                'flush_batch_size': self.flush_batch_size,
+                'parse_batch_size': self.parse_batch_size,
             },
         )
 
         with log_execution_time(
-            logger, "Extract from all ZIP files", total_files=len(zip_files)
+            logger, 'Extract from all ZIP files', total_files=len(zip_files)
         ):
             # Statistics only (no data accumulation)
             total_records_written = 0
@@ -135,7 +146,7 @@ class ExtractionServiceB3:
             temp_files: List[Path] = []  # Collect temp files for merge
 
             progress_bar = SimpleProgressBar(
-                total=len(zip_files), desc="Extracting (async)"
+                total=len(zip_files), desc='Extracting (async)'
             )
             semaphore = asyncio.Semaphore(self.max_concurrent_files)
 
@@ -145,8 +156,8 @@ class ExtractionServiceB3:
 
                 # Check resources before processing
                 if not await self._wait_for_resources(timeout_seconds=30):
-                    error_msg = "Resources exhausted"
-                    logger.error(f"Skipping {zip_file} - {error_msg}")
+                    error_msg = 'Resources exhausted'
+                    logger.error(f'Skipping {zip_file} - {error_msg}')
                     progress_bar.update(1)
                     return (zip_file, Exception(error_msg))
 
@@ -160,17 +171,19 @@ class ExtractionServiceB3:
                         )
 
                         logger.info(
-                            f"Completed {zip_file}",
+                            f'Completed {zip_file}',
                             extra={
-                                "records_extracted": result_data["records"],
-                                "temp_file": result_data["temp_file"],
+                                'records_extracted': result_data['records'],
+                                'temp_file': result_data['temp_file'],
                             },
                         )
                         progress_bar.update(1)
                         return (zip_file, result_data)
 
                     except Exception as e:
-                        logger.error(f"Error processing {zip_file}: {e}", exc_info=True)
+                        logger.error(
+                            f'Error processing {zip_file}: {e}', exc_info=True
+                        )
                         progress_bar.update(1)
                         return (zip_file, e)
 
@@ -201,50 +214,56 @@ class ExtractionServiceB3:
                 elif isinstance(result_data, dict):
                     # Successful processing - collect temp file
                     success_count += 1
-                    total_records_written += result_data["records"]
-                    temp_file_path = Path(result_data["temp_file"])
+                    total_records_written += result_data['records']
+                    temp_file_path = Path(result_data['temp_file'])
                     if temp_file_path.exists():
                         temp_files.append(temp_file_path)
                     else:
-                        logger.warning(f"Temp file not found: {temp_file_path}")
+                        logger.warning(
+                            f'Temp file not found: {temp_file_path}'
+                        )
 
             # MERGE FINAL - combine all temp files into one
             if temp_files:
                 logger.info(
-                    f"Starting merge of {len(temp_files)} temporary files...",
-                    extra={"temp_files": [f.name for f in temp_files]},
+                    f'Starting merge of {len(temp_files)} temporary files...',
+                    extra={'temp_files': [f.name for f in temp_files]},
                 )
 
                 try:
-                    final_record_count = await self._merge_temp_files_streaming(
-                        temp_files=temp_files,
-                        final_output=output_path,
+                    final_record_count = (
+                        await self._merge_temp_files_streaming(
+                            temp_files=temp_files,
+                            final_output=output_path,
+                        )
                     )
                     total_records_written = final_record_count
 
                     logger.info(
-                        "Final merge completed",
+                        'Final merge completed',
                         extra={
-                            "total_records": f"{final_record_count:,}",
-                            "output_file": str(output_path),
+                            'total_records': f'{final_record_count:,}',
+                            'output_file': str(output_path),
                         },
                     )
                 except Exception as e:
-                    logger.error(f"Failed to merge temporary files: {e}", exc_info=True)
+                    logger.error(
+                        f'Failed to merge temporary files: {e}', exc_info=True
+                    )
                     # Don't set error_count here as files were processed successfully
                     # The error is in the merge step
-                    errors["MERGE"] = str(e)
+                    errors['MERGE'] = str(e)
 
             result_summary = {
-                "total_files": len(zip_files),
-                "success_count": success_count,
-                "error_count": error_count,
-                "total_records": total_records_written,
-                "errors": errors,
-                "output_file": str(output_path),
+                'total_files': len(zip_files),
+                'success_count': success_count,
+                'error_count': error_count,
+                'total_records': total_records_written,
+                'errors': errors,
+                'output_file': str(output_path),
             }
 
-            logger.info("Extraction completed", extra=result_summary)
+            logger.info('Extraction completed', extra=result_summary)
 
             return result_summary
 
@@ -258,15 +277,16 @@ class ExtractionServiceB3:
         # Generate unique temporary file name for this ZIP
         zip_basename = Path(zip_file).stem  # e.g., "COTAHIST_A2023"
         temp_output = (
-            output_path.parent / f"{output_path.stem}_{zip_basename}_temp.parquet"
+            output_path.parent
+            / f'{output_path.stem}_{zip_basename}_temp.parquet'
         )
 
         logger.debug(
-            f"Processing ZIP: {zip_file}",
+            f'Processing ZIP: {zip_file}',
             extra={
-                "target_codes": len(target_tpmerc_codes),
-                "parallel_parsing": self.use_parallel_parsing,
-                "temp_output": str(temp_output),
+                'target_codes': len(target_tpmerc_codes),
+                'parallel_parsing': self.use_parallel_parsing,
+                'temp_output': str(temp_output),
             },
         )
 
@@ -279,7 +299,9 @@ class ExtractionServiceB3:
                 # FAST mode: Parse in batches with threads
                 line_buffer: List[str] = []
 
-                async for line in self.zip_reader.read_lines_from_zip(zip_file):
+                async for line in self.zip_reader.read_lines_from_zip(
+                    zip_file
+                ):
                     line_buffer.append(line)
 
                     # Parse batch when threshold reached
@@ -299,7 +321,9 @@ class ExtractionServiceB3:
                         # Flush to disk when buffer is full or memory threshold reached
                         if should_flush and buffer:
                             write_mode = (
-                                "overwrite" if is_first_write_to_temp else "append"
+                                'overwrite'
+                                if is_first_write_to_temp
+                                else 'append'
                             )
                             await self._write_buffer_to_disk(
                                 buffer, temp_output, write_mode
@@ -325,7 +349,9 @@ class ExtractionServiceB3:
                 # SLOW mode: Sequential parsing
                 line_count = 0
 
-                async for line in self.zip_reader.read_lines_from_zip(zip_file):
+                async for line in self.zip_reader.read_lines_from_zip(
+                    zip_file
+                ):
                     parsed = self.parser.parse_line(line, target_tpmerc_codes)
                     if parsed:
                         buffer.append(parsed)
@@ -338,7 +364,9 @@ class ExtractionServiceB3:
 
                     # Flush when buffer is full or memory threshold reached
                     if should_flush and buffer:
-                        write_mode = "overwrite" if is_first_write_to_temp else "append"
+                        write_mode = (
+                            'overwrite' if is_first_write_to_temp else 'append'
+                        )
                         await self._write_buffer_to_disk(
                             buffer, temp_output, write_mode
                         )
@@ -356,25 +384,32 @@ class ExtractionServiceB3:
 
             # Final flush for remaining records
             if buffer:
-                write_mode = "overwrite" if is_first_write_to_temp else "append"
-                await self._write_buffer_to_disk(buffer, temp_output, write_mode)
+                write_mode = (
+                    'overwrite' if is_first_write_to_temp else 'append'
+                )
+                await self._write_buffer_to_disk(
+                    buffer, temp_output, write_mode
+                )
                 total_written += len(buffer)
                 buffer.clear()
 
             logger.debug(
-                f"Completed ZIP: {zip_file}",
+                f'Completed ZIP: {zip_file}',
                 extra={
-                    "records_extracted": total_written,
-                    "temp_file": str(temp_output),
+                    'records_extracted': total_written,
+                    'temp_file': str(temp_output),
                 },
             )
 
-            return {"records": total_written, "temp_file": str(temp_output)}
+            return {'records': total_written, 'temp_file': str(temp_output)}
 
         except Exception as e:
             logger.error(
-                f"Error processing ZIP: {zip_file}",
-                extra={"error": str(e), "records_written_so_far": total_written},
+                f'Error processing ZIP: {zip_file}',
+                extra={
+                    'error': str(e),
+                    'records_written_so_far': total_written,
+                },
                 exc_info=True,
             )
 
@@ -384,11 +419,11 @@ class ExtractionServiceB3:
 
             # Clean up temp file on error
             if temp_output.exists():
-                try:
+                with contextlib.suppress(Exception):
                     temp_output.unlink()
-                    logger.debug(f"Cleaned up temp file after error: {temp_output}")
-                except Exception:
-                    pass
+                    logger.debug(
+                        f'Cleaned up temp file after error: {temp_output}'
+                    )
 
             raise
 
@@ -413,8 +448,8 @@ class ExtractionServiceB3:
             return
 
         logger.debug(
-            f"Writing buffer to disk: {len(buffer)} records (mode: {mode})",
-            extra={"output_path": str(output_path)},
+            f'Writing buffer to disk: {len(buffer)} records (mode: {mode})',
+            extra={'output_path': str(output_path)},
         )
 
         # Retry mechanism to avoid data loss on temporary I/O errors
@@ -432,18 +467,18 @@ class ExtractionServiceB3:
                 if attempt < max_retries - 1:
                     wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.warning(
-                        f"Write failed (attempt {attempt + 1}/{max_retries}), "
-                        f"retrying in {wait_time}s: {e}",
-                        extra={"output_path": str(output_path)},
+                        f'Write failed (attempt {attempt + 1}/{max_retries}), '
+                        f'retrying in {wait_time}s: {e}',
+                        extra={'output_path': str(output_path)},
                     )
                     await asyncio.sleep(wait_time)
                 else:
                     logger.error(
-                        f"Write failed after {max_retries} attempts",
+                        f'Write failed after {max_retries} attempts',
                         extra={
-                            "output_path": str(output_path),
-                            "buffer_size": len(buffer),
-                            "error": str(e),
+                            'output_path': str(output_path),
+                            'buffer_size': len(buffer),
+                            'error': str(e),
                         },
                         exc_info=True,
                     )
@@ -458,9 +493,9 @@ class ExtractionServiceB3:
             await asyncio.sleep(0.1)
             gc.collect()
         elif resource_state == ResourceState.EXHAUSTED:
-            logger.warning("Resources exhausted, waiting for recovery...")
+            logger.warning('Resources exhausted, waiting for recovery...')
             if not await self._wait_for_resources(timeout_seconds=30):
-                raise MemoryError("Unable to recover from resource exhaustion")
+                raise MemoryError('Unable to recover from resource exhaustion')
 
     def _adjust_batch_sizes(self) -> None:
         """Adjust batch sizes based on current memory state."""
@@ -470,11 +505,13 @@ class ExtractionServiceB3:
         base_flush_size = self.FLUSH_BATCH_SIZE
 
         # Adjust flush batch size based on memory pressure
-        new_flush_size = self.resource_monitor.get_safe_batch_size(base_flush_size)
+        new_flush_size = self.resource_monitor.get_safe_batch_size(
+            base_flush_size
+        )
         if new_flush_size != self.flush_batch_size:
             logger.info(
-                f"Adjusted flush batch size: {self.flush_batch_size} -> {new_flush_size} "
-                f"(memory state: {memory_state.value})"
+                f'Adjusted flush batch size: {self.flush_batch_size} -> {new_flush_size} '
+                f'(memory state: {memory_state.value})'
             )
             self.flush_batch_size = max(new_flush_size, self.MIN_FLUSH_BATCH)
 
@@ -494,11 +531,11 @@ class ExtractionServiceB3:
 
         if should_flush:
             logger.info(
-                "Memory threshold reached for flush",
+                'Memory threshold reached for flush',
                 extra={
-                    "process_memory_mb": f"{process_memory_mb:.2f}",
-                    "threshold_mb": threshold_mb,
-                    "mode": str(self.processing_mode),
+                    'process_memory_mb': f'{process_memory_mb:.2f}',
+                    'threshold_mb': threshold_mb,
+                    'mode': str(self.processing_mode),
                 },
             )
 
@@ -516,24 +553,24 @@ class ExtractionServiceB3:
         import pyarrow.parquet as pq  # type: ignore
 
         if not temp_files:
-            logger.warning("No temporary files to merge")
+            logger.warning('No temporary files to merge')
             return 0
 
         if len(temp_files) == 1:
             # Only one file - just rename it
-            logger.info("Only one temp file, renaming to final output")
+            logger.info('Only one temp file, renaming to final output')
             temp_files[0].rename(final_output)
             return self._count_parquet_rows(final_output)
 
         logger.info(
-            f"Merging {len(temp_files)} temporary files using streaming",
+            f'Merging {len(temp_files)} temporary files using streaming',
             extra={
-                "temp_files": [f.name for f in temp_files],
-                "final_output": str(final_output),
+                'temp_files': [f.name for f in temp_files],
+                'final_output': str(final_output),
             },
         )
 
-        temp_merge = final_output.with_suffix(".parquet.merge_tmp")
+        temp_merge = final_output.with_suffix('.parquet.merge_tmp')
 
         try:
             # Get schema from first file
@@ -544,7 +581,7 @@ class ExtractionServiceB3:
             writer = pq.ParquetWriter(
                 str(temp_merge),
                 schema,
-                compression="zstd",
+                compression='zstd',
                 compression_level=3,
             )
 
@@ -552,7 +589,9 @@ class ExtractionServiceB3:
 
             # Iterate over each temporary file
             for i, temp_file in enumerate(temp_files, 1):
-                logger.debug(f"Merging file {i}/{len(temp_files)}: {temp_file.name}")
+                logger.debug(
+                    f'Merging file {i}/{len(temp_files)}: {temp_file.name}'
+                )
 
                 parquet_file = pq.ParquetFile(str(temp_file))
                 file_rows = 0
@@ -564,16 +603,18 @@ class ExtractionServiceB3:
                     total_rows += batch.num_rows
 
                 logger.debug(
-                    f"Merged {file_rows:,} rows from {temp_file.name}",
-                    extra={"cumulative_rows": total_rows},
+                    f'Merged {file_rows:,} rows from {temp_file.name}',
+                    extra={'cumulative_rows': total_rows},
                 )
 
                 # Clean up temporary file
                 try:
                     temp_file.unlink()
-                    logger.debug(f"Deleted temporary file: {temp_file.name}")
+                    logger.debug(f'Deleted temporary file: {temp_file.name}')
                 except Exception as e:
-                    logger.warning(f"Failed to delete temp file {temp_file.name}: {e}")
+                    logger.warning(
+                        f'Failed to delete temp file {temp_file.name}: {e}'
+                    )
 
                 # Check resources periodically (less frequently)
                 if total_rows % 500_000 == 0 and total_rows > 0:
@@ -586,11 +627,11 @@ class ExtractionServiceB3:
             temp_merge.replace(final_output)
 
             logger.info(
-                "Merge completed successfully",
+                'Merge completed successfully',
                 extra={
-                    "total_rows": f"{total_rows:,}",
-                    "output_file": str(final_output),
-                    "files_merged": len(temp_files),
+                    'total_rows': f'{total_rows:,}',
+                    'output_file': str(final_output),
+                    'files_merged': len(temp_files),
                 },
             )
 
@@ -598,26 +639,22 @@ class ExtractionServiceB3:
 
         except Exception as e:
             logger.error(
-                f"Failed to merge temporary files: {e}",
+                f'Failed to merge temporary files: {e}',
                 exc_info=True,
             )
 
             # Cleanup merge temp file
             if temp_merge.exists():
-                try:
+                with contextlib.suppress(Exception):
                     temp_merge.unlink()
-                except Exception:
-                    pass
 
             # Cleanup remaining temp files
             for temp_file in temp_files:
                 if temp_file.exists():
-                    try:
+                    with contextlib.suppress(Exception):
                         temp_file.unlink()
-                    except Exception:
-                        pass
 
-            raise IOError(f"Merge operation failed: {e}")
+            raise IOError(f'Merge operation failed: {e}')
 
     def _count_parquet_rows(self, path: Path) -> int:
         """Count rows in parquet file without loading into RAM."""
@@ -628,7 +665,7 @@ class ExtractionServiceB3:
             result: int = parquet_file.metadata.num_rows
             return result
         except Exception as e:
-            logger.error(f"Error counting rows in {path}: {e}")
+            logger.error(f'Error counting rows in {path}: {e}')
             return 0
 
     async def _wait_for_resources(self, timeout_seconds: int = 30) -> bool:

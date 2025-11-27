@@ -25,11 +25,11 @@ class TestRequestsAdapterInitialization:
 
 class TestRequestsAdapterAsyncMethods:
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
     async def test_async_head_request_success(self, mock_client_class):
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.headers = {"content-length": "1024"}
+        mock_response.headers = {'content-length': '1024'}
 
         mock_client = AsyncMock()
         mock_client.__aenter__.return_value = mock_client
@@ -37,14 +37,14 @@ class TestRequestsAdapterAsyncMethods:
         mock_client_class.return_value = mock_client
 
         adapter = RequestsAdapter()
-        response = await adapter.async_head("https://example.com")
+        response = await adapter.async_head('https://example.com')
 
         assert response.status_code == 200
-        assert response.headers["content-length"] == "1024"
+        assert response.headers['content-length'] == '1024'
         mock_client.head.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
     async def test_async_head_with_custom_headers(self, mock_client_class):
         mock_response = Mock()
         mock_client = AsyncMock()
@@ -53,14 +53,14 @@ class TestRequestsAdapterAsyncMethods:
         mock_client_class.return_value = mock_client
 
         adapter = RequestsAdapter()
-        headers = {"Authorization": "Bearer token"}
-        await adapter.async_head("https://example.com", headers=headers)
+        headers = {'Authorization': 'Bearer token'}
+        await adapter.async_head('https://example.com', headers=headers)
 
         call_args = mock_client.head.call_args
-        assert call_args[1]["headers"] == headers
+        assert call_args[1]['headers'] == headers
 
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
     async def test_async_head_with_custom_timeout(self, mock_client_class):
         mock_response = Mock()
         mock_client = AsyncMock()
@@ -69,21 +69,23 @@ class TestRequestsAdapterAsyncMethods:
         mock_client_class.return_value = mock_client
 
         adapter = RequestsAdapter()
-        await adapter.async_head("https://example.com", timeout=10.0)
+        await adapter.async_head('https://example.com', timeout=10.0)
 
         mock_client_class.assert_called_once()
         call_args = mock_client_class.call_args
-        assert call_args[1]["timeout"] == 10.0
+        assert call_args[1]['timeout'] == 10.0
 
 
 class TestRequestsAdapterDownload:
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
-    @patch("builtins.open", new_callable=MagicMock)
-    async def test_async_download_file_success(self, mock_open, mock_client_class):
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    @patch('builtins.open', new_callable=MagicMock)
+    async def test_async_download_file_success(
+        self, mock_open, mock_client_class
+    ):
         async def chunk_generator():
-            yield b"chunk1"
-            yield b"chunk2"
+            yield b'chunk1'
+            yield b'chunk2'
 
         mock_response = AsyncMock()
         mock_response.raise_for_status = Mock()
@@ -104,23 +106,23 @@ class TestRequestsAdapterDownload:
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
-            "https://example.com/file.zip", "/tmp/file.zip"
+            'https://example.com/file.zip', 'dummy_file.zip'
         )
 
         assert mock_file.write.call_count == 2
-        mock_file.write.assert_any_call(b"chunk1")
-        mock_file.write.assert_any_call(b"chunk2")
+        mock_file.write.assert_any_call(b'chunk1')
+        mock_file.write.assert_any_call(b'chunk2')
         mock_file.close.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
-    @patch("builtins.open", new_callable=MagicMock)
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    @patch('builtins.open', new_callable=MagicMock)
     async def test_async_download_file_with_custom_chunk_size(
         self, mock_open, mock_client_class
     ):
         async def chunk_generator():
             if False:
-                yield b""
+                yield b''
 
         mock_response = AsyncMock()
         mock_response.raise_for_status = Mock()
@@ -141,27 +143,28 @@ class TestRequestsAdapterDownload:
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
-            "https://example.com/file.zip", "/tmp/file.zip", chunk_size=16384
+            'https://example.com/file.zip', 'dummy_file.zip', chunk_size=16384
         )
 
         mock_response.aiter_bytes.assert_called_once_with(chunk_size=16384)
 
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
     @patch(
-        "globaldatafinance.macro_infra.requests_adapter.open", new_callable=MagicMock
+        'globaldatafinance.macro_infra.requests_adapter.open',
+        new_callable=MagicMock,
     )
-    @patch("os.path.exists")
-    @patch("os.remove")
+    @patch('os.path.exists')
+    @patch('os.remove')
     async def test_async_download_file_handles_http_error(
         self, mock_remove, mock_exists, mock_open, mock_client_class
     ):
         async def chunk_generator():
             if False:
-                yield b""
+                yield b''
 
         def raise_http_error():
-            raise Exception("HTTP Error")
+            raise Exception('HTTP Error')
 
         mock_response = AsyncMock()
         mock_response.raise_for_status = Mock(side_effect=raise_http_error)
@@ -180,23 +183,23 @@ class TestRequestsAdapterDownload:
         mock_exists.return_value = True
 
         adapter = RequestsAdapter()
-        with pytest.raises(Exception, match="HTTP Error"):
+        with pytest.raises(Exception, match='HTTP Error'):
             await adapter.async_download_file(
-                "https://example.com/file.zip", "/tmp/file.zip"
+                'https://example.com/file.zip', 'dummy_file.zip'
             )
 
-        mock_remove.assert_called_once_with("/tmp/file.zip")
+        mock_remove.assert_called_once_with('dummy_file.zip')
 
     @pytest.mark.asyncio
-    @patch("globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient")
-    @patch("builtins.open", new_callable=MagicMock)
-    @patch("os.path.exists")
-    @patch("os.remove")
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    @patch('builtins.open', new_callable=MagicMock)
+    @patch('os.path.exists')
+    @patch('os.remove')
     async def test_async_download_file_handles_disk_write_error(
         self, mock_remove, mock_exists, mock_open, mock_client_class
     ):
         async def chunk_generator():
-            yield b"chunk1"
+            yield b'chunk1'
 
         mock_response = AsyncMock()
         mock_response.raise_for_status = Mock()
@@ -213,15 +216,15 @@ class TestRequestsAdapterDownload:
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_file.write.side_effect = OSError("Disk full")
+        mock_file.write.side_effect = OSError('Disk full')
         mock_open.return_value = mock_file
 
         mock_exists.return_value = True
 
         adapter = RequestsAdapter()
-        with pytest.raises(OSError, match="Failed to write chunk"):
+        with pytest.raises(OSError, match='Failed to write chunk'):
             await adapter.async_download_file(
-                "https://example.com/file.zip", "/tmp/file.zip"
+                'https://example.com/file.zip', 'dummy_file.zip'
             )
 
-        mock_remove.assert_called_once_with("/tmp/file.zip")
+        mock_remove.assert_called_once_with('dummy_file.zip')

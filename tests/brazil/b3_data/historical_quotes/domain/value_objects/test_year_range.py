@@ -39,36 +39,36 @@ class TestYearRangeB3Creation:
 class TestYearRangeB3Validation:
     def test_raises_error_for_non_integer_initial_year(self):
         with pytest.raises(ValueError) as exc_info:
-            YearRangeB3("2020", 2024)
-        assert "Years must be integers" in str(exc_info.value)
+            YearRangeB3('2020', 2024)
+        assert 'Years must be integers' in str(exc_info.value)
 
     def test_raises_error_for_non_integer_last_year(self):
         with pytest.raises(ValueError) as exc_info:
-            YearRangeB3(2020, "2024")
-        assert "Years must be integers" in str(exc_info.value)
+            YearRangeB3(2020, '2024')
+        assert 'Years must be integers' in str(exc_info.value)
 
     def test_raises_error_for_float_initial_year(self):
         with pytest.raises(ValueError) as exc_info:
             YearRangeB3(2020.5, 2024)
-        assert "Years must be integers" in str(exc_info.value)
+        assert 'Years must be integers' in str(exc_info.value)
 
     def test_raises_error_for_float_last_year(self):
         with pytest.raises(ValueError) as exc_info:
             YearRangeB3(2020, 2024.5)
-        assert "Years must be integers" in str(exc_info.value)
+        assert 'Years must be integers' in str(exc_info.value)
 
     def test_raises_error_for_initial_greater_than_last(self):
         with pytest.raises(ValueError) as exc_info:
             YearRangeB3(2024, 2020)
-        assert "Initial year" in str(exc_info.value)
-        assert "cannot be greater than" in str(exc_info.value)
-        assert "last year" in str(exc_info.value)
+        assert 'Initial year' in str(exc_info.value)
+        assert 'cannot be greater than' in str(exc_info.value)
+        assert 'last year' in str(exc_info.value)
 
     def test_raises_error_for_future_last_year(self):
         future_year = date.today().year + 1
         with pytest.raises(ValueError) as exc_info:
             YearRangeB3(2020, future_year)
-        assert "cannot be in the future" in str(exc_info.value)
+        assert 'cannot be in the future' in str(exc_info.value)
 
     def test_accepts_current_year_as_last_year(self):
         current_year = date.today().year
@@ -107,7 +107,7 @@ class TestYearRangeB3Immutability:
     def test_cannot_add_new_attributes(self):
         year_range = YearRangeB3(2020, 2024)
         with pytest.raises(Exception):
-            year_range.new_attribute = "value"
+            year_range.new_attribute = 'value'
 
 
 class TestYearRangeB3ToRange:
@@ -160,25 +160,25 @@ class TestYearRangeB3StringRepresentation:
     def test_str_representation(self):
         year_range = YearRangeB3(2020, 2024)
         result = str(year_range)
-        assert result == "2020-2024"
+        assert result == '2020-2024'
 
     def test_str_for_single_year(self):
         year_range = YearRangeB3(2020, 2020)
         result = str(year_range)
-        assert result == "2020-2020"
+        assert result == '2020-2020'
 
     def test_repr_representation(self):
         year_range = YearRangeB3(2020, 2024)
         result = repr(year_range)
-        assert "YearRangeB3" in result
-        assert "initial_year=2020" in result
-        assert "last_year=2024" in result
+        assert 'YearRangeB3' in result
+        assert 'initial_year=2020' in result
+        assert 'last_year=2024' in result
 
     def test_repr_is_detailed(self):
         year_range = YearRangeB3(1986, 2024)
         result = repr(year_range)
-        assert "1986" in result
-        assert "2024" in result
+        assert '1986' in result
+        assert '2024' in result
 
 
 class TestYearRangeB3Equality:
@@ -204,7 +204,7 @@ class TestYearRangeB3Equality:
 
     def test_not_equal_to_other_types(self):
         year_range = YearRangeB3(2020, 2024)
-        assert year_range != "2020-2024"
+        assert year_range != '2020-2024'
         assert year_range != (2020, 2024)
         assert year_range != [2020, 2024]
         assert year_range != range(2020, 2025)
@@ -224,8 +224,8 @@ class TestYearRangeB3Hashability:
 
     def test_can_be_used_as_dict_key(self):
         year_range = YearRangeB3(2020, 2024)
-        data = {year_range: "data for 2020-2024"}
-        assert data[year_range] == "data for 2020-2024"
+        data = {year_range: 'data for 2020-2024'}
+        assert data[year_range] == 'data for 2020-2024'
 
     def test_equal_ranges_have_same_hash(self):
         year_range1 = YearRangeB3(2020, 2024)

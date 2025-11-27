@@ -21,7 +21,7 @@ class ExtractionConfigServiceB3:
         """
         if not isinstance(mode, str):
             raise TypeError(
-                f"processing_mode must be a string, got {type(mode).__name__}"
+                f'processing_mode must be a string, got {type(mode).__name__}'
             )
 
         try:
@@ -30,7 +30,9 @@ class ExtractionConfigServiceB3:
             return valid_mode
         except ValueError:
             # Filter to get only the actual mode values (FAST, SLOW), not configuration constants
-            valid_modes = [m.value for m in ProcessingModeEnumB3 if "_" not in m.name]
+            valid_modes = [
+                m.value for m in ProcessingModeEnumB3 if '_' not in m.name
+            ]
             raise InvalidProcessingMode(mode, valid_modes)
 
     @staticmethod
@@ -49,13 +51,15 @@ class ExtractionConfigServiceB3:
         """
         if not isinstance(filename, str):
             raise TypeError(
-                f"output_filename must be a string, got {type(filename).__name__}"
+                f'output_filename must be a string, got {type(filename).__name__}'
             )
 
         if not filename.strip():
-            raise InvalidOutputFilename("Filename cannot be empty or whitespace")
+            raise InvalidOutputFilename(
+                'Filename cannot be empty or whitespace'
+            )
 
-        if not filename.lower().endswith(".parquet"):
-            return f"{filename}.parquet"
+        if not filename.lower().endswith('.parquet'):
+            return f'{filename}.parquet'
 
         return filename

@@ -8,10 +8,10 @@ from .fundamental_stocks_data import (
 )
 
 __all__ = [
-    "DownloadResultCVM",
-    "DownloadDocumentsUseCaseCVM",
-    "GetAvailableDocsUseCaseCVM",
-    "GetAvailableYearsUseCaseCVM",
-    "AsyncDownloadAdapterCVM",
-    "ParquetExtractorAdapterCVM",
+    'DownloadResultCVM',
+    'DownloadDocumentsUseCaseCVM',
+    'GetAvailableDocsUseCaseCVM',
+    'GetAvailableYearsUseCaseCVM',
+    'AsyncDownloadAdapterCVM',
+    'ParquetExtractorAdapterCVM',
 ]

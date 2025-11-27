@@ -30,8 +30,8 @@ class DownloadDocumentsUseCaseCVM:
         self.__range_years_generator = GenerateRangeYearsUseCasesCVM()
 
         logger.debug(
-            f"DownloadDocumentsUseCaseCVM initialized with "
-            f"repository={repository.__class__.__name__}"
+            f'DownloadDocumentsUseCaseCVM initialized with '
+            f'repository={repository.__class__.__name__}'
         )
 
     def execute(
@@ -53,10 +53,10 @@ class DownloadDocumentsUseCaseCVM:
             DownloadResultCVM containing successful downloads and encountered errors.
         """
         logger.info(
-            f"Starting download orchestration: "
-            f"path={destination_path}, "
-            f"docs={list_docs}, "
-            f"years={initial_year}-{last_year}"
+            f'Starting download orchestration: '
+            f'path={destination_path}, '
+            f'docs={list_docs}, '
+            f'years={initial_year}-{last_year}'
         )
 
         range_years = self.__range_years_generator.execute(
@@ -89,29 +89,29 @@ class DownloadDocumentsUseCaseCVM:
             result.elapsed_time = end_time - start_time
 
             logger.info(
-                f"Download completed in {result.elapsed_time:.2f}s: "
-                f"✓ {result.success_count_downloads} successful, "
-                f"✗ {result.error_count_downloads} errors"
+                f'Download completed in {result.elapsed_time:.2f}s: '
+                f'✓ {result.success_count_downloads} successful, '
+                f'✗ {result.error_count_downloads} errors'
             )
 
             if result.successful_downloads:
                 logger.debug(
-                    f"Successfully downloaded: {', '.join(result.successful_downloads)}"
+                    f'Successfully downloaded: {", ".join(result.successful_downloads)}'
                 )
 
             if result.failed_downloads:
-                failed_info = "; ".join(
+                failed_info = '; '.join(
                     [
-                        f"{doc}: {error}"
+                        f'{doc}: {error}'
                         for doc, error in result.failed_downloads.items()
                     ]
                 )
-                logger.warning(f"Failed downloads: {failed_info}")
+                logger.warning(f'Failed downloads: {failed_info}')
 
             return result
 
         except Exception as e:
-            logger.error(f"Download execution failed: {e}", exc_info=True)
+            logger.error(f'Download execution failed: {e}', exc_info=True)
             raise
 
     def __prepare_download_tasks(
@@ -136,10 +136,12 @@ class DownloadDocumentsUseCaseCVM:
                         break
 
                 if matching_url:
-                    tasks.append((matching_url, doc_name, year_str, destination_path))
+                    tasks.append(
+                        (matching_url, doc_name, year_str, destination_path)
+                    )
                 else:
                     logger.warning(
-                        f"No URL found for {doc_name}_{year_str} in dict_zip_to_download"
+                        f'No URL found for {doc_name}_{year_str} in dict_zip_to_download'
                     )
 
         return tasks

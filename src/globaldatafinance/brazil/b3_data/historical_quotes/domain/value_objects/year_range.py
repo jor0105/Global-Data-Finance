@@ -35,19 +35,19 @@ class YearRangeB3:
         if not isinstance(self.initial_year, int) or not isinstance(
             self.last_year, int
         ):
-            raise ValueError("Years must be integers")
+            raise ValueError('Years must be integers')
 
         if self.initial_year > self.last_year:
             raise ValueError(
-                f"Initial year ({self.initial_year}) cannot be greater than "
-                f"last year ({self.last_year})"
+                f'Initial year ({self.initial_year}) cannot be greater than '
+                f'last year ({self.last_year})'
             )
 
         current_year = date.today().year
         if self.last_year > current_year:
             raise ValueError(
-                f"Last year ({self.last_year}) cannot be in the future "
-                f"(current year: {current_year})"
+                f'Last year ({self.last_year}) cannot be in the future '
+                f'(current year: {current_year})'
             )
 
     def to_range(self) -> range:
@@ -64,7 +64,7 @@ class YearRangeB3:
         Returns:
             str: String representation of the year range
         """
-        return f"{self.initial_year}-{self.last_year}"
+        return f'{self.initial_year}-{self.last_year}'
 
     def __repr__(self) -> str:
         """Return a detailed string representation for debugging.
@@ -72,6 +72,4 @@ class YearRangeB3:
         Returns:
             str: Detailed representation of the year range
         """
-        return (
-            f"YearRangeB3(initial_year={self.initial_year}, last_year={self.last_year})"
-        )
+        return f'YearRangeB3(initial_year={self.initial_year}, last_year={self.last_year})'

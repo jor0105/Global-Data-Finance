@@ -13,11 +13,13 @@ class VerifyDestinationPathsUseCaseB3:
     def execute(destination_path: str) -> None:
         if not isinstance(destination_path, str):
             raise TypeError(
-                f"Destination path must be a string, got {type(destination_path).__name__}"
+                f'Destination path must be a string, got {type(destination_path).__name__}'
             )
 
         if not destination_path or destination_path.isspace():
-            raise InvalidDestinationPathError("path cannot be empty or whitespace")
+            raise InvalidDestinationPathError(
+                'path cannot be empty or whitespace'
+            )
 
         normalized_path = Path(destination_path).expanduser().resolve()
 
@@ -35,5 +37,5 @@ class VerifyDestinationPathsUseCaseB3:
                 raise PathPermissionError(str(normalized_path)) from e
             except OSError as e:
                 raise OSError(
-                    f"Failed to create directory {normalized_path}: {e}"
+                    f'Failed to create directory {normalized_path}: {e}'
                 ) from e

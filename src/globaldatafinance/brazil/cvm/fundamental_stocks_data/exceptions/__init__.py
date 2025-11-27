@@ -9,11 +9,11 @@ from .exceptions_domain import (
 )
 
 __all__ = [
-    "InvalidFirstYear",
-    "InvalidLastYear",
-    "InvalidDocName",
-    "InvalidTypeDoc",
-    "InvalidRepositoryTypeError",
-    "EmptyDocumentListError",
-    "MissingDownloadUrlError",
+    'InvalidFirstYear',
+    'InvalidLastYear',
+    'InvalidDocName',
+    'InvalidTypeDoc',
+    'InvalidRepositoryTypeError',
+    'EmptyDocumentListError',
+    'MissingDownloadUrlError',
 ]

@@ -11,13 +11,13 @@ from .use_cases import (
 )
 
 __all__ = [
-    "CreateDocsToExtractUseCaseB3",
-    "ExtractHistoricalQuotesUseCaseB3",
-    "GetAvailableYearsUseCaseB3",
-    "GetAvailableAssetsUseCaseB3",
-    "CreateRangeYearsUseCaseB3",
-    "CreateSetAssetsUseCaseB3",
-    "CreateSetToDownloadUseCaseB3",
-    "VerifyDestinationPathsUseCaseB3",
-    "ValidateExtractionConfigUseCaseB3",
+    'CreateDocsToExtractUseCaseB3',
+    'ExtractHistoricalQuotesUseCaseB3',
+    'GetAvailableYearsUseCaseB3',
+    'GetAvailableAssetsUseCaseB3',
+    'CreateRangeYearsUseCaseB3',
+    'CreateSetAssetsUseCaseB3',
+    'CreateSetToDownloadUseCaseB3',
+    'VerifyDestinationPathsUseCaseB3',
+    'ValidateExtractionConfigUseCaseB3',
 ]

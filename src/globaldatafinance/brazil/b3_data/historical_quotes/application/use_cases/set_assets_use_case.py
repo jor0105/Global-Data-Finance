@@ -21,4 +21,6 @@ class CreateSetAssetsUseCaseB3:
             EmptyAssetListError: If the list is empty or not a list
             InvalidAssetsName: If any asset name is invalid
         """
-        return AvailableAssetsServiceB3.validate_and_create_asset_set(assets_list)
+        return AvailableAssetsServiceB3.validate_and_create_asset_set(
+            assets_list
+        )

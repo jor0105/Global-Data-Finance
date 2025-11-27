@@ -6,10 +6,10 @@ from .get_available_years_use_case import GetAvailableYearsUseCaseCVM
 from .verify_paths_use_cases import VerifyPathsUseCasesCVM
 
 __all__ = [
-    "DownloadDocumentsUseCaseCVM",
-    "GenerateUrlsUseCaseCVM",
-    "GenerateRangeYearsUseCasesCVM",
-    "GetAvailableDocsUseCaseCVM",
-    "GetAvailableYearsUseCaseCVM",
-    "VerifyPathsUseCasesCVM",
+    'DownloadDocumentsUseCaseCVM',
+    'GenerateUrlsUseCaseCVM',
+    'GenerateRangeYearsUseCasesCVM',
+    'GetAvailableDocsUseCaseCVM',
+    'GetAvailableYearsUseCaseCVM',
+    'VerifyPathsUseCasesCVM',
 ]

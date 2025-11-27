@@ -48,20 +48,24 @@ class CreateDocsToExtractUseCaseB3:
         # Validate path_of_docs type early
         if not isinstance(path_of_docs, str):
             raise TypeError(
-                f"path_of_docs must be a string, got {type(path_of_docs).__name__}"
+                f'path_of_docs must be a string, got {type(path_of_docs).__name__}'
             )
 
         # Validate destination_path type early if provided
-        if destination_path is not None and not isinstance(destination_path, str):
+        if destination_path is not None and not isinstance(
+            destination_path, str
+        ):
             raise TypeError(
-                f"destination_path must be a string, got {type(destination_path).__name__}"
+                f'destination_path must be a string, got {type(destination_path).__name__}'
             )
 
         self.path_of_docs = path_of_docs
         self.assets_list = assets_list
         self.initial_year = initial_year
         self.last_year = last_year
-        self.destination_path = destination_path if destination_path else path_of_docs
+        self.destination_path = (
+            destination_path if destination_path else path_of_docs
+        )
 
     def execute(self) -> DocsToExtractorB3:
         """Execute the use case to create a validated DocsToExtractorB3 entity.

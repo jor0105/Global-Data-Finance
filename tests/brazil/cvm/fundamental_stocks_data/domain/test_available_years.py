@@ -81,7 +81,9 @@ class TestAvailableYears:
         assert years_range.start == 2010
         assert years_range.stop == 2021
 
-    def test_return_range_years_includes_both_boundaries(self, available_years):
+    def test_return_range_years_includes_both_boundaries(
+        self, available_years
+    ):
         years_range = available_years.return_range_years(2018, 2022)
         years_list = list(years_range)
 
@@ -119,7 +121,7 @@ class TestAvailableYears:
         self, available_years
     ):
         with pytest.raises(InvalidFirstYear):
-            available_years.return_range_years("2020", 2021)
+            available_years.return_range_years('2020', 2021)
 
     def test_return_range_years_with_float_initial_year_raises_error(
         self, available_years
@@ -131,7 +133,7 @@ class TestAvailableYears:
         self, available_years
     ):
         with pytest.raises(InvalidLastYear):
-            available_years.return_range_years(2020, "2021")
+            available_years.return_range_years(2020, '2021')
 
     def test_return_range_years_with_float_last_year_raises_error(
         self, available_years
@@ -139,7 +141,9 @@ class TestAvailableYears:
         with pytest.raises(InvalidLastYear):
             available_years.return_range_years(2020, 2021.5)
 
-    def test_return_range_years_with_none_values_uses_defaults(self, available_years):
+    def test_return_range_years_with_none_values_uses_defaults(
+        self, available_years
+    ):
         years_range = available_years.return_range_years(None, None)
 
         assert years_range.start == 2010
@@ -165,13 +169,19 @@ class TestAvailableYears:
         # can control the value used by the class. Use raising=False to allow
         # setting even if the exact mangled name differs across Python versions.
         monkeypatch.setattr(
-            AvailableYearsCVM, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
+            AvailableYearsCVM,
+            '_AvailableYears__CURRENT_YEAR',
+            2023,
+            raising=False,
         )
 
         # Also set on the instance in case the implementation uses an instance attr
         available_years_mocked = AvailableYearsCVM()
         monkeypatch.setattr(
-            available_years_mocked, "_AvailableYears__CURRENT_YEAR", 2023, raising=False
+            available_years_mocked,
+            '_AvailableYears__CURRENT_YEAR',
+            2023,
+            raising=False,
         )
 
         years_range = available_years_mocked.return_range_years()
@@ -183,7 +193,7 @@ class TestAvailableYears:
         with pytest.raises(InvalidFirstYear) as exc_info:
             available_years.return_range_years(2009, 2020)
 
-        assert "2010" in str(exc_info.value)
+        assert '2010' in str(exc_info.value)
 
     def test_return_range_years_with_reversed_years_raises_invalid_last_year(
         self, available_years
@@ -217,7 +227,9 @@ class TestAvailableYears:
 
         assert count == 4
 
-    def test_return_range_years_can_be_converted_to_list(self, available_years):
+    def test_return_range_years_can_be_converted_to_list(
+        self, available_years
+    ):
         years_range = available_years.return_range_years(2020, 2022)
         years_list = list(years_range)
 
@@ -229,12 +241,14 @@ class TestAvailableYears:
 
         assert 2010 in list(years_range)
 
-    def test_return_range_years_error_messages_contain_year_info(self, available_years):
+    def test_return_range_years_error_messages_contain_year_info(
+        self, available_years
+    ):
         with pytest.raises(InvalidFirstYear) as exc_info:
             available_years.return_range_years(2000, 2020)
 
         error_message = str(exc_info.value)
-        assert "2010" in error_message or "first year" in error_message.lower()
+        assert '2010' in error_message or 'first year' in error_message.lower()
 
     def test_invalid_first_year_with_boolean(self, available_years):
         with pytest.raises(InvalidFirstYear):
@@ -250,7 +264,9 @@ class TestAvailableYears:
 
     def test_return_range_years_maximum_boundary(self, available_years):
         current_year = date.today().year
-        years_range = available_years.return_range_years(current_year, current_year)
+        years_range = available_years.return_range_years(
+            current_year, current_year
+        )
         assert list(years_range) == [current_year]
 
     def test_constants_relationship(self, available_years):

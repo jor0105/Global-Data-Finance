@@ -17,7 +17,9 @@ class ValidateExtractionConfigUseCaseB3:
         Returns:
             Tuple containing validated (processing_mode, output_filename).
         """
-        valid_mode = ExtractionConfigServiceB3.validate_processing_mode(processing_mode)
+        valid_mode = ExtractionConfigServiceB3.validate_processing_mode(
+            processing_mode
+        )
         valid_filename = ExtractionConfigServiceB3.validate_output_filename(
             output_filename
         )

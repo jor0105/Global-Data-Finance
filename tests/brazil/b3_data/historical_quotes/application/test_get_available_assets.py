@@ -14,13 +14,13 @@ class TestGetAvailableAssetsUseCase:
 
     def test_execute_returns_expected_assets(self):
         expected_assets = [
-            "ações",
-            "etf",
-            "opções",
-            "termo",
-            "exercicio_opcoes",
-            "forward",
-            "leilao",
+            'ações',
+            'etf',
+            'opções',
+            'termo',
+            'exercicio_opcoes',
+            'forward',
+            'leilao',
         ]
         result = GetAvailableAssetsUseCaseB3.execute()
         for asset in expected_assets:
@@ -36,31 +36,31 @@ class TestGetAvailableAssetsUseCase:
 
     def test_execute_has_acoes(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "ações" in result
+        assert 'ações' in result
 
     def test_execute_has_etf(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "etf" in result
+        assert 'etf' in result
 
     def test_execute_has_opcoes(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "opções" in result
+        assert 'opções' in result
 
     def test_execute_has_termo(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "termo" in result
+        assert 'termo' in result
 
     def test_execute_has_exercicio_opcoes(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "exercicio_opcoes" in result
+        assert 'exercicio_opcoes' in result
 
     def test_execute_has_forward(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "forward" in result
+        assert 'forward' in result
 
     def test_execute_has_leilao(self):
         result = GetAvailableAssetsUseCaseB3.execute()
-        assert "leilao" in result
+        assert 'leilao' in result
 
     def test_execute_no_duplicates(self):
         result = GetAvailableAssetsUseCaseB3.execute()
@@ -78,8 +78,8 @@ class TestGetAvailableAssetsUseCase:
     def test_execute_returns_lowercase_assets(self):
         result = GetAvailableAssetsUseCaseB3.execute()
         for asset in result:
-            if asset != "exercicio_opcoes":
-                assert asset.islower() or "_" in asset
+            if asset != 'exercicio_opcoes':
+                assert asset.islower() or '_' in asset
 
     def test_execute_returns_valid_identifiers(self):
         result = GetAvailableAssetsUseCaseB3.execute()

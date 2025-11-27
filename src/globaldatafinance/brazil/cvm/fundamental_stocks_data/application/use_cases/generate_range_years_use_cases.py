@@ -9,14 +9,16 @@ logger = get_logger(__name__)
 class GenerateRangeYearsUseCasesCVM:
     def __init__(self) -> None:
         self.__range_years = AvailableYearsCVM()
-        logger.debug("GenerateRangeYearsUseCasesCVM initialized")
+        logger.debug('GenerateRangeYearsUseCasesCVM initialized')
 
     def execute(
         self,
         initial_year: Optional[int] = None,
         last_year: Optional[int] = None,
     ) -> range:
-        logger.debug(f"Generating Range Years, years={initial_year}-{last_year}")
+        logger.debug(
+            f'Generating Range Years, years={initial_year}-{last_year}'
+        )
 
         try:
             range_years = self.__range_years.return_range_years(
@@ -24,10 +26,10 @@ class GenerateRangeYearsUseCasesCVM:
                 last_year=last_year,
             )
 
-            logger.info(f"Generated range of years: {list(range_years)}")
+            logger.info(f'Generated range of years: {list(range_years)}')
 
             return range_years
 
         except Exception as e:
-            logger.error(f"Failed to generate range of years: {e}")
+            logger.error(f'Failed to generate range of years: {e}')
             raise

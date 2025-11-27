@@ -18,14 +18,17 @@ class TestGenerateRangeYearsUseCasesInitialization:
 
     def test_initialization_creates_available_years_instance(self):
         use_case = GenerateRangeYearsUseCasesCVM()
-        assert hasattr(use_case, "_GenerateRangeYearsUseCasesCVM__range_years")
+        assert hasattr(use_case, '_GenerateRangeYearsUseCasesCVM__range_years')
         assert use_case._GenerateRangeYearsUseCasesCVM__range_years is not None
 
     def test_initialization_logs_debug_message(self, caplog):
         with caplog.at_level(logging.DEBUG):
             GenerateRangeYearsUseCasesCVM()
 
-        assert any("initialized" in record.message.lower() for record in caplog.records)
+        assert any(
+            'initialized' in record.message.lower()
+            for record in caplog.records
+        )
 
 
 @pytest.mark.unit
@@ -108,13 +111,13 @@ class TestGenerateRangeYearsUseCasesExecuteErrors:
         use_case = GenerateRangeYearsUseCasesCVM()
 
         with pytest.raises((TypeError, InvalidFirstYear)):
-            use_case.execute(initial_year="2020", last_year=2023)
+            use_case.execute(initial_year='2020', last_year=2023)
 
     def test_execute_with_non_integer_last_year_raises_error(self):
         use_case = GenerateRangeYearsUseCasesCVM()
 
         with pytest.raises((TypeError, InvalidLastYear)):
-            use_case.execute(initial_year=2020, last_year="2023")
+            use_case.execute(initial_year=2020, last_year='2023')
 
     def test_execute_with_float_years_raises_error(self):
         use_case = GenerateRangeYearsUseCasesCVM()
@@ -131,7 +134,9 @@ class TestGenerateRangeYearsUseCasesLogging:
         with caplog.at_level(logging.DEBUG):
             use_case.execute(initial_year=2020, last_year=2023)
 
-        assert any("generating" in record.message.lower() for record in caplog.records)
+        assert any(
+            'generating' in record.message.lower() for record in caplog.records
+        )
 
     def test_execute_logs_info_message_with_range(self, caplog):
         use_case = GenerateRangeYearsUseCasesCVM()
@@ -140,7 +145,8 @@ class TestGenerateRangeYearsUseCasesLogging:
             use_case.execute(initial_year=2020, last_year=2023)
 
         assert any(
-            "generated range" in record.message.lower() for record in caplog.records
+            'generated range' in record.message.lower()
+            for record in caplog.records
         )
 
     def test_execute_logs_error_on_exception(self, caplog):
@@ -150,7 +156,9 @@ class TestGenerateRangeYearsUseCasesLogging:
             with caplog.at_level(logging.ERROR):
                 use_case.execute(initial_year=1990, last_year=2023)
 
-        assert any("failed" in record.message.lower() for record in caplog.records)
+        assert any(
+            'failed' in record.message.lower() for record in caplog.records
+        )
 
 
 @pytest.mark.unit
@@ -175,7 +183,9 @@ class TestGenerateRangeYearsUseCasesEdgeCases:
         use_case = GenerateRangeYearsUseCasesCVM()
         current_year = datetime.now().year
 
-        result = use_case.execute(initial_year=current_year, last_year=current_year)
+        result = use_case.execute(
+            initial_year=current_year, last_year=current_year
+        )
 
         assert isinstance(result, range)
         assert list(result) == [current_year]

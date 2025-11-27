@@ -3,12 +3,12 @@ from typing import Optional
 
 class EmptyDirectoryError(Exception):
     def __init__(self, path):
-        super().__init__(f"Directory is empty: {path!r}")
+        super().__init__(f'Directory is empty: {path!r}')
 
 
 class InvalidDestinationPathError(ValueError):
     def __init__(self, reason: str):
-        super().__init__(f"Invalid destination path: {reason}")
+        super().__init__(f'Invalid destination path: {reason}')
 
 
 class PathIsNotDirectoryError(ValueError):
@@ -36,7 +36,7 @@ class TimeoutError(Exception):
     def __init__(self, doc_name: str, timeout: Optional[float] = None):
         msg = f"Timeout while downloading '{doc_name}'."
         if timeout:
-            msg += f" Timeout: {timeout}s."
+            msg += f' Timeout: {timeout}s.'
         super().__init__(msg)
 
 
@@ -47,7 +47,7 @@ class ExtractionError(Exception):
 
 class CorruptedZipError(ExtractionError):
     def __init__(self, zip_path: str, message: str):
-        super().__init__(zip_path, f"Corrupted ZIP: {message}")
+        super().__init__(zip_path, f'Corrupted ZIP: {message}')
 
 
 class DiskFullError(OSError):
@@ -60,4 +60,4 @@ class SecurityError(Exception):
         if path:
             super().__init__(f"Security violation: {message} (path: '{path}')")
         else:
-            super().__init__(f"Security violation: {message}")
+            super().__init__(f'Security violation: {message}')

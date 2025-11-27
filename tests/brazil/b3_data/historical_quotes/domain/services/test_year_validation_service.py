@@ -67,7 +67,9 @@ class TestValidateAndCreateYearRangeB3:
 
     def test_creates_range_with_same_year(self):
         year = 2020
-        result = YearValidationServiceB3.validate_and_create_year_range(year, year)
+        result = YearValidationServiceB3.validate_and_create_year_range(
+            year, year
+        )
         assert result.initial_year == year
         assert result.last_year == year
 
@@ -82,7 +84,9 @@ class TestValidateAndCreateYearRangeB3:
 
     def test_creates_range_for_single_recent_year(self):
         year = date.today().year
-        result = YearValidationServiceB3.validate_and_create_year_range(year, year)
+        result = YearValidationServiceB3.validate_and_create_year_range(
+            year, year
+        )
         assert result.initial_year == year
         assert result.last_year == year
 
@@ -103,7 +107,7 @@ class TestValidateAndCreateYearRangeB3:
             )
 
     def test_raises_invalid_first_year_for_non_integer(self):
-        initial_year = "2020"
+        initial_year = '2020'
         last_year = 2024
         with pytest.raises(InvalidFirstYear):
             YearValidationServiceB3.validate_and_create_year_range(
@@ -144,7 +148,7 @@ class TestValidateAndCreateYearRangeB3:
 
     def test_raises_invalid_last_year_for_non_integer(self):
         initial_year = 2020
-        last_year = "2024"
+        last_year = '2024'
         with pytest.raises(InvalidLastYear):
             YearValidationServiceB3.validate_and_create_year_range(
                 initial_year, last_year
@@ -187,7 +191,7 @@ class TestValidateAndCreateYearRangeB3:
         initial_year = 2020
         last_year = 2023
         with patch(
-            "globaldatafinance.brazil.b3_data.historical_quotes.domain.services.year_validation_service.date"
+            'globaldatafinance.brazil.b3_data.historical_quotes.domain.services.year_validation_service.date'
         ) as mock_date:
             mock_date.today.return_value.year = 2024
             result = YearValidationServiceB3.validate_and_create_year_range(
@@ -222,7 +226,9 @@ class TestValidateAndCreateYearRangeB3:
             )
 
     def test_is_class_method(self):
-        result = YearValidationServiceB3.validate_and_create_year_range(2020, 2024)
+        result = YearValidationServiceB3.validate_and_create_year_range(
+            2020, 2024
+        )
         assert result is not None
 
     def test_exception_contains_correct_min_year(self):
@@ -232,7 +238,7 @@ class TestValidateAndCreateYearRangeB3:
             YearValidationServiceB3.validate_and_create_year_range(
                 initial_year, last_year
             )
-        assert "1986" in str(exc_info.value)
+        assert '1986' in str(exc_info.value)
 
     def test_exception_contains_correct_current_year(self):
         initial_year = date.today().year + 1

@@ -33,8 +33,8 @@ class ExtractHistoricalQuotesUseCaseB3:
     async def execute(
         self,
         docs_to_extract: DocsToExtractorB3,
-        processing_mode: str = "fast",
-        output_filename: str = "cotahist_extracted.parquet",
+        processing_mode: str = 'fast',
+        output_filename: str = 'cotahist_extracted.parquet',
     ) -> Dict[str, Any]:
         """Execute the extraction process.
 
@@ -53,20 +53,22 @@ class ExtractHistoricalQuotesUseCaseB3:
             processing_mode=processing_mode,
         )
 
-        target_tpmerc_codes = AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
-            docs_to_extract.set_assets
+        target_tpmerc_codes = (
+            AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
+                docs_to_extract.set_assets
+            )
         )
 
         zip_files: Set[str] = docs_to_extract.set_documents_to_download
 
         if not zip_files:
             return {
-                "total_files": 0,
-                "success_count": 0,
-                "error_count": 0,
-                "total_records": 0,
-                "errors": {},
-                "output_file": "",
+                'total_files': 0,
+                'success_count': 0,
+                'error_count': 0,
+                'total_records': 0,
+                'errors': {},
+                'output_file': '',
             }
 
         output_path = Path(docs_to_extract.destination_path) / output_filename
@@ -82,8 +84,8 @@ class ExtractHistoricalQuotesUseCaseB3:
     def execute_sync(
         self,
         docs_to_extract: DocsToExtractorB3,
-        processing_mode: str = "fast",
-        output_filename: str = "cotahist_extracted.parquet",
+        processing_mode: str = 'fast',
+        output_filename: str = 'cotahist_extracted.parquet',
     ) -> Dict[str, Any]:
         """Synchronous wrapper for execute() method.
 

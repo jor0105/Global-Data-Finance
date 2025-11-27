@@ -20,10 +20,10 @@ except ImportError:
 class ResourceState(Enum):
     """Represents the current state of system resources."""
 
-    HEALTHY = "healthy"
-    WARNING = "warning"
-    CRITICAL = "critical"
-    EXHAUSTED = "exhausted"
+    HEALTHY = 'healthy'
+    WARNING = 'warning'
+    CRITICAL = 'critical'
+    EXHAUSTED = 'exhausted'
 
 
 @dataclass
@@ -64,7 +64,7 @@ class ResourceMonitor:
         ...     pass
     """
 
-    _instance: Optional["ResourceMonitor"] = None
+    _instance: Optional['ResourceMonitor'] = None
     _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
@@ -82,7 +82,7 @@ class ResourceMonitor:
             limits: Optional custom resource limits. Uses defaults if None.
         """
         # Skip re-initialization for singleton
-        if hasattr(self, "_initialized"):
+        if hasattr(self, '_initialized'):
             return
 
         self.limits = limits or ResourceLimits()
@@ -93,8 +93,8 @@ class ResourceMonitor:
 
         if psutil is None:
             logger.warning(
-                "psutil not installed - resource monitoring will be limited. "
-                "Install with: pip install psutil"
+                'psutil not installed - resource monitoring will be limited. '
+                'Install with: pip install psutil'
             )
 
         self._log_system_info()
@@ -103,21 +103,21 @@ class ResourceMonitor:
     def _log_system_info(self) -> None:
         """Log system information for debugging."""
         info = {
-            "platform": platform.system(),
-            "python_version": platform.python_version(),
-            "cpu_count": os.cpu_count() or 1,
+            'platform': platform.system(),
+            'python_version': platform.python_version(),
+            'cpu_count': os.cpu_count() or 1,
         }
 
         if psutil:
             memory = psutil.virtual_memory()
             info.update(
                 {
-                    "total_ram_gb": f"{memory.total / (1024**3):.2f}",
-                    "available_ram_gb": f"{memory.available / (1024**3):.2f}",
+                    'total_ram_gb': f'{memory.total / (1024**3):.2f}',
+                    'available_ram_gb': f'{memory.available / (1024**3):.2f}',
                 }
             )
 
-        logger.info("ResourceMonitor initialized", extra=info)
+        logger.info('ResourceMonitor initialized', extra=info)
 
     def check_resources(self) -> ResourceState:
         """Check current resource state.
@@ -163,7 +163,7 @@ class ResourceMonitor:
                 return ResourceState.HEALTHY
 
         except Exception as e:
-            logger.error(f"Error checking resources: {e}", exc_info=True)
+            logger.error(f'Error checking resources: {e}', exc_info=True)
             # On error, assume critical to be safe
             return ResourceState.CRITICAL
 
@@ -183,20 +183,20 @@ class ResourceMonitor:
         # Check absolute minimum free memory
         if free_mb < self.limits.min_free_memory_mb:
             logger.error(
-                f"Memory exhausted: {free_mb:.1f}MB free "
-                f"(minimum: {self.limits.min_free_memory_mb}MB)"
+                f'Memory exhausted: {free_mb:.1f}MB free '
+                f'(minimum: {self.limits.min_free_memory_mb}MB)'
             )
             return ResourceState.EXHAUSTED
 
         # Check percentage thresholds
         if percent_used >= self.limits.memory_exhausted_threshold:
-            logger.error(f"Memory exhausted: {percent_used:.1f}% used")
+            logger.error(f'Memory exhausted: {percent_used:.1f}% used')
             return ResourceState.EXHAUSTED
         elif percent_used >= self.limits.memory_critical_threshold:
-            logger.warning(f"Memory critical: {percent_used:.1f}% used")
+            logger.warning(f'Memory critical: {percent_used:.1f}% used')
             return ResourceState.CRITICAL
         elif percent_used >= self.limits.memory_warning_threshold:
-            logger.info(f"Memory warning: {percent_used:.1f}% used")
+            logger.info(f'Memory warning: {percent_used:.1f}% used')
             return ResourceState.WARNING
         else:
             return ResourceState.HEALTHY
@@ -214,10 +214,10 @@ class ResourceMonitor:
         cpu_percent = psutil.cpu_percent(interval=0.1)
 
         if cpu_percent >= self.limits.cpu_critical_threshold:
-            logger.warning(f"CPU critical: {cpu_percent:.1f}% used")
+            logger.warning(f'CPU critical: {cpu_percent:.1f}% used')
             return ResourceState.CRITICAL
         elif cpu_percent >= self.limits.cpu_warning_threshold:
-            logger.info(f"CPU warning: {cpu_percent:.1f}% used")
+            logger.info(f'CPU warning: {cpu_percent:.1f}% used')
             return ResourceState.WARNING
         else:
             return ResourceState.HEALTHY
@@ -255,8 +255,8 @@ class ResourceMonitor:
 
         if safe_count < max_workers:
             logger.info(
-                f"Reduced worker count from {max_workers} to {safe_count} "
-                f"due to resource constraints"
+                f'Reduced worker count from {max_workers} to {safe_count} '
+                f'due to resource constraints'
             )
 
         return safe_count
@@ -285,8 +285,8 @@ class ResourceMonitor:
 
         if safe_size < desired_batch_size:
             logger.info(
-                f"Reduced batch size from {desired_batch_size} to {safe_size} "
-                f"due to memory constraints"
+                f'Reduced batch size from {desired_batch_size} to {safe_size} '
+                f'due to memory constraints'
             )
 
         return safe_size
@@ -295,7 +295,7 @@ class ResourceMonitor:
         """Force garbage collection if cooldown period has passed."""
         current_time = time.time()
         if current_time - self._last_gc_time >= self._gc_cooldown_seconds:
-            logger.debug("Forcing garbage collection to free memory")
+            logger.debug('Forcing garbage collection to free memory')
             gc.collect()
             self._last_gc_time = current_time
 
@@ -308,8 +308,8 @@ class ResourceMonitor:
         self._circuit_breaker_triggered_at = time.time()
 
         logger.critical(
-            f"Circuit breaker triggered! Processing paused for "
-            f"{self.limits.circuit_breaker_cooldown_seconds} seconds"
+            f'Circuit breaker triggered! Processing paused for '
+            f'{self.limits.circuit_breaker_cooldown_seconds} seconds'
         )
 
         # Force aggressive garbage collection
@@ -332,7 +332,7 @@ class ResourceMonitor:
 
     def _reset_circuit_breaker(self) -> None:
         """Reset circuit breaker after cooldown."""
-        logger.info("Circuit breaker reset - resuming processing")
+        logger.info('Circuit breaker reset - resuming processing')
         self._circuit_breaker_active = False
         self._circuit_breaker_triggered_at = None
 
@@ -350,7 +350,7 @@ class ResourceMonitor:
             result: float = process.memory_info().rss / (1024**2)
             return result
         except Exception as e:
-            logger.error(f"Error getting process memory: {e}", exc_info=True)
+            logger.error(f'Error getting process memory: {e}', exc_info=True)
             return 0.0
 
     def wait_for_resources(
@@ -378,11 +378,11 @@ class ResourceMonitor:
                 return True
 
             logger.debug(
-                f"Waiting for resources... Current state: {current_state.value}, "
-                f"Required: {required_state.value}"
+                f'Waiting for resources... Current state: {current_state.value}, '
+                f'Required: {required_state.value}'
             )
 
             time.sleep(check_interval)
 
-        logger.warning(f"Resource wait timeout after {timeout_seconds}s")
+        logger.warning(f'Resource wait timeout after {timeout_seconds}s')
         return False

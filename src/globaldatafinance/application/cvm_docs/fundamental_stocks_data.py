@@ -91,14 +91,16 @@ class FundamentalStocksDataCVM:
         self.download_adapter = AsyncDownloadAdapterCVM(
             file_extractor_repository=ParquetExtractorAdapterCVM()
         )
-        self.__download_use_case = DownloadDocumentsUseCaseCVM(self.download_adapter)
+        self.__download_use_case = DownloadDocumentsUseCaseCVM(
+            self.download_adapter
+        )
         self.__available_docs_use_case = GetAvailableDocsUseCaseCVM()
         self.__available_years_use_case = GetAvailableYearsUseCaseCVM()
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
-            "FundamentalStocksDataCVM client initialized with AsyncDownloadAdapterCVM "
-            "(automatic_extractor can be set per download call)"
+            'FundamentalStocksDataCVM client initialized with AsyncDownloadAdapterCVM '
+            '(automatic_extractor can be set per download call)'
         )
 
     def download(
@@ -176,21 +178,21 @@ class FundamentalStocksDataCVM:
         """
         if not isinstance(automatic_extractor, bool):
             raise TypeError(
-                f"automatic_extractor must be a boolean (True or False), "
-                f"got {type(automatic_extractor).__name__}: {automatic_extractor!r}"
+                f'automatic_extractor must be a boolean (True or False), '
+                f'got {type(automatic_extractor).__name__}: {automatic_extractor!r}'
             )
 
         # Override automatic_extractor if explicitly provided
         if automatic_extractor:
             self.download_adapter.automatic_extractor = True
-            logger.debug("Automatic extractor enabled for this download")
+            logger.debug('Automatic extractor enabled for this download')
         else:
-            logger.debug("Automatic extractor disabled for this download")
+            logger.debug('Automatic extractor disabled for this download')
 
         logger.info(
-            f"Download requested: path={destination_path}, "
-            f"docs={list_docs}, years={initial_year}-{last_year}, "
-            f"auto_extract={automatic_extractor}"
+            f'Download requested: path={destination_path}, '
+            f'docs={list_docs}, years={initial_year}-{last_year}, '
+            f'auto_extract={automatic_extractor}'
         )
 
         result: DownloadResultCVM = self.__download_use_case.execute(
@@ -201,8 +203,8 @@ class FundamentalStocksDataCVM:
         )
 
         logger.info(
-            f"Download completed: {result.success_count_downloads} successful, "
-            f"{result.error_count_downloads} errors"
+            f'Download completed: {result.success_count_downloads} successful, '
+            f'{result.error_count_downloads} errors'
         )
 
         # Display formatted output
@@ -238,7 +240,7 @@ class FundamentalStocksDataCVM:
             >>> if "DFP" in docs:
             ...     print(f"DFP available: {docs['DFP']}")
         """
-        logger.debug("Retrieving available document types")
+        logger.debug('Retrieving available document types')
         result: Dict[str, str] = self.__available_docs_use_case.execute()
         return result
 
@@ -274,10 +276,10 @@ class FundamentalStocksDataCVM:
             ...     last_year=max_year
             ... )
         """
-        logger.debug("Retrieving available years information")
+        logger.debug('Retrieving available years information')
         result: Dict[str, int] = self.__available_years_use_case.execute()
         return result
 
     def __repr__(self) -> str:
         """Return a string representation of the client."""
-        return "FundamentalStocksDataCVM()"
+        return 'FundamentalStocksDataCVM()'

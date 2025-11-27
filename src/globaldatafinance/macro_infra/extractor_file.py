@@ -9,7 +9,11 @@ import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 
 from ..core import get_logger
-from ..macro_exceptions import CorruptedZipError, DiskFullError, ExtractionError
+from ..macro_exceptions import (
+    CorruptedZipError,
+    DiskFullError,
+    ExtractionError,
+)
 from .read_files import ReadFilesAdapter
 
 logger = get_logger(__name__)
@@ -44,17 +48,21 @@ class ExtractorAdapter:
         """
         path = Path(zip_path)
         if not path.exists():
-            raise FileNotFoundError(f"ZIP file not found: {zip_path}")
+            raise FileNotFoundError(f'ZIP file not found: {zip_path}')
 
         try:
-            with zipfile.ZipFile(zip_path, "r") as z:
+            with zipfile.ZipFile(zip_path, 'r') as z:
                 names = z.namelist()
-                return [name for name in names if name.lower().endswith(extension)]
+                return [
+                    name for name in names if name.lower().endswith(extension)
+                ]
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e))
 
     @staticmethod
-    def open_file_from_zip(zip_file: zipfile.ZipFile, filename: str) -> IO[bytes]:
+    def open_file_from_zip(
+        zip_file: zipfile.ZipFile, filename: str
+    ) -> IO[bytes]:
         """Open a file handle from an already-opened ZIP archive.
 
         This is useful for streaming large files without loading them entirely
@@ -72,12 +80,15 @@ class ExtractorAdapter:
         """
         if filename not in zip_file.namelist():
             raise ExtractionError(
-                zip_file.filename or "unknown", f"File '{filename}' not found in ZIP"
+                zip_file.filename or 'unknown',
+                f"File '{filename}' not found in ZIP",
             )
 
         return zip_file.open(filename)
 
-    async def extract_txt_from_zip_async(self, zip_path: str) -> AsyncIterator[str]:
+    async def extract_txt_from_zip_async(
+        self, zip_path: str
+    ) -> AsyncIterator[str]:
         """Read lines from TXT file inside ZIP asynchronously with true streaming.
 
         This method is designed for COTAHIST files from B3 and uses
@@ -96,19 +107,21 @@ class ExtractorAdapter:
         """
         # Validate file existence using existing method
         try:
-            txt_files = ExtractorAdapter.list_files_in_zip(zip_path, ".txt")
+            txt_files = ExtractorAdapter.list_files_in_zip(zip_path, '.txt')
         except (FileNotFoundError, CorruptedZipError):
             raise
 
         if not txt_files:
-            raise ExtractionError(zip_path, "No .TXT file found in ZIP")
+            raise ExtractionError(zip_path, 'No .TXT file found in ZIP')
 
         # Use streaming approach with limited buffer
         loop = asyncio.get_event_loop()
 
         try:
             # Open ZIP in executor (blocking operation)
-            zip_file = await loop.run_in_executor(None, zipfile.ZipFile, zip_path, "r")
+            zip_file = await loop.run_in_executor(
+                None, zipfile.ZipFile, zip_path, 'r'
+            )
 
             try:
                 # Open the first TXT file for streaming
@@ -118,7 +131,7 @@ class ExtractorAdapter:
 
                 try:
                     # Read in chunks to avoid memory issues
-                    buffer = b""
+                    buffer = b''
 
                     while True:
                         # Read chunk in executor
@@ -130,28 +143,28 @@ class ExtractorAdapter:
                             # Process remaining buffer
                             if buffer:
                                 try:
-                                    line = buffer.decode("latin-1")
+                                    line = buffer.decode('latin-1')
                                     if line.strip():
                                         yield line.strip()
                                 except UnicodeDecodeError:
                                     logger.warning(
-                                        f"Failed to decode final buffer in {zip_path}"
+                                        f'Failed to decode final buffer in {zip_path}'
                                     )
                             break
 
                         buffer += chunk
 
                         # Process complete lines from buffer
-                        while b"\n" in buffer:
-                            line_bytes, buffer = buffer.split(b"\n", 1)
+                        while b'\n' in buffer:
+                            line_bytes, buffer = buffer.split(b'\n', 1)
 
                             try:
-                                line = line_bytes.decode("latin-1").strip()
+                                line = line_bytes.decode('latin-1').strip()
                                 if line:  # Skip empty lines
                                     yield line
                             except UnicodeDecodeError:
                                 logger.warning(
-                                    f"Failed to decode line in {zip_path}, skipping"
+                                    f'Failed to decode line in {zip_path}, skipping'
                                 )
                                 continue
 
@@ -166,9 +179,11 @@ class ExtractorAdapter:
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e))
         except Exception as e:
-            if isinstance(e, (ExtractionError, CorruptedZipError, FileNotFoundError)):
+            if isinstance(
+                e, (ExtractionError, CorruptedZipError, FileNotFoundError)
+            ):
                 raise
-            raise ExtractionError(zip_path, f"Error reading TXT from ZIP: {e}")
+            raise ExtractionError(zip_path, f'Error reading TXT from ZIP: {e}')
 
     def extract_csv_from_zip_to_parquet(
         self,
@@ -193,12 +208,14 @@ class ExtractorAdapter:
             DiskFullError: If insufficient disk space
         """
         logger.debug(
-            f"Processing {csv_filename} with chunk size {self.CHUNK_SIZE_PARQUET}"
+            f'Processing {csv_filename} with chunk size {self.CHUNK_SIZE_PARQUET}'
         )
 
         try:
             # Detect encoding first
-            encoding = ReadFilesAdapter.read_csv_test_encoding(zip_file, csv_filename)
+            encoding = ReadFilesAdapter.read_csv_test_encoding(
+                zip_file, csv_filename
+            )
 
             # Try streaming conversion
             try:
@@ -207,8 +224,8 @@ class ExtractorAdapter:
                 )
             except Exception as stream_error:
                 logger.warning(
-                    f"Streaming failed for {csv_filename}, "
-                    f"attempting fallback: {stream_error}"
+                    f'Streaming failed for {csv_filename}, '
+                    f'attempting fallback: {stream_error}'
                 )
 
                 # Clean up partial file before fallback
@@ -221,7 +238,8 @@ class ExtractorAdapter:
         except Exception as e:
             self.__safe_delete_file(parquet_path)
             raise ExtractionError(
-                str(parquet_path), f"Error converting {csv_filename} to Parquet: {e}"
+                str(parquet_path),
+                f'Error converting {csv_filename} to Parquet: {e}',
             )
 
     def __stream_csv_to_parquet(
@@ -249,7 +267,9 @@ class ExtractorAdapter:
 
         try:
             with zip_file.open(csv_filename) as csv_file:
-                text_wrapper = io.TextIOWrapper(csv_file, encoding=encoding, newline="")
+                text_wrapper = io.TextIOWrapper(
+                    csv_file, encoding=encoding, newline=''
+                )
 
                 csv_reader = ReadFilesAdapter.read_csv_chunk_size(
                     text_wrapper, chunk_size=self.CHUNK_SIZE_PARQUET
@@ -263,33 +283,37 @@ class ExtractorAdapter:
                             writer = pq.ParquetWriter(
                                 parquet_path,
                                 table.schema,
-                                compression="zstd",
+                                compression='zstd',
                                 compression_level=3,
                             )
-                            logger.debug(f"Created {parquet_path.name}")
+                            logger.debug(f'Created {parquet_path.name}')
 
                         try:
                             writer.write_table(table)
                             total_rows += len(chunk_df)
                         except OSError as e:
-                            if "No space left on device" in str(e):
+                            if 'No space left on device' in str(e):
                                 raise DiskFullError(str(parquet_path))
                             raise
 
                 if writer is not None:
                     writer.close()
                     writer_closed = True
-                    logger.debug(f"Completed {csv_filename}: {total_rows} rows written")
+                    logger.debug(
+                        f'Completed {csv_filename}: {total_rows} rows written'
+                    )
 
         except Exception:
             if writer is not None and not writer_closed:
                 try:
                     writer.close()
                 except Exception as close_err:
-                    logger.error(f"Failed to close writer: {close_err}")
+                    logger.error(f'Failed to close writer: {close_err}')
             raise
 
-    def __safe_delete_file(self, file_path: Path, max_attempts: int = 3) -> None:
+    def __safe_delete_file(
+        self, file_path: Path, max_attempts: int = 3
+    ) -> None:
         """Safely delete file with retry logic.
 
         Args:
@@ -305,17 +329,19 @@ class ExtractorAdapter:
         for attempt in range(max_attempts):
             try:
                 file_path.unlink()
-                logger.debug(f"Deleted {file_path.name} (attempt {attempt + 1})")
+                logger.debug(
+                    f'Deleted {file_path.name} (attempt {attempt + 1})'
+                )
                 return
             except Exception as e:
                 if attempt >= max_attempts - 1:
                     raise ExtractionError(
                         str(file_path),
-                        f"Cannot delete file after {max_attempts} attempts: {e}. "
-                        f"Manual intervention required.",
+                        f'Cannot delete file after {max_attempts} attempts: {e}. '
+                        f'Manual intervention required.',
                     )
                 time.sleep(0.1 * (attempt + 1))
                 logger.debug(
-                    f"Retrying deletion of {file_path.name} "
-                    f"(attempt {attempt + 2}/{max_attempts})"
+                    f'Retrying deletion of {file_path.name} '
+                    f'(attempt {attempt + 2}/{max_attempts})'
                 )

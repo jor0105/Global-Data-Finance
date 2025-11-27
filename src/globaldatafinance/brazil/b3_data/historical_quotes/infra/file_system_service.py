@@ -36,12 +36,12 @@ class FileSystemServiceB3:
 
         # Block access to sensitive system directories
         sensitive_dirs = [
-            Path("/etc"),
-            Path("/root"),
-            Path("/sys"),
-            Path("/proc"),
-            Path("/dev"),
-            Path("/boot"),
+            Path('/etc'),
+            Path('/root'),
+            Path('/sys'),
+            Path('/proc'),
+            Path('/dev'),
+            Path('/boot'),
         ]
 
         for sensitive_dir in sensitive_dirs:
@@ -72,13 +72,17 @@ class FileSystemServiceB3:
             EmptyDirectoryError: If directory is empty
             SecurityError: If path traversal detected
         """
-        logger.debug("Validating directory path", extra={"path": path})
+        logger.debug('Validating directory path', extra={'path': path})
 
         if not isinstance(path, str):
-            raise TypeError(f"Path must be a string, got {type(path).__name__}")
+            raise TypeError(
+                f'Path must be a string, got {type(path).__name__}'
+            )
 
         if not path or path.isspace():
-            raise InvalidDestinationPathError("Path cannot be empty or whitespace")
+            raise InvalidDestinationPathError(
+                'Path cannot be empty or whitespace'
+            )
 
         normalized_path = Path(path).expanduser().resolve()
 
@@ -94,8 +98,8 @@ class FileSystemServiceB3:
             raise EmptyDirectoryError(str(normalized_path))
 
         logger.debug(
-            "Directory path validated successfully",
-            extra={"normalized_path": str(normalized_path)},
+            'Directory path validated successfully',
+            extra={'normalized_path': str(normalized_path)},
         )
 
         return normalized_path

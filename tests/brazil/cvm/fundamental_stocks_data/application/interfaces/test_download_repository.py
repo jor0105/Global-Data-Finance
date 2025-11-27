@@ -15,15 +15,17 @@ class TestDownloadDocsCVMRepositoryInterface:
         assert issubclass(DownloadDocsCVMRepositoryCVM, ABC)
 
     def test_has_download_docs_method(self):
-        assert hasattr(DownloadDocsCVMRepositoryCVM, "download_docs")
+        assert hasattr(DownloadDocsCVMRepositoryCVM, 'download_docs')
 
     def test_cannot_instantiate_directly(self):
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        with pytest.raises(
+            TypeError, match="Can't instantiate abstract class"
+        ):
             DownloadDocsCVMRepositoryCVM()
 
     def test_download_docs_is_abstract_method(self):
         assert hasattr(
-            DownloadDocsCVMRepositoryCVM.download_docs, "__isabstractmethod__"
+            DownloadDocsCVMRepositoryCVM.download_docs, '__isabstractmethod__'
         )
         assert DownloadDocsCVMRepositoryCVM.download_docs.__isabstractmethod__
 
@@ -34,7 +36,9 @@ class TestDownloadDocsCVMRepositoryContract:
         class IncompleteRepository(DownloadDocsCVMRepositoryCVM):
             pass
 
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        with pytest.raises(
+            TypeError, match="Can't instantiate abstract class"
+        ):
             IncompleteRepository()
 
     def test_concrete_implementation_with_download_docs_works(self):
@@ -73,15 +77,15 @@ class TestDownloadDocsCVMRepositoryDocumentation:
 
     def test_docstring_mentions_download(self):
         doc = DownloadDocsCVMRepositoryCVM.__doc__
-        assert "download" in doc.lower() or "cvm" in doc.lower()
+        assert 'download' in doc.lower() or 'cvm' in doc.lower()
 
     def test_download_docs_docstring_mentions_parameters(self):
         doc = DownloadDocsCVMRepositoryCVM.download_docs.__doc__
-        assert "tasks" in doc.lower() or "url" in doc.lower()
+        assert 'tasks' in doc.lower() or 'url' in doc.lower()
 
     def test_download_docs_docstring_mentions_return(self):
         doc = DownloadDocsCVMRepositoryCVM.download_docs.__doc__
-        assert "return" in doc.lower() or "downloadresult" in doc.lower()
+        assert 'return' in doc.lower() or 'downloadresult' in doc.lower()
 
 
 @pytest.mark.unit
@@ -100,8 +104,8 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
 
         repository = SimpleRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp_2020", "2020", "/path/2020"),
-            ("http://example.com/dfp2021", "dfp_2021", "2021", "/path/2021"),
+            ('http://example.com/dfp2020', 'dfp_2020', '2020', '/path/2020'),
+            ('http://example.com/dfp2021', 'dfp_2021', '2021', '/path/2021'),
         ]
 
         result = repository.download_docs(tasks)
@@ -118,14 +122,14 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
             ) -> DownloadResultCVM:
                 result = DownloadResultCVM()
                 for url, doc_name, year, path in tasks:
-                    result.add_success_downloads(f"{doc_name}_{year}")
+                    result.add_success_downloads(f'{doc_name}_{year}')
                 return result
 
         repository = SuccessRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
-            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
-            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
+            ('http://example.com/dfp2021', 'dfp', '2021', '/path/2021'),
+            ('http://example.com/itr2020', 'itr', '2020', '/path/2020'),
         ]
 
         result = repository.download_docs(tasks)
@@ -140,18 +144,18 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
                 tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResultCVM:
                 result = DownloadResultCVM()
-                result.add_error_downloads("DFP_2020", "Connection timeout")
+                result.add_error_downloads('DFP_2020', 'Connection timeout')
                 return result
 
         repository = ErrorRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
 
         result = repository.download_docs(tasks)
 
         assert result.error_count_downloads == 1
-        assert "DFP_2020" in result.failed_downloads
+        assert 'DFP_2020' in result.failed_downloads
 
     def test_repository_can_raise_exceptions(self):
         class FailingRepository(DownloadDocsCVMRepositoryCVM):
@@ -159,14 +163,14 @@ class TestDownloadDocsCVMRepositoryConcreteImplementations:
                 self,
                 tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResultCVM:
-                raise RuntimeError("Download failed")
+                raise RuntimeError('Download failed')
 
         repository = FailingRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
 
-        with pytest.raises(RuntimeError, match="Download failed"):
+        with pytest.raises(RuntimeError, match='Download failed'):
             repository.download_docs(tasks)
 
 
@@ -189,7 +193,7 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
 
         repositories = [RepoA(), RepoB()]
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
 
         for repo in repositories:
@@ -217,7 +221,7 @@ class TestDownloadDocsCVMRepositoryPolymorphism:
 
         mock = MockRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
         result = execute_download(mock, tasks)
 
@@ -237,7 +241,7 @@ class TestDownloadDocsCVMRepositoryReturnType:
 
         repository = ConcreteRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
         result = repository.download_docs(tasks)
 
@@ -250,16 +254,16 @@ class TestDownloadDocsCVMRepositoryReturnType:
                 tasks: List[Tuple[str, str, str, str]],
             ) -> DownloadResultCVM:
                 result = DownloadResultCVM()
-                result.add_success_downloads("DFP_2020")
-                result.add_success_downloads("DFP_2021")
-                result.add_error_downloads("ITR_2020", "Error message")
+                result.add_success_downloads('DFP_2020')
+                result.add_success_downloads('DFP_2021')
+                result.add_error_downloads('ITR_2020', 'Error message')
                 return result
 
         repository = PopulatedRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
-            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
-            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
+            ('http://example.com/dfp2021', 'dfp', '2021', '/path/2021'),
+            ('http://example.com/itr2020', 'itr', '2020', '/path/2020'),
         ]
         result = repository.download_docs(tasks)
 
@@ -283,8 +287,8 @@ class TestDownloadDocsCVMRepositoryParameterTypes:
 
         repository = TypeCheckingRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
-            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
+            ('http://example.com/dfp2021', 'dfp', '2021', '/path/2021'),
         ]
         repository.download_docs(tasks)
 
@@ -304,7 +308,7 @@ class TestDownloadDocsCVMRepositoryParameterTypes:
 
         repository = TypeCheckingRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
         ]
         repository.download_docs(tasks)
 
@@ -368,17 +372,17 @@ class TestDownloadDocsCVMRepositoryEdgeCases:
             ) -> DownloadResultCVM:
                 result = DownloadResultCVM()
                 for url, doc_name, year, path in tasks:
-                    result.add_success_downloads(f"{doc_name}_{year}")
+                    result.add_success_downloads(f'{doc_name}_{year}')
                 return result
 
         repository = ManyTasksRepository()
         tasks = [
-            ("http://example.com/dfp2020", "dfp", "2020", "/path/2020"),
-            ("http://example.com/dfp2021", "dfp", "2021", "/path/2021"),
-            ("http://example.com/dfp2022", "dfp", "2022", "/path/2022"),
-            ("http://example.com/itr2020", "itr", "2020", "/path/2020"),
-            ("http://example.com/itr2021", "itr", "2021", "/path/2021"),
-            ("http://example.com/fre2020", "fre", "2020", "/path/2020"),
+            ('http://example.com/dfp2020', 'dfp', '2020', '/path/2020'),
+            ('http://example.com/dfp2021', 'dfp', '2021', '/path/2021'),
+            ('http://example.com/dfp2022', 'dfp', '2022', '/path/2022'),
+            ('http://example.com/itr2020', 'itr', '2020', '/path/2020'),
+            ('http://example.com/itr2021', 'itr', '2021', '/path/2021'),
+            ('http://example.com/fre2020', 'fre', '2020', '/path/2020'),
         ]
 
         result = repository.download_docs(tasks)

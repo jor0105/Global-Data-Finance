@@ -33,7 +33,7 @@ class DictZipsToDownloadCVM:
         dict_urls_docs, set_docs = self._url_docs.get_url_docs(list_docs)
 
         dict_zips_to_download: Dict[str, List[str]] = {
-            doc: [url + str(year) + ".zip" for year in range_years]
+            doc: [url + str(year) + '.zip' for year in range_years]
             for doc, url in dict_urls_docs.items()
         }
 

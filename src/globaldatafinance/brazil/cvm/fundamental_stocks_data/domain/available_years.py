@@ -50,7 +50,9 @@ class AvailableYearsCVM:
             raise InvalidLastYear(initial_year, self.get_current_year())
 
     def return_range_years(
-        self, initial_year: Optional[int] = None, last_year: Optional[int] = None
+        self,
+        initial_year: Optional[int] = None,
+        last_year: Optional[int] = None,
     ) -> range:
         """
         Returns a range of years from `initial_year` to `last_year` inclusive.

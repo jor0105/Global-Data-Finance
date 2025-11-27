@@ -15,16 +15,18 @@ class RetryStrategy:
     """
 
     _RETRYABLE_KEYWORDS = [
-        "timeout",
-        "connection refused",
-        "connection reset",
-        "connection aborted",
-        "temporarily",
-        "unavailable",
-        "try again",
+        'timeout',
+        'connection refused',
+        'connection reset',
+        'connection aborted',
+        'temporarily',
+        'unavailable',
+        'try again',
     ]
 
-    def __init__(self, initial_backoff: float, max_backoff: float, multiplier: float):
+    def __init__(
+        self, initial_backoff: float, max_backoff: float, multiplier: float
+    ):
         self.initial_backoff = initial_backoff
         self.max_backoff = max_backoff
         self.multiplier = multiplier
@@ -44,7 +46,9 @@ class RetryStrategy:
         Returns:
             True if the exception should trigger a retry, False otherwise
         """
-        if isinstance(exception, (PathPermissionError, DiskFullError, ValueError)):
+        if isinstance(
+            exception, (PathPermissionError, DiskFullError, ValueError)
+        ):
             return False
 
         if isinstance(exception, (NetworkError, TimeoutError)):

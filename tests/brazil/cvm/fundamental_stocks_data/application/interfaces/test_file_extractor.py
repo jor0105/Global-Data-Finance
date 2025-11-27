@@ -13,14 +13,18 @@ class TestFileExtractorInterface:
         assert issubclass(FileExtractorRepositoryCVM, ABC)
 
     def test_has_extract_method(self):
-        assert hasattr(FileExtractorRepositoryCVM, "extract")
+        assert hasattr(FileExtractorRepositoryCVM, 'extract')
 
     def test_cannot_instantiate_directly(self):
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        with pytest.raises(
+            TypeError, match="Can't instantiate abstract class"
+        ):
             FileExtractorRepositoryCVM()
 
     def test_extract_is_abstract_method(self):
-        assert hasattr(FileExtractorRepositoryCVM.extract, "__isabstractmethod__")
+        assert hasattr(
+            FileExtractorRepositoryCVM.extract, '__isabstractmethod__'
+        )
         assert FileExtractorRepositoryCVM.extract.__isabstractmethod__
 
 
@@ -30,7 +34,9 @@ class TestFileExtractorContract:
         class IncompleteExtractor(FileExtractorRepositoryCVM):
             pass
 
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        with pytest.raises(
+            TypeError, match="Can't instantiate abstract class"
+        ):
             IncompleteExtractor()
 
     def test_concrete_implementation_with_extract_works(self):
@@ -63,12 +69,12 @@ class TestFileExtractorDocumentation:
 
     def test_docstring_mentions_extraction(self):
         doc = FileExtractorRepositoryCVM.__doc__
-        assert "extract" in doc.lower() or "extraction" in doc.lower()
+        assert 'extract' in doc.lower() or 'extraction' in doc.lower()
 
     def test_extract_docstring_mentions_parameters(self):
         doc = FileExtractorRepositoryCVM.extract.__doc__
-        assert "source" in doc.lower() or "path" in doc.lower()
-        assert "destination" in doc.lower() or "dest" in doc.lower()
+        assert 'source' in doc.lower() or 'path' in doc.lower()
+        assert 'destination' in doc.lower() or 'dest' in doc.lower()
 
 
 @pytest.mark.unit
@@ -82,10 +88,13 @@ class TestFileExtractorConcreteImplementations:
                 self.extracted_files.append((source_path, destination_path))
 
         extractor = SimpleExtractor()
-        extractor.extract("/source/file.zip", "/dest/dir")
+        extractor.extract('/source/file.zip', '/dest/dir')
 
         assert len(extractor.extracted_files) == 1
-        assert extractor.extracted_files[0] == ("/source/file.zip", "/dest/dir")
+        assert extractor.extracted_files[0] == (
+            '/source/file.zip',
+            '/dest/dir',
+        )
 
     def test_extractor_with_custom_logic(self):
         class CustomExtractor(FileExtractorRepositoryCVM):
@@ -95,27 +104,27 @@ class TestFileExtractorConcreteImplementations:
             def extract(self, source_path: str, destination_path: str) -> None:
                 self.call_count += 1
                 if not source_path:
-                    raise ValueError("Source path cannot be empty")
+                    raise ValueError('Source path cannot be empty')
 
         extractor = CustomExtractor()
 
-        extractor.extract("/file.zip", "/dest")
+        extractor.extract('/file.zip', '/dest')
         assert extractor.call_count == 1
 
         with pytest.raises(ValueError):
-            extractor.extract("", "/dest")
+            extractor.extract('', '/dest')
 
         assert extractor.call_count == 2
 
     def test_extractor_can_raise_exceptions(self):
         class FailingExtractor(FileExtractorRepositoryCVM):
             def extract(self, source_path: str, destination_path: str) -> None:
-                raise RuntimeError("Extraction failed")
+                raise RuntimeError('Extraction failed')
 
         extractor = FailingExtractor()
 
-        with pytest.raises(RuntimeError, match="Extraction failed"):
-            extractor.extract("/file.zip", "/dest")
+        with pytest.raises(RuntimeError, match='Extraction failed'):
+            extractor.extract('/file.zip', '/dest')
 
 
 @pytest.mark.unit
@@ -133,7 +142,7 @@ class TestFileExtractorPolymorphism:
 
         for extractor in extractors:
             assert isinstance(extractor, FileExtractorRepositoryCVM)
-            extractor.extract("/file.zip", "/dest")
+            extractor.extract('/file.zip', '/dest')
 
     def test_dependency_injection_with_interface(self):
         class MockExtractor(FileExtractorRepositoryCVM):
@@ -145,10 +154,10 @@ class TestFileExtractorPolymorphism:
 
         def process_files(extractor: FileExtractorRepositoryCVM, files: list):
             for file in files:
-                extractor.extract(file, "/dest")
+                extractor.extract(file, '/dest')
 
         mock = MockExtractor()
-        process_files(mock, ["/file1.zip", "/file2.zip"])
+        process_files(mock, ['/file1.zip', '/file2.zip'])
 
         assert mock.extracted is True
 
@@ -161,7 +170,7 @@ class TestFileExtractorMethodContract:
                 return None
 
         extractor = NoneReturningExtractor()
-        result = extractor.extract("/file.zip", "/dest")
+        result = extractor.extract('/file.zip', '/dest')
 
         assert result is None
 
@@ -172,7 +181,7 @@ class TestFileExtractorMethodContract:
                 assert isinstance(destination_path, str)
 
         extractor = TypeCheckingExtractor()
-        extractor.extract("/file.zip", "/dest")
+        extractor.extract('/file.zip', '/dest')
 
 
 @pytest.mark.unit
@@ -184,13 +193,13 @@ class TestFileExtractorMultipleInheritance:
 
         class LoggingExtractor(LoggingMixin, FileExtractorRepositoryCVM):
             def extract(self, source_path: str, destination_path: str) -> None:
-                self.log(f"Extracting {source_path}")
+                self.log(f'Extracting {source_path}')
 
         extractor = LoggingExtractor()
         assert isinstance(extractor, FileExtractorRepositoryCVM)
         assert isinstance(extractor, LoggingMixin)
-        assert hasattr(extractor, "extract")
-        assert hasattr(extractor, "log")
+        assert hasattr(extractor, 'extract')
+        assert hasattr(extractor, 'log')
 
 
 @pytest.mark.unit

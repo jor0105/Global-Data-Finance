@@ -28,37 +28,37 @@ taxa_selic_atual = 15
 
 with ThreadPoolExecutor(max_workers=4) as ex:
     futures = {
-        "ibov": ex.submit(percentual_ibov),
-        "acoes": ex.submit(dados_acoes_b3),
-        "capsocial": ex.submit(dados_capital_social_br),
+        'ibov': ex.submit(percentual_ibov),
+        'acoes': ex.submit(dados_acoes_b3),
+        'capsocial': ex.submit(dados_capital_social_br),
     }
-    df_percentual_ibov = futures["ibov"].result()
-    df_dados_acoes_b3 = futures["acoes"].result()
-    df_cap_social = futures["capsocial"].result()
+    df_percentual_ibov = futures['ibov'].result()
+    df_dados_acoes_b3 = futures['acoes'].result()
+    df_cap_social = futures['capsocial'].result()
 # Cria um mapeamento dos valores de capital social
-mapping_ON = df_cap_social.set_index("Código")["ON"].to_dict()
-mapping_PN = df_cap_social.set_index("Código")["PN"].to_dict()
-mapping_Total = df_cap_social.set_index("Código")["Total"].to_dict()
+mapping_ON = df_cap_social.set_index('Código')['ON'].to_dict()
+mapping_PN = df_cap_social.set_index('Código')['PN'].to_dict()
+mapping_Total = df_cap_social.set_index('Código')['Total'].to_dict()
 
 # Usa o método map para criar as colunas
-df_dados_acoes_b3["Quantidade de ações ON"] = (
-    df_dados_acoes_b3["issuingCompany"].map(mapping_ON).fillna(0)
+df_dados_acoes_b3['Quantidade de ações ON'] = (
+    df_dados_acoes_b3['issuingCompany'].map(mapping_ON).fillna(0)
 )
-df_dados_acoes_b3["Quantidade de ações PN"] = (
-    df_dados_acoes_b3["issuingCompany"].map(mapping_PN).fillna(0)
+df_dados_acoes_b3['Quantidade de ações PN'] = (
+    df_dados_acoes_b3['issuingCompany'].map(mapping_PN).fillna(0)
 )
-df_dados_acoes_b3["Quantidade de ações Totais"] = (
-    df_dados_acoes_b3["issuingCompany"].map(mapping_Total).fillna(0)
+df_dados_acoes_b3['Quantidade de ações Totais'] = (
+    df_dados_acoes_b3['issuingCompany'].map(mapping_Total).fillna(0)
 )
 
 df_dados_acoes_b3 = df_dados_acoes_b3[
-    df_dados_acoes_b3["Quantidade de ações Totais"] > 10
+    df_dados_acoes_b3['Quantidade de ações Totais'] > 10
 ]
 write_parquet(df_dados_acoes_b3, dados_acoes_b3_doc)
-print("Download Dados Ações B3 Concluído")
-df_percentual_ibov = df_percentual_ibov.drop("Segmento", axis=True)
-write_parquet(df_percentual_ibov.drop("Segmento", axis=True), acoes_ibov)
-print("Download Porcentagem IBOV Concluído")
+print('Download Dados Ações B3 Concluído')
+df_percentual_ibov = df_percentual_ibov.drop('Segmento', axis=True)
+write_parquet(df_percentual_ibov.drop('Segmento', axis=True), acoes_ibov)
+print('Download Porcentagem IBOV Concluído')
 
 
 ##### CÓDIGO OPÇÕES B3 ##### ## DIÁRIO ##
@@ -69,7 +69,7 @@ df_opcoes_b3 = dados_opcoes_b3(taxa_selic_atual)
 
 
 write_parquet(df_opcoes_b3, opcoes_b3_doc)
-print("Download Dados Opções B3")
+print('Download Dados Opções B3')
 time.sleep(0.5)
 
 # df_opcoes_b3_3 = dados_ajustes_divs()
@@ -78,7 +78,7 @@ time.sleep(0.5)
 
 df_indicadores_status_atuais = dados_status_atuais()  # DIÁRIO
 write_parquet(df_indicadores_status_atuais, indicadores_atuais_status_doc)
-print("Download Dados Atuais Indicadores Status Invest Concluído")
+print('Download Dados Atuais Indicadores Status Invest Concluído')
 time.sleep(0.5)
 
 # df_dados_hist_status_acao2 = dados_hist_status_acao2(df_indicadores_status_atuais)
@@ -88,13 +88,13 @@ time.sleep(0.5)
 
 df_divs_status_invest = divs_status_invest()
 write_parquet(df_divs_status_invest, dividendos_status_invest_doc)
-print("Download Dados Dividendos Status Invest Concluído")
+print('Download Dados Dividendos Status Invest Concluído')
 
 
-resposta = input("Rodar código de ações que não estão na CVM? (s/Sim)")
-if resposta.lower() in ["s", "sim"]:
+resposta = input('Rodar código de ações que não estão na CVM? (s/Sim)')
+if resposta.lower() in ['s', 'sim']:
     ano_inicial = 2024
     ano_final = 2025
     # ÚLTIMA INSTALAÇÃO DE AÇÕES QUE NÃO ESTÃO NA CVM #
-    print("Iniciando instalações de empresas que não estão presentes na CVM")
+    print('Iniciando instalações de empresas que não estão presentes na CVM')
     baixar_dados_isentos_cvm(ano_inicial, ano_final)

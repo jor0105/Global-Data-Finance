@@ -24,13 +24,13 @@ class AvailableAssetsServiceB3:
 
     # Private class attribute containing the mapping of asset classes to TPMERC codes
     __AVAILABLE_ASSETS: Dict[str, List[str]] = {
-        "ações": ["010", "020"],  # CASH + FRACTIONARY
-        "etf": ["010", "020"],  # CASH + FRACTIONARY
-        "opções": ["070", "080"],  # CALL + PUT
-        "termo": ["030"],  # TERM
-        "exercicio_opcoes": ["012", "013"],  # CALL EXERCISE + PUT EXERCISE
-        "forward": ["050", "060"],  # FORWARD WITH GAIN + FORWARD WITH MOVEMENT
-        "leilao": ["017"],  # AUCTION
+        'ações': ['010', '020'],  # CASH + FRACTIONARY
+        'etf': ['010', '020'],  # CASH + FRACTIONARY
+        'opções': ['070', '080'],  # CALL + PUT
+        'termo': ['030'],  # TERM
+        'exercicio_opcoes': ['012', '013'],  # CALL EXERCISE + PUT EXERCISE
+        'forward': ['050', '060'],  # FORWARD WITH GAIN + FORWARD WITH MOVEMENT
+        'leilao': ['017'],  # AUCTION
     }
 
     @classmethod
@@ -72,7 +72,9 @@ class AvailableAssetsServiceB3:
 
         assets_list = [asset.lower() for asset in assets_list]
 
-        if not all(asset in cls.__AVAILABLE_ASSETS.keys() for asset in assets_list):
+        if not all(
+            asset in cls.__AVAILABLE_ASSETS.keys() for asset in assets_list
+        ):
             raise InvalidAssetsName(
                 assets_list=assets_list,
                 list_available_assets=cls.get_available_assets(),
@@ -109,6 +111,8 @@ class AvailableAssetsServiceB3:
                 invalid_inputs.append(asset_class)
 
         if invalid_inputs:
-            print(f"Warning: Invalid asset classes were ignored: {invalid_inputs}")
+            print(
+                f'Warning: Invalid asset classes were ignored: {invalid_inputs}'
+            )
 
         return valid_codes

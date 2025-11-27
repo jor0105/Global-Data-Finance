@@ -22,7 +22,7 @@ class MockRepository(DownloadDocsCVMRepositoryCVM):
         self.download_docs_called = True
         self.last_tasks = tasks
 
-        return DownloadResultCVM(successful_downloads=["DFP_2020", "DFP_2021"])
+        return DownloadResultCVM(successful_downloads=['DFP_2020', 'DFP_2021'])
 
 
 @pytest.mark.unit
@@ -33,7 +33,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2023,
         )
@@ -48,7 +48,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP", "ITR"],
+            list_docs=['DFP', 'ITR'],
             initial_year=2020,
             last_year=2022,
         )
@@ -70,7 +70,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2023,
         )
@@ -80,14 +80,14 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_creates_directory_via_validator(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            new_path = os.path.join(tmpdir, "new_dir")
+            new_path = os.path.join(tmpdir, 'new_dir')
 
             mock_repo = MockRepository()
             use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
                 destination_path=new_path,
-                list_docs=["DFP"],
+                list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
@@ -100,7 +100,7 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2021,
         )
@@ -109,9 +109,9 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         for task in mock_repo.last_tasks:
             url, doc_name, year, dest_path = task
-            assert "dados.cvm.gov.br" in url
-            assert doc_name == "DFP"
-            assert year in ["2020", "2021"]
+            assert 'dados.cvm.gov.br' in url
+            assert doc_name == 'DFP'
+            assert year in ['2020', '2021']
             assert dest_path.startswith(str(tmp_path))
 
     def test_orchestrator_respects_year_constraints_for_itr(self, tmp_path):
@@ -120,16 +120,16 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["ITR"],
+            list_docs=['ITR'],
             initial_year=2010,
             last_year=2012,
         )
 
         assert len(mock_repo.last_tasks) == 2
         years_in_tasks = [task[2] for task in mock_repo.last_tasks]
-        assert "2011" in years_in_tasks
-        assert "2012" in years_in_tasks
-        assert "2010" not in years_in_tasks
+        assert '2011' in years_in_tasks
+        assert '2012' in years_in_tasks
+        assert '2010' not in years_in_tasks
 
     def test_orchestrator_respects_year_constraints_for_cgvn(self, tmp_path):
         mock_repo = MockRepository()
@@ -137,17 +137,17 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["CGVN"],
+            list_docs=['CGVN'],
             initial_year=2016,
             last_year=2019,
         )
 
         assert len(mock_repo.last_tasks) == 2
         years_in_tasks = [task[2] for task in mock_repo.last_tasks]
-        assert "2018" in years_in_tasks
-        assert "2019" in years_in_tasks
-        assert "2016" not in years_in_tasks
-        assert "2017" not in years_in_tasks
+        assert '2018' in years_in_tasks
+        assert '2019' in years_in_tasks
+        assert '2016' not in years_in_tasks
+        assert '2017' not in years_in_tasks
 
 
 @pytest.mark.unit
@@ -158,7 +158,7 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2023,
         )
@@ -185,7 +185,7 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=None,
             last_year=None,
         )
@@ -195,14 +195,14 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
 
     def test_creates_directory_if_not_exists(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            new_path = os.path.join(tmpdir, "new_dir")
+            new_path = os.path.join(tmpdir, 'new_dir')
 
             mock_repo = MockRepository()
             use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
                 destination_path=new_path,
-                list_docs=["DFP"],
+                list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
@@ -219,7 +219,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
         with pytest.raises(InvalidDocName):
             use_case.execute(
                 destination_path=str(tmp_path),
-                list_docs=["INVALID"],
+                list_docs=['INVALID'],
                 initial_year=2020,
                 last_year=2023,
             )
@@ -233,7 +233,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
         with pytest.raises(InvalidFirstYear):
             use_case.execute(
                 destination_path=str(tmp_path),
-                list_docs=["DFP"],
+                list_docs=['DFP'],
                 initial_year=1990,
                 last_year=2020,
             )
@@ -243,15 +243,15 @@ class TestDownloadDocumentsUseCaseErrorHandling:
     def test_repository_error_is_propagated(self, tmp_path):
         class ErrorRepository(DownloadDocsCVMRepositoryCVM):
             def download_docs(self, tasks):
-                raise RuntimeError("Download failed")
+                raise RuntimeError('Download failed')
 
         error_repo = ErrorRepository()
         use_case = DownloadDocumentsUseCaseCVM(error_repo)
 
-        with pytest.raises(RuntimeError, match="Download failed"):
+        with pytest.raises(RuntimeError, match='Download failed'):
             use_case.execute(
                 destination_path=str(tmp_path),
-                list_docs=["DFP"],
+                list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
@@ -269,9 +269,9 @@ class TestDownloadDocumentsUseCaseInitialization:
     def test_init_with_invalid_repository_raises_error(self):
         with pytest.raises(
             InvalidRepositoryTypeError,
-            match="The repository must be a valid repository instance",
+            match='The repository must be a valid repository instance',
         ):
-            DownloadDocumentsUseCaseCVM("not a repository")
+            DownloadDocumentsUseCaseCVM('not a repository')
 
     def test_init_with_none_repository_raises_error(self):
         with pytest.raises(InvalidRepositoryTypeError):
@@ -281,10 +281,15 @@ class TestDownloadDocumentsUseCaseInitialization:
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
-        assert hasattr(use_case, "_DownloadDocumentsUseCaseCVM__url_generator")
-        assert hasattr(use_case, "_DownloadDocumentsUseCaseCVM__range_years_generator")
+        assert hasattr(use_case, '_DownloadDocumentsUseCaseCVM__url_generator')
+        assert hasattr(
+            use_case, '_DownloadDocumentsUseCaseCVM__range_years_generator'
+        )
         assert use_case._DownloadDocumentsUseCaseCVM__url_generator is not None
-        assert use_case._DownloadDocumentsUseCaseCVM__range_years_generator is not None
+        assert (
+            use_case._DownloadDocumentsUseCaseCVM__range_years_generator
+            is not None
+        )
 
 
 @pytest.mark.unit
@@ -299,13 +304,14 @@ class TestDownloadDocumentsUseCaseLogging:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2020,
         )
 
         assert any(
-            "orchestration" in record.message.lower() for record in caplog.records
+            'orchestration' in record.message.lower()
+            for record in caplog.records
         )
 
     def test_logs_download_completion(self, tmp_path, caplog):
@@ -318,12 +324,14 @@ class TestDownloadDocumentsUseCaseLogging:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2020,
         )
 
-        assert any("completed" in record.message.lower() for record in caplog.records)
+        assert any(
+            'completed' in record.message.lower() for record in caplog.records
+        )
 
 
 @pytest.mark.unit
@@ -334,7 +342,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2022,
             last_year=2023,
         )
@@ -345,9 +353,9 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
 
         for task in mock_repo.last_tasks:
             url, doc_name, year, dest_path = task
-            assert "dados.cvm.gov.br" in url
-            assert doc_name == "DFP"
-            assert year in ["2022", "2023"]
+            assert 'dados.cvm.gov.br' in url
+            assert doc_name == 'DFP'
+            assert year in ['2022', '2023']
 
     def test_integration_with_multiple_docs_and_years(self, tmp_path):
         mock_repo = MockRepository()
@@ -355,7 +363,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP", "ITR", "FRE"],
+            list_docs=['DFP', 'ITR', 'FRE'],
             initial_year=2020,
             last_year=2022,
         )
@@ -365,7 +373,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
         assert len(mock_repo.last_tasks) == 9
 
         doc_names = {task[1] for task in mock_repo.last_tasks}
-        assert doc_names == {"DFP", "ITR", "FRE"}
+        assert doc_names == {'DFP', 'ITR', 'FRE'}
 
 
 @pytest.mark.unit
@@ -376,7 +384,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2020,
         )
@@ -388,9 +396,9 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         assert len(task) == 4
 
         url, doc_name, year, dest_path = task
-        assert isinstance(url, str) and url.startswith("https://")
-        assert isinstance(doc_name, str) and doc_name == "DFP"
-        assert isinstance(year, str) and year == "2020"
+        assert isinstance(url, str) and url.startswith('https://')
+        assert isinstance(doc_name, str) and doc_name == 'DFP'
+        assert isinstance(year, str) and year == '2020'
         assert isinstance(dest_path, str) and os.path.isabs(dest_path)
 
     def test_tasks_match_years_from_docs_paths(self, tmp_path):
@@ -399,15 +407,15 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["ITR"],
+            list_docs=['ITR'],
             initial_year=2010,
             last_year=2012,
         )
 
         years_in_tasks = [task[2] for task in mock_repo.last_tasks]
-        assert "2011" in years_in_tasks
-        assert "2012" in years_in_tasks
-        assert "2010" not in years_in_tasks
+        assert '2011' in years_in_tasks
+        assert '2012' in years_in_tasks
+        assert '2010' not in years_in_tasks
         assert len(years_in_tasks) == 2
 
     def test_tasks_urls_match_years(self, tmp_path):
@@ -416,14 +424,14 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2021,
         )
 
         for task in mock_repo.last_tasks:
             url, doc_name, year, dest_path = task
-            assert year in url, f"Year {year} should be in URL {url}"
+            assert year in url, f'Year {year} should be in URL {url}'
 
     def test_tasks_destination_paths_are_valid(self, tmp_path):
         """Destination paths in tasks should exist and be writable."""
@@ -432,7 +440,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2021,
         )
@@ -453,7 +461,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         with caplog.at_level(logging.WARNING):
             result = use_case.execute(
                 destination_path=str(tmp_path),
-                list_docs=["DFP"],
+                list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
@@ -464,7 +472,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
-        all_docs = ["CGVN", "FRE", "FCA", "DFP", "ITR", "IPE", "VLMO"]
+        all_docs = ['CGVN', 'FRE', 'FCA', 'DFP', 'ITR', 'IPE', 'VLMO']
 
         use_case.execute(
             destination_path=str(tmp_path),
@@ -483,7 +491,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP", "ITR"],
+            list_docs=['DFP', 'ITR'],
             initial_year=2020,
             last_year=2020,
         )
@@ -500,14 +508,14 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2021,
         )
 
         for task in mock_repo.last_tasks:
             url, doc_name, year, dest_path = task
-            assert url.endswith(".zip")
+            assert url.endswith('.zip')
 
     def test_tasks_for_multiple_years_ordered_correctly(self, tmp_path):
         mock_repo = MockRepository()
@@ -515,12 +523,14 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2018,
             last_year=2022,
         )
 
-        dfp_years = [int(task[2]) for task in mock_repo.last_tasks if task[1] == "DFP"]
+        dfp_years = [
+            int(task[2]) for task in mock_repo.last_tasks if task[1] == 'DFP'
+        ]
 
         assert len(dfp_years) == 5
         assert min(dfp_years) == 2018
@@ -533,7 +543,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP"],
+            list_docs=['DFP'],
             initial_year=2020,
             last_year=2020,
         )
@@ -548,7 +558,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         result = use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["CGVN"],
+            list_docs=['CGVN'],
             initial_year=2010,
             last_year=2017,
         )
@@ -562,7 +572,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
         use_case.execute(
             destination_path=str(tmp_path),
-            list_docs=["DFP", "ITR"],
+            list_docs=['DFP', 'ITR'],
             initial_year=2020,
             last_year=2022,
         )

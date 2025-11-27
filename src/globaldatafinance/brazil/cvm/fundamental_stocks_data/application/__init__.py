@@ -1,4 +1,7 @@
-from .interfaces import DownloadDocsCVMRepositoryCVM, FileExtractorRepositoryCVM
+from .interfaces import (
+    DownloadDocsCVMRepositoryCVM,
+    FileExtractorRepositoryCVM,
+)
 from .use_cases import (
     DownloadDocumentsUseCaseCVM,
     GenerateRangeYearsUseCasesCVM,
@@ -9,12 +12,12 @@ from .use_cases import (
 )
 
 __all__ = [
-    "DownloadDocsCVMRepositoryCVM",
-    "FileExtractorRepositoryCVM",
-    "DownloadDocumentsUseCaseCVM",
-    "GenerateUrlsUseCaseCVM",
-    "GenerateRangeYearsUseCasesCVM",
-    "GetAvailableDocsUseCaseCVM",
-    "GetAvailableYearsUseCaseCVM",
-    "VerifyPathsUseCasesCVM",
+    'DownloadDocsCVMRepositoryCVM',
+    'FileExtractorRepositoryCVM',
+    'DownloadDocumentsUseCaseCVM',
+    'GenerateUrlsUseCaseCVM',
+    'GenerateRangeYearsUseCasesCVM',
+    'GetAvailableDocsUseCaseCVM',
+    'GetAvailableYearsUseCaseCVM',
+    'VerifyPathsUseCasesCVM',
 ]

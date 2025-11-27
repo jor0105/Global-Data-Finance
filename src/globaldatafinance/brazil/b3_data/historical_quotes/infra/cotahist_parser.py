@@ -42,7 +42,7 @@ class CotahistParserB3:
         if len(line) > self.MAX_LINE_LENGTH:
             if self._error_count < self._max_errors_to_log:
                 logger.warning(
-                    f"Line exceeds maximum length ({len(line)} > {self.MAX_LINE_LENGTH}), skipping"
+                    f'Line exceeds maximum length ({len(line)} > {self.MAX_LINE_LENGTH}), skipping'
                 )
                 self._error_count += 1
             return None
@@ -62,11 +62,11 @@ class CotahistParserB3:
             tipreg = line[0:2]
 
             # Skip header and trailer
-            if tipreg in ("00", "99"):
+            if tipreg in ('00', '99'):
                 return None
 
             # Only process quote records (type 01)
-            if tipreg != "01":
+            if tipreg != '01':
                 return None
 
             # Extract TPMERC (positions 25-27, Python index 24-27)
@@ -79,8 +79,8 @@ class CotahistParserB3:
                 # Log filtering statistics periodically
                 if self._filtered_count % self._log_filtering_interval == 0:
                     logger.debug(
-                        f"Filtered {self._filtered_count:,} lines by TPMERC code",
-                        extra={"target_codes": sorted(target_tpmerc_codes)},
+                        f'Filtered {self._filtered_count:,} lines by TPMERC code',
+                        extra={'target_codes': sorted(target_tpmerc_codes)},
                     )
 
                 return None
@@ -91,16 +91,20 @@ class CotahistParserB3:
         except (IndexError, ValueError, AttributeError) as e:
             if self._error_count < self._max_errors_to_log:
                 logger.warning(
-                    f"Error parsing line (error #{self._error_count + 1}): {type(e).__name__} - {e}",
-                    extra={"line_preview": line[:50] if len(line) >= 50 else line},
+                    f'Error parsing line (error #{self._error_count + 1}): {type(e).__name__} - {e}',
+                    extra={
+                        'line_preview': line[:50] if len(line) >= 50 else line
+                    },
                 )
                 self._error_count += 1
             return None
         except Exception as e:
             if self._error_count < self._max_errors_to_log:
                 logger.error(
-                    f"Unexpected error parsing line: {e}",
-                    extra={"line_preview": line[:50] if len(line) >= 50 else line},
+                    f'Unexpected error parsing line: {e}',
+                    extra={
+                        'line_preview': line[:50] if len(line) >= 50 else line
+                    },
                     exc_info=True,
                 )
                 self._error_count += 1
@@ -122,83 +126,95 @@ class CotahistParserB3:
         try:
             return {
                 # Data do Pregão (positions 3-10)
-                "data_pregao": self._parse_date(self._safe_slice(line, 2, 10)),
+                'data_pregao': self._parse_date(self._safe_slice(line, 2, 10)),
                 # Código BDI (positions 11-12)
-                "codigo_bdi": self._safe_slice(line, 10, 12).strip(),
+                'codigo_bdi': self._safe_slice(line, 10, 12).strip(),
                 # Código de Negociação - Ticker (positions 13-24)
-                "ticker": self._safe_slice(line, 12, 24).strip(),
+                'ticker': self._safe_slice(line, 12, 24).strip(),
                 # Tipo de Mercado (positions 25-27)
-                "tipo_mercado": self._safe_slice(line, 24, 27).strip(),
+                'tipo_mercado': self._safe_slice(line, 24, 27).strip(),
                 # Nome Resumido (positions 28-39)
-                "nome_resumido": self._safe_slice(line, 27, 39).strip(),
+                'nome_resumido': self._safe_slice(line, 27, 39).strip(),
                 # Especificação do Papel (positions 40-49)
-                "especificacao_papel": self._safe_slice(line, 39, 49).strip(),
+                'especificacao_papel': self._safe_slice(line, 39, 49).strip(),
                 # Preço de Abertura (positions 57-69, format (11)V99)
-                "preco_abertura": self._parse_decimal_v99(
+                'preco_abertura': self._parse_decimal_v99(
                     self._safe_slice(line, 56, 69)
                 ),
                 # Preço Máximo (positions 70-82, format (11)V99)
-                "preco_maximo": self._parse_decimal_v99(self._safe_slice(line, 69, 82)),
+                'preco_maximo': self._parse_decimal_v99(
+                    self._safe_slice(line, 69, 82)
+                ),
                 # Preço Mínimo (positions 83-95, format (11)V99)
-                "preco_minimo": self._parse_decimal_v99(self._safe_slice(line, 82, 95)),
+                'preco_minimo': self._parse_decimal_v99(
+                    self._safe_slice(line, 82, 95)
+                ),
                 # Preço Médio (positions 96-108, format (11)V99)
-                "preco_medio": self._parse_decimal_v99(self._safe_slice(line, 95, 108)),
+                'preco_medio': self._parse_decimal_v99(
+                    self._safe_slice(line, 95, 108)
+                ),
                 # Preço de Fechamento (positions 109-121, format (11)V99)
-                "preco_fechamento": self._parse_decimal_v99(
+                'preco_fechamento': self._parse_decimal_v99(
                     self._safe_slice(line, 108, 121)
                 ),
                 # Melhor Oferta de Compra (positions 122-134, format (11)V99)
-                "melhor_oferta_compra": self._parse_decimal_v99(
+                'melhor_oferta_compra': self._parse_decimal_v99(
                     self._safe_slice(line, 121, 134)
                 ),
                 # Melhor Oferta de Venda (positions 135-147, format (11)V99)
-                "melhor_oferta_venda": self._parse_decimal_v99(
+                'melhor_oferta_venda': self._parse_decimal_v99(
                     self._safe_slice(line, 134, 147)
                 ),
                 # Número de Negócios (positions 148-152)
-                "numero_negocios": self._parse_int(self._safe_slice(line, 147, 152)),
+                'numero_negocios': self._parse_int(
+                    self._safe_slice(line, 147, 152)
+                ),
                 # Quantidade Total (positions 153-170)
-                "quantidade_total": self._parse_int(self._safe_slice(line, 152, 170)),
+                'quantidade_total': self._parse_int(
+                    self._safe_slice(line, 152, 170)
+                ),
                 # Volume Total (positions 171-188, format (16)V99)
-                "volume_total": self._parse_decimal_v99(
+                'volume_total': self._parse_decimal_v99(
                     self._safe_slice(line, 170, 188)
                 ),
                 # Data de Vencimento (positions 203-210) - for options/term
-                "data_vencimento": self._parse_date_optional(
+                'data_vencimento': self._parse_date_optional(
                     self._safe_slice(line, 202, 210)
                 ),
                 # Fator de Cotação (positions 211-217)
-                "fator_cotacao": self._parse_int(self._safe_slice(line, 210, 217)),
+                'fator_cotacao': self._parse_int(
+                    self._safe_slice(line, 210, 217)
+                ),
                 # Código ISIN (positions 231-242)
-                "codigo_isin": self._safe_slice(line, 230, 242).strip(),
+                'codigo_isin': self._safe_slice(line, 230, 242).strip(),
                 # Número de Distribuição (positions 243-245)
-                "numero_distribuicao": self._parse_int(
+                'numero_distribuicao': self._parse_int(
                     self._safe_slice(line, 242, 245)
                 ),
             }
         except Exception as e:
-            logger.error(f"Error parsing quote record: {e}", exc_info=True)
+            logger.error(f'Error parsing quote record: {e}', exc_info=True)
             return {
-                "data_pregao": None,
-                "codigo_bdi": "",
-                "ticker": "",
-                "tipo_mercado": "",
-                "nome_resumido": "",
-                "especificacao_papel": "",
-                "preco_abertura": Decimal("0"),
-                "preco_maximo": Decimal("0"),
-                "preco_minimo": Decimal("0"),
-                "preco_medio": Decimal("0"),
-                "preco_fechamento": Decimal("0"),
-                "melhor_oferta_compra": Decimal("0"),
-                "melhor_oferta_venda": Decimal("0"),
-                "numero_negocios": 0,
-                "quantidade_total": 0,
-                "volume_total": Decimal("0"),
-                "data_vencimento": None,
-                "fator_cotacao": 0,
-                "codigo_isin": "",
-                "numero_distribuicao": 0,
+                'data_pregao': None,
+                'codigo_bdi': '',
+                'ticker': '',
+                'tipo_mercado': '',
+                'nome_resumido': '',
+                'especificacao_papel': '',
+                'preco_abertura': Decimal('0'),
+                'preco_maximo': Decimal('0'),
+                'preco_minimo': Decimal('0'),
+                'preco_medio': Decimal('0'),
+                'preco_fechamento': Decimal('0'),
+                'melhor_oferta_compra': Decimal('0'),
+                'melhor_oferta_venda': Decimal('0'),
+                'numero_negocios': 0,
+                'quantidade_total': 0,
+                'volume_total': Decimal('0'),
+                'data_vencimento': None,
+                'fator_cotacao': 0,
+                'codigo_isin': '',
+                'numero_distribuicao': 0,
             }
 
     def _safe_slice(self, line: str, start: int, end: int) -> str:
@@ -214,10 +230,10 @@ class CotahistParserB3:
         """
         try:
             if start < 0 or end > len(line) or start >= end:
-                return ""
+                return ''
             return line[start:end]
         except Exception:
-            return ""
+            return ''
 
     def _parse_date_optional(self, date_str: str) -> Optional[date]:
         """Parse optional date field.
@@ -229,7 +245,7 @@ class CotahistParserB3:
             date object or None if empty/invalid
         """
         date_str = date_str.strip()
-        if not date_str or date_str == "00000000":
+        if not date_str or date_str == '00000000':
             return None
         return self._parse_date(date_str)
 
@@ -243,11 +259,11 @@ class CotahistParserB3:
             date object or None if invalid
         """
         date_str = date_str.strip()
-        if not date_str or date_str == "00000000":
+        if not date_str or date_str == '00000000':
             return None
 
         try:
-            return datetime.strptime(date_str, "%Y%m%d").date()
+            return datetime.strptime(date_str, '%Y%m%d').date()
         except ValueError:
             return None
 
@@ -265,13 +281,13 @@ class CotahistParserB3:
         """
         value_str = value_str.strip()
         if not value_str:
-            return Decimal("0")
+            return Decimal('0')
 
         try:
             # Convert to Decimal and divide by 100 for 2 decimal places
-            return Decimal(value_str) / Decimal("100")
+            return Decimal(value_str) / Decimal('100')
         except (ValueError, InvalidOperation):
-            return Decimal("0")
+            return Decimal('0')
 
     def _parse_int(self, value_str: str) -> int:
         """Parse integer value.

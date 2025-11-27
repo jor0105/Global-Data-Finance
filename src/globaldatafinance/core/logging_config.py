@@ -63,11 +63,9 @@ from pydantic_settings import BaseSettings
 # LOG FORMATS
 # ============================================================================
 
-DEFAULT_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
-DETAILED_FORMAT = (
-    "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(funcName)s | %(message)s"
-)
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
+DETAILED_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(funcName)s | %(message)s'
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 # ============================================================================
@@ -78,34 +76,34 @@ DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 class LoggingSettings(BaseSettings):
     """Global logging configuration with environment variable support."""
 
-    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
-        default="INFO", description="Global logging level"
+    level: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] = Field(
+        default='INFO', description='Global logging level'
     )
 
     format: str = Field(
         default=DEFAULT_FORMAT,
-        description="Log message format",
+        description='Log message format',
     )
 
     log_file: Optional[str] = Field(
-        default=None, description="Path to log file (None = console only)"
+        default=None, description='Path to log file (None = console only)'
     )
 
     structured: bool = Field(
-        default=False, description="Enable structured logging (JSON format)"
+        default=False, description='Enable structured logging (JSON format)'
     )
 
     detailed_format: bool = Field(
-        default=False, description="Include line numbers and function names"
+        default=False, description='Include line numbers and function names'
     )
 
     class Config:
         """Pydantic configuration."""
 
-        env_prefix = "DATAFIN_LOG_"
+        env_prefix = 'DATAFIN_LOG_'
         case_sensitive = False
 
-    @field_validator("level", mode="before")
+    @field_validator('level', mode='before')
     @classmethod
     def validate_level(cls, v):
         """Normalize logging level to uppercase."""
@@ -131,7 +129,7 @@ class ContextFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         """Add custom fields to log record if not present."""
-        if not hasattr(record, "extra_data"):
+        if not hasattr(record, 'extra_data'):
             record.extra_data = {}
         return True
 
@@ -144,10 +142,10 @@ class StructuredFormatter(logging.Formatter):
         message = super().format(record)
 
         # Add extra data if present
-        extra_data = getattr(record, "extra_data", {})
+        extra_data = getattr(record, 'extra_data', {})
         if extra_data:
-            extra_str = " | ".join(f"{k}={v}" for k, v in extra_data.items())
-            message = f"{message} | {extra_str}"
+            extra_str = ' | '.join(f'{k}={v}' for k, v in extra_data.items())
+            message = f'{message} | {extra_str}'
 
         return message
 
@@ -211,7 +209,9 @@ def setup_logging(
     root_logger.handlers.clear()
 
     # Choose format
-    log_format = DETAILED_FORMAT if _settings.detailed_format else DEFAULT_FORMAT
+    log_format = (
+        DETAILED_FORMAT if _settings.detailed_format else DEFAULT_FORMAT
+    )
 
     # Console handler (stdout)
     console_handler = logging.StreamHandler(sys.stdout)
@@ -225,9 +225,11 @@ def setup_logging(
     if _settings.log_file:
         log_file_path = Path(_settings.log_file)
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
+        file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
         file_handler.setLevel(getattr(logging, _settings.level))
-        file_formatter = StructuredFormatter(DETAILED_FORMAT, datefmt=DATE_FORMAT)
+        file_formatter = StructuredFormatter(
+            DETAILED_FORMAT, datefmt=DATE_FORMAT
+        )
         file_handler.setFormatter(file_formatter)
         file_handler.addFilter(ContextFilter())
         root_logger.addHandler(file_handler)
@@ -286,8 +288,8 @@ def log_execution_time(logger: logging.Logger, operation: str, **context: Any):
     """
     start_time = time.perf_counter()
     logger.info(
-        f"Starting: {operation}",
-        extra={"operation": operation, **context},
+        f'Starting: {operation}',
+        extra={'operation': operation, **context},
     )
 
     try:
@@ -295,11 +297,11 @@ def log_execution_time(logger: logging.Logger, operation: str, **context: Any):
     except Exception as e:
         elapsed = time.perf_counter() - start_time
         logger.error(
-            f"Failed: {operation}",
+            f'Failed: {operation}',
             extra={
-                "operation": operation,
-                "elapsed_seconds": f"{elapsed:.2f}",
-                "error": str(e),
+                'operation': operation,
+                'elapsed_seconds': f'{elapsed:.2f}',
+                'error': str(e),
                 **context,
             },
             exc_info=True,
@@ -308,10 +310,10 @@ def log_execution_time(logger: logging.Logger, operation: str, **context: Any):
     else:
         elapsed = time.perf_counter() - start_time
         logger.info(
-            f"Completed: {operation}",
+            f'Completed: {operation}',
             extra={
-                "operation": operation,
-                "elapsed_seconds": f"{elapsed:.2f}",
+                'operation': operation,
+                'elapsed_seconds': f'{elapsed:.2f}',
                 **context,
             },
         )
@@ -405,7 +407,7 @@ def remove_file(filepath: str, log_on_error: bool = True) -> None:
         path_obj = Path(filepath)
         if path_obj.exists():
             path_obj.unlink()
-            logger.debug(f"Removed file: {filepath}")
+            logger.debug(f'Removed file: {filepath}')
     except Exception as e:
         if log_on_error:
-            logger.warning(f"Failed to remove file {filepath}: {e}")
+            logger.warning(f'Failed to remove file {filepath}: {e}')

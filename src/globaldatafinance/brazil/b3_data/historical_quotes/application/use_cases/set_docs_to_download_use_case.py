@@ -22,13 +22,15 @@ class CreateSetToDownloadUseCaseB3:
             InvalidDestinationPathError: If path is empty or whitespace
         """
         if not isinstance(path, str):
-            raise TypeError(f"path_of_docs must be a string, got {type(path).__name__}")
+            raise TypeError(
+                f'path_of_docs must be a string, got {type(path).__name__}'
+            )
 
         if not path or path.isspace():
             from .....macro_exceptions import InvalidDestinationPathError
 
             raise InvalidDestinationPathError(
-                "path_of_docs cannot be empty or whitespace"
+                'path_of_docs cannot be empty or whitespace'
             )
 
         file_system = FileSystemServiceB3()

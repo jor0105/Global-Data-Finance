@@ -9,11 +9,11 @@ from .historical_quotes import (
 
 __all__ = [
     # Application Layer
-    "CreateDocsToExtractUseCaseB3",
-    "ExtractHistoricalQuotesUseCaseB3",
-    "GetAvailableAssetsUseCaseB3",
-    "GetAvailableYearsUseCaseB3",
-    "ValidateExtractionConfigUseCaseB3",
+    'CreateDocsToExtractUseCaseB3',
+    'ExtractHistoricalQuotesUseCaseB3',
+    'GetAvailableAssetsUseCaseB3',
+    'GetAvailableYearsUseCaseB3',
+    'ValidateExtractionConfigUseCaseB3',
     # Domain Layer - Services
-    "DocsToExtractorB3",
+    'DocsToExtractorB3',
 ]

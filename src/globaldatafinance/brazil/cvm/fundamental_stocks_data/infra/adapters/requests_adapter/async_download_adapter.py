@@ -3,10 +3,22 @@ import zipfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from .......core import RetryStrategy, SimpleProgressBar, get_logger, remove_file
-from .......macro_exceptions import CorruptedZipError, DiskFullError, ExtractionError
+from .......core import (
+    RetryStrategy,
+    SimpleProgressBar,
+    get_logger,
+    remove_file,
+)
+from .......macro_exceptions import (
+    CorruptedZipError,
+    DiskFullError,
+    ExtractionError,
+)
 from .......macro_infra import RequestsAdapter
-from ....application import DownloadDocsCVMRepositoryCVM, FileExtractorRepositoryCVM
+from ....application import (
+    DownloadDocsCVMRepositoryCVM,
+    FileExtractorRepositoryCVM,
+)
 from ....domain import DownloadResultCVM
 
 logger = get_logger(__name__)
@@ -63,8 +75,8 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         )
 
         logger.debug(
-            f"AsyncDownloadAdapterCVM initialized with max_concurrent={max_concurrent}, "
-            f"http2={http2}, timeout={timeout}"
+            f'AsyncDownloadAdapterCVM initialized with max_concurrent={max_concurrent}, '
+            f'http2={http2}, timeout={timeout}'
         )
 
     def download_docs(
@@ -84,19 +96,19 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         total_files = len(tasks)
 
         if total_files == 0:
-            logger.warning("No files to download")
+            logger.warning('No files to download')
             return result
 
         logger.info(
-            f"Starting async download of {total_files} files "
-            f"with {self.max_concurrent} concurrent downloads"
+            f'Starting async download of {total_files} files '
+            f'with {self.max_concurrent} concurrent downloads'
         )
 
         asyncio.run(self._execute_async_downloads(tasks, result))
 
         logger.info(
-            f"Download completed: {result.success_count_downloads} successful, "
-            f"{result.error_count_downloads} errors"
+            f'Download completed: {result.success_count_downloads} successful, '
+            f'{result.error_count_downloads} errors'
         )
 
         return result
@@ -107,7 +119,9 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         result: DownloadResultCVM,
     ) -> None:
         """Execute async downloads with concurrency control."""
-        progress_bar = SimpleProgressBar(total=len(tasks), desc="Downloading (async)")
+        progress_bar = SimpleProgressBar(
+            total=len(tasks), desc='Downloading (async)'
+        )
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
         async def download_with_semaphore(task):
@@ -133,7 +147,7 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         progress_bar: SimpleProgressBar,
     ) -> None:
         """Download a file and extract its contents."""
-        filename = url.split("/")[-1].split("?")[0] or "download"
+        filename = url.split('/')[-1].split('?')[0] or 'download'
         filepath = str(Path(dest_path) / filename)
 
         success, error_msg = await self._download_with_retry(
@@ -147,11 +161,11 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
             # CRITICAL FIX: Validate file integrity before extraction
             if not self._validate_downloaded_file(filepath, expected_size):
                 logger.error(
-                    f"Downloaded file validation failed for {doc_name}_{year}: {filepath}"
+                    f'Downloaded file validation failed for {doc_name}_{year}: {filepath}'
                 )
                 result.add_error_downloads(
-                    f"{doc_name}_{year}",
-                    "Downloaded file corrupted, incomplete, or invalid ZIP",
+                    f'{doc_name}_{year}',
+                    'Downloaded file corrupted, incomplete, or invalid ZIP',
                 )
                 remove_file(filepath, log_on_error=True)
                 progress_bar.update(1)
@@ -159,88 +173,95 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
 
             if self.automatic_extractor:
                 try:
-                    logger.info(f"Starting extraction for {doc_name}_{year}")
+                    logger.info(f'Starting extraction for {doc_name}_{year}')
                     self.file_extractor_repository.extract(filepath, dest_path)
 
                     # CRITICAL FIX: Verify extraction with recursive glob
-                    parquet_files = list(Path(dest_path).glob("**/*.parquet"))
+                    parquet_files = list(Path(dest_path).glob('**/*.parquet'))
                     if not parquet_files:
                         logger.warning(
-                            f"Extraction completed but no .parquet files found in {dest_path} "
-                            f"(including subdirectories). Keeping source ZIP: {filepath}"
+                            f'Extraction completed but no .parquet files found in {dest_path} '
+                            f'(including subdirectories). Keeping source ZIP: {filepath}'
                         )
                         result.add_error_downloads(
-                            f"{doc_name}_{year}",
-                            "No parquet files generated after extraction",
+                            f'{doc_name}_{year}',
+                            'No parquet files generated after extraction',
                         )
                         progress_bar.update(1)
                         return
 
                     # CRITICAL: Validate parquet file content
-                    if not self._validate_parquet_files(parquet_files, doc_name, year):
+                    if not self._validate_parquet_files(
+                        parquet_files, doc_name, year
+                    ):
                         result.add_error_downloads(
-                            f"{doc_name}_{year}",
-                            "Parquet validation failed: corrupted or empty files",
+                            f'{doc_name}_{year}',
+                            'Parquet validation failed: corrupted or empty files',
                         )
                         progress_bar.update(1)
                         return
 
-                    result.add_success_downloads(f"{doc_name}_{year}")
+                    result.add_success_downloads(f'{doc_name}_{year}')
                     logger.info(
-                        f"✓ Extraction completed for {doc_name}_{year}: "
-                        f"{len(parquet_files)} parquet files created"
+                        f'✓ Extraction completed for {doc_name}_{year}: '
+                        f'{len(parquet_files)} parquet files created'
                     )
                     remove_file(filepath, log_on_error=True)
 
                 except DiskFullError as disk_err:
                     logger.error(
-                        f"Disk full during extraction of {doc_name}_{year}: {disk_err}"
+                        f'Disk full during extraction of {doc_name}_{year}: {disk_err}'
                     )
                     result.add_error_downloads(
-                        f"{doc_name}_{year}", f"DiskFull: {disk_err}"
+                        f'{doc_name}_{year}', f'DiskFull: {disk_err}'
                     )
                     # Remove ZIP on disk full (non-recoverable)
                     remove_file(filepath, log_on_error=True)
 
                 except CorruptedZipError as zip_err:
                     logger.error(
-                        f"Corrupted ZIP detected during extraction of {doc_name}_{year}: {zip_err}"
+                        f'Corrupted ZIP detected during extraction of {doc_name}_{year}: {zip_err}'
                     )
                     result.add_error_downloads(
-                        f"{doc_name}_{year}", f"CorruptedZIP: {zip_err}"
+                        f'{doc_name}_{year}', f'CorruptedZIP: {zip_err}'
                     )
                     # Remove corrupted ZIP (non-recoverable)
                     remove_file(filepath, log_on_error=True)
 
                 except ExtractionError as extract_err:
                     logger.error(
-                        f"Extraction error for {doc_name}_{year}: {extract_err}"
+                        f'Extraction error for {doc_name}_{year}: {extract_err}'
                     )
                     result.add_error_downloads(
-                        f"{doc_name}_{year}", f"ExtractionFailed: {extract_err}"
+                        f'{doc_name}_{year}',
+                        f'ExtractionFailed: {extract_err}',
                     )
-                    logger.info(f"Keeping ZIP for manual investigation: {filepath}")
+                    logger.info(
+                        f'Keeping ZIP for manual investigation: {filepath}'
+                    )
 
                 except Exception as unexpected_err:
                     logger.error(
-                        f"Unexpected extraction error for {doc_name}_{year}: "
-                        f"{type(unexpected_err).__name__}: {unexpected_err}",
+                        f'Unexpected extraction error for {doc_name}_{year}: '
+                        f'{type(unexpected_err).__name__}: {unexpected_err}',
                         exc_info=True,
                     )
                     result.add_error_downloads(
-                        f"{doc_name}_{year}",
-                        f"UnexpectedError: {type(unexpected_err).__name__}: {unexpected_err}",
+                        f'{doc_name}_{year}',
+                        f'UnexpectedError: {type(unexpected_err).__name__}: {unexpected_err}',
                     )
                     # Keep ZIP for debugging
-                    logger.info(f"Keeping ZIP for debugging: {filepath}")
+                    logger.info(f'Keeping ZIP for debugging: {filepath}')
 
             else:
                 # Automatic extraction disabled
-                result.add_success_downloads(f"{doc_name}_{year}")
-                logger.info(f"✓ Downloaded {doc_name}_{year} (extraction disabled)")
+                result.add_success_downloads(f'{doc_name}_{year}')
+                logger.info(
+                    f'✓ Downloaded {doc_name}_{year} (extraction disabled)'
+                )
         else:
             result.add_error_downloads(
-                f"{doc_name}_{year}", error_msg or "Unknown download error"
+                f'{doc_name}_{year}', error_msg or 'Unknown download error'
             )
 
         progress_bar.update(1)
@@ -258,17 +279,19 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         for attempt in range(self.max_retries + 1):
             try:
                 if attempt > 0:
-                    backoff = self.retry_strategy.calculate_backoff(attempt - 1)
+                    backoff = self.retry_strategy.calculate_backoff(
+                        attempt - 1
+                    )
                     logger.info(
-                        f"Retry {attempt}/{self.max_retries} for {doc_name}_{year} "
-                        f"after {backoff:.1f}s"
+                        f'Retry {attempt}/{self.max_retries} for {doc_name}_{year} '
+                        f'after {backoff:.1f}s'
                     )
                     await asyncio.sleep(backoff)
 
-                logger.debug(f"Downloading {doc_name}_{year} (async)")
+                logger.debug(f'Downloading {doc_name}_{year} (async)')
 
                 await self._stream_download(url, filepath)
-                logger.info(f"Successfully downloaded {doc_name}_{year}")
+                logger.info(f'Successfully downloaded {doc_name}_{year}')
                 return True, None
 
             except Exception as e:
@@ -279,22 +302,22 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                     or attempt >= self.max_retries
                 ):
                     logger.error(
-                        f"Download failed for {doc_name}_{year}: "
-                        f"{type(e).__name__}: {e}"
+                        f'Download failed for {doc_name}_{year}: '
+                        f'{type(e).__name__}: {e}'
                     )
                     break
 
                 logger.warning(
-                    f"Download error for {doc_name}_{year} "
-                    f"(attempt {attempt + 1}/{self.max_retries + 1}): {e}"
+                    f'Download error for {doc_name}_{year} '
+                    f'(attempt {attempt + 1}/{self.max_retries + 1}): {e}'
                 )
 
         remove_file(filepath, log_on_error=False)
 
         error_msg = (
-            f"{type(last_exception).__name__}: {last_exception}"
+            f'{type(last_exception).__name__}: {last_exception}'
             if last_exception
-            else "Unknown error"
+            else 'Unknown error'
         )
         return False, error_msg
 
@@ -321,20 +344,20 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
         """
         try:
             response = await self.requests_adapter.async_head(url)
-            content_length = response.headers.get("content-length")
+            content_length = response.headers.get('content-length')
 
             if content_length:
                 size_bytes = int(content_length)
                 logger.debug(
-                    f"Content-Length for {url}: {size_bytes / 1024 / 1024:.2f} MB"
+                    f'Content-Length for {url}: {size_bytes / 1024 / 1024:.2f} MB'
                 )
                 return size_bytes
             else:
-                logger.debug(f"No Content-Length header for {url}")
+                logger.debug(f'No Content-Length header for {url}')
                 return None
 
         except Exception as e:
-            logger.warning(f"Failed to get Content-Length for {url}: {e}")
+            logger.warning(f'Failed to get Content-Length for {url}: {e}')
             return None
 
     def _validate_downloaded_file(
@@ -354,7 +377,7 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
 
             # Check 1: File exists
             if not path.exists():
-                logger.error(f"Downloaded file does not exist: {filepath}")
+                logger.error(f'Downloaded file does not exist: {filepath}')
                 return False
 
             # Check 2: File size validation (if expected_size available)
@@ -364,56 +387,62 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                 # Allow 5% tolerance for compression/headers
                 size_diff = abs(actual_size - expected_size)
                 size_diff_pct = (
-                    (size_diff / expected_size) * 100 if expected_size > 0 else 0
+                    (size_diff / expected_size) * 100
+                    if expected_size > 0
+                    else 0
                 )
 
                 if size_diff_pct > 5.0:
                     logger.error(
-                        f"File size mismatch for {filepath}: "
-                        f"expected {expected_size:,} bytes, "
-                        f"got {actual_size:,} bytes "
-                        f"({size_diff_pct:.1f}% difference)"
+                        f'File size mismatch for {filepath}: '
+                        f'expected {expected_size:,} bytes, '
+                        f'got {actual_size:,} bytes '
+                        f'({size_diff_pct:.1f}% difference)'
                     )
                     return False
 
                 logger.debug(
-                    f"File size validation passed: {actual_size:,} bytes "
-                    f"(expected {expected_size:,}, diff {size_diff_pct:.2f}%)"
+                    f'File size validation passed: {actual_size:,} bytes '
+                    f'(expected {expected_size:,}, diff {size_diff_pct:.2f}%)'
                 )
 
             # Check 3: ZIP validity and completeness
             try:
-                with zipfile.ZipFile(filepath, "r") as z:
+                with zipfile.ZipFile(filepath, 'r') as z:
                     # Test ZIP integrity of ALL files
                     bad_file = z.testzip()
                     if bad_file:
-                        logger.error(f"Corrupted file in ZIP: {bad_file} ({filepath})")
+                        logger.error(
+                            f'Corrupted file in ZIP: {bad_file} ({filepath})'
+                        )
                         return False
 
                     # Check if ZIP has at least one file
                     namelist = z.namelist()
                     if not namelist:
-                        logger.error(f"Empty ZIP file: {filepath}")
+                        logger.error(f'Empty ZIP file: {filepath}')
                         return False
 
                     # Check 4: Validate at least one CSV exists (CVM specific)
-                    csv_files = [n for n in namelist if n.lower().endswith(".csv")]
+                    csv_files = [
+                        n for n in namelist if n.lower().endswith('.csv')
+                    ]
                     if not csv_files:
                         logger.warning(
-                            f"No CSV files in ZIP: {filepath}. "
-                            f"Files found: {', '.join(namelist[:5])}"
-                            f"{'...' if len(namelist) > 5 else ''}"
+                            f'No CSV files in ZIP: {filepath}. '
+                            f'Files found: {", ".join(namelist[:5])}'
+                            f'{"..." if len(namelist) > 5 else ""}'
                         )
 
             except zipfile.BadZipFile as e:
-                logger.error(f"Invalid ZIP file: {filepath} - {e}")
+                logger.error(f'Invalid ZIP file: {filepath} - {e}')
                 return False
 
-            logger.debug(f"File validation passed: {filepath} ")
+            logger.debug(f'File validation passed: {filepath} ')
             return True
 
         except Exception as e:
-            logger.error(f"Error validating file {filepath}: {e}")
+            logger.error(f'Error validating file {filepath}: {e}')
             return False
 
     def _validate_parquet_files(
@@ -439,8 +468,8 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                     file_size = parquet_file.stat().st_size
                     if file_size == 0:
                         logger.error(
-                            f"Empty parquet file (0 bytes): {parquet_file} "
-                            f"for {doc_name}_{year}"
+                            f'Empty parquet file (0 bytes): {parquet_file} '
+                            f'for {doc_name}_{year}'
                         )
                         return False
 
@@ -450,36 +479,36 @@ class AsyncDownloadAdapterCVM(DownloadDocsCVMRepositoryCVM):
                     # Check 3: Has rows
                     if table.num_rows == 0:
                         logger.warning(
-                            f"Parquet file has no data rows: {parquet_file} "
-                            f"for {doc_name}_{year}"
+                            f'Parquet file has no data rows: {parquet_file} '
+                            f'for {doc_name}_{year}'
                         )
                         # Don't fail on empty rows, just warn
                     # Some CSVs might legitimately be empty
 
                     valid_files += 1
                     logger.debug(
-                        f"Parquet validated: {parquet_file.name} "
-                        f"({table.num_rows:,} rows, {file_size:,} bytes)"
+                        f'Parquet validated: {parquet_file.name} '
+                        f'({table.num_rows:,} rows, {file_size:,} bytes)'
                     )
 
                 except Exception as e:
                     logger.error(
-                        f"Invalid parquet {parquet_file} for {doc_name}_{year}: "
-                        f"{type(e).__name__}: {e}"
+                        f'Invalid parquet {parquet_file} for {doc_name}_{year}: '
+                        f'{type(e).__name__}: {e}'
                     )
                     return False
 
             logger.info(
-                f"All {valid_files} parquet files validated for {doc_name}_{year}"
+                f'All {valid_files} parquet files validated for {doc_name}_{year}'
             )
             return True
 
         except ImportError:
             logger.warning(
-                "pyarrow not available for parquet validation, skipping content check"
+                'pyarrow not available for parquet validation, skipping content check'
             )
             # Don't fail if pyarrow is missing, just skip validation
             return True
         except Exception as e:
-            logger.error(f"Unexpected error validating parquets: {e}")
+            logger.error(f'Unexpected error validating parquets: {e}')
             return False

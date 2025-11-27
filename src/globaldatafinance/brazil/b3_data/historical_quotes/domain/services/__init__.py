@@ -3,7 +3,7 @@ from .extraction_config_service import ExtractionConfigServiceB3
 from .year_validation_service import YearValidationServiceB3
 
 __all__ = [
-    "AvailableAssetsServiceB3",
-    "ExtractionConfigServiceB3",
-    "YearValidationServiceB3",
+    'AvailableAssetsServiceB3',
+    'ExtractionConfigServiceB3',
+    'YearValidationServiceB3',
 ]

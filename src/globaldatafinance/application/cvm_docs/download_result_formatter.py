@@ -30,13 +30,13 @@ class DownloadResultFormatter:
     """
 
     # ANSI color codes
-    GREEN = "\033[92m"
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    CYAN = "\033[96m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
 
     def __init__(self, use_colors: bool = True) -> None:
         """
@@ -61,7 +61,7 @@ class DownloadResultFormatter:
         """
         if not self.use_colors:
             return text
-        return f"{color}{text}{self.RESET}"
+        return f'{color}{text}{self.RESET}'
 
     def format_result(self, result: DownloadResultCVM) -> str:
         """
@@ -115,61 +115,77 @@ class DownloadResultFormatter:
         lines = []
 
         # Header
-        lines.append("")
-        lines.append(self._colorize("📥 CVM Documents Download", self.BOLD))
+        lines.append('')
+        lines.append(self._colorize('📥 CVM Documents Download', self.BOLD))
         lines.append(
             self._colorize(
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
                 self.BOLD,
             )
         )
 
         # Status message
-        if result.error_count_downloads == 0 and result.success_count_downloads > 0:
+        if (
+            result.error_count_downloads == 0
+            and result.success_count_downloads > 0
+        ):
             lines.append(
-                self._colorize("✓ Documents downloaded successfully!", self.GREEN)
+                self._colorize(
+                    '✓ Documents downloaded successfully!', self.GREEN
+                )
             )
-        elif result.success_count_downloads > 0 and result.error_count_downloads > 0:
+        elif (
+            result.success_count_downloads > 0
+            and result.error_count_downloads > 0
+        ):
             lines.append(
-                self._colorize("⚠ Download completed with some errors.", self.YELLOW)
+                self._colorize(
+                    '⚠ Download completed with some errors.', self.YELLOW
+                )
             )
         else:
-            lines.append(self._colorize("✗ Document download failed.", self.RED))
+            lines.append(
+                self._colorize('✗ Document download failed.', self.RED)
+            )
 
-        lines.append("")
+        lines.append('')
 
         # Summary Section
         total = result.success_count_downloads + result.error_count_downloads
-        lines.append(self._colorize("📊 Summary:", self.BOLD))
-        lines.append(f"  • Total files: {total}")
+        lines.append(self._colorize('📊 Summary:', self.BOLD))
+        lines.append(f'  • Total files: {total}')
         lines.append(
-            f"  • Success: {self._colorize(str(result.success_count_downloads), self.GREEN)}"
+            f'  • Success: {self._colorize(str(result.success_count_downloads), self.GREEN)}'
         )
         lines.append(
-            f"  • Errors: {self._colorize(str(result.error_count_downloads), self.RED if result.error_count_downloads > 0 else self.RESET)}"
+            f'  • Errors: {self._colorize(str(result.error_count_downloads), self.RED if result.error_count_downloads > 0 else self.RESET)}'
         )
-        lines.append(f"  • Elapsed time: {result.elapsed_time:.1f}s")
+        lines.append(f'  • Elapsed time: {result.elapsed_time:.1f}s')
 
-        lines.append("")
+        lines.append('')
 
         # Files Section
         if result.successful_downloads:
-            lines.append(self._colorize("📁 Downloaded files:", self.BOLD))
+            lines.append(self._colorize('📁 Downloaded files:', self.BOLD))
             for item in result.successful_downloads:
                 # Clean up item name if needed (e.g., remove full path if present, though usually it's just doc_year)
-                display_name = item.replace("_", " - ")
-                lines.append(f"  {self._colorize('✓', self.GREEN)} {display_name}")
+                display_name = item.replace('_', ' - ')
+                lines.append(
+                    f'  {self._colorize("✓", self.GREEN)} {display_name}'
+                )
 
         # Errors Section (if any)
         if result.failed_downloads:
-            lines.append("")
-            lines.append(self._colorize("❌ Errors:", self.BOLD))
+            lines.append('')
+            lines.append(self._colorize('❌ Errors:', self.BOLD))
             for item, error in result.failed_downloads.items():
-                display_name = item.replace("_", " - ")
-                lines.append(f"  {self._colorize('✗', self.RED)} {display_name}")
-                lines.append(f"    └─ Error: {error}")
+                display_name = item.replace('_', ' - ')
+                lines.append(
+                    f'  {self._colorize("✗", self.RED)} {display_name}'
+                )
+                lines.append(f'    └─ Error: {error}')
 
-        return "\n".join(lines)
+        return '\n'.join(lines)
 
     def print_result(self, result: DownloadResultCVM) -> None:
         """

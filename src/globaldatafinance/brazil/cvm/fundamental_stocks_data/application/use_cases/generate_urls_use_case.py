@@ -11,7 +11,7 @@ class GenerateUrlsUseCaseCVM:
 
     def __init__(self) -> None:
         self.__dict_generator = DictZipsToDownloadCVM()
-        logger.debug("GenerateUrlsUseCaseCVM initialized")
+        logger.debug('GenerateUrlsUseCaseCVM initialized')
 
     def execute(
         self,
@@ -30,23 +30,25 @@ class GenerateUrlsUseCaseCVM:
             A tuple containing a dictionary mapping document types to lists of download URLs and a set of document types.
         """
         logger.debug(
-            f"Generating URLs for docs={list_docs}, years={initial_year}-{last_year}"
+            f'Generating URLs for docs={list_docs}, years={initial_year}-{last_year}'
         )
 
         try:
-            dict_zips, new_set_docs = self.__dict_generator.get_dict_zips_to_download(
-                list_docs=list_docs,
-                initial_year=initial_year,
-                last_year=last_year,
+            dict_zips, new_set_docs = (
+                self.__dict_generator.get_dict_zips_to_download(
+                    list_docs=list_docs,
+                    initial_year=initial_year,
+                    last_year=last_year,
+                )
             )
 
             total_urls = sum(len(urls) for urls in dict_zips.values())
             logger.info(
-                f"Generated {total_urls} URLs from {len(dict_zips)} document types"
+                f'Generated {total_urls} URLs from {len(dict_zips)} document types'
             )
 
             return dict_zips, new_set_docs
 
         except Exception as e:
-            logger.error(f"Failed to generate URLs: {e}")
+            logger.error(f'Failed to generate URLs: {e}')
             raise

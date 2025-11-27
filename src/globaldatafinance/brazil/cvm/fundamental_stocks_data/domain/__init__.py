@@ -4,9 +4,9 @@ from .dict_zips_download import DictZipsToDownloadCVM
 from .download_result import DownloadResultCVM
 
 __all__ = [
-    "AvailableDocsCVM",
-    "UrlDocsCVM",
-    "AvailableYearsCVM",
-    "DictZipsToDownloadCVM",
-    "DownloadResultCVM",
+    'AvailableDocsCVM',
+    'UrlDocsCVM',
+    'AvailableYearsCVM',
+    'DictZipsToDownloadCVM',
+    'DownloadResultCVM',
 ]

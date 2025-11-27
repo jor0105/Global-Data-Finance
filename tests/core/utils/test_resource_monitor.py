@@ -1,7 +1,11 @@
 import time
 from unittest.mock import Mock, patch
 
-from globaldatafinance.core.utils import ResourceLimits, ResourceMonitor, ResourceState
+from globaldatafinance.core.utils import (
+    ResourceLimits,
+    ResourceMonitor,
+    ResourceState,
+)
 
 
 class TestResourceMonitor:
@@ -29,7 +33,7 @@ class TestResourceMonitor:
         assert monitor.limits.memory_warning_threshold == 60.0
         assert monitor.limits.min_free_memory_mb == 200
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_check_resources_healthy(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.percent = 50.0
@@ -43,7 +47,7 @@ class TestResourceMonitor:
 
         assert state == ResourceState.HEALTHY
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_check_resources_warning(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.percent = 75.0
@@ -57,7 +61,7 @@ class TestResourceMonitor:
 
         assert state == ResourceState.WARNING
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_check_resources_critical(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.percent = 90.0
@@ -71,7 +75,7 @@ class TestResourceMonitor:
 
         assert state == ResourceState.CRITICAL
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_check_resources_exhausted(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.percent = 96.0
@@ -85,7 +89,7 @@ class TestResourceMonitor:
 
         assert state == ResourceState.EXHAUSTED
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_circuit_breaker_cooldown(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.total = 8 * 1024**3
@@ -108,7 +112,7 @@ class TestResourceMonitor:
         state = monitor.check_resources()
         assert state == ResourceState.HEALTHY
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_get_safe_worker_count_reduces_on_pressure(self, mock_psutil):
         ResourceMonitor._instance = None
 
@@ -126,7 +130,7 @@ class TestResourceMonitor:
         workers = monitor.get_safe_worker_count(8)
         assert workers == 4
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_get_safe_batch_size_reduces_on_pressure(self, mock_psutil):
         ResourceMonitor._instance = None
 
@@ -142,7 +146,7 @@ class TestResourceMonitor:
         batch_size = monitor.get_safe_batch_size(100_000)
         assert batch_size == 50_000
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_wait_for_resources_success(self, mock_psutil):
         ResourceMonitor._instance = None
 
@@ -160,7 +164,7 @@ class TestResourceMonitor:
         )
         assert result is True
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil", None)
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil', None)
     def test_no_psutil_fallback(self):
         ResourceMonitor._instance = None
         monitor = ResourceMonitor()
@@ -168,7 +172,7 @@ class TestResourceMonitor:
         state = monitor.check_resources()
         assert state == ResourceState.HEALTHY
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_minimum_free_memory_threshold(self, mock_psutil):
         mock_memory = Mock()
         mock_memory.total = 8 * 1024**3
@@ -182,7 +186,7 @@ class TestResourceMonitor:
 
         assert state == ResourceState.EXHAUSTED
 
-    @patch("globaldatafinance.core.utils.resource_monitor.psutil")
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
     def test_get_process_memory_mb_returns_float(self, mock_psutil):
         ResourceMonitor._instance = None
         mock_process = Mock()

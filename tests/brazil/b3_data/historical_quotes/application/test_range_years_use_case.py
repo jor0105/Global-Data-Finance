@@ -56,7 +56,7 @@ class TestCreateRangeYearsUseCaseB3:
 
     def test_execute_raises_invalid_first_year_for_non_integer(self):
         with pytest.raises(InvalidFirstYear):
-            CreateRangeYearsUseCaseB3.execute("2020", 2024)
+            CreateRangeYearsUseCaseB3.execute('2020', 2024)
 
     def test_execute_raises_invalid_first_year_for_float(self):
         with pytest.raises(InvalidFirstYear):
@@ -77,7 +77,7 @@ class TestCreateRangeYearsUseCaseB3:
 
     def test_execute_raises_invalid_last_year_for_non_integer(self):
         with pytest.raises(InvalidLastYear):
-            CreateRangeYearsUseCaseB3.execute(2020, "2024")
+            CreateRangeYearsUseCaseB3.execute(2020, '2024')
 
     def test_execute_raises_invalid_last_year_for_float(self):
         with pytest.raises(InvalidLastYear):

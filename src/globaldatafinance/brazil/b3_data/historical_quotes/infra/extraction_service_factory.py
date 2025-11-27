@@ -17,7 +17,7 @@ class ExtractionServiceFactoryB3:
         zip_reader: ZipFileReaderB3,
         parser: CotahistParserB3,
         data_writer: ParquetWriterB3,
-        processing_mode: str = "fast",
+        processing_mode: str = 'fast',
     ) -> ExtractionServiceB3:
         """Create an ExtractionServiceB3 with the specified configuration.
 
@@ -39,7 +39,7 @@ class ExtractionServiceFactoryB3:
             valid_modes = [m.value for m in ProcessingModeEnumB3]
             raise ValueError(
                 f"Invalid processing_mode '{processing_mode}'. "
-                f"Must be one of: {valid_modes}"
+                f'Must be one of: {valid_modes}'
             )
 
         return ExtractionServiceB3(

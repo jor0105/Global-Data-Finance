@@ -31,9 +31,9 @@ class VerifyPathsUseCasesCVM:
             raise EmptyDocumentListError()
 
         logger.debug(
-            f"VerifyPathsUseCasesCVM created: "
-            f"path={self.destination_path}, "
-            f"docs={self.new_set_docs}"
+            f'VerifyPathsUseCasesCVM created: '
+            f'path={self.destination_path}, '
+            f'docs={self.new_set_docs}'
         )
 
     def execute(self) -> Dict[str, Dict[int, str]]:
@@ -52,20 +52,24 @@ class VerifyPathsUseCasesCVM:
                 is_valid = self.__is_valid_year_for_doc(doc, year)
                 if not is_valid:
                     logger.debug(
-                        f"Skipping folder for doc={doc}, year={year} (invalid year for this document)"
+                        f'Skipping folder for doc={doc}, year={year} (invalid year for this document)'
                     )
                     continue
                 year_path = str(Path(validated_doc_path) / str(year))
-                validated_year_path = self.__validate_and_create_paths(year_path)
+                validated_year_path = self.__validate_and_create_paths(
+                    year_path
+                )
                 docs_paths[doc][year] = validated_year_path
 
         logger.info(
-            f"Directory structure created successfully. "
-            f"Documents: {len(docs_paths)}, "
-            f"Years per document: {[len(years) for years in docs_paths.values()]}"
+            f'Directory structure created successfully. '
+            f'Documents: {len(docs_paths)}, '
+            f'Years per document: {[len(years) for years in docs_paths.values()]}'
         )
 
-        print("Installation folders checked/created. Starting installations...")
+        print(
+            'Installation folders checked/created. Starting installations...'
+        )
 
         return docs_paths
 
@@ -75,10 +79,10 @@ class VerifyPathsUseCasesCVM:
         min_cgvn_vlmo = self.__available_years.get_minimal_cgvn_vlmo_year()
         min_general = self.__available_years.get_minimal_general_year()
 
-        if doc_upper == "ITR":
+        if doc_upper == 'ITR':
             return year >= min_itr
 
-        if doc_upper in {"VLMO", "CGVN"}:
+        if doc_upper in {'VLMO', 'CGVN'}:
             return year >= min_cgvn_vlmo
 
         return year >= min_general
@@ -97,26 +101,29 @@ class VerifyPathsUseCasesCVM:
         Raises:
             SecurityError: If path traversal to sensitive directories is detected
         """
-        sensitive_paths = ["/etc", "/sys", "/proc", "/dev", "/boot", "/root"]
+        sensitive_paths = ['/etc', '/sys', '/proc', '/dev', '/boot', '/root']
 
         path_str = str(path)
         for sensitive in sensitive_paths:
             if path_str.startswith(sensitive):
                 raise SecurityError(
-                    "Attempted write to sensitive system directory", path=path_str
+                    'Attempted write to sensitive system directory',
+                    path=path_str,
                 )
 
-        logger.debug("Path security validation passed.")
+        logger.debug('Path security validation passed.')
 
     @staticmethod
     def __validate_and_create_paths(path: str) -> str:
         if not isinstance(path, str):
             raise TypeError(
-                f"Destination path must be a string, got {type(path).__name__}"
+                f'Destination path must be a string, got {type(path).__name__}'
             )
 
         if not path or path.isspace():
-            raise InvalidDestinationPathError("path cannot be empty or whitespace")
+            raise InvalidDestinationPathError(
+                'path cannot be empty or whitespace'
+            )
 
         normalized_path = Path(path).expanduser().resolve()
 
@@ -130,17 +137,23 @@ class VerifyPathsUseCasesCVM:
             if not os.access(str(normalized_path), os.W_OK):
                 raise PathPermissionError(str(normalized_path))
 
-            logger.debug(f"Destination directory already exists: {normalized_path}")
+            logger.debug(
+                f'Destination directory already exists: {normalized_path}'
+            )
         else:
             try:
                 normalized_path.mkdir(parents=True, exist_ok=True)
-                logger.info(f"Created destination directory: {normalized_path}")
+                logger.info(
+                    f'Created destination directory: {normalized_path}'
+                )
             except PermissionError as e:
                 raise PathPermissionError(str(normalized_path)) from e
             except OSError as e:
                 raise OSError(
-                    f"Failed to create directory {normalized_path}: {e}"
+                    f'Failed to create directory {normalized_path}: {e}'
                 ) from e
 
-        logger.debug(f"Destination path validated and ready: {normalized_path}")
+        logger.debug(
+            f'Destination path validated and ready: {normalized_path}'
+        )
         return str(normalized_path)

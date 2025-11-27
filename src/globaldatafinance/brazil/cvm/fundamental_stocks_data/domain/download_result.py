@@ -35,6 +35,6 @@ class DownloadResultCVM:
 
     def __str__(self) -> str:
         return (
-            f"DownloadResultCVM(success={self.success_count_downloads}, "
-            f"errors={self.error_count_downloads})"
+            f'DownloadResultCVM(success={self.success_count_downloads}, '
+            f'errors={self.error_count_downloads})'
         )

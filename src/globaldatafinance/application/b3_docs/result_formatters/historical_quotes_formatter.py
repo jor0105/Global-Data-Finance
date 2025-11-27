@@ -28,18 +28,18 @@ class HistoricalQuotesResultFormatter:
         Returns:
             Formatted message string describing the extraction results
         """
-        if result["error_count"] == 0:
+        if result['error_count'] == 0:
             return (
-                f"Successfully extracted {result['total_records']:,} records "
-                f"from {result['success_count']} files. "
-                f"Saved to: {result['output_file']}"
+                f'Successfully extracted {result["total_records"]:,} records '
+                f'from {result["success_count"]} files. '
+                f'Saved to: {result["output_file"]}'
             )
         else:
             return (
-                f"Extraction completed with errors. "
-                f"Processed {result['success_count']}/{result['total_files']} files. "
-                f"Extracted {result['total_records']:,} records. "
-                f"Errors: {result['error_count']}"
+                f'Extraction completed with errors. '
+                f'Processed {result["success_count"]}/{result["total_files"]} files. '
+                f'Extracted {result["total_records"]:,} records. '
+                f'Errors: {result["error_count"]}'
             )
 
     @staticmethod
@@ -52,7 +52,7 @@ class HistoricalQuotesResultFormatter:
         Returns:
             True if no errors occurred, False otherwise
         """
-        result_bool: bool = result.get("error_count", 0) == 0
+        result_bool: bool = result.get('error_count', 0) == 0
         return result_bool
 
     @staticmethod
@@ -68,6 +68,10 @@ class HistoricalQuotesResultFormatter:
         Returns:
             Enriched result with 'success' and 'message' fields
         """
-        result["success"] = HistoricalQuotesResultFormatter.determine_success(result)
-        result["message"] = HistoricalQuotesResultFormatter.generate_message(result)
+        result['success'] = HistoricalQuotesResultFormatter.determine_success(
+            result
+        )
+        result['message'] = HistoricalQuotesResultFormatter.generate_message(
+            result
+        )
         return result

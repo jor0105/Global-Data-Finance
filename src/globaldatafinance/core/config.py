@@ -27,34 +27,34 @@ class NetworkSettings(BaseSettings):
         default=300,
         ge=30,
         le=3600,
-        description="Default timeout for HTTP requests in seconds",
+        description='Default timeout for HTTP requests in seconds',
     )
 
     max_retries: int = Field(
         default=3,
         ge=0,
         le=10,
-        description="Maximum number of retry attempts for failed requests",
+        description='Maximum number of retry attempts for failed requests',
     )
 
     retry_backoff: float = Field(
         default=1.0,
         ge=0.1,
         le=10.0,
-        description="Backoff multiplier for retries (exponential backoff)",
+        description='Backoff multiplier for retries (exponential backoff)',
     )
 
     user_agent: str = Field(
-        default="Global-Data-Finance/1.0 (Python Financial Data Library)",
-        description="User agent for HTTP requests",
+        default='Global-Data-Finance/1.0 (Python Financial Data Library)',
+        description='User agent for HTTP requests',
     )
 
     class Config:
         """Network configuration class."""
 
-        env_prefix = "DATAFINANCE_NETWORK_"
+        env_prefix = 'DATAFINANCE_NETWORK_'
         case_sensitive = False
-        extra = "ignore"  # Ignore extra fields from .env files
+        extra = 'ignore'  # Ignore extra fields from .env files
 
 
 class Settings(BaseSettings):
@@ -68,16 +68,18 @@ class Settings(BaseSettings):
 
     network: NetworkSettings = Field(default_factory=NetworkSettings)
 
-    debug: bool = Field(default=False, description="Enable debug mode globally")
+    debug: bool = Field(
+        default=False, description='Enable debug mode globally'
+    )
 
     class Config:
         """Settings configuration class."""
 
-        env_prefix = "DATAFINANCE_"
+        env_prefix = 'DATAFINANCE_'
         case_sensitive = False
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"  # Ignore extra fields from .env files
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+        extra = 'ignore'  # Ignore extra fields from .env files
 
 
 # Singleton instance
