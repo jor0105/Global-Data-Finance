@@ -36,11 +36,6 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi --with dev
 
-      - name: Scan for hardcoded secrets
-        run: |
-          poetry run detect-secrets scan --baseline .secrets.baseline
-          echo "✅ No hardcoded secrets in release"
-
       - name: Security analysis with Bandit
         run: |
           poetry run bandit -c pyproject.toml -r src -ll

@@ -641,26 +641,6 @@ files = [
 ]
 
 [[package]]
-name = "detect-secrets"
-version = "1.5.0"
-description = "Tool for detecting secrets in the codebase"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "detect_secrets-1.5.0-py3-none-any.whl", hash = "sha256:e24e7b9b5a35048c313e983f76c4bd09dad89f045ff059e354f9943bf45aa060"},
-    {file = "detect_secrets-1.5.0.tar.gz", hash = "sha256:6bb46dcc553c10df51475641bb30fd69d25645cc12339e46c824c1e0c388898a"},
-]
-
-[package.dependencies]
-pyyaml = "*"
-requests = "*"
-
-[package.extras]
-gibberish = ["gibberish-detector"]
-word-list = ["pyahocorasick"]
-
-[[package]]
 name = "distlib"
 version = "0.4.0"
 description = "Distribution utilities"
@@ -2959,4 +2939,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "99b741304008c72a8bc30a5bdfc74158300e78d07532b349e375179a700d3969"
+content-hash = "4bd1515101eb7d4d97d76d8331106d31bff226b5de37962dcbf8a0bae6da686a"

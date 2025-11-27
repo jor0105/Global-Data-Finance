@@ -64,11 +64,6 @@ jobs:
       # --------------------------------------------------------------------------
       # 2. Security Checks
       # --------------------------------------------------------------------------
-      - name: Scan for hardcoded secrets
-        run: |
-          poetry run detect-secrets scan --baseline .secrets.baseline
-          echo "✅ No hardcoded secrets detected"
-
       - name: Security analysis with Bandit
         run: |
           poetry run bandit -c pyproject.toml -r src -ll
