@@ -185,10 +185,10 @@ metrics.prom
 
 
 # Project specific folders
-examples/
-CHECKLIST.md
-src/globaldatafinance/brazil/gerais/
-src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/
-src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/
-src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/
-src/globaldatafinance/brazil/b3_data/Opcoes_B3/
+# examples/
+# CHECKLIST.md
+# src/globaldatafinance/brazil/gerais/
+# src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/
+# src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/
+# src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/
+# src/globaldatafinance/brazil/b3_data/Opcoes_B3/
