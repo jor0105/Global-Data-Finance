@@ -1,0 +1,31 @@
+{
+  "artifactType": "review-plan",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260423T002233Z",
+  "status": "completed",
+  "createdAt": "2026-04-23T00:22:33+00:00",
+  "updatedAt": "2026-04-23T00:22:33+00:00",
+  "items": [
+    {
+      "itemId": "RVI-001",
+      "topic": "frontend:runtime",
+      "priority": 50,
+      "packId": "frontend",
+      "status": "completed",
+      "files": [
+        "src/features/chat/components/ChatInput.tsx"
+      ],
+      "skills": [
+        "react-performance"
+      ],
+      "checklists": [
+        "FE-STATE",
+        "FE-UX"
+      ],
+      "contextFiles": [
+        "src/features/chat/components/ChatInput.tsx"
+      ],
+      "expansions": []
+    }
+  ]
+}

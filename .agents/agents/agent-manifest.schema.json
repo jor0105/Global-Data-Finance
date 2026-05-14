@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/.agents/agents/agent-manifest.schema.json",
+  "title": "Agent Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "name",
+    "purpose",
+    "required_context",
+    "optional_context",
+    "allowed_sidecars",
+    "allowed_next_steps",
+    "preferred_skills",
+    "routing_checklist",
+    "escalation_checklist",
+    "must_not",
+    "done_when"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 12
+    },
+    "required_context": {
+      "$ref": "#/$defs/string_list"
+    },
+    "optional_context": {
+      "$ref": "#/$defs/string_list"
+    },
+    "allowed_sidecars": {
+      "$ref": "#/$defs/string_list"
+    },
+    "allowed_next_steps": {
+      "$ref": "#/$defs/string_list"
+    },
+    "preferred_skills": {
+      "$ref": "#/$defs/string_list"
+    },
+    "routing_checklist": {
+      "$ref": "#/$defs/checklist_list"
+    },
+    "escalation_checklist": {
+      "$ref": "#/$defs/checklist_list"
+    },
+    "must_not": {
+      "$ref": "#/$defs/string_list"
+    },
+    "done_when": {
+      "$ref": "#/$defs/string_list"
+    }
+  },
+  "$defs": {
+    "string_list": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "checklist_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "reason"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "open_skill",
+            "delegate_agent",
+            "no_skill",
+            "escalate_agent",
+            "block_for_user"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 8
+        }
+      }
+    },
+    "checklist_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "action"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 12
+        },
+        "action": {
+          "$ref": "#/$defs/checklist_action"
+        }
+      }
+    },
+    "checklist_list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/checklist_item"
+      },
+      "minItems": 1
+    }
+  }
+}

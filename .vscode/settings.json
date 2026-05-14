@@ -7,5 +7,81 @@
     "**/.mypy_cache": true,
     "**/.pytest_cache": true,
     "**/.ruff_cache": true
-  }
+  },
+  "chatgpt.commentCodeLensEnabled": false,
+  "github.copilot.chat.agents.skills.enabled": true,
+  "chat.subagents.allowInvocationsFromSubagents": true,
+  "chat.useCustomAgentHooks": true,
+  "chat.useCustomizationsInParentRepositories": false,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.agentFilesLocations": {
+    ".agents/agents": true
+  },
+  "chat.agentSkillsLocations": {
+    ".agents/skills": true
+  },
+  "github.copilot.chat.mcp.enabled": true,
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": true,
+    "windsurf": true,
+    "cursor-global": true,
+    "cursor-workspace": true
+  },
+  "chat.mcp.autoStart": true,
+  "github.copilot.chat.organizationCustomAgents.enabled": true,
+  "github.copilot.chat.claudeAgent.enabled": true,
+  "chat.viewSessions.enabled": true,
+  "chat.viewSessions.orientation": "sideBySide",
+  "github.copilot.chat.followUpQuestions": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "ruff.organizeImports": true,
+  "files.associations": {
+    "*.agents.md": "markdown",
+    "*.prompt.md": "markdown",
+    "*.instructions.md": "markdown",
+    "SKILL.md": "markdown"
+  },
+  "python-envs.pythonProjects": [],
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.selectedModel": "minimax-m2.7",
+  "claudeCode.environmentVariables": [
+    {
+      "name": "ANTHROPIC_BASE_URL",
+      "value": "https://api.minimax.io/anthropic"
+    },
+    {
+      "name": "ANTHROPIC_AUTH_TOKEN",
+      "value": ""
+    },
+    {
+      "name": "API_TIMEOUT_MS",
+      "value": "3000000"
+    },
+    {
+      "name": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+      "value": "1"
+    },
+    {
+      "name": "ANTHROPIC_MODEL",
+      "value": "MiniMax-M2.7"
+    },
+    {
+      "name": "ANTHROPIC_DEFAULT_SONNET_MODEL",
+      "value": "MiniMax-M2.7"
+    },
+    {
+      "name": "ANTHROPIC_DEFAULT_OPUS_MODEL",
+      "value": "MiniMax-M2.7"
+    },
+    {
+      "name": "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+      "value": "MiniMax-M2.7"
+    }
+  ]
 }

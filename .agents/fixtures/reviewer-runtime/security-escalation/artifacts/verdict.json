@@ -1,0 +1,20 @@
+{
+  "artifactType": "verdict",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260423T002233Z",
+  "status": "final",
+  "createdAt": "2026-04-23T00:22:33+00:00",
+  "updatedAt": "2026-04-23T00:22:34+00:00",
+  "verdict": "APPROVED",
+  "summary": "Review aprovado sem bloqueios.",
+  "blockingReasons": [],
+  "advisories": [],
+  "securityOutcome": "cleared",
+  "metrics": {
+    "blockingFindings": 0,
+    "warningFindings": 0,
+    "nitFindings": 0,
+    "failedBlockingGates": 0,
+    "failedAdvisoryGates": 0
+  }
+}

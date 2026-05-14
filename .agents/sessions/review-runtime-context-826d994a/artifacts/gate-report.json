@@ -1,0 +1,9 @@
+{
+  "artifactType": "gate-report",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260506T191838Z",
+  "status": "pending",
+  "createdAt": "2026-05-06T19:18:38+00:00",
+  "updatedAt": "2026-05-06T19:18:38+00:00",
+  "gates": []
+}

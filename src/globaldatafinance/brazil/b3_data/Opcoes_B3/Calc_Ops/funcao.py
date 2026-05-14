@@ -15,9 +15,11 @@ def opcoes_calculo(
         tempo_ate_vencimento = 1
 
     def calcular_preco_opcao(S, K, T, r, sigma, option):
-        d1 = (math.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * math.sqrt(T))
+        d1 = (math.log(S / K) + (r + sigma**2 / 2) * T) / (
+            sigma * math.sqrt(T)
+        )
         d2 = d1 - sigma * math.sqrt(T)
-        if option == "Call":
+        if option == 'Call':
             return S * norm_cdf(d1) - K * math.exp(-r * T) * norm_cdf(d2)
         else:
             return K * math.exp(-r * T) * norm_cdf(-d2) - S * norm_cdf(-d1)
@@ -42,7 +44,7 @@ def opcoes_calculo(
     return preco_opcao
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import math
 
     import numpy as np
@@ -53,5 +55,5 @@ if __name__ == "__main__":
         tempo_ate_vencimento=22,
         taxa_livre_risco_anual=14.75,
         volatilidade=23.7,
-        tipo_opcao="Put",
+        tipo_opcao='Put',
     )

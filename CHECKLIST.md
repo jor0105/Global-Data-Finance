@@ -1,2 +1,0 @@
-- [ ] Ver se docs estão corretos no github;
-- [ ] Testar biblioteca pelo pypi;

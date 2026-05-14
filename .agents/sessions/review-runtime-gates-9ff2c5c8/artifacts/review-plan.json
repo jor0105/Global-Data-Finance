@@ -1,0 +1,31 @@
+{
+  "artifactType": "review-plan",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260506T191838Z",
+  "status": "completed",
+  "createdAt": "2026-05-06T19:18:38+00:00",
+  "updatedAt": "2026-05-06T19:18:38+00:00",
+  "items": [
+    {
+      "itemId": "RVI-001",
+      "topic": "api:contracts",
+      "priority": 80,
+      "packId": "api",
+      "status": "completed",
+      "files": [
+        "src/features/chat/api.ts"
+      ],
+      "skills": [
+        "api-patterns"
+      ],
+      "checklists": [
+        "API-CONTRACT",
+        "API-ERRORS"
+      ],
+      "contextFiles": [
+        "src/features/chat/api.ts"
+      ],
+      "expansions": []
+    }
+  ]
+}

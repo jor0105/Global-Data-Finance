@@ -1,0 +1,17 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github-token",
+      "description": "GitHub Personal Access Token (repo scope)",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "database-url",
+      "description": "PostgreSQL Database URL (opcional)",
+      "password": true
+    }
+  ],
+  "servers": {}
+}

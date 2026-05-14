@@ -1,0 +1,36 @@
+{
+  "artifactType": "gate-report",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260423T002233Z",
+  "status": "completed",
+  "createdAt": "2026-04-23T00:22:33+00:00",
+  "updatedAt": "2026-04-23T00:22:33+00:00",
+  "gates": [
+    {
+      "gateId": "lint",
+      "label": "Lint",
+      "command": "python3 -c \"print('lint ok')\"",
+      "blocking": true,
+      "status": "passed",
+      "startedAt": "2026-04-23T00:22:33+00:00",
+      "finishedAt": "2026-04-23T00:22:33+00:00",
+      "durationSeconds": 0.027,
+      "exitCode": 0,
+      "outcome": "lint ok\n",
+      "logPath": ".agents/fixtures/reviewer-runtime/partial-refactor/logs/lint.log"
+    },
+    {
+      "gateId": "tests",
+      "label": "Tests",
+      "command": "python3 -c \"print('tests ok')\"",
+      "blocking": false,
+      "status": "passed",
+      "startedAt": "2026-04-23T00:22:33+00:00",
+      "finishedAt": "2026-04-23T00:22:33+00:00",
+      "durationSeconds": 0.024,
+      "exitCode": 0,
+      "outcome": "tests ok\n",
+      "logPath": ".agents/fixtures/reviewer-runtime/partial-refactor/logs/tests.log"
+    }
+  ]
+}

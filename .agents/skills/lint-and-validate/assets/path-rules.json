@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "1.0.0",
+  "rules": [
+    {
+      "pattern": "src/features/auth/**",
+      "profile": "security-touch",
+      "reason": "Fluxos de autenticacao exigem escalacao de seguranca."
+    },
+    {
+      "pattern": "src/shared/api/**",
+      "profile": "security-touch",
+      "reason": "Cliente e contratos compartilhados de API exigem hardening."
+    },
+    {
+      "pattern": "src/app/store/**",
+      "profile": "high-risk",
+      "reason": "Store global alterada."
+    },
+    {
+      "pattern": "src/shared/types/**",
+      "profile": "high-risk",
+      "reason": "Tipos compartilhados alterados."
+    },
+    {
+      "pattern": "tests/frontend/e2e/**",
+      "profile": "ui-flow",
+      "reason": "Fluxo E2E alterado."
+    },
+    {
+      "pattern": "playwright.config.ts",
+      "profile": "ui-flow",
+      "reason": "Configuracao Playwright alterada."
+    },
+    {
+      "pattern": "playwright.simulated.config.ts",
+      "profile": "ui-flow",
+      "reason": "Configuracao Playwright simulada alterada."
+    },
+    {
+      "pattern": "src/**/*.tsx",
+      "reason": "UI visivel alterada; tester pode ser util."
+    },
+    {
+      "pattern": ".agents/**",
+      "profile": "high-risk",
+      "reason": "Infra de agents alterada."
+    },
+    {
+      "pattern": ".claude/**",
+      "profile": "high-risk",
+      "reason": "Harness Claude Code alterado (agents, commands, settings)."
+    },
+    {
+      "pattern": "kilo.jsonc",
+      "profile": "high-risk",
+      "reason": "Runtime de agents alterado."
+    },
+    {
+      "pattern": "opencode.json",
+      "profile": "high-risk",
+      "reason": "Runtime de agents alterado."
+    },
+    {
+      "pattern": "package.json",
+      "profile": "high-risk",
+      "reason": "Scripts oficiais de validacao alterados."
+    },
+    {
+      "pattern": "docs/**",
+      "profile": "quick",
+      "reason": "Mudanca documental."
+    },
+    {
+      "pattern": "**/*.md",
+      "profile": "quick",
+      "reason": "Mudanca documental."
+    }
+  ]
+}

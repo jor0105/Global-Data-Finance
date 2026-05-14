@@ -1,0 +1,37 @@
+{
+  "security": {
+    "label": "Security Boundaries",
+    "priority": 100,
+    "topic": "security:trust-boundary",
+    "skills": ["vulnerability-scanner", "red-team-tactics"],
+    "checklists": ["SEC-TRUST", "SEC-AUTHZ"]
+  },
+  "api": {
+    "label": "API Contracts",
+    "priority": 80,
+    "topic": "api:contracts",
+    "skills": ["api-patterns"],
+    "checklists": ["API-CONTRACT", "API-ERRORS"]
+  },
+  "data": {
+    "label": "Data Integrity",
+    "priority": 70,
+    "topic": "data:integrity",
+    "skills": ["database-design", "supabase-postgres-best-practices"],
+    "checklists": ["DATA-CONTRACT", "DATA-QUERY"]
+  },
+  "frontend": {
+    "label": "Frontend Runtime",
+    "priority": 50,
+    "topic": "frontend:runtime",
+    "skills": ["react-performance"],
+    "checklists": ["FE-STATE", "FE-UX"]
+  },
+  "tests": {
+    "label": "Tests & Verification",
+    "priority": 30,
+    "topic": "tests:coverage",
+    "skills": ["testing-patterns", "webapp-testing"],
+    "checklists": ["TEST-COVERAGE", "TEST-REGRESSION"]
+  }
+}

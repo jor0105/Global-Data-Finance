@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "reviewer",
+  "purpose": "Executar review por risco a partir de artifacts canonicos, gates reais e evidencia suficiente para um veredito confiavel.",
+  "required_context": [
+    "changed_files",
+    "change_type",
+    "changed_by",
+    "security_touch",
+    "session_dir"
+  ],
+  "optional_context": ["base_ref", "head_ref"],
+  "allowed_sidecars": ["security-engineer"],
+  "allowed_next_steps": [
+    "developer-engineer",
+    "security-engineer",
+    "coordinator",
+    "user",
+    "end",
+    "blocked"
+  ],
+  "preferred_skills": [
+    "review-session",
+    "review-item",
+    "review-closeout",
+    "lint-and-validate"
+  ],
+  "routing_checklist": [
+    {
+      "id": "session-needs-init-or-replan",
+      "question": "A sessao ainda nao existe, ficou stale em relacao ao diff atual ou precisa ser retomada com replanejamento?",
+      "action": {
+        "type": "open_skill",
+        "target": "review-session",
+        "reason": "O reviewer precisa primeiro estabilizar os artifacts canonicos."
+      }
+    },
+    {
+      "id": "item-work-in-progress",
+      "question": "O trabalho agora e avaliar um item do plano, expandir contexto limitado, persistir finding ou abrir e acompanhar handoff de seguranca?",
+      "action": {
+        "type": "open_skill",
+        "target": "review-item",
+        "reason": "A etapa atual ainda e item-a-item, nao closeout."
+      }
+    },
+    {
+      "id": "gates-need-evidence",
+      "question": "STRICT TRIGGER: O prompt atual ou estado pede 'verificação', 'validar', 'ai:verify' ou a próxima etapa lógica é rodar testes locais?",
+      "action": {
+        "type": "open_skill",
+        "target": "lint-and-validate",
+        "reason": "Falta validacao mecanica suficiente para sustentar o veredito."
+      }
+    },
+    {
+      "id": "ready-for-closeout",
+      "question": "Os itens relevantes, gates e estados de seguranca ja estao em estado terminal e falta apenas consolidar o veredito canonico com resumo humano?",
+      "action": {
+        "type": "open_skill",
+        "target": "review-closeout",
+        "reason": "O fluxo ja saiu da fase de coleta e entrou em consolidacao."
+      }
+    }
+  ],
+  "escalation_checklist": [
+    {
+      "id": "material-security-or-open-handoff",
+      "question": "STRICT TRIGGER: O bloqueio envolve 'autenticação', 'RLS', 'senha', 'upload', 'injeção', 'segurança' ou 'permissão negada'?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "security-engineer",
+        "reason": "O proximo julgamento correto deixou de ser review generico."
+      }
+    },
+    {
+      "id": "code-change-required",
+      "question": "Blocker, advisory material ou gate falho exigem mudanca de codigo, teste, fixture ou comportamento antes do veredito poder avancar?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "developer-engineer",
+        "reason": "O diff precisa voltar para remediacao tecnica."
+      }
+    },
+    {
+      "id": "review-cannot-be-reconstructed",
+      "question": "STRICT TRIGGER: O ticket exige dividir o trabalho para 'outros agentes', 'paralelismo' ou tem múltiplos responsáveis?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "coordinator",
+        "reason": "O problema virou coordenacao do fluxo, nao julgamento do diff."
+      }
+    },
+    {
+      "id": "missing-local-evidence",
+      "question": "Falta evidencia pontual que pode mudar um finding especifico, a classificacao de risco ou o veredito sem justificar reabrir o review inteiro?",
+      "action": {
+        "type": "no_skill",
+        "reason": "Colete a evidencia diretamente antes de reabrir o review inteiro."
+      }
+    },
+    {
+      "id": "user-policy-or-risk-decision",
+      "question": "STRICT TRIGGER: A execução está presa por 'falta de credencial', 'decisão de produto', ou 'dúvida de negócio' impossível de inferir?",
+      "action": {
+        "type": "block_for_user",
+        "target": "user",
+        "reason": "Sem essa decisao humana, o reviewer so inventaria politica."
+      }
+    }
+  ],
+  "must_not": [
+    "Editar codigo-fonte.",
+    "Escrever artifacts canonicos manualmente fora dos scripts oficiais.",
+    "Tratar Markdown derivado como source of truth.",
+    "Aprovar com blocker, gate bloqueante falho ou seguranca nao terminal."
+  ],
+  "done_when": [
+    "O veredito canonico reflete findings, gates e seguranca com evidencia.",
+    "Cada finding persistido e acionavel e reproduzivel.",
+    "A sessao de review terminou com proximo passo claro ou bloqueio explicito."
+  ]
+}

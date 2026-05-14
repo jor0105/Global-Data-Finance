@@ -1,0 +1,25 @@
+{
+  "artifactType": "review-session",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260423T002233Z",
+  "status": "completed",
+  "createdAt": "2026-04-23T00:22:33+00:00",
+  "updatedAt": "2026-04-23T00:22:34+00:00",
+  "change": {
+    "changeType": "refactor",
+    "changedBy": "developer-engineer",
+    "securityTouch": "auto",
+    "baseRef": null,
+    "headRef": null
+  },
+  "changedFiles": [
+    "backend/api/deps/auth.py",
+    "src/features/auth/AuthProvider.tsx"
+  ],
+  "statistics": {
+    "totalItems": 3,
+    "completedItems": 3,
+    "findingCount": 0,
+    "blockingFindingCount": 0
+  }
+}

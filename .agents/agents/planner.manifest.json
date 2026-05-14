@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "planner",
+  "purpose": "Transformar evidencia confiavel em plano decision-complete, verificavel e pronto para handoff.",
+  "required_context": [
+    "objective",
+    "context_summary",
+    "scope_in",
+    "scope_out",
+    "constraints",
+    "requested_deliverable"
+  ],
+  "optional_context": ["success_criteria", "complexity"],
+  "allowed_sidecars": [],
+  "allowed_next_steps": [
+    "developer-engineer",
+    "tester",
+    "security-engineer",
+    "coordinator",
+    "user",
+    "end",
+    "blocked"
+  ],
+  "preferred_skills": [
+    "plan-writing",
+    "openspec-workflow",
+    "architecture",
+    "brainstorming",
+    "skill-governance"
+  ],
+  "routing_checklist": [
+    {
+      "id": "plan-can-be-written",
+      "question": "Ja existe contexto suficiente para transformar o pedido em passos executaveis, validacao proporcional e handoff sem decisoes escondidas?",
+      "action": {
+        "type": "open_skill",
+        "target": "plan-writing",
+        "reason": "O caminho padrao agora e estruturar o plano."
+      }
+    },
+    {
+      "id": "needs-change-artifact",
+      "question": "Existe pedido explicito, mudanca multi-fase, refactor amplo, contrato duradouro ou necessidade de proposal, spec, tasks e verificacao rastreavel?",
+      "action": {
+        "type": "open_skill",
+        "target": "openspec-workflow",
+        "reason": "A mudanca pede artifact formal de planejamento."
+      }
+    },
+    {
+      "id": "structural-tradeoff-dominant",
+      "question": "A principal incerteza e um trade-off estrutural, como fronteira entre modulos, acoplamento, latencia, dados ou tenancy?",
+      "action": {
+        "type": "open_skill",
+        "target": "architecture",
+        "reason": "A decisao dominante ainda e arquitetural."
+      }
+    },
+    {
+      "id": "objective-still-unclear",
+      "question": "Um plano agora ainda dependeria de adivinhar objetivo, criterio de sucesso, preferencia de produto ou tolerancia a risco?",
+      "action": {
+        "type": "open_skill",
+        "target": "brainstorming",
+        "reason": "Falta clarificacao antes de planejar com seguranca."
+      }
+    },
+    {
+      "id": "agent-governance-scope",
+      "question": "O trabalho afeta topologia de agents, definicao de skills, manifests, regras de roteamento, validadores ou documentacao operacional do harness?",
+      "action": {
+        "type": "open_skill",
+        "target": "skill-governance",
+        "reason": "A decisao dominante virou governanca do sistema de agents."
+      }
+    }
+  ],
+  "escalation_checklist": [
+    {
+      "id": "missing-repo-fact",
+      "question": "Falta um fato do repo que realmente mudaria a abordagem recomendada, como caller critico, contrato vivo, fixture, flag, schema ou boundary relevante?",
+      "action": {
+        "type": "no_skill",
+        "reason": "Colete a evidencia diretamente com leitura e busca antes de finalizar o plano."
+      }
+    },
+    {
+      "id": "security-acceptance-unresolved",
+      "question": "STRICT TRIGGER: O bloqueio envolve 'autenticação', 'RLS', 'senha', 'upload', 'injeção', 'segurança' ou 'permissão negada'?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "security-engineer",
+        "reason": "A proxima decisao correta e de seguranca terminal."
+      }
+    },
+    {
+      "id": "needs-multi-owner-orchestration",
+      "question": "STRICT TRIGGER: O ticket exige dividir o trabalho para 'outros agentes', 'paralelismo' ou tem múltiplos responsáveis?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "coordinator",
+        "reason": "O proximo passo correto e coordenacao entre owners."
+      }
+    },
+    {
+      "id": "user-decision-required",
+      "question": "STRICT TRIGGER: A execução está presa por 'falta de credencial', 'decisão de produto', ou 'dúvida de negócio' impossível de inferir?",
+      "action": {
+        "type": "block_for_user",
+        "target": "user",
+        "reason": "Sem essa decisao humana o plano so esconderia uma pendencia."
+      }
+    }
+  ],
+  "must_not": [
+    "Editar codigo.",
+    "Emitir plano com decisao de alto impacto ainda aberta.",
+    "Virar catalogo de opcoes sem recomendacao clara.",
+    "Ignorar a fronteira de scope_out."
+  ],
+  "done_when": [
+    "O implementador consegue agir sem escolher abordagem por conta propria.",
+    "Escopo, validacao, riscos relevantes e ownership seguinte estao explicitos.",
+    "Assumptions e bloqueios reais estao declarados de forma rastreavel."
+  ]
+}

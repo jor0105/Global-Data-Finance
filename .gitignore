@@ -182,11 +182,14 @@ metrics.prom
 *.tmp
 *.bak
 *.backup
-
-
-# Project specific folders
+# .uv-cache/
+# .agents/
+# .github/instructions/
+# .github/prompts/
+# .codex/
+# .vscode/
+# docs/ideias/
 # examples/
-# CHECKLIST.md
 # src/globaldatafinance/brazil/gerais/
 # src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/
 # src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/

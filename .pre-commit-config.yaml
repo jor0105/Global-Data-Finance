@@ -1,19 +1,30 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-exclude: >
-  (?x)^(
-      examples/|
-      CHECKLIST\.md|
-      src/globaldatafinance/brazil/gerais/|
-      src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/|
-      src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/|
-      src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/|
-      src/globaldatafinance/brazil/b3_data/Opcoes_B3/
-  )
-
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 repos:
+  # --------------------------------------------------------------------------
+  # 0. Commit Message Validation (Conventional Commits - simplified)
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: validate-commit-msg
+        name: validate-commit-msg
+        entry: .github/hooks/validate-commit-msg.sh
+        language: script
+        stages: [commit-msg]
+
+      - id: standardization-build
+        name: standardization-build
+        entry: uv run python scripts/build_standardization_specs.py
+        language: system
+        files: ^src/domain/change_datas/.*\.json$
+        pass_filenames: false
+
+      - id: validate-skills-metadata
+        name: validate-skills-metadata
+        entry: uv run python .agents/scripts/validate-skills.py
+        language: system
+        files: (^|/)(SKILL\.md)$
+        pass_filenames: false
   # --------------------------------------------------------------------------
   # 1. Basic File Checks
   # --------------------------------------------------------------------------
@@ -22,21 +33,35 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+      - id: mixed-line-ending
       - id: check-yaml
       - id: check-toml
       - id: check-merge-conflict
-      - id: check-added-large-files
       - id: debug-statements
       - id: check-ast
-
+      - id: check-added-large-files
+        args: ["--maxkb=1500"]
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
   # --------------------------------------------------------------------------
-  # 2. Project Integrity (Poetry)
+  # 2. Project Integrity (uv)
   # --------------------------------------------------------------------------
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.2.1
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.5.18
     hooks:
-      - id: poetry-check
-      - id: poetry-lock
+      - id: uv-lock
+
+  # Max lines per file (src + backend)
+  # - repo: local
+  #   hooks:
+  #     - id: max-lines-per-file
+  #       name: max-lines-per-file
+  #       entry: bash .github/hooks/check-max-lines.sh
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
 
   # --------------------------------------------------------------------------
   # 3. Security Checks
@@ -48,7 +73,7 @@ repos:
       - id: bandit
         args: ["-c", "pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
-        exclude: ^tests/
+        exclude: ^(tests/|.agents/scripts/|.agents/skills/.*/scripts/)
 
   # Dependency Vulnerabilities (pip-audit)
   # Runs locally using the project's environment
@@ -56,10 +81,18 @@ repos:
     hooks:
       - id: pip-audit
         name: pip-audit
-        entry: poetry run pip-audit --ignore-vuln GHSA-f83h-ghpp-7wcc
+        entry: uv run pip-audit .
         language: system
         pass_filenames: false
         always_run: true
+
+  # Secret Detection (detect-secrets)
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: package.lock
 
   # --------------------------------------------------------------------------
   # 4. Formatting & Linting (Ruff replaces isort/flake8)
@@ -72,15 +105,27 @@ repos:
       - id: ruff-format
 
   # --------------------------------------------------------------------------
+  # 4.1. Unit Tests (Fast)
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: pytest-unit
+        entry: uv run pytest -q -m "not integration and not slow"
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # --------------------------------------------------------------------------
   # 5. Type Checking
   # --------------------------------------------------------------------------
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.18.2
     hooks:
       - id: mypy
-        args: [--ignore-missing-imports, --pretty]
-        additional_dependencies: [types-requests, types-toml]
-        exclude: ^examples/
+        args: [--ignore-missing-imports, --pretty, --no-incremental]
+        additional_dependencies: [types-requests, types-toml, types-PyYAML]
+        exclude: ^examples/|^teste_site/|^\.github/|^\.agents/
 
   # --------------------------------------------------------------------------
   # 6. Documentation
@@ -92,4 +137,4 @@ repos:
         args:
           - --convention=google
           - --match-dir=^src
-          - --add-ignore=D104,D100,D101,D102,D103,D105,D107,D205,D212,D417,D415
+          - --add-ignore=D100,D101,D102,D103,D104,D105,D107,D205,D212,D415,D417

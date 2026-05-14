@@ -1,0 +1,76 @@
+{
+  "artifactType": "review-plan",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260506T191637Z",
+  "status": "ready",
+  "createdAt": "2026-05-06T19:16:37+00:00",
+  "updatedAt": "2026-05-06T19:16:37+00:00",
+  "items": [
+    {
+      "itemId": "RVI-001",
+      "topic": "security:trust-boundary",
+      "priority": 100,
+      "packId": "security",
+      "status": "pending",
+      "files": [
+        "backend/api/deps/auth.py",
+        "src/features/auth/AuthProvider.tsx"
+      ],
+      "skills": [
+        "vulnerability-scanner",
+        "red-team-tactics"
+      ],
+      "checklists": [
+        "SEC-TRUST",
+        "SEC-AUTHZ"
+      ],
+      "contextFiles": [
+        "backend/api/deps/auth.py",
+        "src/features/auth/AuthProvider.tsx"
+      ],
+      "expansions": []
+    },
+    {
+      "itemId": "RVI-002",
+      "topic": "api:contracts",
+      "priority": 80,
+      "packId": "api",
+      "status": "pending",
+      "files": [
+        "backend/api/deps/auth.py"
+      ],
+      "skills": [
+        "api-patterns"
+      ],
+      "checklists": [
+        "API-CONTRACT",
+        "API-ERRORS"
+      ],
+      "contextFiles": [
+        "backend/api/deps/auth.py"
+      ],
+      "expansions": []
+    },
+    {
+      "itemId": "RVI-003",
+      "topic": "frontend:runtime",
+      "priority": 50,
+      "packId": "frontend",
+      "status": "pending",
+      "files": [
+        "src/features/auth/AuthProvider.tsx"
+      ],
+      "skills": [
+        "nextjs-react-expert"
+      ],
+      "checklists": [
+        "FE-STATE",
+        "FE-UX"
+      ],
+      "contextFiles": [
+        "src/features/auth/AuthProvider.tsx"
+      ],
+      "expansions": []
+    }
+  ]
+}

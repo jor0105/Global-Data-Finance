@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "pkief.material-icon-theme",
+    "yzhang.markdown-all-in-one",
+    "shd101wyy.markdown-preview-enhanced",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "meganrogge.template-string-converter"
+  ],
+  "unwantedRecommendations": []
+}

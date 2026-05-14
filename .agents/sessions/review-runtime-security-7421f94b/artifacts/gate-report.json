@@ -1,0 +1,44 @@
+{
+  "artifactType": "gate-report",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260506T191638Z",
+  "status": "completed",
+  "createdAt": "2026-05-06T19:16:38+00:00",
+  "updatedAt": "2026-05-06T19:16:38+00:00",
+  "gates": [
+    {
+      "gateId": "lint",
+      "label": "Lint",
+      "command": "python3 -c \"print('ok')\"",
+      "blocking": true,
+      "status": "passed",
+      "classification": "code",
+      "startedAt": "2026-05-06T19:16:38+00:00",
+      "finishedAt": "2026-05-06T19:16:38+00:00",
+      "durationSeconds": 0.014,
+      "durationMs": 14,
+      "exitCode": 0,
+      "outcome": "ok",
+      "logPath": ".agents/sessions/review-runtime-security-7421f94b/logs/ai-verify/lint.log"
+    }
+  ],
+  "profile": "auto",
+  "effectiveProfile": "security-touch",
+  "profileReason": "Fluxos de autenticacao exigem escalacao de seguranca.",
+  "changedFiles": [
+    "src/features/auth/AuthProvider.tsx"
+  ],
+  "escalations": {
+    "reviewRequired": true,
+    "securityRequired": true,
+    "testerRecommended": true,
+    "reasons": [
+      "Fluxo com toque de seguranca pede review final.",
+      "Fluxo de auth alterado.",
+      "Perfil security-touch exige security-engineer.",
+      "Fluxo de autenticacao alterado.",
+      "Componente visual alterado."
+    ]
+  },
+  "summary": "1 passed"
+}

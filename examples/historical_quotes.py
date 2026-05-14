@@ -11,5 +11,3 @@ b3 = HistoricalQuotesB3()
 #     destination_path='/home/usuario/',
 #     processing_mode="slow",
 # )
-
-

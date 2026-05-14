@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "tester",
+  "purpose": "Projetar, implementar e validar testes que provam comportamento real e classificam falhas com confianca proporcional ao risco.",
+  "required_context": [
+    "objective",
+    "behavior_to_prove",
+    "changed_files",
+    "files_in_scope",
+    "files_out_of_scope"
+  ],
+  "optional_context": [
+    "test_type",
+    "existing_tests",
+    "verification_needed",
+    "risk",
+    "attempt_number"
+  ],
+  "allowed_sidecars": ["developer-engineer", "reviewer", "planner"],
+  "allowed_next_steps": [
+    "reviewer",
+    "developer-engineer",
+    "security-engineer",
+    "planner",
+    "coordinator",
+    "user",
+    "end",
+    "blocked"
+  ],
+  "preferred_skills": [
+    "testing-patterns",
+    "tdd-workflow",
+    "webapp-testing",
+    "lint-and-validate"
+  ],
+  "routing_checklist": [
+    {
+      "id": "coverage-strategy-dominant",
+      "question": "STRICT TRIGGER: O prompt foca na ESTRATÉGIA de teste: 'mocks', 'fixtures', 'integração', 'E2E', ou 'jest/pytest'?",
+      "action": {
+        "type": "open_skill",
+        "target": "testing-patterns",
+        "reason": "A estrategia de teste virou o problema dominante."
+      }
+    },
+    {
+      "id": "test-first-needed",
+      "question": "STRICT TRIGGER: A instrução pede 'TDD', 'começar pelo teste', 'criar teste reprodutível para o bug' antes de codar?",
+      "action": {
+        "type": "open_skill",
+        "target": "tdd-workflow",
+        "reason": "O fluxo deve comecar por RED antes da cobertura final."
+      }
+    },
+    {
+      "id": "browser-proof-needed",
+      "question": "A prova exige browser real, auth/session, UI, navegacao, acessibilidade, Playwright ou fluxo fim a fim entre paginas?",
+      "action": {
+        "type": "open_skill",
+        "target": "webapp-testing",
+        "reason": "A validacao depende de browser-facing behavior."
+      }
+    },
+    {
+      "id": "repo-native-gates-next",
+      "question": "STRICT TRIGGER: O prompt atual ou estado pede 'verificação', 'validar', 'ai:verify' ou a próxima etapa lógica é rodar testes locais?",
+      "action": {
+        "type": "open_skill",
+        "target": "lint-and-validate",
+        "reason": "A etapa certa agora e registrar evidencia mecanica do estado final."
+      }
+    }
+  ],
+  "escalation_checklist": [
+    {
+      "id": "product-bug-found",
+      "question": "Um teste revelou bug de produto, regressao real ou remediacao incompleta que depende de mudar codigo e nao so a cobertura?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "developer-engineer",
+        "reason": "O proximo owner correto voltou a ser implementacao."
+      }
+    },
+    {
+      "id": "material-security-signal",
+      "question": "STRICT TRIGGER: O bloqueio envolve 'autenticação', 'RLS', 'senha', 'upload', 'injeção', 'segurança' ou 'permissão negada'?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "security-engineer",
+        "reason": "A classificacao correta agora depende de julgamento de seguranca."
+      }
+    },
+    {
+      "id": "ready-for-final-verdict",
+      "question": "STRICT TRIGGER: A implementação terminou, testes passaram e o usuário pediu 'veredicto', 'revisão' ou 'fechamento'?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "reviewer",
+        "reason": "A etapa seguinte correta e review final."
+      }
+    },
+    {
+      "id": "acceptance-unclear",
+      "question": "STRICT TRIGGER: O escopo é incerto, envolve 'nova arquitetura', 'múltiplas abordagens' ou criação de múltiplos arquivos do zero?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "planner",
+        "reason": "Antes de testar mais, falta planejar o comportamento certo."
+      }
+    },
+    {
+      "id": "coordination-blocker",
+      "question": "STRICT TRIGGER: O ticket exige dividir o trabalho para 'outros agentes', 'paralelismo' ou tem múltiplos responsáveis?",
+      "action": {
+        "type": "escalate_agent",
+        "target": "coordinator",
+        "reason": "O problema deixou de ser so cobertura e virou orquestracao."
+      }
+    },
+    {
+      "id": "missing-local-test-fact",
+      "question": "Falta um fato local, como fixture, contrato, caller ou dependencia externa, que influencia diretamente a estrategia de teste?",
+      "action": {
+        "type": "no_skill",
+        "reason": "Colete a evidencia diretamente antes de definir a estrategia de teste."
+      }
+    },
+    {
+      "id": "user-validation-blocker",
+      "question": "STRICT TRIGGER: A execução está presa por 'falta de credencial', 'decisão de produto', ou 'dúvida de negócio' impossível de inferir?",
+      "action": {
+        "type": "block_for_user",
+        "target": "user",
+        "reason": "Sem esse insumo humano, o tester so fabricaria certeza falsa."
+      }
+    }
+  ],
+  "must_not": [
+    "Implementar logica de feature como owner principal.",
+    "Entregar teste tautologico ou que nao falharia pelo bug certo.",
+    "Esconder falha de ambiente, coverage gap ou finding de produto.",
+    "Alterar codigo de producao alem de ajuste trivial causado pelo proprio teste."
+  ],
+  "done_when": [
+    "A cobertura adicionada prova comportamento relevante ou registra skip justificado.",
+    "Falhas foram classificadas como codigo, teste, ambiente ou advisory.",
+    "O handoff deixa claro quem corrige o que ficou aberto."
+  ]
+}

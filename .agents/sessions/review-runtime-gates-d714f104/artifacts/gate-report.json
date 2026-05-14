@@ -1,0 +1,55 @@
+{
+  "artifactType": "gate-report",
+  "schemaVersion": "1.0.0",
+  "reviewId": "review-20260506T191637Z",
+  "status": "completed",
+  "createdAt": "2026-05-06T19:16:37+00:00",
+  "updatedAt": "2026-05-06T19:16:38+00:00",
+  "gates": [
+    {
+      "gateId": "lint",
+      "label": "Lint",
+      "command": "python3 -c \"import sys; print('lint failed'); sys.exit(1)\"",
+      "blocking": true,
+      "status": "failed",
+      "classification": "code",
+      "startedAt": "2026-05-06T19:16:37+00:00",
+      "finishedAt": "2026-05-06T19:16:38+00:00",
+      "durationSeconds": 0.017,
+      "durationMs": 17,
+      "exitCode": 1,
+      "outcome": "lint failed",
+      "logPath": ".agents/sessions/review-runtime-gates-d714f104/logs/ai-verify/lint.log"
+    },
+    {
+      "gateId": "tests",
+      "label": "Tests",
+      "command": "python3 -c \"import sys; print('tests advisory'); sys.exit(1)\"",
+      "blocking": false,
+      "status": "failed",
+      "classification": "code",
+      "startedAt": "2026-05-06T19:16:37+00:00",
+      "finishedAt": "2026-05-06T19:16:38+00:00",
+      "durationSeconds": 0.016,
+      "durationMs": 16,
+      "exitCode": 1,
+      "outcome": "tests advisory",
+      "logPath": ".agents/sessions/review-runtime-gates-d714f104/logs/ai-verify/tests.log"
+    }
+  ],
+  "profile": "auto",
+  "effectiveProfile": "standard",
+  "profileReason": "Nenhuma regra especial disparou; usando perfil standard.",
+  "changedFiles": [
+    "src/features/chat/api.ts"
+  ],
+  "escalations": {
+    "reviewRequired": true,
+    "securityRequired": false,
+    "testerRecommended": false,
+    "reasons": [
+      "Falha de gate exige revisao ou remediacao antes do encerramento."
+    ]
+  },
+  "summary": "2 failed"
+}
