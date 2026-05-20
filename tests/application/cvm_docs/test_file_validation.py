@@ -2,8 +2,10 @@ import zipfile
 
 import pytest
 
-from globaldatafinance.brazil import ParquetExtractorAdapterCVM
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    ParquetExtractorAdapterCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
     AsyncDownloadAdapterCVM,
 )
 

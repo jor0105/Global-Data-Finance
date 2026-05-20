@@ -159,7 +159,8 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=0)
-        assert backoff == 1.0
+        # Jitter range: deterministic 1.0 * uniform(0.5, 1.5).
+        assert 0.5 <= backoff <= 1.5
 
     def test_calculate_backoff_second_retry(self):
         strategy = RetryStrategy(
@@ -167,7 +168,8 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=1)
-        assert backoff == 2.0
+        # Jitter range: deterministic 2.0 * uniform(0.5, 1.5).
+        assert 1.0 <= backoff <= 3.0
 
     def test_calculate_backoff_third_retry(self):
         strategy = RetryStrategy(
@@ -175,15 +177,18 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=2)
-        assert backoff == 4.0
+        # Jitter range: deterministic 4.0 * uniform(0.5, 1.5).
+        assert 2.0 <= backoff <= 6.0
 
     def test_calculate_backoff_exponential_growth(self):
         strategy = RetryStrategy(
             initial_backoff=1.0, max_backoff=60.0, multiplier=2.0
         )
 
+        deterministic = [1.0, 2.0, 4.0, 8.0, 16.0]
         backoffs = [strategy.calculate_backoff(i) for i in range(5)]
-        assert backoffs == [1.0, 2.0, 4.0, 8.0, 16.0]
+        for backoff, det in zip(backoffs, deterministic):
+            assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_respects_max_backoff(self):
         strategy = RetryStrategy(
@@ -191,6 +196,7 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=10)
+        # Deterministic = 1024 >> max_backoff; jitter cannot bypass ceiling.
         assert backoff == 10.0
 
     def test_calculate_backoff_with_high_retry_count(self):
@@ -199,6 +205,7 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=100)
+        # Deterministic astronomical; clamp always wins.
         assert backoff == 60.0
 
     def test_calculate_backoff_with_custom_multiplier(self):
@@ -206,8 +213,10 @@ class TestRetryStrategy:
             initial_backoff=2.0, max_backoff=100.0, multiplier=3.0
         )
 
+        deterministic = [2.0, 6.0, 18.0, 54.0]
         backoffs = [strategy.calculate_backoff(i) for i in range(4)]
-        assert backoffs == [2.0, 6.0, 18.0, 54.0]
+        for backoff, det in zip(backoffs, deterministic):
+            assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_with_fractional_multiplier(self):
         strategy = RetryStrategy(
@@ -218,9 +227,9 @@ class TestRetryStrategy:
         backoff1 = strategy.calculate_backoff(retry_count=1)
         backoff2 = strategy.calculate_backoff(retry_count=2)
 
-        assert backoff0 == 1.0
-        assert backoff1 == 1.5
-        assert backoff2 == 2.25
+        assert 0.5 <= backoff0 <= 1.5
+        assert 0.75 <= backoff1 <= 2.25
+        assert 1.125 <= backoff2 <= 3.375
 
     def test_calculate_backoff_zero_retry_count(self):
         strategy = RetryStrategy(
@@ -228,15 +237,17 @@ class TestRetryStrategy:
         )
 
         backoff = strategy.calculate_backoff(retry_count=0)
-        assert backoff == 5.0
+        assert 2.5 <= backoff <= 7.5
 
     def test_calculate_backoff_with_small_initial_backoff(self):
         strategy = RetryStrategy(
             initial_backoff=0.1, max_backoff=10.0, multiplier=2.0
         )
 
+        deterministic = [0.1, 0.2, 0.4, 0.8]
         backoffs = [strategy.calculate_backoff(i) for i in range(4)]
-        assert backoffs == [0.1, 0.2, 0.4, 0.8]
+        for backoff, det in zip(backoffs, deterministic):
+            assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_reaches_max_gradually(self):
         strategy = RetryStrategy(
@@ -246,8 +257,23 @@ class TestRetryStrategy:
         backoff2 = strategy.calculate_backoff(retry_count=2)
         backoff3 = strategy.calculate_backoff(retry_count=3)
 
-        assert backoff2 == 4.0
-        assert backoff3 == 5.0
+        # det(retry=2) = 4 -> jitter range [2.0, 5.0] (clamped at 5.0).
+        assert 2.0 <= backoff2 <= 5.0
+        # det(retry=3) = 8 -> jitter range [4.0, 5.0] (clamped at 5.0).
+        assert 4.0 <= backoff3 <= 5.0
+
+    def test_calculate_backoff_respects_max_after_jitter(self):
+        """Jitter never bypasses the max_backoff ceiling."""
+        strategy = RetryStrategy(
+            initial_backoff=1.0, max_backoff=2.5, multiplier=2.0
+        )
+
+        # 200 samples; at retry=5 deterministic is 32, jittered between
+        # 16 and 48, both far above max=2.5.
+        samples = [
+            strategy.calculate_backoff(retry_count=5) for _ in range(200)
+        ]
+        assert all(value == 2.5 for value in samples)
 
     def test_retryable_keywords_constant_exists(self):
         strategy = RetryStrategy(
@@ -288,12 +314,16 @@ class TestRetryStrategy:
         error = Exception('')
         assert strategy.is_retryable(error) is False
 
-    def test_calculate_backoff_sequence_consistency(self):
+    def test_calculate_backoff_jitter_stays_in_band(self):
+        """Repeated calls for the same retry_count stay in the jitter band."""
         strategy = RetryStrategy(
             initial_backoff=1.0, max_backoff=60.0, multiplier=2.0
         )
 
-        backoff1_first = strategy.calculate_backoff(retry_count=1)
-        backoff1_second = strategy.calculate_backoff(retry_count=1)
-
-        assert backoff1_first == backoff1_second
+        # det(retry=1) = 2.0 -> jitter band [1.0, 3.0].
+        samples = [
+            strategy.calculate_backoff(retry_count=1) for _ in range(200)
+        ]
+        assert all(1.0 <= value <= 3.0 for value in samples)
+        # Sanity check: the jitter actually varies across samples.
+        assert len(set(samples)) > 1

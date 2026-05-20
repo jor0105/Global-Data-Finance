@@ -193,8 +193,16 @@ OSError
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import *
-from globaldatafinance.macro_exceptions import *
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
+    InvalidDocName,
+    InvalidFirstYear,
+    InvalidLastYear,
+)
+from globaldatafinance.macro_exceptions import (
+    NetworkError,
+    TimeoutError,
+    DiskFullError,
+)
 
 cvm = FundamentalStocksDataCVM()
 
@@ -217,6 +225,8 @@ except DiskFullError as e:
 except Exception as e:
     print(f"Erro inesperado: {e}")
 ```
+
+> Exceções específicas de cada fonte vivem em `errors.py` dentro da própria fonte (ex.: `brazil.cvm.fundamental_stocks_data.errors`, `brazil.b3_data.historical_quotes.errors`). Os antigos pacotes `exceptions/` foram removidos no refactor anti-overengineering.
 
 ---
 

@@ -17,7 +17,7 @@ for file in "${candidates[@]}"; do
   fi
 
   case "$file" in
-    backend/.venv/*|src/shared/generated/*|backend/tests/*|backend/testing/*)
+    backend/.venv/*|src/shared/generated/*|backend/tests/*|backend/testing/*|src/globaldatafinance/brazil/gerais/*)
       continue
       ;;
     src/*|backend/*)

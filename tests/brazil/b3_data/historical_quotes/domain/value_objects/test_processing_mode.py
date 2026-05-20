@@ -1,6 +1,6 @@
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.domain.value_objects import (
+from globaldatafinance.brazil.b3_data.historical_quotes.processing import (
     ProcessingModeEnumB3,
 )
 
@@ -23,9 +23,10 @@ class TestProcessingModeEnumB3:
         assert ProcessingModeEnumB3.SLOW == 'slow'
 
     def test_enum_has_main_members(self):
-        assert ProcessingModeEnumB3.FAST in ProcessingModeEnumB3
-        assert ProcessingModeEnumB3.SLOW in ProcessingModeEnumB3
-        # The enum has additional configuration constants as pseudo-members
+        assert list(ProcessingModeEnumB3) == [
+            ProcessingModeEnumB3.FAST,
+            ProcessingModeEnumB3.SLOW,
+        ]
 
     def test_enum_members_are_strings(self):
         assert isinstance(ProcessingModeEnumB3.FAST.value, str)
@@ -78,8 +79,7 @@ class TestProcessingModeEnumB3:
 
     def test_enum_names_property(self):
         names = [name for name in ProcessingModeEnumB3.__members__]
-        assert 'FAST' in names
-        assert 'SLOW' in names
+        assert names == ['FAST', 'SLOW']
 
     def test_enum_values_property(self):
         values = [
@@ -135,3 +135,15 @@ class TestProcessingModeEnumB3:
         assert ProcessingModeEnumB3.SLOW != 'SLOW'
         assert ProcessingModeEnumB3.FAST == 'fast'
         assert ProcessingModeEnumB3.SLOW == 'slow'
+
+    def test_fast_mode_runtime_config(self):
+        assert ProcessingModeEnumB3.FAST.desired_concurrent_files == 15
+        assert ProcessingModeEnumB3.FAST.desired_workers == 4
+        assert ProcessingModeEnumB3.FAST.use_parallel_parsing is True
+        assert ProcessingModeEnumB3.FAST.memory_threshold_mb == 3500
+
+    def test_slow_mode_runtime_config(self):
+        assert ProcessingModeEnumB3.SLOW.desired_concurrent_files == 3
+        assert ProcessingModeEnumB3.SLOW.desired_workers == 2
+        assert ProcessingModeEnumB3.SLOW.use_parallel_parsing is False
+        assert ProcessingModeEnumB3.SLOW.memory_threshold_mb == 1000

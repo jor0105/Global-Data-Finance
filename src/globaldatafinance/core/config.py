@@ -6,10 +6,10 @@ with support for environment variables and default values.
 ONLY contains truly global configurations that apply across all data sources
 (CVM, B3, SEC, etc.). Source-specific configs remain in their respective domains.
 
-Note: For logging configuration, use src.core.logging_config module directly.
+Note: For logging configuration, use globaldatafinance.core.logging_config module directly.
 
 Example:
-    >>> from src.core.config import settings
+    >>> from globaldatafinance.core.config import settings
     >>> print(settings.network.timeout)
     300
     >>> # Override via environment variable
@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     Contains only truly global settings. Source-specific configurations
     (CVM, B3, SEC) remain in their respective domain modules.
 
-    Note: Logging configuration has been moved to src.core.logging_config
+    Note: Logging configuration has been moved to globaldatafinance.core.logging_config
     """
 
     network: NetworkSettings = Field(default_factory=NetworkSettings)

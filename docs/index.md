@@ -1,11 +1,11 @@
 # 📊 Global-Data-Finance
 
-> Biblioteca Python enterprise para extração e processamento de dados financeiros globais com arquitetura limpa, alta performance e ferramentas extensíveis.
+> Biblioteca Python para extração e processamento de dados financeiros globais com layout plano por fonte, alta performance e ferramentas extensíveis.
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jor0105/Global-Data-Finance/blob/develop/LICENSE)
-[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean-brightgreen.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+[![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
 ---
 
@@ -13,11 +13,11 @@
 
 **Global-Data-Finance** é uma biblioteca Python que permite extrair e processar dados financeiros de forma profissional e escalável:
 
-✅ **Múltiplas fontes de dados**: CVM (regulatório) e B3 (mercado) com fácil integração
-✅ **Processamento otimizado**: Downloads paralelos assíncronos até 10x mais rápidos
+✅ **Múltiplas fontes de dados**: CVM (regulatório) e B3 (mercado) com layout idêntico por fonte
+✅ **Processamento otimizado**: Downloads assíncronos (`httpx[http2]`) com concorrência adaptativa por CPU/RAM
 ✅ **Formato eficiente**: Extração nativa para Parquet (Pandas/Polars ready)
-✅ **Robustez integrada**: Sistema de retries inteligente e monitoramento de recursos
-✅ **Arquitetura limpa**: Código testável, manutenível e escalável seguindo SOLID
+✅ **Robustez integrada**: Retries com back-off, validação de integridade e rollback atômico
+✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados) — sem ABCs sem polimorfismo real
 
 ---
 
@@ -26,11 +26,13 @@
 ### Instalação
 
 ```bash
-# Instalação básica via PyPI
+# Como dependência via PyPI
 pip install globaldatafinance
 
-# OU com Poetry
-poetry add globaldatafinance
+# Para desenvolvimento local (uv é o gestor canônico do projeto)
+git clone https://github.com/jor0105/Global-Data-Finance.git
+cd Global-Data-Finance
+uv sync
 ```
 
 ### Configuração
@@ -204,7 +206,7 @@ cvm.download(
 
 ### Para Desenvolvedores
 
-- **[Arquitetura](dev-guide/architecture.md)** - Clean Architecture e padrões de design
+- **[Arquitetura](dev-guide/architecture.md)** - Layout plano por fonte e padrões de design
 - **[Referência da API](dev-guide/api-reference.md)** - Documentação completa da API
 - **[Como Contribuir](dev-guide/contributing.md)** - Guia de contribuição
 - **[Testes](dev-guide/testing.md)** - Estratégias de teste e cobertura
@@ -229,10 +231,10 @@ cvm.download(
 
 ### Para Desenvolvedores
 
-- ✅ **Clean Architecture**: Código limpo, testável e manutenível
-- ✅ **SOLID**: Fácil de estender com novos provedores e funcionalidades
-- ✅ **Type hints**: Suporte completo para IDEs e type checkers
-- ✅ **CI/CD**: Quality checks automáticos com GitHub Actions
+- ✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: ~7 arquivos; B3: ~10 arquivos + subpacotes pesados) — código fácil de ler e estender
+- ✅ **Extensível**: Adicionar uma nova fonte = criar uma pasta-irmã com o mesmo padrão de papéis (granularidade ajustável por tamanho)
+- ✅ **Type hints**: Suporte completo para IDEs e type checkers (mypy, pyright)
+- ✅ **CI/CD**: Quality checks automáticos com GitHub Actions (`ruff`, `mypy`, `bandit`, `pytest --cov`)
 
 ### Para Analistas e Cientistas de Dados
 
@@ -245,36 +247,35 @@ cvm.download(
 
 ## 📊 Arquitetura
 
-O projeto segue **Clean Architecture** e **SOLID principles**:
+Duas camadas explícitas:
 
 ```
-┌─────────────────────────────────────┐
-│      PRESENTATION LAYER             │  ← FundamentalStocksDataCVM
-│  (Controllers/User Interface)       │    HistoricalQuotesB3
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      APPLICATION LAYER              │  ← Use Cases & DTOs
-│    (Business Logic)                 │    Orchestration
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│        DOMAIN LAYER                 │  ← Entities & Business Rules
-│      (Core Business)                │    Domain Models
-└──────────────▲──────────────────────┘
-               │
-┌──────────────┴──────────────────────┐
-│    INFRASTRUCTURE LAYER             │  ← HTTP Adapters, File I/O
-│    (External Services)              │    Parsers, Extractors
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  FACADE (application/)                              │  ← FundamentalStocksDataCVM
+│  Superfície semver-relevante para usuários da lib   │    HistoricalQuotesB3
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│  IMPLEMENTAÇÃO POR FONTE                            │  ← brazil/<país>/<fonte>/
+│  Módulos por papel: client.py + dados puros +       │    CVM: core.py · client.py · http.py
+│  adapters HTTP/extract + errors.py + subpacotes     │         extract.py · errors.py
+│  pesados isolados (parsers, writers).               │    B3: client.py · models.py · years.py
+│                                                     │        assets.py · filesystem.py · …
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│  CROSS-CUTTING                                      │  ← core/ (logging, retry,
+│  Utilitários compartilhados, sem lógica de fonte    │    resource_monitor, config)
+│                                                     │    macro_infra/, macro_exceptions/
+└─────────────────────────────────────────────────────┘
 ```
 
-**Benefícios da Arquitetura:**
+**Benefícios:**
 
-- **Testável**: Cada camada pode ser testada independentemente
-- **Flexível**: Fácil substituição de componentes (ex: trocar HTTP client)
-- **Escalável**: Adicione novas fontes de dados sem quebrar código existente
-- **Manutenível**: Separação clara de responsabilidades
+- **Leitura direta**: Poucos arquivos por fonte, nomes claros — sem caçar a classe em 4 camadas.
+- **Sem ABC de implementação única**: Adapters concretos importados e construídos direto. Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial.
+- **Extensibilidade orientada a fontes**: Adicionar uma fonte = adicionar uma pasta com o mesmo conjunto plano. O ponto de extensão real é a fonte, não o "tipo de objeto".
+- **Defesa de path-traversal como contrato**: `VerifyPathsUseCasesCVM` e `validate_directory_path` (B3) levantam `SecurityError` antes de qualquer `mkdir`.
 
 [Saiba mais sobre a arquitetura →](dev-guide/architecture.md)
 
@@ -373,8 +374,8 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 1. Fork o repositório
 2. Crie uma branch: `git checkout -b feature/nova-feature`
 3. Implemente seguindo os padrões existentes
-4. Execute os testes: `poetry run pytest --cov=src`
-5. Execute os linters: `poetry run pre-commit run --all-files`
+4. Execute os testes: `uv run pytest --cov=src`
+5. Execute os linters: `uv run pre-commit run --all-files`
 6. Envie um Pull Request
 
 [Guia completo de contribuição →](dev-guide/contributing.md)

@@ -5,7 +5,7 @@ import polars as pl
 import pytest
 
 from globaldatafinance.application import HistoricalQuotesB3
-from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
     InvalidProcessingMode,
 )
 

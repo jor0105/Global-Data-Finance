@@ -1,14 +1,14 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.client import (
     CreateSetToDownloadUseCaseB3,
 )
 
 
 class TestCreateSetToDownloadUseCaseB3:
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_returns_set(self, mock_file_system):
         mock_instance = MagicMock()
@@ -25,7 +25,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert isinstance(result, set)
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_calls_validate_directory_path(self, mock_file_system):
         mock_instance = MagicMock()
@@ -44,7 +44,7 @@ class TestCreateSetToDownloadUseCaseB3:
         )
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_calls_find_files_by_years(self, mock_file_system):
         mock_instance = MagicMock()
@@ -61,7 +61,7 @@ class TestCreateSetToDownloadUseCaseB3:
         )
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_with_single_year(self, mock_file_system):
         mock_instance = MagicMock()
@@ -78,7 +78,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert 'COTAHIST_A2020.ZIP' in result
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_with_multiple_years(self, mock_file_system):
         mock_instance = MagicMock()
@@ -102,7 +102,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert 'COTAHIST_A2022.ZIP' in result
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_returns_empty_set_when_no_files_found(
         self, mock_file_system
@@ -121,7 +121,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert result == set()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_with_long_year_range(self, mock_file_system):
         mock_instance = MagicMock()
@@ -139,7 +139,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert len(result) == 39
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_is_static_method(self, mock_file_system):
         mock_instance = MagicMock()
@@ -155,7 +155,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert result is not None
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_with_path_containing_spaces(self, mock_file_system):
         mock_instance = MagicMock()
@@ -175,7 +175,7 @@ class TestCreateSetToDownloadUseCaseB3:
         )
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_with_empty_range(self, mock_file_system):
         mock_instance = MagicMock()
@@ -192,7 +192,7 @@ class TestCreateSetToDownloadUseCaseB3:
         assert result == set()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_creates_file_system_service(self, mock_file_system):
         mock_instance = MagicMock()
@@ -209,7 +209,7 @@ class TestCreateSetToDownloadUseCaseB3:
         mock_file_system.assert_called_once()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_passes_validated_path_to_find_files(
         self, mock_file_system
@@ -228,7 +228,7 @@ class TestCreateSetToDownloadUseCaseB3:
         )
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.set_docs_to_download_use_case.FileSystemServiceB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.FileSystemServiceB3'
     )
     def test_execute_returns_result_from_find_files(self, mock_file_system):
         mock_instance = MagicMock()

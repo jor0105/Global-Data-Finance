@@ -31,7 +31,7 @@ Example:
 import time
 from typing import Any, Dict, List, Optional
 
-from ...brazil import (
+from ...brazil.b3_data.historical_quotes import (
     CreateDocsToExtractUseCaseB3,
     DocsToExtractorB3,
     ExtractHistoricalQuotesUseCaseB3,
@@ -118,7 +118,7 @@ class HistoricalQuotesB3:
         output_filename: str = 'cotahist_extracted',
         processing_mode: str = 'fast',
     ) -> Dict[str, Any]:
-        """Extract historical quotes from COTAHIST ZIP files to Parquet format.
+        r"""Extract historical quotes from COTAHIST ZIP files to Parquet format.
 
         This method handles the complete extraction process, including:
         - Validating asset classes and year ranges
@@ -149,6 +149,10 @@ class HistoricalQuotesB3:
                             The directory will be created if it doesn't exist.
                             Example: "/home/user/output"
             output_filename: Name of the output file (without .parquet extension).
+                           Must be a basename: no path separators ('/' or '\'),
+                           no '..' traversal segments, no absolute paths, no
+                           Windows drive letters. Subdirectories or paths raise
+                           ``InvalidOutputFilename`` before any file is written.
                            The '.parquet' extension will be added automatically.
                            Default: "cotahist_extracted" (saves as "cotahist_extracted.parquet")
                            Example: "stocks_2020_2023" (saves as "stocks_2020_2023.parquet")
@@ -250,14 +254,13 @@ class HistoricalQuotesB3:
 
         elapsed_time = time.time() - start_time
 
-        result_dict: Dict[str, Any] = (
-            HistoricalQuotesResultFormatter.enrich_result(result)
-        )
-
-        # Add metadata for the formatter
         result['assets'] = assets_list
         result['processing_mode'] = processing_mode
         result['elapsed_time'] = elapsed_time
+
+        result_dict: Dict[str, Any] = (
+            HistoricalQuotesResultFormatter.enrich_result(result)
+        )
 
         logger.info(
             f'Extraction completed: {result["success_count"]} successful, '

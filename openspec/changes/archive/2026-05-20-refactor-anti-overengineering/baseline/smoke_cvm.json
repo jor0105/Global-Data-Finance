@@ -1,0 +1,16 @@
+{
+  "artifacts": [
+    "dfp_cia_aberta_2023.parquet"
+  ],
+  "schema": {
+    "dfp_cia_aberta_2023.parquet": {
+      "CNPJ_CIA": "string",
+      "DENOM_CIA": "string",
+      "DT_REFER": "string",
+      "VERSAO": "int64"
+    }
+  },
+  "sha256": {
+    "dfp_cia_aberta_2023.parquet": "1b20b315d3bde2d706da3392638ea5e7273699cfbb1b4d3319fbeb1c8143a400"
+  }
+}

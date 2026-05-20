@@ -9,7 +9,7 @@ class TestRequestsAdapterInitialization:
     def test_initialization_with_defaults(self):
         adapter = RequestsAdapter()
         assert adapter.timeout == 30.0
-        assert adapter.max_redirects == 20
+        assert adapter.max_redirects == 5
         assert adapter.verify is True
         assert adapter.http2 is False
 

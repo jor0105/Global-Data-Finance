@@ -4,13 +4,14 @@ from unittest.mock import patch
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.client import (
     VerifyDestinationPathsUseCaseB3,
 )
 from globaldatafinance.macro_exceptions import (
     InvalidDestinationPathError,
     PathIsNotDirectoryError,
     PathPermissionError,
+    SecurityError,
 )
 
 
@@ -68,6 +69,14 @@ class TestVerifyDestinationPathsUseCaseB3:
             VerifyDestinationPathsUseCaseB3.execute('   ')
 
         assert 'cannot be empty or whitespace' in str(exc_info.value)
+
+    @pytest.mark.parametrize(
+        'blocked_path',
+        ['/etc', '/root', '/sys', '/proc', '/dev', '/boot'],
+    )
+    def test_execute_blocks_sensitive_paths(self, blocked_path):
+        with pytest.raises(SecurityError):
+            VerifyDestinationPathsUseCaseB3.execute(blocked_path)
 
     def test_execute_raises_path_is_not_directory_for_file(self, tmp_path):
         test_file = tmp_path / 'test_file.txt'

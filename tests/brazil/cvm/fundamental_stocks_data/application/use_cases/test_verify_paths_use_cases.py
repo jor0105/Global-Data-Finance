@@ -185,21 +185,6 @@ class TestVerifyPathsUseCasesExecute:
             for record in caplog.records
         )
 
-    def test_execute_prints_message(self, tmp_path, capsys):
-        use_case = VerifyPathsUseCasesCVM(
-            destination_path=str(tmp_path),
-            new_set_docs={'DFP'},
-            range_years=range(2020, 2022),
-        )
-
-        use_case.execute()
-
-        captured = capsys.readouterr()
-        assert (
-            'checked/created' in captured.out.lower()
-            or 'starting' in captured.out.lower()
-        )
-
     def test_execute_with_single_doc_single_year(self, tmp_path):
         use_case = VerifyPathsUseCasesCVM(
             destination_path=str(tmp_path),

@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.domain.value_objects import (
+from globaldatafinance.brazil.b3_data.historical_quotes.years import (
     YearRangeB3,
 )
 

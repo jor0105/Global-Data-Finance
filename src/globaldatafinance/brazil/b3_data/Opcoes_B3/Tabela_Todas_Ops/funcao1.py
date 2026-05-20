@@ -1,5 +1,7 @@
 import re
+from collections.abc import MutableMapping
 from datetime import datetime
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -17,7 +19,10 @@ def dados_opcoes_br() -> pd.DataFrame:
     data_formatada = datetime.strftime(data, '%Y%m%d')
     referer_url = f'https://www.b3.com.br/json/{data_formatada}/Series/Empresa/SI_C_OPCSEREMP.json'
     response = requests.get(
-        referer_url, cookies=cookies_op1, headers=headers_op1, timeout=(3, 20)
+        referer_url,
+        cookies=cookies_op1,
+        headers=cast(MutableMapping[str, str | bytes], headers_op1),
+        timeout=(3, 20),
     )
     response.raise_for_status()
     body = response.json()

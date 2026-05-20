@@ -2,13 +2,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.client import (
     CreateDocsToExtractUseCaseB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.domain import (
+from globaldatafinance.brazil.b3_data.historical_quotes.models import (
     DocsToExtractorB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
     EmptyAssetListError,
     InvalidAssetsName,
     InvalidFirstYear,
@@ -72,16 +72,16 @@ class TestCreateDocsToExtractUseCaseInitialization:
 
 class TestCreateDocsToExtractUseCaseExecute:
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_returns_docs_to_extractor(
         self,
@@ -106,16 +106,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         assert isinstance(result, DocsToExtractorB3)
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_calls_set_assets_use_case(
         self,
@@ -139,16 +139,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_set_assets.execute.assert_called_once_with(['ações'])
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_calls_range_years_use_case(
         self,
@@ -172,16 +172,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_range_years.execute.assert_called_once_with(2020, 2024)
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_calls_verify_destination_path_use_case(
         self,
@@ -207,16 +207,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         mock_verify_instance.execute.assert_called_once_with('/output')
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_calls_set_to_download_use_case(
         self,
@@ -243,16 +243,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         )
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_builds_entity_with_correct_data(
         self,
@@ -287,7 +287,7 @@ class TestCreateDocsToExtractUseCaseExecute:
         }
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     def test_execute_raises_empty_asset_list_error(self, mock_set_assets):
         mock_set_assets.execute.side_effect = EmptyAssetListError()
@@ -302,7 +302,7 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     def test_execute_raises_invalid_assets_name(self, mock_set_assets):
         mock_set_assets.execute.side_effect = InvalidAssetsName(
@@ -319,10 +319,10 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     def test_execute_raises_invalid_first_year(
         self, mock_range_years, mock_set_assets
@@ -340,10 +340,10 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     def test_execute_raises_invalid_last_year(
         self, mock_range_years, mock_set_assets
@@ -361,16 +361,16 @@ class TestCreateDocsToExtractUseCaseExecute:
             use_case.execute()
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_with_single_asset(
         self,
@@ -395,16 +395,16 @@ class TestCreateDocsToExtractUseCaseExecute:
         assert 'ações' in result.set_assets
 
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetAssetsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetAssetsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateRangeYearsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateRangeYearsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.VerifyDestinationPathsUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.VerifyDestinationPathsUseCaseB3'
     )
     @patch(
-        'globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases.docs_to_extraction_use_case.CreateSetToDownloadUseCaseB3'
+        'globaldatafinance.brazil.b3_data.historical_quotes.client.CreateSetToDownloadUseCaseB3'
     )
     def test_execute_with_all_assets(
         self,

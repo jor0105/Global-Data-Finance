@@ -1,56 +1,57 @@
-from .application import (
-    DownloadDocsCVMRepositoryCVM,
+"""CVM fundamental_stocks_data — flat per-source layout.
+
+`InvalidRepositoryTypeError` was removed when the single-impl ABCs were
+dropped (`DownloadDocsCVMRepositoryCVM`, `FileExtractorRepositoryCVM`).
+"""
+
+from .client import (
     DownloadDocumentsUseCaseCVM,
-    FileExtractorRepositoryCVM,
     GenerateRangeYearsUseCasesCVM,
     GenerateUrlsUseCaseCVM,
     GetAvailableDocsUseCaseCVM,
     GetAvailableYearsUseCaseCVM,
     VerifyPathsUseCasesCVM,
 )
-from .domain import (
+from .core import (
     AvailableDocsCVM,
     AvailableYearsCVM,
     DictZipsToDownloadCVM,
     DownloadResultCVM,
     UrlDocsCVM,
 )
-from .exceptions import (
+from .errors import (
     EmptyDocumentListError,
     InvalidDocName,
     InvalidFirstYear,
     InvalidLastYear,
-    InvalidRepositoryTypeError,
     InvalidTypeDoc,
     MissingDownloadUrlError,
 )
-from .infra import AsyncDownloadAdapterCVM, ParquetExtractorAdapterCVM
+from .extract import ParquetExtractorAdapterCVM
+from .http import AsyncDownloadAdapterCVM
 
 __all__ = [
-    # Domain
+    # core (domain)
     'AvailableDocsCVM',
     'UrlDocsCVM',
     'AvailableYearsCVM',
     'DictZipsToDownloadCVM',
     'DownloadResultCVM',
-    # Application
-    'DownloadDocsCVMRepositoryCVM',
-    'FileExtractorRepositoryCVM',
+    # client (use cases)
     'DownloadDocumentsUseCaseCVM',
     'GenerateUrlsUseCaseCVM',
     'GenerateRangeYearsUseCasesCVM',
     'GetAvailableDocsUseCaseCVM',
     'GetAvailableYearsUseCaseCVM',
     'VerifyPathsUseCasesCVM',
-    # Infrastructure - adapters
-    'ParquetExtractorAdapterCVM',
+    # IO adapters
     'AsyncDownloadAdapterCVM',
-    # Exceptions - domain specific
+    'ParquetExtractorAdapterCVM',
+    # errors
     'InvalidFirstYear',
     'InvalidLastYear',
     'InvalidDocName',
     'InvalidTypeDoc',
-    'InvalidRepositoryTypeError',
     'EmptyDocumentListError',
     'MissingDownloadUrlError',
 ]

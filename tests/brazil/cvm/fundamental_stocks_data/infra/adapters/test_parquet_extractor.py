@@ -130,26 +130,3 @@ class TestParquetExtractorFileExtractorInterface:
         extractor = ParquetExtractorAdapterCVM()
         assert hasattr(extractor, 'extract')
         assert callable(extractor.extract)
-
-    def test_extract_signature_matches_interface(self):
-        import inspect
-
-        from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-            FileExtractorRepositoryCVM,
-        )
-
-        interface_sig = inspect.signature(FileExtractorRepositoryCVM.extract)
-        impl_sig = inspect.signature(ParquetExtractorAdapterCVM.extract)
-
-        interface_params = list(interface_sig.parameters.keys())
-        impl_params = list(impl_sig.parameters.keys())
-
-        assert interface_params == impl_params
-
-    def test_can_be_used_as_file_extractor_repository(self):
-        from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-            FileExtractorRepositoryCVM,
-        )
-
-        extractor: FileExtractorRepositoryCVM = ParquetExtractorAdapterCVM()
-        assert isinstance(extractor, ParquetExtractorAdapterCVM)

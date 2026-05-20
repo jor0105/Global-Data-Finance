@@ -1,15 +1,6 @@
 ---
 name: planner
 description: Agent de planejamento. Transforma contexto confiavel em plano executavel, verificavel e pronto para handoff. Nunca edita codigo e nunca entrega plano vago.
-tools:
-  - Read
-  - Edit
-  - Write
-  - Bash
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
 ---
 
 # Planner Agent

@@ -16,7 +16,7 @@ Architecture:
 
 Usage:
     Basic usage:
-        >>> from src.core.logging_config import setup_logging, get_logger
+        >>> from globaldatafinance.core.logging_config import setup_logging, get_logger
         >>>
         >>> # Enable logging at application start
         >>> setup_logging(level="INFO")
@@ -26,7 +26,7 @@ Usage:
         >>> logger.info("Processing started", extra={"file_count": 10})
 
     Performance timing:
-        >>> from src.core.logging_config import log_execution_time, get_logger
+        >>> from globaldatafinance.core.logging_config import log_execution_time, get_logger
         >>>
         >>> logger = get_logger(__name__)
         >>> with log_execution_time(logger, "Download files", total=100):
@@ -57,7 +57,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ============================================================================
 # LOG FORMATS
@@ -97,11 +97,10 @@ class LoggingSettings(BaseSettings):
         default=False, description='Include line numbers and function names'
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        env_prefix = 'DATAFIN_LOG_'
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_prefix='DATAFIN_LOG_',
+        case_sensitive=False,
+    )
 
     @field_validator('level', mode='before')
     @classmethod
@@ -177,7 +176,7 @@ def setup_logging(
         use_detailed_format: If True, includes line numbers and function names.
 
     Example:
-        >>> from src.core.logging_config import setup_logging
+        >>> from globaldatafinance.core.logging_config import setup_logging
         >>>
         >>> # Basic setup
         >>> setup_logging(level="INFO")
@@ -250,7 +249,7 @@ def get_logger(name: str) -> logging.Logger:
         Configured logger instance
 
     Example:
-        >>> from src.core.logging_config import get_logger
+        >>> from globaldatafinance.core.logging_config import get_logger
         >>>
         >>> logger = get_logger(__name__)
         >>> logger.info("Processing file", extra={"filename": "data.csv"})
@@ -276,7 +275,7 @@ def log_execution_time(logger: logging.Logger, operation: str, **context: Any):
         None
 
     Example:
-        >>> from src.core.logging_config import log_execution_time, get_logger
+        >>> from globaldatafinance.core.logging_config import log_execution_time, get_logger
         >>>
         >>> logger = get_logger(__name__)
         >>> with log_execution_time(logger, "Parse ZIP file", filename="data.zip"):
@@ -336,7 +335,7 @@ def log_with_context(
         **context: Additional context fields
 
     Example:
-        >>> from src.core.logging_config import log_with_context, get_logger
+        >>> from globaldatafinance.core.logging_config import log_with_context, get_logger
         >>>
         >>> logger = get_logger(__name__)
         >>> log_with_context(
@@ -359,7 +358,7 @@ def is_logging_configured() -> bool:
         True if setup_logging() has been called, False otherwise
 
     Example:
-        >>> from src.core.logging_config import is_logging_configured, setup_logging
+        >>> from globaldatafinance.core.logging_config import is_logging_configured, setup_logging
         >>>
         >>> if not is_logging_configured():
         ...     setup_logging(level="INFO")
@@ -374,40 +373,9 @@ def get_logging_settings() -> LoggingSettings:
         Current LoggingSettings instance
 
     Example:
-        >>> from src.core.logging_config import get_logging_settings
+        >>> from globaldatafinance.core.logging_config import get_logging_settings
         >>>
         >>> settings = get_logging_settings()
         >>> print(f"Current log level: {settings.level}")
     """
     return _settings
-
-
-# ============================================================================
-# UTILITY: File removal helper (moved from config.py)
-# ============================================================================
-
-
-def remove_file(filepath: str, log_on_error: bool = True) -> None:
-    """Remove a file from disk safely.
-
-    Utility function that removes any file from disk, with optional logging
-    on errors. Handles missing files gracefully.
-
-    Args:
-        filepath: Path to the file to remove
-        log_on_error: If True, logs warnings when file deletion fails
-
-    Example:
-        >>> from src.core.logging_config import remove_file
-        >>>
-        >>> remove_file("/path/to/file.zip")
-    """
-    logger = get_logger(__name__)
-    try:
-        path_obj = Path(filepath)
-        if path_obj.exists():
-            path_obj.unlink()
-            logger.debug(f'Removed file: {filepath}')
-    except Exception as e:
-        if log_on_error:
-            logger.warning(f'Failed to remove file {filepath}: {e}')

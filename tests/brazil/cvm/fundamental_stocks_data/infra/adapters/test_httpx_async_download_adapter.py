@@ -213,7 +213,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
         assert 'TimeoutError' in error_msg
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_with_retry_cleans_up_on_failure(self, mock_remove):
         mock_extractor = MagicMock()
@@ -238,7 +238,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
         )
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.asyncio.sleep'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.asyncio.sleep'
     )
     async def test_download_with_retry_backoff(self, mock_sleep):
         mock_extractor = MagicMock()
@@ -271,7 +271,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 @pytest.mark.asyncio
 class TestHttpxAsyncDownloadAdapterStreamDownload:
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_stream_download_cleans_up_on_error(self, mock_remove):
         mock_extractor = MagicMock()
@@ -335,7 +335,7 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
 @pytest.mark.asyncio
 class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_without_automatic_extractor(
         self, mock_remove, tmp_path
@@ -397,7 +397,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         mock_extractor.extract.assert_not_called()
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_with_automatic_extractor(
         self, mock_remove, tmp_path
@@ -458,7 +458,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert result.success_count_downloads == 1
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_no_parquet_files_keeps_zip(
         self, mock_remove, tmp_path
@@ -516,7 +516,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         )
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_extraction_error(
         self, mock_remove, tmp_path
@@ -573,7 +573,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert 'ExtractionFailed' in result.failed_downloads['DRE_2023']
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_disk_full_error(
         self, mock_remove, tmp_path
@@ -628,7 +628,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         assert mock_remove.called
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.remove_file'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_unexpected_extraction_error(
         self, mock_remove, tmp_path
@@ -792,7 +792,7 @@ class TestHttpxAsyncDownloadAdapterEdgeCases:
         assert adapter.file_extractor_repository is None
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.requests_adapter.async_download_adapter.asyncio.run'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.asyncio.run'
     )
     def test_download_docs_with_malformed_tasks(self, mock_asyncio_run):
         mock_extractor = MagicMock()
@@ -819,15 +819,3 @@ class TestHttpxAsyncDownloadAdapterDownloadDocsRepository:
 
         assert hasattr(adapter, 'download_docs')
         assert callable(adapter.download_docs)
-
-    def test_can_be_used_as_download_repository(self):
-        from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-            DownloadDocsCVMRepositoryCVM,
-        )
-
-        mock_extractor = MagicMock()
-        adapter: DownloadDocsCVMRepositoryCVM = AsyncDownloadAdapterCVM(
-            file_extractor_repository=mock_extractor
-        )
-
-        assert isinstance(adapter, AsyncDownloadAdapterCVM)

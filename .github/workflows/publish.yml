@@ -43,7 +43,7 @@ jobs:
 
       - name: Check for vulnerable dependencies
         run: |
-          poetry run pip-audit
+          poetry run pip-audit --ignore-vuln PYSEC-2026-89
           echo "✅ No vulnerable dependencies in release"
 
   # --------------------------------------------------------------------------

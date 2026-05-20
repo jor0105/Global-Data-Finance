@@ -16,18 +16,21 @@ cd Global-Data-Finance
 
 ### 2. Instalar Dependências
 
-```bash
-# Com Poetry (recomendado)
-poetry install
+`uv` é o gestor canônico do projeto (`uv.lock` é commitado). Requer **Python 3.12+**.
 
-# Ativar ambiente virtual
-poetry shell
+```bash
+# Sincronizar dependências (cria .venv automaticamente)
+uv sync
+
+# Para rodar comandos no ambiente:
+uv run pytest
+uv run mypy src
 ```
 
 ### 3. Instalar Pre-commit Hooks
 
 ```bash
-pre-commit install
+uv run pre-commit install
 ```
 
 ---
@@ -73,13 +76,20 @@ def download_docs(
 
 ```bash
 # Todos os testes
-pytest
+uv run pytest
 
 # Com cobertura
-pytest --cov=src
+uv run pytest --cov=src
 
 # Apenas unitários
-pytest -m unit
+uv run pytest -m unit
+```
+
+Antes de abrir PR, rode o pipeline completo:
+
+```bash
+uv run pre-commit run --all-files
+uv run pytest
 ```
 
 ### Escrever Testes

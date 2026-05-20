@@ -11,9 +11,9 @@ from globaldatafinance.core.logging_config import (
     is_logging_configured,
     log_execution_time,
     log_with_context,
-    remove_file,
     setup_logging,
 )
+from globaldatafinance.core.utils.files import remove_file
 
 
 class TestLoggingConfiguration:

@@ -63,16 +63,16 @@ pip install --upgrade globaldatafinance
 
 ---
 
-## Instalação via Poetry
+## Instalação via uv (alternativa ao pip)
 
-Se você usa Poetry para gerenciamento de dependências:
+`uv` é um gerenciador de pacotes Python rápido e é o gestor canônico deste projeto em desenvolvimento. Para consumir a biblioteca em outro projeto que usa `uv`:
 
 ```bash
 # Adicionar ao projeto
-poetry add globaldatafinance
+uv add globaldatafinance
 
-# Ou instalar em modo desenvolvimento
-poetry add --group dev globaldatafinance
+# Como dependência de desenvolvimento
+uv add --dev globaldatafinance
 ```
 
 ---
@@ -88,14 +88,17 @@ git clone https://github.com/jor0105/Global-Data-Finance.git
 cd Global-Data-Finance
 ```
 
-### 2. Instalar com Poetry (Recomendado)
+### 2. Instalar com uv (Recomendado)
+
+`uv.lock` é commitado no repositório, então `uv sync` reproduz exatamente o ambiente de desenvolvimento usado pelo CI.
 
 ```bash
-# Instalar todas as dependências (incluindo dev)
-poetry install
+# Sincronizar dependências (cria .venv automaticamente)
+uv sync
 
-# Ativar ambiente virtual do Poetry
-poetry shell
+# Rodar comandos no ambiente do projeto
+uv run pytest
+uv run pre-commit run --all-files
 ```
 
 ### 3. Instalar com pip em Modo Editável

@@ -1,3 +1,5 @@
+import random
+
 from ...macro_exceptions import (
     DiskFullError,
     NetworkError,
@@ -59,6 +61,16 @@ class RetryStrategy:
         return any(kw in error_msg for kw in self._RETRYABLE_KEYWORDS)
 
     def calculate_backoff(self, retry_count: int) -> float:
-        """Calculates the exponential backoff duration."""
-        backoff = self.initial_backoff * (self.multiplier**retry_count)
-        return min(backoff, self.max_backoff)
+        """Calculates exponential backoff with full jitter.
+
+        Applies a uniform random multiplier in ``[0.5, 1.5]`` to the
+        deterministic exponential value before clamping to
+        ``max_backoff``. The expected value matches the deterministic
+        formula (E[U(0.5, 1.5)] = 1.0) but the spread avoids
+        thundering-herd retries when multiple concurrent downloads
+        fail in lockstep.
+        """
+        deterministic = self.initial_backoff * (self.multiplier**retry_count)
+        # Jitter is non-cryptographic timing perturbation; weak RNG is fine.
+        jittered = deterministic * random.uniform(0.5, 1.5)  # nosec B311
+        return min(jittered, self.max_backoff)

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
@@ -59,3 +61,20 @@ class TestGetAvailableYearsUseCase:
             assert use_case is not None
         except Exception as e:
             pytest.fail(f'Initialization raised {type(e).__name__}: {e}')
+
+    def test_execute_propagates_underlying_failure(self, caplog):
+        use_case = GetAvailableYearsUseCaseCVM()
+        with patch.object(
+            use_case,
+            '_GetAvailableYearsUseCaseCVM__available_years',
+            autospec=True,
+        ) as mock_years:
+            mock_years.get_minimal_general_year.side_effect = RuntimeError(
+                'boom'
+            )
+            with pytest.raises(RuntimeError, match='boom'):
+                use_case.execute()
+        assert any(
+            'Failed to retrieve available years' in record.message
+            for record in caplog.records
+        )

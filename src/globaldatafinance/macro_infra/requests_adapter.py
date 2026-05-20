@@ -15,7 +15,7 @@ class RequestsAdapter:
     def __init__(
         self,
         timeout: float = 30.0,
-        max_redirects: int = 20,
+        max_redirects: int = 5,
         verify: bool = True,
         http2: bool = False,
     ):
@@ -24,7 +24,11 @@ class RequestsAdapter:
 
         Args:
             timeout: Default request timeout in seconds
-            max_redirects: Maximum number of redirects
+            max_redirects: Maximum number of redirects to follow. Default
+                lowered to 5 (from a previous 20) as a hardening measure:
+                legitimate CVM/B3 endpoints never chain more than 1-2
+                redirects, and a low cap shortens the blast radius of
+                redirect-loop attacks. Override for custom transports.
             verify: Verify SSL certificates
             http2: Enable HTTP/2
         """

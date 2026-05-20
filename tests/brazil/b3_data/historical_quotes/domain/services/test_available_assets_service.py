@@ -1,9 +1,9 @@
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.domain.services import (
+from globaldatafinance.brazil.b3_data.historical_quotes.assets import (
     AvailableAssetsServiceB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
     EmptyAssetListError,
     InvalidAssetsName,
 )
@@ -234,26 +234,45 @@ class TestGetTpmercCodesForAssets:
         )
         assert result == set()
 
-    def test_ignores_invalid_asset_with_warning(self, capsys):
-        asset_set = {'ações', 'invalid_asset'}
-        result = AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
-            asset_set
-        )
-        assert result == {'010', '020'}
-        captured = capsys.readouterr()
-        assert 'Warning' in captured.out
-        assert 'invalid_asset' in captured.out
+    def test_ignores_invalid_asset_with_warning(self, caplog):
+        import logging
 
-    def test_ignores_all_invalid_assets_with_warning(self, capsys):
-        asset_set = {'invalid1', 'invalid2'}
-        result = AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
-            asset_set
+        asset_set = {'ações', 'invalid_asset'}
+        with caplog.at_level(
+            logging.WARNING,
+            logger='globaldatafinance.brazil.b3_data.historical_quotes.assets',
+        ):
+            result = AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
+                asset_set
+            )
+        assert result == {'010', '020'}
+        assert any(
+            'Invalid asset classes were ignored' in rec.message
+            and 'invalid_asset' in rec.invalid_inputs
+            for rec in caplog.records
         )
+
+    def test_ignores_all_invalid_assets_with_warning(self, caplog):
+        import logging
+
+        asset_set = {'invalid1', 'invalid2'}
+        with caplog.at_level(
+            logging.WARNING,
+            logger='globaldatafinance.brazil.b3_data.historical_quotes.assets',
+        ):
+            result = AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
+                asset_set
+            )
         assert result == set()
-        captured = capsys.readouterr()
-        assert 'Warning' in captured.out
-        assert 'invalid1' in captured.out
-        assert 'invalid2' in captured.out
+        matching = [
+            rec
+            for rec in caplog.records
+            if 'Invalid asset classes were ignored' in rec.message
+        ]
+        assert matching, 'expected a warning log entry'
+        invalids = matching[0].invalid_inputs
+        assert 'invalid1' in invalids
+        assert 'invalid2' in invalids
 
     def test_handles_uppercase_assets_normalized(self):
         asset_set = {'AÇÕES'}

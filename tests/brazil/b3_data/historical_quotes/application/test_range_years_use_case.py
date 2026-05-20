@@ -2,10 +2,10 @@ from datetime import date
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import (
+from globaldatafinance.brazil.b3_data.historical_quotes.client import (
     CreateRangeYearsUseCaseB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.exceptions import (
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
     InvalidFirstYear,
     InvalidLastYear,
 )

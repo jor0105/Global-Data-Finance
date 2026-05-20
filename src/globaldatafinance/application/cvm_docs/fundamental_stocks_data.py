@@ -29,7 +29,7 @@ Example:
 
 from typing import Dict, List, Optional
 
-from ...brazil import (
+from ...brazil.cvm.fundamental_stocks_data import (
     AsyncDownloadAdapterCVM,
     DownloadDocumentsUseCaseCVM,
     DownloadResultCVM,
@@ -187,6 +187,7 @@ class FundamentalStocksDataCVM:
             self.download_adapter.automatic_extractor = True
             logger.debug('Automatic extractor enabled for this download')
         else:
+            self.download_adapter.automatic_extractor = False
             logger.debug('Automatic extractor disabled for this download')
 
         logger.info(

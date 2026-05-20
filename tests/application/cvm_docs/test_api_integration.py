@@ -3,7 +3,9 @@ from unittest.mock import patch
 import pytest
 
 from globaldatafinance.application.cvm_docs import FundamentalStocksDataCVM
-from globaldatafinance.brazil import DownloadResultCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    DownloadResultCVM,
+)
 
 
 @pytest.mark.integration

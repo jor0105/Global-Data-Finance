@@ -3,7 +3,7 @@ import zipfile
 import pandas as pd  # type: ignore
 import pytest
 
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters.extractors_docs_adapter import (
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.extract import (
     ParquetExtractorAdapterCVM,
 )
 

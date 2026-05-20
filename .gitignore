@@ -182,6 +182,9 @@ metrics.prom
 *.tmp
 *.bak
 *.backup
+
+# Project specific - Refactor scratch artifacts (modularizar workflow inputs/outputs)
+modularizar_*.md
 # .uv-cache/
 # .agents/
 # .github/instructions/

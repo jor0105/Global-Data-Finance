@@ -1,4 +1,6 @@
+from collections.abc import MutableMapping
 from datetime import datetime, timedelta
+from typing import cast
 
 import holidays
 
@@ -63,6 +65,6 @@ if __name__ == '__main__':
     response = requests.get(
         referer_url,
         cookies=cookies_op1,
-        headers=headers_op1,
+        headers=cast(MutableMapping[str, str | bytes], headers_op1),
         timeout=10,
     )

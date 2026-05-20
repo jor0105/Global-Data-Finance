@@ -20,15 +20,15 @@
 
 **Global-Data-Finance** é uma solução robusta e de alto desempenho para engenharia de dados financeiros. Projetada para desenvolvedores, cientistas de dados e analistas quantitativos, a biblioteca abstrai a complexidade de extrair e normalizar dados de fontes regulatórias (CVM) e de mercado (B3).
 
-Construída sobre os princípios de **Clean Architecture** e **SOLID**, a biblioteca garante não apenas performance excepcional, mas também um código manutenível, testável e extensível.
+A API pública é deliberadamente estreita (apenas duas classes: `FundamentalStocksDataCVM` e `HistoricalQuotesB3`), e cada fonte de dados é implementada internamente em um **layout plano de módulos nomeados por papel** (`core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`). O resultado é código direto, fácil de ler e fácil de estender com uma nova fonte.
 
 ### 🌟 Por que escolher Global-Data-Finance?
 
-- **🚀 Performance Extrema**: Utiliza `asyncio` e processamento paralelo para downloads até **10x mais rápidos** que métodos tradicionais.
-- **🛡️ Robustez**: Sistema inteligente de retries, monitoramento de recursos e tratamento de erros granular.
-- **💾 Otimização de Dados**: Extração nativa para **Parquet**, garantindo eficiência de armazenamento e leitura rápida para Pandas/Polars.
-- **🧩 Arquitetura Modular**: Design desacoplado que permite fácil substituição de componentes (adapters) e extensão de funcionalidades.
-- **✨ Developer Experience**: Type hints completos, logging detalhado e API intuitiva.
+- **🚀 Performance**: Downloads assíncronos com `httpx[http2]`, retry/back-off com `tenacity` e concorrência adaptativa monitorada por CPU/RAM (`psutil`).
+- **🛡️ Robustez**: Validação de integridade após download, rollback atômico na extração e defesa contra path-traversal em paths sensíveis.
+- **💾 Formato Colunar**: Saída canônica em **Parquet** (via `pyarrow`), pronto para Pandas/Polars.
+- **🧩 Layout Plano por Fonte**: Adicionar uma fonte = criar uma pasta-irmã com 5–8 arquivos nomeados por papel. Sem cerimônia de Clean Architecture, sem ABCs sem polimorfismo real.
+- **✨ Developer Experience**: Type hints completos, logging estruturado, markers de teste estritos (`unit`, `integration`, `slow`, `asyncio`).
 
 ---
 
@@ -58,16 +58,22 @@ Construída sobre os princípios de **Clean Architecture** e **SOLID**, a biblio
 
 Requer **Python 3.12+**.
 
-### Via Pip (Recomendado)
+### Via Pip (consumir como dependência)
 
 ```bash
 pip install globaldatafinance
 ```
 
-### Via Poetry
+### Via uv (desenvolvimento)
+
+`uv` é o gestor canônico do projeto. Para hackear localmente:
 
 ```bash
-poetry add globaldatafinance
+git clone https://github.com/jor0105/Global-Data-Finance.git
+cd Global-Data-Finance
+uv sync                       # cria .venv e instala todas as deps + dev deps
+uv run pytest                 # testes
+uv run pre-commit run --all-files  # lint + typecheck + bandit + etc.
 ```
 
 ---
@@ -140,31 +146,22 @@ print(df.groupby("cod_negociacao")["preco_fechamento"].mean())
 
 ## 🏗️ Arquitetura
 
-A arquitetura do projeto é um diferencial chave, separando claramente responsabilidades para garantir longevidade e qualidade do software.
+Duas camadas explícitas:
+
+1. **Facade público (`application/`)** — superfície semver-relevante. Cada fonte é exposta por uma classe top-level (`FundamentalStocksDataCVM`, `HistoricalQuotesB3`) e um formatter dedicado.
+2. **Implementação por fonte (`brazil/<país>/<fonte>/`)** — layout plano de módulos nomeados por papel.
 
 ```mermaid
 graph TD
-    User[Usuário / Script] --> Presentation
+    User[Usuário / Script] --> Facade
 
-    subgraph "Global-Data-Finance"
-        Presentation[Presentation Layer<br>FundamentalStocksDataCVM / HistoricalQuotesB3]
-
-        Presentation --> Application
-
-        subgraph "Core Logic"
-            Application[Application Layer<br>Use Cases & Interfaces]
-            Domain[Domain Layer<br>Entities & Business Rules]
-            Application --> Domain
-        end
-
-        Application --> Infrastructure
-
-        subgraph "Infrastructure"
-            Infrastructure[Infrastructure Layer<br>Adapters, Parsers, IO]
-        end
+    subgraph "globaldatafinance"
+        Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
+        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>core.py · client.py · http.py · extract.py · errors.py"]
+        Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
-    Infrastructure --> External[Web / File System]
+    Source --> External[Web / File System / Parquet]
 ```
 
 ### Estrutura de Diretórios
@@ -172,14 +169,29 @@ graph TD
 ```text
 src/
 └── globaldatafinance/
+    ├── application/                       # Facade público
+    │   ├── cvm_docs/fundamental_stocks_data.py
+    │   └── b3_docs/historical_quotes.py
     ├── brazil/
     │   ├── cvm/
-    │   │   └── fundamental_stocks_data/  # Módulo CVM
-    │   └── b3/
-    │       └── historical_quotes/        # Módulo B3
-    ├── core/                             # Logging, Config, Utils
-    └── macro_infra/                      # Adapters Genéricos (HTTP, FileIO)
+    │   │   └── fundamental_stocks_data/   # ~5 módulos planos
+    │   │       ├── core.py
+    │   │       ├── client.py
+    │   │       ├── http.py
+    │   │       ├── extract.py
+    │   │       └── errors.py
+    │   └── b3_data/
+    │       └── historical_quotes/         # ~7–8 módulos planos
+    │           ├── core.py · client.py · zip_reader.py · errors.py
+    │           ├── cotahist_parser.py
+    │           ├── parquet_writer/        # subpacote (writer/schema/streaming/...)
+    │           └── extraction_service/    # subpacote (service/batch_parser/...)
+    ├── core/                              # logging, config, retry, resource monitor
+    ├── macro_infra/                       # adapters HTTP/IO genéricos
+    └── macro_exceptions/                  # exceções de base
 ```
+
+Detalhes em [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) e [`AGENTS.md`](AGENTS.md).
 
 ---
 
@@ -216,8 +228,8 @@ Contribuições são muito bem-vindas! Se você deseja adicionar novas fontes de
 3.  Implemente suas mudanças.
 4.  Execute os testes e linters:
     ```bash
-    poetry run pre-commit run --all-files
-    poetry run pytest
+    uv run pre-commit run --all-files
+    uv run pytest
     ```
 5.  Abra um **Pull Request**.
 

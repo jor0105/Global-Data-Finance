@@ -3,7 +3,7 @@
 > [!NOTE]
 > Este módulo faz parte da suíte `Global-Data-Finance` e é especializado na extração de alta performance de dados históricos da B3 (antiga Bovespa).
 
-O módulo `historical_quotes` implementa uma solução robusta baseada em **Clean Architecture** para processar arquivos da série histórica (COTAHIST) da B3. Ele abstrai a complexidade do layout posicional de arquivos legados, oferecendo uma interface moderna e tipada para extração de dados financeiros.
+O módulo `historical_quotes` implementa uma solução robusta para processar arquivos da série histórica (COTAHIST) da B3. Ele abstrai a complexidade do layout posicional de arquivos legados, oferecendo uma interface moderna e tipada para extração de dados financeiros. Internamente segue o **padrão de módulos planos por fonte** (sem subcamadas `domain`/`application`/`infra`).
 
 ## 🎯 Objetivos e Valor
 
@@ -14,32 +14,32 @@ O módulo `historical_quotes` implementa uma solução robusta baseada em **Clea
 
 ## 🏗️ Arquitetura
 
-A arquitetura segue o padrão de camadas concêntricas, garantindo que as regras de negócio não dependam de detalhes de implementação.
+Layout plano de ~7–8 módulos:
 
 ```text
-+---------------------------------------------------------+
-|                    Application Layer                    |
-|          [ ExtractHistoricalQuotesUseCaseB3 ]           |
-+---------------------------+-----------------------------+
-                            |
-            +---------------+---------------+
-            v                               v
-+-----------------------+       +-------------------------+
-|     Domain Layer      |       |   Infrastructure Layer  |
-| [DocsToExtractorB3]   |       | [CotahistParserB3]      |
-| [AvailableAssets...]  |       | [ParquetWriterB3]       |
-+-----------------------+       | [ZipFileReaderB3]       |
-                                +-------------------------+
+brazil/b3_data/historical_quotes/
+├── core.py                # DocsToExtractorB3, AvailableAssetsServiceB3, validators, ProcessingModeEnumB3, validate_directory_path
+├── client.py              # ExtractHistoricalQuotesUseCaseB3 (stateful), CreateDocsToExtractUseCaseB3, GetAvailableAssetsUseCaseB3, etc.
+├── cotahist_parser.py     # Parsing posicional COTAHIST (preservado — complexidade legítima)
+├── parquet_writer/        # Subpacote de escrita Parquet (writer, schema, streaming, disk, constants)
+├── extraction_service/    # Subpacote de orquestração (service, batch_parser, zip_processor, buffered_writer, resource_policy, temp_parquet_merge, types)
+├── zip_reader.py          # Leitura streaming de ZIP
+└── errors.py              # InvalidFirstYear, InvalidLastYear, InvalidAssetsName, EmptyAssetListError, InvalidProcessingMode, etc.
 ```
+
+`ExtractHistoricalQuotesUseCaseB3` permanece como classe (D3) porque mantém estado: `zip_reader + parser + writer + processing_mode` são reutilizados entre chamadas.
 
 ### Componentes Chave
 
-| Componente                         | Camada      | Responsabilidade                                                           |
-| ---------------------------------- | ----------- | -------------------------------------------------------------------------- |
-| `ExtractHistoricalQuotesUseCaseB3` | Application | Orquestra o fluxo de extração, conectando parser, leitor e escritor.       |
-| `DocsToExtractorB3`                | Domain      | Entidade que encapsula e valida os parâmetros de configuração da extração. |
-| `CotahistParserB3`                 | Infra       | Traduz linhas de texto posicional em dicionários Python estruturados.      |
-| `ParquetWriterB3`                  | Infra       | Gerencia a escrita eficiente em arquivos Parquet com compressão.           |
+| Módulo                  | Componente                         | Tipo                  | Responsabilidade                                                                       |
+| ----------------------- | ---------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| `client.py`             | `ExtractHistoricalQuotesUseCaseB3` | Orquestrador (classe) | Conecta parser, leitor e escritor. Mantém estado entre chamadas.                       |
+| `client.py`             | `CreateDocsToExtractUseCaseB3`     | Use case              | Constrói `DocsToExtractorB3` validado a partir dos parâmetros públicos do facade.      |
+| `core.py`               | `DocsToExtractorB3`                | Value object          | Encapsula e valida parâmetros de configuração da extração (anos, assets, paths).       |
+| `core.py`               | `validate_directory_path`          | Helper                | Raise `SecurityError` em `/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root` antes de I/O. |
+| `cotahist_parser.py`    | `CotahistParserB3`                 | Parser concreto       | Traduz linhas de texto posicional em dicionários Python estruturados.                  |
+| `parquet_writer/`       | `ParquetWriterB3`                  | Writer concreto       | Escrita Parquet com compressão (zstd) e statistics. Subpacote (`writer`, `schema`, `streaming`, `disk`, `constants`).  |
+| `extraction_service/`   | `ExtractionServiceB3`              | Service concreto      | Streaming/threadpool/flush por memória. Subpacote (`service`, `batch_parser`, `zip_processor`, `buffered_writer`, `resource_policy`, `temp_parquet_merge`, `types`). |
 
 ## 🚀 Guia de Uso
 
@@ -51,8 +51,10 @@ Certifique-se de ter os arquivos `COTAHIST_A{ANO}.ZIP` baixados em um diretório
 
 ```python
 import asyncio
-from globaldatafinance.brazil.b3_data.historical_quotes.application.use_cases import ExtractHistoricalQuotesUseCaseB3
-from globaldatafinance.brazil.b3_data.historical_quotes.domain import DocsToExtractorB3
+from globaldatafinance.brazil.b3_data.historical_quotes import (
+    DocsToExtractorB3,
+    ExtractHistoricalQuotesUseCaseB3,
+)
 
 async def run_extraction():
     # 1. Configuração da Extração
@@ -98,11 +100,13 @@ if __name__ == "__main__":
 
 ### Tratamento de Erros
 
-O módulo expõe exceções específicas em `globaldatafinance.brazil.b3_data.historical_quotes.exceptions`:
+O módulo expõe exceções específicas em `globaldatafinance.brazil.b3_data.historical_quotes.errors` (re-exportadas pelo `__init__.py` da fonte):
 
-- `InvalidFirstYear` / `InvalidLastYear`: Erros de validação de intervalo temporal.
-- `InvalidAssetsName`: Ticker fornecido não segue o padrão esperado.
-- `EmptyAssetListError`: Tentativa de processamento com lista de ativos inválida.
+- `InvalidFirstYear` / `InvalidLastYear`: erros de validação de intervalo temporal.
+- `InvalidAssetsName`: ticker fornecido não segue o padrão esperado.
+- `EmptyAssetListError`: tentativa de processamento com lista de ativos inválida.
+- `InvalidProcessingMode`: `processing_mode` fora de `{'fast', 'slow'}`.
+- `SecurityError` (de `macro_exceptions`): tentativa de escrita em path sensível (`/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) — defesa em `validate_directory_path` (`core.py`).
 
 ## 🔧 Troubleshooting
 

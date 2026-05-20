@@ -3,12 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.domain import (
+from globaldatafinance.brazil.b3_data.historical_quotes.processing import (
     ProcessingModeEnumB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service import (
+from globaldatafinance.brazil.b3_data.historical_quotes.extraction_service import (
     ExtractionServiceB3,
-    _parse_lines_batch,
+)
+from globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.batch_parser import (
+    parse_lines_batch,
 )
 from globaldatafinance.core import ResourceState
 
@@ -145,7 +147,7 @@ def suppress_execution_time_logging(monkeypatch):
         yield
 
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.log_execution_time',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.service.log_execution_time',
         noop,
     )
 
@@ -160,7 +162,7 @@ def process_pool_spy(monkeypatch):
         return pool
 
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ThreadPoolExecutor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.zip_processor.ThreadPoolExecutor',
         factory,
     )
     return created
@@ -171,7 +173,7 @@ def test_extraction_service_initialization_fast_mode(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=6)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -182,9 +184,9 @@ def test_extraction_service_initialization_fast_mode(
         processing_mode=ProcessingModeEnumB3.FAST,
     )
 
-    assert service.use_parallel_parsing is True
-    assert service.max_concurrent_files == 6
-    assert service.max_workers == 4
+    assert service.resource_policy.use_parallel_parsing is True
+    assert service.resource_policy.max_concurrent_files == 6
+    assert service.resource_policy.max_workers == 4
     assert process_pool_spy[0].max_workers == 4
     assert monitor.worker_calls == [15, 4]
 
@@ -194,7 +196,7 @@ def test_extraction_service_initialization_slow_mode(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -205,11 +207,11 @@ def test_extraction_service_initialization_slow_mode(
         processing_mode=ProcessingModeEnumB3.SLOW,
     )
 
-    assert service.use_parallel_parsing is True
-    assert service.max_concurrent_files == 3
-    assert service.max_workers == 2
-    assert service.executor_pool is not None
-    assert monitor.worker_calls == [3, 2]
+    assert service.resource_policy.use_parallel_parsing is False
+    assert service.resource_policy.max_concurrent_files == 3
+    assert service.resource_policy.max_workers == 1
+    assert service.zip_processor.executor_pool is None
+    assert monitor.worker_calls == [3]
 
 
 @pytest.mark.asyncio
@@ -218,7 +220,7 @@ async def test_extraction_service_wait_for_resources(
 ):
     monitor = FakeResourceMonitor(wait_result=False)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -231,11 +233,13 @@ async def test_extraction_service_wait_for_resources(
 
     dummy_loop = DummyLoop(result=None)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.asyncio.get_event_loop',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.asyncio.get_running_loop',
         lambda: dummy_loop,
     )
 
-    result = await service._wait_for_resources(timeout_seconds=7)
+    result = await service.resource_policy.wait_for_resources(
+        timeout_seconds=7
+    )
 
     assert result is False
     assert monitor.wait_calls == [(ResourceState.WARNING, 7)]
@@ -248,7 +252,7 @@ async def test_extraction_service_write_buffer_to_disk(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -262,8 +266,12 @@ async def test_extraction_service_write_buffer_to_disk(
 
     output_path = tmp_path / 'data.parquet'
 
-    await service._write_buffer_to_disk([{'row': 1}], output_path, 'overwrite')
-    await service._write_buffer_to_disk([{'row': 2}], output_path, 'append')
+    await service.buffered_writer.write_buffer_to_disk(
+        [{'row': 1}], output_path, 'overwrite'
+    )
+    await service.buffered_writer.write_buffer_to_disk(
+        [{'row': 2}], output_path, 'append'
+    )
 
     assert writer.calls[0]['mode'] == 'overwrite'
     assert writer.calls[1]['mode'] == 'append'
@@ -275,7 +283,7 @@ async def test_extraction_service_write_buffer_to_disk(
 async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -290,13 +298,19 @@ async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
     )
 
     output_path = tmp_path / 'data.parquet'
-    result = await service._process_and_write_zip(
-        'sample.zip', {'010'}, output_path
+    result = await service.zip_processor.process(
+        zip_file='sample.zip',
+        target_tpmerc_codes={'010'},
+        output_path=output_path,
     )
 
-    assert result['records'] == 0
+    assert result['records'] == 2
     assert zip_reader.calls == ['sample.zip']
-    assert parser.calls == []
+    assert parser.calls == [
+        ('keep-1', frozenset({'010'})),
+        ('skip', frozenset({'010'})),
+        ('keep-2', frozenset({'010'})),
+    ]
 
 
 @pytest.mark.asyncio
@@ -305,7 +319,7 @@ async def test_process_and_write_zip_fast_mode(
 ):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -317,7 +331,7 @@ async def test_process_and_write_zip_fast_mode(
         data_writer=FakeWriter(),
         processing_mode=ProcessingModeEnumB3.FAST,
     )
-    service.parse_batch_size = 2
+    service.resource_policy.parse_batch_size = 2
 
     batch_calls: list[list[str]] = []
 
@@ -325,11 +339,13 @@ async def test_process_and_write_zip_fast_mode(
         batch_calls.append(list(lines))
         return [{'value': line} for line in lines if 'keep' in line]
 
-    service._parse_lines_batch_parallel = fake_batch  # type: ignore
+    service.zip_processor._parse_lines_batch_parallel = fake_batch  # type: ignore
 
     output_path = tmp_path / 'data.parquet'
-    result = await service._process_and_write_zip(
-        'fast.zip', {'010'}, output_path
+    result = await service.zip_processor.process(
+        zip_file='fast.zip',
+        target_tpmerc_codes={'010'},
+        output_path=output_path,
     )
 
     assert result['records'] == 2
@@ -343,7 +359,7 @@ async def test_process_and_write_zip_propagates_errors(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -357,11 +373,15 @@ async def test_process_and_write_zip_propagates_errors(
     async def failing_batch(_lines, _codes):
         raise RuntimeError('boom')
 
-    service._parse_lines_batch_parallel = failing_batch  # type: ignore
+    service.zip_processor._parse_lines_batch_parallel = failing_batch  # type: ignore
 
     output_path = tmp_path / 'data.parquet'
     with pytest.raises(RuntimeError):
-        await service._process_and_write_zip('error.zip', {'010'}, output_path)
+        await service.zip_processor.process(
+            zip_file='error.zip',
+            target_tpmerc_codes={'010'},
+            output_path=output_path,
+        )
 
 
 @pytest.mark.asyncio
@@ -370,7 +390,7 @@ async def test_parse_lines_batch_parallel_filters_none(
 ):
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -383,11 +403,13 @@ async def test_parse_lines_batch_parallel_filters_none(
 
     dummy_loop = DummyLoop(result=[None, {'value': 'ok'}])
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.asyncio.get_event_loop',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.zip_processor.asyncio.get_running_loop',
         lambda: dummy_loop,
     )
 
-    records = await service._parse_lines_batch_parallel(['line'], {'010'})
+    records = await service.zip_processor._parse_lines_batch_parallel(
+        ['line'], {'010'}
+    )
 
     assert records == [{'value': 'ok'}]
     assert dummy_loop.calls
@@ -396,7 +418,7 @@ async def test_parse_lines_batch_parallel_filters_none(
 def test_parse_lines_batch_filters_by_target():
     lines = [build_cotahist_line('010'), build_cotahist_line('020')]
 
-    records = _parse_lines_batch(lines, {'010'})
+    records = parse_lines_batch(lines, {'010'})
 
     assert len(records) == 1
     assert records[0]['tipo_mercado'] == '010'
@@ -408,7 +430,7 @@ async def test_extract_from_zip_files_success(
 ):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -425,7 +447,7 @@ async def test_extract_from_zip_files_success(
         wait_calls.append(timeout_seconds)
         return True
 
-    service._wait_for_resources = fake_wait  # type: ignore
+    service.resource_policy.wait_for_resources = fake_wait  # type: ignore
 
     process_calls: list[tuple[str, set]] = []
 
@@ -440,12 +462,15 @@ async def test_extract_from_zip_files_success(
             }
         return {'records': 1, 'temp_file': str(tmp_path / 'temp_b.parquet')}
 
-    service._process_and_write_zip = fake_process  # type: ignore
+    service.zip_processor.process = fake_process  # type: ignore
 
-    async def fake_merge(temp_files: list, final_output: Path) -> int:
+    async def fake_merge(temp_files, final_output, **kwargs) -> int:
         return 3
 
-    service._merge_temp_files_streaming = fake_merge  # type: ignore
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.service.merge_temp_files_streaming',
+        fake_merge,
+    )
 
     output_path = tmp_path / 'out.parquet'
 
@@ -470,7 +495,7 @@ async def test_extract_from_zip_files_handles_errors(
 ):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 5)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -497,7 +522,7 @@ def test_extraction_service_cleanup_graceful_shutdown(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -522,7 +547,7 @@ def test_extraction_service_cleanup_no_pool_in_slow_mode(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=2)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 
@@ -533,12 +558,10 @@ def test_extraction_service_cleanup_no_pool_in_slow_mode(
         processing_mode=ProcessingModeEnumB3.SLOW,
     )
 
-    assert service.executor_pool is not None
-    assert len(process_pool_spy) == 1
+    assert service.zip_processor.executor_pool is None
+    assert len(process_pool_spy) == 0
 
     service.__del__()
-
-    assert process_pool_spy[0].shutdown_called is True
 
 
 def test_extraction_service_cleanup_handles_shutdown_errors(
@@ -546,7 +569,7 @@ def test_extraction_service_cleanup_handles_shutdown_errors(
 ):
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.infra.extraction_service.ResourceMonitor',
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
     )
 

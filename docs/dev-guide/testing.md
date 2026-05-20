@@ -6,19 +6,34 @@ Guia completo sobre testes no Global-Data-Finance.
 
 ## Estrutura de Testes
 
+A árvore de testes espelha cada fonte. Os subdiretórios dentro de cada feature são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer teste importa diretamente dos módulos da fonte (`from globaldatafinance.brazil.<país>.<fonte>.<módulo> import ...`). Os nomes de pastas `domain/` `infra/` `application/` são legado do layout pré-refactor e seguem em disco; a refactor `anti-overengineering` planeja reorganizá-los, mas hoje continuam como abaixo.
+
 ```
 tests/
+├── application/                       # tests do facade público
+│   ├── cvm_docs/
+│   └── b3_docs/
+│       └── result_formatters/
 ├── brazil/
 │   ├── b3_data/
 │   │   └── historical_quotes/
-│   │       ├── domain/
-│   │       ├── application/
-│   │       └── infra/
+│   │       ├── application/           # tests de orquestração (client.py)
+│   │       ├── domain/                # tests de value objects, validators, exceções, services
+│   │       │   ├── entities/
+│   │       │   ├── exceptions/
+│   │       │   ├── services/
+│   │       │   └── value_objects/
+│   │       ├── infra/                 # tests de parser, writer, extraction_service, zip_reader
+│   │       └── integration/           # tests integration-marker
 │   └── cvm/
 │       └── fundamental_stocks_data/
-│           ├── domain/
-│           ├── application/
-│           └── infra/
+│           ├── application/use_cases/ # tests de orquestração (client.py)
+│           ├── domain/                # tests de value objects e validators (core.py)
+│           ├── infra/adapters/        # tests dos adapters concretos (http.py, extract.py)
+│           ├── exceptions/            # tests das exceções (errors.py)
+│           └── integration/           # tests integration-marker
+├── core/
+├── macro_infra/
 └── macro_exceptions/
 ```
 
@@ -29,29 +44,30 @@ tests/
 ### Todos os Testes
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ### Com Cobertura
 
+`pytest.ini` já força `fail_under = 70` na cobertura agregada.
+
 ```bash
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 ```
 
 ### Marcadores
 
+Os markers registrados em `pytest.ini` são: `unit`, `integration`, `slow`, `asyncio` (com `--strict-markers`, então qualquer marker não declarado falha).
+
 ```bash
 # Apenas testes unitários
-pytest -m unit
+uv run pytest -m unit
 
 # Apenas testes de integração
-pytest -m integration
+uv run pytest -m integration
 
-# Pular testes lentos
-pytest -m "not slow"
-
-# Pular testes que precisam de rede
-pytest -m "not requires_network"
+# Combinar markers
+uv run pytest -m "integration and not slow"
 ```
 
 ---
@@ -62,21 +78,46 @@ pytest -m "not requires_network"
 
 ```python
 import pytest
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.domain import AvailableDocs
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions import InvalidDocName
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import AvailableDocsCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import InvalidDocName
 
 @pytest.mark.unit
 class TestAvailableDocs:
     def test_validate_valid_doc(self):
         """Testa validação de documento válido."""
-        docs = AvailableDocs()
+        docs = AvailableDocsCVM()
         docs.validate_docs_name("DFP")  # Não deve lançar exceção
 
     def test_validate_invalid_doc(self):
         """Testa validação de documento inválido."""
-        docs = AvailableDocs()
+        docs = AvailableDocsCVM()
         with pytest.raises(InvalidDocName):
             docs.validate_docs_name("INVALID")
+```
+
+> Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em `brazil.cvm.fundamental_stocks_data.core` e `brazil.cvm.fundamental_stocks_data.errors`; para B3 a divisão é mais granular — entidades em `models.py`, value objects em `years.py`/`processing.py`, validators de filesystem em `filesystem.py`, asset services em `assets.py`, exceções em `errors.py`. Pacotes intermediários `domain/`, `application/`, `infra/` em `src/` foram removidos; em `tests/` os nomes continuam (sem semântica de camada) até a refactor `anti-overengineering` reorganizá-los.
+
+### Mocking sem ABC
+
+Como os adapters não são mais ABCs, tests substituem dependências via stub duck-typed ou `monkeypatch.setattr`:
+
+```python
+class MockRepository:
+    def download_docs(self, tasks):
+        return DownloadResultCVM(
+            success_count_downloads=2,
+            error_count_downloads=0,
+            successful_downloads=["DFP_2023", "ITR_2023"],
+            failed_downloads={},
+        )
+
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
+    DownloadDocumentsUseCaseCVM,
+)
+
+use_case = DownloadDocumentsUseCaseCVM(MockRepository())
+result = use_case.execute(destination_path="/tmp/cvm")
+assert result.success_count_downloads == 2
 ```
 
 ### Teste de Integração
@@ -123,14 +164,14 @@ def sample_zip_file(tmp_path):
 
 ## Cobertura
 
-Objetivo: **>= 80% de cobertura**
+Objetivo: **>= 70% de cobertura agregada** (enforced via `fail_under = 70` em `pytest.ini`). O alvo prático é `>= 80%` em módulos novos.
 
 ```bash
 # Gerar relatório
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Relatório HTML
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html
 ```
 

@@ -10,47 +10,34 @@ O módulo `fundamental_stocks_data` foi projetado para simplificar a aquisição
 - **Automação Confiável**: Elimina o trabalho manual de buscar arquivos no site da CVM.
 - **Gestão de Falhas**: Sistema robusto de retentativas e relatório detalhado de erros.
 - **Organização Automática**: Estrutura os arquivos baixados por tipo e ano, facilitando o consumo posterior.
-- **Extensibilidade**: Arquitetura baseada em interfaces permite trocar facilmente o mecanismo de download (ex: `requests`, `httpx`, `aiohttp`).
+- **Extensibilidade**: adapter HTTP concreto (`AsyncDownloadAdapterCVM`) construído diretamente. Quando uma segunda implementação aparecer (ex.: `WgetDownloadAdapter`), extrair um `Protocol` é trivial.
 
 ## 🏗️ Arquitetura
 
-O fluxo de execução é orquestrado pelo caso de uso `DownloadDocumentsUseCaseCVM`, que coordena a geração de URLs, validação de caminhos e a execução do download via repositório.
+Layout plano de 5 módulos (sem subcamadas `domain`/`application`/`infra`):
 
 ```text
-+---------------------------------------+
-|           Application Layer           |
-|     [DownloadDocumentsUseCaseCVM]     |
-|      /           |            \       |
-| [GenerateUrls]   |      [VerifyPaths] |
-+------------------|--------------------+
-                   |
-                   v
-+------------------|--------------------+
-|             Domain Layer              |
-|   [DownloadDocsCVMRepositoryCVM] <....|....+
-|        [DownloadResultCVM]            |    :
-+---------------------------------------+    :
-                                             :
-+---------------------------------------+    :
-|         Infrastructure Layer          |    :
-|        [CVMRepositoryAdapter] .........+...:
-|        /                    \         |
-|  [FileSystem]          [Network]      |
-+---------------------------------------+
+brazil/cvm/fundamental_stocks_data/
+├── core.py     # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM, UrlDocsCVM
+├── client.py   # DownloadDocumentsUseCaseCVM (orquestrador), GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM, etc.
+├── http.py     # AsyncDownloadAdapterCVM (httpx async + retry/back-off + integrity check)
+├── extract.py  # ParquetExtractorAdapterCVM (CSV → Parquet com rollback atômico)
+└── errors.py   # InvalidDocName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
 ```
+
+`DownloadDocumentsUseCaseCVM` orquestra: geração de URLs (`GenerateUrlsUseCaseCVM`), validação de paths (`VerifyPathsUseCasesCVM` — raise `SecurityError` em `/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) e o download via `AsyncDownloadAdapterCVM` injetado.
 
 ### Componentes Chave
 
-| Camada             | Componente                    | Tipo       | Responsabilidade                                                             |
-| ------------------ | ----------------------------- | ---------- | ---------------------------------------------------------------------------- |
-| **Application**    | `DownloadDocumentsUseCaseCVM` | Use Case   | Orquestra todo o fluxo de download, validações e chamadas de infraestrutura. |
-| **Application**    | `GenerateUrlsUseCaseCVM`      | Service    | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.               |
-| **Application**    | `VerifyPathsUseCasesCVM`      | Service    | Cria e valida a estrutura de diretórios de destino.                          |
-| **Domain**         | `DownloadResultCVM`           | Entity     | Resultado agregado contendo sucessos, falhas e contadores.                   |
-| **Domain**         | `DictZipsToDownloadCVM`       | Repository | Fornece o mapeamento de documentos → URLs por ano.                           |
-| **Infrastructure** | `CVMRepositoryAdapter`        | Adapter    | Implementa `DownloadDocsCVMRepositoryCVM` usando `AsyncDownloadAdapterCVM`.  |
-| **Infrastructure** | `AsyncDownloadAdapterCVM`     | Adapter    | Realiza downloads assíncronos com retry/back‑off e validação de integridade. |
-| **Infrastructure** | `ParquetExtractorAdapterCVM`  | Adapter    | Converte CSVs dentro do ZIP para Parquet com garantia de transação atômica.  |
+| Módulo       | Componente                    | Tipo                  | Responsabilidade                                                                     |
+| ------------ | ----------------------------- | --------------------- | ------------------------------------------------------------------------------------ |
+| `client.py`  | `DownloadDocumentsUseCaseCVM` | Orquestrador (classe) | Coordena geração de URLs, validação de paths e execução de download. Stateful.       |
+| `client.py`  | `GenerateUrlsUseCaseCVM`      | Use case              | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.                       |
+| `client.py`  | `VerifyPathsUseCasesCVM`      | Use case              | Cria estrutura de diretórios de destino. Raise `SecurityError` em paths sensíveis.   |
+| `core.py`    | `DownloadResultCVM`           | Result object         | Resultado agregado contendo sucessos, falhas e contadores (`elapsed_time` incluso).  |
+| `core.py`    | `DictZipsToDownloadCVM`       | Value object          | Mapeamento documento → URLs por ano.                                                  |
+| `http.py`    | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e validação de integridade.                  |
+| `extract.py` | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).    |
 
 
 ## 🚀 Guia de Uso
@@ -58,15 +45,16 @@ O fluxo de execução é orquestrado pelo caso de uso `DownloadDocumentsUseCaseC
 ### Exemplo Completo
 
 ```python
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import DownloadDocumentsUseCaseCVM
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.infra.adapters import CVMRepositoryAdapter
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    AsyncDownloadAdapterCVM,
+    DownloadDocumentsUseCaseCVM,
+)
 
 def baixar_dados_cvm():
-    # 1. Preparação da Infraestrutura
-    # O adaptador implementa a interface de repositório usando requests/urllib
-    repository = CVMRepositoryAdapter()
+    # 1. Adapter HTTP concreto (httpx async + retry + integrity check)
+    repository = AsyncDownloadAdapterCVM()
 
-    # 2. Inicialização do Caso de Uso
+    # 2. Orquestrador
     downloader = DownloadDocumentsUseCaseCVM(repository=repository)
 
     print("Iniciando downloads...")
@@ -131,11 +119,14 @@ Objeto retornado pelo método `execute`, contendo:
 
 ### Tratamento de Erros
 
-Exceções comuns definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.exceptions.exceptions_domain`:
+Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.errors` (re-exportadas pelo `__init__.py` da fonte):
 
-- `InvalidRepositoryTypeError`: O repositório injetado não implementa a interface correta.
-- `MissingDownloadUrlError`: Não foi possível gerar uma URL para o documento/ano solicitado.
-- `InvalidDocName`: O tipo de documento solicitado não é reconhecido pelo sistema.
+- `MissingDownloadUrlError`: não foi possível gerar uma URL para o documento/ano solicitado.
+- `InvalidDocName`: tipo de documento não reconhecido.
+- `InvalidFirstYear` / `InvalidLastYear`: ano inválido ou fora do range suportado.
+- `SecurityError` (de `macro_exceptions`): tentativa de escrita em path sensível (`/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) — defesa em `VerifyPathsUseCasesCVM`.
+
+> Nota: `InvalidRepositoryTypeError` foi removido junto com a ABC `DownloadDocsCVMRepositoryCVM` quando o refactor anti-overengineering eliminou a indireção sem polimorfismo real. `mypy` já cobre o caso, e o adapter concreto (`AsyncDownloadAdapterCVM`) é construído diretamente.
 
 ## 🔧 Troubleshooting
 
@@ -147,7 +138,7 @@ Exceções comuns definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_
 
 ## 🔎 Como funciona a extração dos arquivos da CVM
 
-A extração dos arquivos baixados da CVM é realizada pelo **ParquetExtractorAdapterCVM**, que implementa a interface de extração de arquivos (`FileExtractorRepositoryCVM`). O fluxo completo pode ser resumido nos passos abaixo:
+A extração é realizada pelo **`ParquetExtractorAdapterCVM`** em `extract.py` — adapter concreto (sem ABC) chamado diretamente pelo facade quando `automatic_extractor=True`. O fluxo completo é:
 
 1. **Listagem dos CSVs dentro do ZIP**
    - O adaptador delega a `ExtractorAdapter.list_files_in_zip` para obter a lista de arquivos com extensão `.csv` presentes no ZIP.

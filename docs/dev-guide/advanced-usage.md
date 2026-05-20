@@ -119,35 +119,47 @@ for attempt in range(max_retries):
 
 ## Customização de Adapters
 
-### Criar Adapter Personalizado
+O adapter HTTP (`AsyncDownloadAdapterCVM`) e o adapter de extração (`ParquetExtractorAdapterCVM`) são **classes concretas, sem ABC** — o orquestrador (`DownloadDocumentsUseCaseCVM`) aceita qualquer objeto que exponha o mesmo método público (`download_docs(tasks)`), por duck typing. Para substituir o adapter, basta passar uma classe alternativa que implemente o mesmo contrato.
+
+### Substituir o Adapter HTTP
 
 ```python
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.interfaces import (
-    DownloadDocsCVMRepository
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
+    DownloadDocumentsUseCaseCVM,
 )
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.domain import DownloadResultCVM
-
-class MyCustomAdapter(DownloadDocsCVMRepository):
-    """Adapter personalizado para download."""
-
-    def download_docs(
-        self,
-        destination_path: str,
-        dict_zip_to_download: Dict[str, List[int]]
-    ) -> DownloadResultCVM:
-        """Implementação personalizada de download."""
-        # Sua lógica aqui
-        return DownloadResultCVM(...)
-
-# Uso
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.application.use_cases import (
-    DownloadDocumentsUseCaseCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    DownloadResultCVM,
 )
+
+
+class MyCustomAdapter:
+    """Adapter alternativo de download (duck-typed)."""
+
+    def download_docs(self, tasks) -> DownloadResultCVM:
+        # tasks é a estrutura produzida por GenerateUrlsUseCaseCVM:
+        # uma sequência de (doc_name, url, destination_path).
+        # Implemente sua lógica (wget, aiohttp, gsutil, etc.) e devolva
+        # o mesmo objeto de resultado.
+        return DownloadResultCVM(
+            success_count_downloads=0,
+            error_count_downloads=0,
+            successful_downloads=[],
+            failed_downloads={},
+            elapsed_time=0.0,
+        )
+
 
 adapter = MyCustomAdapter()
-use_case = DownloadDocumentsUseCaseCVM(adapter)
-result = use_case.execute(...)
+use_case = DownloadDocumentsUseCaseCVM(repository=adapter)
+result = use_case.execute(
+    destination_path="./dados_cvm",
+    list_docs=["DFP"],
+    initial_year=2023,
+    last_year=2023,
+)
 ```
+
+> Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial — o refactor atual removeu a ABC `DownloadDocsCVMRepository` porque havia apenas um adapter concreto (`AsyncDownloadAdapterCVM`) e a indireção não tinha polimorfismo real. Veja a discussão em `openspec/changes/refactor-anti-overengineering/design.md` e em `docs/dev-guide/architecture.md`.
 
 ---
 

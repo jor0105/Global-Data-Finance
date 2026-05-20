@@ -1,6 +1,6 @@
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.infra.zip_reader import (
+from globaldatafinance.brazil.b3_data.historical_quotes.zip_reader import (
     ZipFileReaderB3,
 )
 from globaldatafinance.macro_exceptions import (

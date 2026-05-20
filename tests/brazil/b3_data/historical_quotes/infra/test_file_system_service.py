@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.infra.file_system_service import (
+from globaldatafinance.brazil.b3_data.historical_quotes.filesystem import (
     FileSystemServiceB3,
 )
 from globaldatafinance.macro_exceptions import (
@@ -127,6 +127,66 @@ class TestFileSystemServiceSecurityValidation:
     def test_validate_path_safety_blocks_boot(self, service):
         with pytest.raises(SecurityError):
             service._validate_path_safety(Path('/boot/grub').resolve())
+
+    def test_validate_path_safety_blocks_usr(self, service):
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path('/usr/local/bin').resolve())
+
+    def test_validate_path_safety_blocks_var(self, service):
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path('/var/log/secret').resolve())
+
+    def test_validate_path_safety_blocks_lib(self, service):
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(Path('/lib/systemd').resolve())
+
+    def test_validate_path_safety_blocks_user_ssh(self, service):
+        target = Path.home() / '.ssh' / 'id_rsa'
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(target)
+
+    def test_validate_path_safety_blocks_user_aws(self, service):
+        target = Path.home() / '.aws' / 'credentials'
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(target)
+
+    def test_validate_path_safety_blocks_user_gnupg(self, service):
+        target = Path.home() / '.gnupg' / 'secring.gpg'
+        with pytest.raises(SecurityError):
+            service._validate_path_safety(target)
+
+    def test_validate_path_safety_allows_user_config(
+        self, service, tmp_path, monkeypatch
+    ):
+        # ~/.config is intentionally NOT blocked: legitimate user configs use it.
+        fake_home = tmp_path / 'fake_home'
+        fake_home.mkdir()
+        config_dir = fake_home / '.config' / 'globaldatafinance' / 'cache'
+        config_dir.mkdir(parents=True)
+        monkeypatch.setenv('HOME', str(fake_home))
+        service._validate_path_safety(config_dir.resolve())
+
+    def test_validate_directory_path_blocks_windows_system(self, service):
+        # Cross-platform: even on POSIX, a Windows system path must be
+        # rejected via the raw-string drive-letter check.
+        with pytest.raises(SecurityError):
+            service.validate_directory_path('C:\\Windows\\System32')
+
+    def test_validate_directory_path_blocks_windows_program_files(
+        self, service
+    ):
+        with pytest.raises(SecurityError):
+            service.validate_directory_path('C:\\Program Files\\Sensitive')
+
+    def test_validate_path_safety_does_not_false_positive_etcd(
+        self, service, tmp_path
+    ):
+        # Regression: the previous CVM `startswith` check would block
+        # /etcd_data because the prefix /etc matches; the path-aware
+        # helper must allow such directories.
+        etcd_like = tmp_path / 'etcd_data'
+        etcd_like.mkdir()
+        service._validate_path_safety(etcd_like.resolve())
 
     def test_validate_path_safety_allows_safe_paths(self, service, tmp_path):
         safe_dir = tmp_path / 'safe_directory'

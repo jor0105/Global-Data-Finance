@@ -15,7 +15,7 @@ Example:
     >>> formatter.print_result(result)
 """
 
-from ...brazil import DownloadResultCVM
+from ...brazil.cvm.fundamental_stocks_data import DownloadResultCVM
 
 
 class DownloadResultFormatter:

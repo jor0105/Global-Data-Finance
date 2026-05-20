@@ -4,16 +4,14 @@ import tempfile
 import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
-    DownloadDocsCVMRepositoryCVM,
     DownloadDocumentsUseCaseCVM,
     DownloadResultCVM,
     InvalidDocName,
     InvalidFirstYear,
-    InvalidRepositoryTypeError,
 )
 
 
-class MockRepository(DownloadDocsCVMRepositoryCVM):
+class MockRepository:
     def __init__(self):
         self.download_docs_called = False
         self.last_tasks = None
@@ -241,7 +239,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
         assert not mock_repo.download_docs_called
 
     def test_repository_error_is_propagated(self, tmp_path):
-        class ErrorRepository(DownloadDocsCVMRepositoryCVM):
+        class ErrorRepository:
             def download_docs(self, tasks):
                 raise RuntimeError('Download failed')
 
@@ -265,17 +263,6 @@ class TestDownloadDocumentsUseCaseInitialization:
 
         assert use_case is not None
         assert use_case._DownloadDocumentsUseCaseCVM__repository is mock_repo
-
-    def test_init_with_invalid_repository_raises_error(self):
-        with pytest.raises(
-            InvalidRepositoryTypeError,
-            match='The repository must be a valid repository instance',
-        ):
-            DownloadDocumentsUseCaseCVM('not a repository')
-
-    def test_init_with_none_repository_raises_error(self):
-        with pytest.raises(InvalidRepositoryTypeError):
-            DownloadDocumentsUseCaseCVM(None)
 
     def test_init_creates_sub_use_cases(self):
         mock_repo = MockRepository()
@@ -578,3 +565,67 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         assert len(mock_repo.last_tasks) == 6
+
+
+class MockRepositoryWithFailures:
+    def download_docs(self, tasks: list) -> DownloadResultCVM:
+        return DownloadResultCVM(
+            successful_downloads=['DFP_2020'],
+            failed_downloads={'DFP_2021': 'connection reset'},
+        )
+
+
+@pytest.mark.unit
+class TestDownloadDocumentsUseCaseTaskPreparationGaps:
+    def test_missing_download_url_raises_when_doc_absent_from_urls(self):
+        from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+            MissingDownloadUrlError,
+        )
+
+        use_case = DownloadDocumentsUseCaseCVM(MockRepository())
+        prepare = use_case._DownloadDocumentsUseCaseCVM__prepare_download_tasks
+
+        with pytest.raises(MissingDownloadUrlError):
+            prepare(
+                dict_zip_to_download={},
+                docs_paths={'DFP': {2020: '/tmp/dfp/2020'}},
+            )
+
+    def test_no_url_match_for_year_logs_warning(self, caplog):
+        use_case = DownloadDocumentsUseCaseCVM(MockRepository())
+        prepare = use_case._DownloadDocumentsUseCaseCVM__prepare_download_tasks
+
+        with caplog.at_level('WARNING'):
+            tasks = prepare(
+                dict_zip_to_download={'DFP': ['http://x/dfp_1999.zip']},
+                docs_paths={'DFP': {2020: '/tmp/dfp/2020'}},
+            )
+
+        assert tasks == []
+        assert any(
+            'No URL found for DFP_2020' in record.message
+            for record in caplog.records
+        )
+
+
+@pytest.mark.unit
+class TestDownloadDocumentsUseCaseFailureLogging:
+    def test_logs_failed_downloads_when_repository_reports_errors(
+        self, tmp_path, caplog
+    ):
+        use_case = DownloadDocumentsUseCaseCVM(MockRepositoryWithFailures())
+
+        with caplog.at_level('WARNING'):
+            result = use_case.execute(
+                destination_path=str(tmp_path),
+                list_docs=['DFP'],
+                initial_year=2020,
+                last_year=2021,
+            )
+
+        assert result.error_count_downloads == 1
+        assert any(
+            'Failed downloads' in record.message
+            and 'connection reset' in record.message
+            for record in caplog.records
+        )

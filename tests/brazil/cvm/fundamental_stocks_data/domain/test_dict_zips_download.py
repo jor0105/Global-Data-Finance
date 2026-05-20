@@ -429,10 +429,10 @@ class TestDictZipsToDownload:
         assert len(result3['ITR']) == 1
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.UrlDocsCVM'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.core.UrlDocsCVM'
     )
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.domain.dict_zips_download.AvailableYearsCVM'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.core.AvailableYearsCVM'
     )
     def test_get_dict_zips_to_download_uses_dependencies_correctly(
         self, mock_available_years, mock_url_docs

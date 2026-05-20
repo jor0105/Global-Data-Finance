@@ -15,7 +15,7 @@ Project context for agentic coding agents working on the **Global-Data-Finance**
 - The library is distribution-shaped (`src/` layout, `hatchling` build, published via PyPI) — it is consumed as a dependency, not a running service.
 - Current production data sources are Brazilian regulatory (CVM) and exchange (B3) feeds; the architecture is intentionally extensible to other markets.
 - Core runtime traits are async/parallel I/O (`httpx[http2]`, `asyncio`), columnar processing (`polars`, `pandas`, `pyarrow`), and Parquet as the canonical output format.
-- The codebase follows Clean Architecture with strict layering: `domain` → `application` → `infra`, plus a public `application/` facade.
+- The codebase uses a **flat per-source module pattern**: each data source lives in `brazil/<country>/<source>/` with a small set of role-named modules (`core.py`, `client.py`, `http.py`/`extract.py`, `errors.py`, plus heavy parsing/IO files preserved as their own modules). The public facade lives in `application/`.
 
 ## Product Direction
 
@@ -59,10 +59,10 @@ repo root
 
 ## Architecture Map
 
-The package follows Clean Architecture with two parallel axes:
+The package has two parallel axes:
 
 1. A **public facade** in `application/` that users import.
-2. **Feature implementations** in `brazil/` (per source/market), each split into the canonical `domain` / `application` / `infra` / `exceptions` layers.
+2. **Feature implementations** in `brazil/<country>/<source>/`, each laid out as a **flat set of role-named modules** (no per-source `domain` / `application` / `infra` / `exceptions` subdirectories).
 
 ```text
 src/globaldatafinance/
@@ -77,23 +77,22 @@ src/globaldatafinance/
 │       └── result_formatters/
 ├── brazil/                        FEATURE IMPLEMENTATIONS (Brazil sources)
 │   ├── cvm/
-│   │   └── fundamental_stocks_data/
-│   │       ├── domain/            entities, value objects, validators
-│   │       ├── application/       use cases + repository interfaces
-│   │       │   ├── interfaces/
-│   │       │   └── use_cases/
-│   │       ├── infra/             adapters (HTTP, extractors)
-│   │       │   └── adapters/
-│   │       │       ├── requests_adapter/
-│   │       │       └── extractors_docs_adapter/
-│   │       └── exceptions/
+│   │   └── fundamental_stocks_data/        ~5 flat modules
+│   │       ├── core.py            entities, value objects, validators
+│   │       ├── client.py          use-case-shaped functions + orchestrator
+│   │       ├── http.py            AsyncDownloadAdapterCVM (HTTP I/O)
+│   │       ├── extract.py         ParquetExtractorAdapterCVM (file extraction)
+│   │       └── errors.py          feature-specific exceptions
 │   └── b3_data/
-│       ├── historical_quotes/     same 4-layer split as CVM
-│       │   ├── domain/{entities,services,value_objects}/
-│       │   ├── application/use_cases/
-│       │   ├── infra/
-│       │   └── exceptions/
-│       ├── Dados_B3_Acoes/        legacy/ancillary B3 datasets
+│       ├── historical_quotes/     ~7–8 flat modules
+│       │   ├── core.py            enums, value objects, validators, file-system safety
+│       │   ├── client.py          use-case-shaped functions + ExtractHistoricalQuotesUseCaseB3 (stateful)
+│       │   ├── cotahist_parser.py positional COTAHIST parser (preserved as own module)
+│       │   ├── parquet_writer.py  Parquet writer (preserved as own module)
+│       │   ├── extraction_service.py  streaming/threadpool orchestration (preserved as own module)
+│       │   ├── zip_reader.py      ZIP reader
+│       │   └── errors.py
+│       ├── Dados_B3_Acoes/        pending-promotion B3 datasets (D8 — in-place; no internal callers)
 │       ├── Dados_B3_FIIs/
 │       └── Opcoes_B3/
 ├── core/                          cross-cutting utilities
@@ -122,11 +121,12 @@ tests/
 │   ├── cvm_docs/
 │   └── b3_docs/
 │       └── result_formatters/
-└── brazil/                        mirrors each feature's 4 layers
-    ├── cvm/fundamental_stocks_data/{domain,application,infra,integration,exceptions}/
-    └── b3_data/historical_quotes/{domain,application,infra,integration}/
-        └── domain/{entities,services,value_objects,exceptions}/
+└── brazil/                        per-feature test trees
+    ├── cvm/fundamental_stocks_data/   tests grouped by topic (domain types, use cases, adapters, integration)
+    └── b3_data/historical_quotes/     tests grouped by topic (parser, writer, extraction, integration, type validation)
 ```
+
+Test files import from the flat source paths (e.g. `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import DownloadDocumentsUseCaseCVM`). The test subdirectories under each feature are organizational, not architectural — they mirror logical groupings, not the (now removed) Clean Architecture layers.
 
 Test files use `test_*.py`; the pytest config (`pytest.ini`) registers the markers `unit`, `integration`, `slow`, `asyncio` and enforces `--strict-markers`, `--strict-config`, and `--maxfail=1`.
 
@@ -143,18 +143,25 @@ docs/
 
 `mkdocs.yml` configures the documentation site; `mkdocs-material` is the theme.
 
-## Layering Rules
+## Per-source module pattern
 
-Layer dependencies flow inward only — outer layers depend on inner abstractions, never the reverse:
+Each `brazil/<country>/<source>/` directory uses a flat layout with role-named modules:
 
-- `domain/` has **no dependencies** on `application/` or `infra/`. Pure entities, value objects, validators, and business rules. Imports from `core/` or `macro_exceptions/` only when strictly needed.
-- `application/` (inside a feature) defines **use cases** and **repository interfaces** (`ABC` classes). It depends on `domain/`, never on `infra/`.
-- `infra/` provides **concrete adapters** that implement the repository interfaces from `application/`. Holds the HTTP client, file extractor, and any other external-system glue.
-- `application/` at the **package root** is the **public facade**: it wires concrete adapters into use cases and exposes the user-facing classes (`FundamentalStocksDataCVM`, `HistoricalQuotesB3`).
-- `core/` and `macro_infra/` are shared utilities consumable from any layer, but they must stay generic — feature-specific logic does not belong here.
-- `macro_exceptions/` holds project-wide exception base classes; feature-specific exceptions live inside the feature's `exceptions/` folder.
+- `core.py` — pure data types (entities, value objects, enums), validators, and any path/file-safety helpers. No HTTP, no I/O side-effects beyond filesystem checks.
+- `client.py` — use-case-shaped functions (or stateful orchestrator classes where adapters are reused across calls). Wires `core.py` types and `http.py` / `extract.py` adapters.
+- `http.py` — concrete HTTP/download adapter for the source (e.g. `AsyncDownloadAdapterCVM`). Used directly; no ABC indirection.
+- `extract.py` — concrete file/extraction adapter (e.g. `ParquetExtractorAdapterCVM`). Used directly; no ABC indirection.
+- `errors.py` — feature-specific exception classes (subclasses of `macro_exceptions` bases).
+- Heavy parsing/IO modules (e.g. B3 `cotahist_parser.py`, `parquet_writer.py`, `extraction_service.py`) stay as their own modules when their size or focus justifies it.
 
-When adding a new data source, replicate the 4-layer split (`domain` / `application` / `infra` / `exceptions`) inside a new feature folder under the appropriate country/market namespace, and expose the public class via a new module under `src/globaldatafinance/application/`.
+Cross-cutting rules:
+
+- The public facade lives in `application/<facade>/<source>.py` and imports directly from the flat source modules (e.g. `from ...brazil.cvm.fundamental_stocks_data import DownloadDocumentsUseCaseCVM`).
+- `core/` and `macro_infra/` are shared utilities consumable from any module, but they must stay generic — feature-specific logic does not belong here.
+- `macro_exceptions/` holds project-wide exception base classes; feature-specific exceptions live inside the feature's `errors.py`.
+- Intermediate `__init__.py` files (`brazil/__init__.py`, `brazil/<country>/__init__.py`, `brazil/<country_data>/__init__.py`) are intentionally near-empty. Re-exports live in two canonical places: the top-level `globaldatafinance/__init__.py` and each source's `__init__.py`.
+
+When adding a new data source, create a new folder under the appropriate country/market namespace with the flat module set above (`core.py` + `client.py` minimum), and expose the public class via a new module under `src/globaldatafinance/application/`.
 
 ## Public API Surface
 
@@ -166,13 +173,16 @@ from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 These two classes are re-exported in `src/globaldatafinance/__init__.py`. Any new public entrypoint must be re-exported there to be part of the API contract. Treat additions as semver-relevant changes.
 
+**Pending-promotion paths.** `brazil/b3_data/{Dados_B3_Acoes, Dados_B3_FIIs, Opcoes_B3}`, `brazil/gerais/`, and `brazil/app_geral.py` are kept in-place but are explicitly **out of scope** for the flat per-source pattern. They have no internal callers and will be promoted (per source) in future OpenSpec changes that bring each one onto the `core.py` / `client.py` convention.
+
 ## Design Patterns In Use
 
-- **Repository pattern**: `application/interfaces/*` declares `ABC` repositories (e.g. `DownloadDocsCVMRepository`); `infra/adapters/*` provides concrete implementations (e.g. `AsyncDownloadAdapterCVM`).
-- **Use Case pattern**: each business operation is a class with a single `execute(...)` method (e.g. `DownloadDocumentsUseCaseCVM`, `ExtractHistoricalQuotesUseCaseB3`).
+- **Function-per-operation in `client.py`**: most operations are module-level functions or classes with a single public method, called directly from the facade — no `execute(...)`-only wrappers and no single-impl ABCs. Classes are reserved for genuine stateful orchestration (e.g. `ExtractHistoricalQuotesUseCaseB3` caches its adapters across calls).
+- **Concrete adapters, no ABC indirection**: HTTP and extraction adapters (`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, etc.) are imported and constructed directly. The pre-refactor `DownloadDocsCVMRepositoryCVM` / `FileExtractorRepositoryCVM` interfaces and `ExtractionServiceFactoryB3` were removed when they had a single implementation.
 - **Result objects**: operations return typed result dataclasses (e.g. `DownloadResultCVM`) with explicit success / failure breakdowns instead of raising for partial failures.
-- **Value Objects**: immutable domain types (e.g. `DictZipsToDownload`, `DocsToExtractorB3`) encapsulate validation and construction.
-- **Formatter separation**: presentation/console output lives in dedicated `*_formatter.py` modules so the use-case layer stays I/O-free.
+- **Value Objects**: immutable types (e.g. `DictZipsToDownloadCVM`, `DocsToExtractorB3`) encapsulate validation and construction; they live in `core.py`.
+- **Formatter separation**: presentation/console output lives in dedicated `*_formatter.py` modules under `application/` so the `client.py` layer stays I/O-free.
+- **Path-traversal defense as contract**: `VerifyPathsUseCasesCVM` (CVM `client.py`) and the `validate_directory_path` helper (B3 `core.py`) raise `SecurityError` before any `mkdir`, blocking writes to `/etc /sys /proc /dev /boot /root`. Behavior must stay bit-identical when these helpers move.
 
 See `docs/dev-guide/architecture.md` for worked examples of each pattern.
 

@@ -1,5 +1,7 @@
 import re
+from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import cast
 
 import pandas as pd
 import requests
@@ -35,7 +37,7 @@ def _fetch_vol(session: requests.Session, url: str) -> pd.DataFrame:
     resp = session.get(
         url,
         cookies=cookies_vol_acoes,
-        headers=headers_vol_acoes,
+        headers=cast(MutableMapping[str, str | bytes], headers_vol_acoes),
         timeout=(3, 20),
     )
     resp.raise_for_status()

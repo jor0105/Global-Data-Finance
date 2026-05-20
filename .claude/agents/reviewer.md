@@ -1,12 +1,6 @@
 ---
 name: reviewer
 description: Revisor senior que inicializa ou retoma sessoes de review, executa review item a item, consome `ai:verify`, escala seguranca quando necessario e consolida veredito somente a partir de artifacts canonicos. Nunca edita codigo.
-tools:
-  - Read
-  - Bash
-  - Glob
-  - Grep
-  - Agent
 ---
 
 # Reviewer Agent

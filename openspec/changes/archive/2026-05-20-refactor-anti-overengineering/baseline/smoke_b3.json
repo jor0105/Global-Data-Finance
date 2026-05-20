@@ -1,0 +1,32 @@
+{
+  "artifacts": [
+    "smoke.parquet"
+  ],
+  "schema": {
+    "smoke.parquet": {
+      "codigo_bdi": "large_string",
+      "codigo_isin": "large_string",
+      "data_pregao": "date32[day]",
+      "data_vencimento": "null",
+      "especificacao_papel": "large_string",
+      "fator_cotacao": "int64",
+      "melhor_oferta_compra": "decimal128(38, 2)",
+      "melhor_oferta_venda": "decimal128(38, 2)",
+      "nome_resumido": "large_string",
+      "numero_distribuicao": "int64",
+      "numero_negocios": "int64",
+      "preco_abertura": "decimal128(38, 2)",
+      "preco_fechamento": "decimal128(38, 2)",
+      "preco_maximo": "decimal128(38, 2)",
+      "preco_medio": "decimal128(38, 2)",
+      "preco_minimo": "decimal128(38, 2)",
+      "quantidade_total": "int64",
+      "ticker": "large_string",
+      "tipo_mercado": "large_string",
+      "volume_total": "decimal128(38, 2)"
+    }
+  },
+  "sha256": {
+    "smoke.parquet": "097759f87c3595993df070a0bd4e70a530f798c843ec6c48fea09ba91ef78ed9"
+  }
+}

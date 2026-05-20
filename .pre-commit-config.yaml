@@ -54,14 +54,14 @@ repos:
       - id: uv-lock
 
   # Max lines per file (src + backend)
-  # - repo: local
-  #   hooks:
-  #     - id: max-lines-per-file
-  #       name: max-lines-per-file
-  #       entry: bash .github/hooks/check-max-lines.sh
-  #       language: system
-  #       pass_filenames: false
-  #       always_run: true
+  - repo: local
+    hooks:
+      - id: max-lines-per-file
+        name: max-lines-per-file
+        entry: bash .github/hooks/check-max-lines.sh
+        language: system
+        pass_filenames: false
+        always_run: true
 
   # --------------------------------------------------------------------------
   # 3. Security Checks
@@ -81,7 +81,9 @@ repos:
     hooks:
       - id: pip-audit
         name: pip-audit
-        entry: uv run pip-audit .
+        # PYSEC-2026-89 (markdown): vuln transitiva via mkdocs-material;
+        # dev/docs-only, nao embarca no wheel runtime.
+        entry: uv run pip-audit . --ignore-vuln PYSEC-2026-89
         language: system
         pass_filenames: false
         always_run: true
@@ -92,7 +94,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
-        exclude: package.lock
+        exclude: ^(package\.lock|\.benchmarks/)
 
   # --------------------------------------------------------------------------
   # 4. Formatting & Linting (Ruff replaces isort/flake8)
