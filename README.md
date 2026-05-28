@@ -20,7 +20,7 @@
 
 **Global-Data-Finance** é uma solução robusta e de alto desempenho para engenharia de dados financeiros. Projetada para desenvolvedores, cientistas de dados e analistas quantitativos, a biblioteca abstrai a complexidade de extrair e normalizar dados de fontes regulatórias (CVM) e de mercado (B3).
 
-A API pública é deliberadamente estreita (apenas duas classes: `FundamentalStocksDataCVM` e `HistoricalQuotesB3`), e cada fonte de dados é implementada internamente em um **layout plano de módulos nomeados por papel** (`core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`). O resultado é código direto, fácil de ler e fácil de estender com uma nova fonte.
+A API pública é deliberadamente estreita (apenas duas classes: `FundamentalStocksDataCVM` e `HistoricalQuotesB3`), e cada fonte de dados é implementada internamente em um **layout plano de módulos nomeados por papel** (`core.py` (ou modelos granulares), `client.py`, `http.py`, `extract.py`, `errors.py`). O resultado é código direto, fácil de ler e fácil de estender com uma nova fonte.
 
 ### 🌟 Por que escolher Global-Data-Finance?
 
@@ -95,13 +95,14 @@ logging.basicConfig(level=logging.INFO)
 cvm = FundamentalStocksDataCVM()
 
 # Baixar e extrair automaticamente para Parquet
-cvm.download(
+result = cvm.download(
     destination_path="./dados_cvm",
     list_docs=["DFP", "ITR"],    # Tipos de documentos
     initial_year=2023,           # Ano inicial
     last_year=2024,              # Ano final
     automatic_extractor=True     # Converte ZIP -> Parquet
 )
+print(f"Downloads com sucesso: {result.success_count_downloads}")
 ```
 
 ### 2. Cotações Históricas (B3)
@@ -157,7 +158,7 @@ graph TD
 
     subgraph "globaldatafinance"
         Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
-        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>core.py · client.py · http.py · extract.py · errors.py"]
+        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>módulos planos por papel<br/>(client.py, models.py, errors.py...)"]
         Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
@@ -174,15 +175,14 @@ src/
     │   └── b3_docs/historical_quotes.py
     ├── brazil/
     │   ├── cvm/
-    │   │   └── fundamental_stocks_data/   # ~5 módulos planos
-    │   │       ├── core.py
-    │   │       ├── client.py
-    │   │       ├── http.py
-    │   │       ├── extract.py
-    │   │       └── errors.py
+    │   │   └── fundamental_stocks_data/   # ~7 módulos planos
+    │   │       ├── core.py · client.py · errors.py
+    │   │       ├── http.py · extract.py
+    │   │       └── download_validation.py · download_extraction.py
     │   └── b3_data/
-    │       └── historical_quotes/         # ~7–8 módulos planos
-    │           ├── core.py · client.py · zip_reader.py · errors.py
+    │       └── historical_quotes/         # ~11 módulos planos
+    │           ├── models.py · filesystem.py · assets.py · processing.py · years.py
+    │           ├── client.py · zip_reader.py · errors.py
     │           ├── cotahist_parser.py
     │           ├── parquet_writer/        # subpacote (writer/schema/streaming/...)
     │           └── extraction_service/    # subpacote (service/batch_parser/...)
@@ -203,9 +203,10 @@ Gerenciador de downloads de documentos da CVM.
 
 | Método                    | Assinatura                                                                                                                                 | Descrição                                                     |
 | :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
-| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> None` | Realiza o download e opcionalmente a extração dos documentos. |
-| **`get_available_docs`**  | `() -> dict`                                                                                                                               | Retorna lista de documentos disponíveis e suas descrições.    |
-| **`get_available_years`** | `() -> dict`                                                                                                                               | Retorna o intervalo de anos disponíveis para download.        |
+| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Realiza o download e opcionalmente a extração dos documentos. |
+| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Variante assíncrona do método `download`.                     |
+| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                     | Retorna lista de documentos disponíveis e suas descrições.    |
+| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                              | Retorna o intervalo de anos disponíveis para download.        |
 
 ### `HistoricalQuotesB3`
 
@@ -213,9 +214,10 @@ Extrator de cotações históricas da B3.
 
 | Método                     | Assinatura                                                                                                                                                                                             | Descrição                                                          |
 | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast") -> dict` | Processa arquivos ZIP da B3 e gera um arquivo Parquet consolidado. |
-| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                      | Retorna tipos de ativos suportados (ex: 'ações', 'opções').        |
-| **`get_available_years`**  | `() -> dict`                                                                                                                                                                                           | Retorna o intervalo de anos disponíveis para os dados históricos.  |
+| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Processa arquivos ZIP da B3 e gera um arquivo Parquet consolidado. |
+| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Variante assíncrona do método `extract`.                           |
+| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                            | Retorna tipos de ativos suportados (ex: 'ações', 'opções').        |
+| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                       | Retorna o intervalo de anos disponíveis para os dados históricos.  |
 
 ---
 
