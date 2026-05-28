@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1443,28 +1443,30 @@
 
 <h1 id="global-data-finance">📊 Global-Data-Finance<a class="headerlink" href="#global-data-finance" title="Link para esta seção">&para;</a></h1>
 <blockquote>
-<p>Biblioteca Python enterprise para extração e processamento de dados financeiros globais com arquitetura limpa, alta performance e ferramentas extensíveis.</p>
+<p>Biblioteca Python para extração e processamento de dados financeiros globais com layout plano por fonte, alta performance e ferramentas extensíveis.</p>
 </blockquote>
 <p><a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/Python-3.12+-blue.svg" /></a><br />
 <a href="https://pypi.org/project/globaldatafinance/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/globaldatafinance.svg" /></a><br />
 <a href="https://github.com/jor0105/Global-Data-Finance/blob/develop/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" /></a><br />
-<a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html"><img alt="Clean Architecture" src="https://img.shields.io/badge/Architecture-Clean-brightgreen.svg" /></a></p>
+<a href="http://mypy-lang.org/"><img alt="Checked with mypy" src="https://img.shields.io/badge/mypy-checked-blue" /></a></p>
 <hr />
 <h2 id="o-que-este-sistema-oferece">🎯 O que este sistema oferece?<a class="headerlink" href="#o-que-este-sistema-oferece" title="Link para esta seção">&para;</a></h2>
 <p><strong>Global-Data-Finance</strong> é uma biblioteca Python que permite extrair e processar dados financeiros de forma profissional e escalável:</p>
-<p>✅ <strong>Múltiplas fontes de dados</strong>: CVM (regulatório) e B3 (mercado) com fácil integração<br />
-✅ <strong>Processamento otimizado</strong>: Downloads paralelos assíncronos até 10x mais rápidos<br />
+<p>✅ <strong>Múltiplas fontes de dados</strong>: CVM (regulatório) e B3 (mercado) com layout idêntico por fonte<br />
+✅ <strong>Processamento otimizado</strong>: Downloads assíncronos (<code>httpx[http2]</code>) com concorrência adaptativa por CPU/RAM<br />
 ✅ <strong>Formato eficiente</strong>: Extração nativa para Parquet (Pandas/Polars ready)<br />
-✅ <strong>Robustez integrada</strong>: Sistema de retries inteligente e monitoramento de recursos<br />
-✅ <strong>Arquitetura limpa</strong>: Código testável, manutenível e escalável seguindo SOLID</p>
+✅ <strong>Robustez integrada</strong>: Retries com back-off, validação de integridade e rollback atômico<br />
+✅ <strong>Layout plano por fonte</strong>: módulos nomeados por papel (CVM: <code>core.py</code>, <code>client.py</code>, <code>http.py</code>, <code>extract.py</code>, <code>errors.py</code>; B3: <code>client.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>assets.py</code>, <code>filesystem.py</code>, <code>errors.py</code>, mais subpacotes pesados) — sem ABCs sem polimorfismo real</p>
 <hr />
 <h2 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Link para esta seção">&para;</a></h2>
 <h3 id="instalacao">Instalação<a class="headerlink" href="#instalacao" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Instalação básica via PyPI</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Como dependência via PyPI</span>
 pip<span class="w"> </span>install<span class="w"> </span>globaldatafinance
 
-<span class="c1"># OU com Poetry</span>
-poetry<span class="w"> </span>add<span class="w"> </span>globaldatafinance
+<span class="c1"># Para desenvolvimento local (uv é o gestor canônico do projeto)</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/jor0105/Global-Data-Finance.git
+<span class="nb">cd</span><span class="w"> </span>Global-Data-Finance
+uv<span class="w"> </span>sync
 </code></pre></div>
 <h3 id="configuracao">Configuração<a class="headerlink" href="#configuracao" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Requer Python 3.12+</span>
@@ -1608,7 +1610,7 @@ python<span class="w"> </span>--version
 </ul>
 <h3 id="para-desenvolvedores">Para Desenvolvedores<a class="headerlink" href="#para-desenvolvedores" title="Link para esta seção">&para;</a></h3>
 <ul>
-<li><strong><a href="dev-guide/architecture/">Arquitetura</a></strong> - Clean Architecture e padrões de design</li>
+<li><strong><a href="dev-guide/architecture/">Arquitetura</a></strong> - Layout plano por fonte e padrões de design</li>
 <li><strong><a href="dev-guide/api-reference/">Referência da API</a></strong> - Documentação completa da API</li>
 <li><strong><a href="dev-guide/contributing/">Como Contribuir</a></strong> - Guia de contribuição</li>
 <li><strong><a href="dev-guide/testing/">Testes</a></strong> - Estratégias de teste e cobertura</li>
@@ -1631,10 +1633,10 @@ python<span class="w"> </span>--version
 </ul>
 <h3 id="para-desenvolvedores_1">Para Desenvolvedores<a class="headerlink" href="#para-desenvolvedores_1" title="Link para esta seção">&para;</a></h3>
 <ul>
-<li>✅ <strong>Clean Architecture</strong>: Código limpo, testável e manutenível</li>
-<li>✅ <strong>SOLID</strong>: Fácil de estender com novos provedores e funcionalidades</li>
-<li>✅ <strong>Type hints</strong>: Suporte completo para IDEs e type checkers</li>
-<li>✅ <strong>CI/CD</strong>: Quality checks automáticos com GitHub Actions</li>
+<li>✅ <strong>Layout plano por fonte</strong>: módulos nomeados por papel (CVM: ~7 arquivos; B3: ~10 arquivos + subpacotes pesados) — código fácil de ler e estender</li>
+<li>✅ <strong>Extensível</strong>: Adicionar uma nova fonte = criar uma pasta-irmã com o mesmo padrão de papéis (granularidade ajustável por tamanho)</li>
+<li>✅ <strong>Type hints</strong>: Suporte completo para IDEs e type checkers (mypy, pyright)</li>
+<li>✅ <strong>CI/CD</strong>: Quality checks automáticos com GitHub Actions (<code>ruff</code>, <code>mypy</code>, <code>bandit</code>, <code>pytest --cov</code>)</li>
 </ul>
 <h3 id="para-analistas-e-cientistas-de-dados">Para Analistas e Cientistas de Dados<a class="headerlink" href="#para-analistas-e-cientistas-de-dados" title="Link para esta seção">&para;</a></h3>
 <ul>
@@ -1645,33 +1647,32 @@ python<span class="w"> </span>--version
 </ul>
 <hr />
 <h2 id="arquitetura">📊 Arquitetura<a class="headerlink" href="#arquitetura" title="Link para esta seção">&para;</a></h2>
-<p>O projeto segue <strong>Clean Architecture</strong> e <strong>SOLID principles</strong>:</p>
-<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────┐
-│      PRESENTATION LAYER             │  ← FundamentalStocksDataCVM
-│  (Controllers/User Interface)       │    HistoricalQuotesB3
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      APPLICATION LAYER              │  ← Use Cases &amp; DTOs
-│    (Business Logic)                 │    Orchestration
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│        DOMAIN LAYER                 │  ← Entities &amp; Business Rules
-│      (Core Business)                │    Domain Models
-└──────────────▲──────────────────────┘
-               │
-┌──────────────┴──────────────────────┐
-│    INFRASTRUCTURE LAYER             │  ← HTTP Adapters, File I/O
-│    (External Services)              │    Parsers, Extractors
-└─────────────────────────────────────┘
+<p>Duas camadas explícitas:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
+│  FACADE (application/)                              │  ← FundamentalStocksDataCVM
+│  Superfície semver-relevante para usuários da lib   │    HistoricalQuotesB3
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│  IMPLEMENTAÇÃO POR FONTE                            │  ← brazil/&lt;país&gt;/&lt;fonte&gt;/
+│  Módulos por papel: client.py + dados puros +       │    CVM: core.py · client.py · http.py
+│  adapters HTTP/extract + errors.py + subpacotes     │         extract.py · errors.py
+│  pesados isolados (parsers, writers).               │    B3: client.py · models.py · years.py
+│                                                     │        assets.py · filesystem.py · …
+└──────────────────────┬──────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────┐
+│  CROSS-CUTTING                                      │  ← core/ (logging, retry,
+│  Utilitários compartilhados, sem lógica de fonte    │    resource_monitor, config)
+│                                                     │    macro_infra/, macro_exceptions/
+└─────────────────────────────────────────────────────┘
 </code></pre></div>
-<p><strong>Benefícios da Arquitetura:</strong></p>
+<p><strong>Benefícios:</strong></p>
 <ul>
-<li><strong>Testável</strong>: Cada camada pode ser testada independentemente</li>
-<li><strong>Flexível</strong>: Fácil substituição de componentes (ex: trocar HTTP client)</li>
-<li><strong>Escalável</strong>: Adicione novas fontes de dados sem quebrar código existente</li>
-<li><strong>Manutenível</strong>: Separação clara de responsabilidades</li>
+<li><strong>Leitura direta</strong>: Poucos arquivos por fonte, nomes claros — sem caçar a classe em 4 camadas.</li>
+<li><strong>Sem ABC de implementação única</strong>: Adapters concretos importados e construídos direto. Quando aparecer uma segunda implementação real, extrair um <code>typing.Protocol</code> é trivial.</li>
+<li><strong>Extensibilidade orientada a fontes</strong>: Adicionar uma fonte = adicionar uma pasta com o mesmo conjunto plano. O ponto de extensão real é a fonte, não o &ldquo;tipo de objeto&rdquo;.</li>
+<li><strong>Defesa de path-traversal como contrato</strong>: <code>VerifyPathsUseCasesCVM</code> e <code>validate_directory_path</code> (B3) levantam <code>SecurityError</code> antes de qualquer <code>mkdir</code>.</li>
 </ul>
 <p><a href="dev-guide/architecture/">Saiba mais sobre a arquitetura →</a></p>
 <hr />
@@ -1756,8 +1757,8 @@ python<span class="w"> </span>--version
 <li>Fork o repositório</li>
 <li>Crie uma branch: <code>git checkout -b feature/nova-feature</code></li>
 <li>Implemente seguindo os padrões existentes</li>
-<li>Execute os testes: <code>poetry run pytest --cov=src</code></li>
-<li>Execute os linters: <code>poetry run pre-commit run --all-files</code></li>
+<li>Execute os testes: <code>uv run pytest --cov=src</code></li>
+<li>Execute os linters: <code>uv run pre-commit run --all-files</code></li>
 <li>Envie um Pull Request</li>
 </ol>
 <p><a href="dev-guide/contributing/">Guia completo de contribuição →</a></p>
@@ -1782,9 +1783,7 @@ python<span class="w"> </span>--version
 <li>PyPI: <a href="https://pypi.org/project/globaldatafinance/">globaldatafinance</a></li>
 </ul>
 <hr />
-<p><strong>Versão:</strong> 0.1.2<br />
-<strong>Última atualização:</strong> 26/11/2025<br />
-<strong>Status:</strong> 🚀 Projeto em produção! Aberto para contribuições e sugestões.</p>
+<p><strong>Status:</strong> 🚀 Projeto em produção! Aberto para contribuições e sugestões.</p>
 <div align="center">
     <sub>Copyright © 2025 Jordan Estralioto • Licensed under Apache 2.0</sub>
 </div>
@@ -1880,10 +1879,10 @@ python<span class="w"> </span>--version
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="assets/javascripts/wide-toggle.js"></script>
       

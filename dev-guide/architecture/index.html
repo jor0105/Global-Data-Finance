@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -758,22 +758,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#camadas-da-arquitetura" class="md-nav__link">
+  <a href="#padrao-de-modulos-por-fonte" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Camadas da Arquitetura
+        Padrão de módulos por fonte
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Camadas da Arquitetura">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camadas-observaveis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camadas observáveis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Camadas observáveis">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-camada-de-aplicacao-application" class="md-nav__link">
+  <a href="#1-facade-publico-application" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Camada de Aplicação (application/)
+        1. Facade público (application/)
       
     </span>
   </a>
@@ -781,32 +792,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-camada-de-dominio-domain" class="md-nav__link">
+  <a href="#2-implementacao-por-fonte-brazilpaisfonte" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Camada de Domínio (domain/)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-camada-de-aplicacao-interna-application" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Camada de Aplicação Interna (application/)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-camada-de-infraestrutura-infra" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Camada de Infraestrutura (infra/)
+        2. Implementação por fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)
       
     </span>
   </a>
@@ -822,19 +811,19 @@
   <a href="#padroes-de-design" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Padrões de Design
+        Padrões de design
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Padrões de Design">
+    <nav class="md-nav" aria-label="Padrões de design">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#repository-pattern" class="md-nav__link">
+  <a href="#funcao-ou-classe-leve-por-operacao-em-clientpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Repository Pattern
+        Função (ou classe leve) por operação em client.py
       
     </span>
   </a>
@@ -842,10 +831,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-case-pattern" class="md-nav__link">
+  <a href="#adapters-concretos-sem-indirecao-por-abc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Use Case Pattern
+        Adapters concretos, sem indireção por ABC
       
     </span>
   </a>
@@ -853,10 +842,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#result-pattern" class="md-nav__link">
+  <a href="#result-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Result Pattern
+        Result objects
       
     </span>
   </a>
@@ -864,10 +853,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#value-object-pattern" class="md-nav__link">
+  <a href="#value-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Value Object Pattern
+        Value objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#separacao-de-apresentacao" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separação de apresentação
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defesa-de-path-traversal-preservada-como-contrato" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defesa de path-traversal preservada como contrato
       
     </span>
   </a>
@@ -883,19 +894,19 @@
   <a href="#fluxo-de-dados" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fluxo de Dados
+        Fluxo de dados
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Fluxo de Dados">
+    <nav class="md-nav" aria-label="Fluxo de dados">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#download-de-documentos-cvm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Download de Documentos CVM
+        Download de documentos CVM
       
     </span>
   </a>
@@ -906,7 +917,7 @@
   <a href="#extracao-de-cotacoes-b3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extração de Cotações B3
+        Extração de cotações B3
       
     </span>
   </a>
@@ -919,105 +930,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#principios-solid" class="md-nav__link">
+  <a href="#como-adicionar-uma-nova-fonte" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Princípios SOLID
+        Como adicionar uma nova fonte
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Princípios SOLID">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#single-responsibility-principle-srp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Single Responsibility Principle (SRP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#openclosed-principle-ocp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Open/Closed Principle (OCP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#liskov-substitution-principle-lsp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Liskov Substitution Principle (LSP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interface-segregation-principle-isp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interface Segregation Principle (ISP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dependency-inversion-principle-dip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependency Inversion Principle (DIP)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#extensibilidade" class="md-nav__link">
+  <a href="#testes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extensibilidade
+        Testes
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Extensibilidade">
+    <nav class="md-nav" aria-label="Testes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#adicionar-novo-adapter-de-download" class="md-nav__link">
+  <a href="#mocking-sem-abc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adicionar Novo Adapter de Download
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#adicionar-nova-fonte-de-dados" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adicionar Nova Fonte de Dados
+        Mocking sem ABC
       
     </span>
   </a>
@@ -1419,338 +1358,316 @@
 <p>Documentação completa da arquitetura do Global-Data-Finance, padrões de design e estrutura do projeto.</p>
 <hr />
 <h2 id="visao-geral">Visão Geral<a class="headerlink" href="#visao-geral" title="Link para esta seção">&para;</a></h2>
-<p>O Global-Data-Finance é construído seguindo princípios de <strong>Clean Architecture</strong>, com separação clara entre camadas de domínio, aplicação e infraestrutura. Esta arquitetura garante:</p>
+<p>Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — apenas duas classes (<code>FundamentalStocksDataCVM</code> e <code>HistoricalQuotesB3</code>). Internamente, cada fonte de dados é implementada em um diretório próprio com <strong>layout plano de módulos nomeados por papel</strong>.</p>
+<p>Esta abordagem privilegia:</p>
 <ul>
-<li>✅ <strong>Testabilidade</strong>: Fácil criação de testes unitários e de integração</li>
-<li>✅ <strong>Manutenibilidade</strong>: Código organizado e fácil de entender</li>
-<li>✅ <strong>Extensibilidade</strong>: Simples adicionar novas funcionalidades</li>
-<li>✅ <strong>Independência</strong>: Camadas desacopladas e independentes</li>
+<li>✅ <strong>Leitura</strong>: poucos arquivos com nomes claros (CVM: <code>core.py</code>, <code>client.py</code>, <code>http.py</code>, <code>extract.py</code>, <code>errors.py</code>; B3: módulos por papel — <code>client.py</code>, <code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>, <code>errors.py</code>, mais subpacotes pesados)</li>
+<li>✅ <strong>Manutenibilidade</strong>: zero cerimônia de camadas Clean Architecture para uma lib com 1 implementação por papel</li>
+<li>✅ <strong>Extensibilidade</strong>: adicionar nova fonte = adicionar nova pasta-irmã com o mesmo conjunto plano de módulos</li>
+<li>✅ <strong>Testabilidade</strong>: duck typing direto (sem ABCs sem polimorfismo real); tests mockam adapters concretos</li>
 </ul>
 <hr />
 <h2 id="estrutura-do-projeto">Estrutura do Projeto<a class="headerlink" href="#estrutura-do-projeto" title="Link para esta seção">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>globaldatafinance/
 ├── src/globaldatafinance/
-│   ├── __init__.py
-│   ├── application/          # Camada de aplicação (API pública)
-│   │   ├── b3_docs/          # Interface B3
-│   │   │   ├── historical_quotes.py
+│   ├── __init__.py                  # re-exporta a API pública
+│   ├── application/                 # FACADE PÚBLICO (top-level)
+│   │   ├── b3_docs/
+│   │   │   ├── historical_quotes.py            # HistoricalQuotesB3
+│   │   │   ├── extraction_result_formatter.py
 │   │   │   └── result_formatters/
-│   │   └── cvm_docs/         # Interface CVM
-│   │       ├── fundamental_stocks_data.py
-│   │       └── result_formatters/
-│   ├── brazil/               # Implementações específicas do Brasil
-│   │   ├── b3_data/          # Dados B3
-│   │   │   └── historical_quotes/
-│   │   │       ├── domain/   # Entidades de domínio
-│   │   │       ├── application/  # Casos de uso
-│   │   │       ├── infra/    # Adapters e infraestrutura
-│   │   │       └── exceptions/
-│   │   └── cvm/              # Dados CVM
-│   │       └── fundamental_stocks_data/
-│   │           ├── domain/
-│   │           ├── application/
-│   │           ├── infra/
-│   │           └── exceptions/
-│   ├── core/                 # Utilitários e configuração
-│   │   ├── logging_config.py
-│   │   ├── config.py
-│   │   └── utils/
-│   ├── macro_exceptions/     # Exceções globais
-│   └── macro_infra/          # Infraestrutura compartilhada
-├── tests/                    # Testes
-├── docs/                     # Documentação
-└── pyproject.toml           # Configuração do projeto
+│   │   └── cvm_docs/
+│   │       ├── fundamental_stocks_data.py      # FundamentalStocksDataCVM
+│   │       └── download_result_formatter.py
+│   ├── brazil/                      # IMPLEMENTAÇÕES POR FONTE
+│   │   ├── b3_data/
+│   │   │   └── historical_quotes/   # módulos por papel + subpacotes pesados
+│   │   │       ├── client.py                  # ExtractHistoricalQuotesUseCaseB3 + funções de orquestração
+│   │   │       ├── assets.py                  # AvailableAssetsServiceB3 (validação + TPMERC mapping)
+│   │   │       ├── models.py                  # DocsToExtractorB3 (dataclass)
+│   │   │       ├── years.py                   # YearRangeB3 (value object + validators)
+│   │   │       ├── processing.py              # ProcessingModeEnumB3, _ProcessingModeConfig
+│   │   │       ├── filesystem.py              # FileSystemServiceB3.validate_directory_path
+│   │   │       ├── errors.py                  # exceções específicas da fonte
+│   │   │       ├── zip_reader.py              # leitura de COTAHIST ZIP
+│   │   │       ├── cotahist_parser.py         # parser posicional (preservado isolado)
+│   │   │       ├── parquet_writer/            # subpacote: writer Parquet
+│   │   │       └── extraction_service/        # subpacote: orquestração streaming/threadpool
+│   │   └── cvm/
+│   │       └── fundamental_stocks_data/   # layout achatado (5 + 2 helpers)
+│   │           ├── core.py                    # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM
+│   │           ├── client.py                  # DownloadDocumentsUseCaseCVM, GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM
+│   │           ├── http.py                    # AsyncDownloadAdapterCVM (httpx async + retry + integrity)
+│   │           ├── extract.py                 # ParquetExtractorAdapterCVM
+│   │           ├── download_validation.py     # validate_downloaded_file, validate_parquet_files, find_parquet_files
+│   │           ├── download_extraction.py     # extract_downloaded_file (orquestra adapter + validation)
+│   │           └── errors.py                  # exceções específicas da fonte
+│   ├── core/                        # utilidades de infraestrutura
+│   ├── macro_infra/                 # adapters genéricos compartilhados
+│   └── macro_exceptions/            # exceções de base do projeto
+├── tests/                           # pytest, mirror por fonte
+├── docs/                            # MkDocs
+└── pyproject.toml
 </code></pre></div>
 <hr />
-<h2 id="camadas-da-arquitetura">Camadas da Arquitetura<a class="headerlink" href="#camadas-da-arquitetura" title="Link para esta seção">&para;</a></h2>
-<h3 id="1-camada-de-aplicacao-application">1. Camada de Aplicação (<code>application/</code>)<a class="headerlink" href="#1-camada-de-aplicacao-application" title="Link para esta seção">&para;</a></h3>
-<p><strong>Responsabilidade</strong>: Interface pública de alto nível para usuários finais.</p>
-<p><strong>Componentes</strong>:</p>
-<ul>
-<li><code>FundamentalStocksDataCVM</code>: API para documentos CVM</li>
-<li><code>HistoricalQuotesB3</code>: API para cotações B3</li>
-<li>Result formatters: Formatação de resultados para exibição</li>
-</ul>
-<p><strong>Características</strong>:</p>
-<ul>
-<li>API simples e intuitiva</li>
-<li>Abstrai complexidade interna</li>
-<li>Gerencia logging e formatação de saída</li>
-</ul>
-<p><strong>Exemplo</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># application/cvm_docs/fundamental_stocks_data.py</span>
+<h2 id="padrao-de-modulos-por-fonte">Padrão de módulos por fonte<a class="headerlink" href="#padrao-de-modulos-por-fonte" title="Link para esta seção">&para;</a></h2>
+<p>Cada <code>brazil/&lt;país&gt;/&lt;fonte&gt;/</code> segue o mesmo conjunto de <strong>papéis</strong>. O mapeamento papel ↔ arquivo é fixo na CVM (um arquivo por papel) e mais granular na B3 (papéis &ldquo;dados puros&rdquo; e &ldquo;validação&rdquo; foram quebrados em módulos por tópico para evitar um único <code>core.py</code> gigante). Adicionar uma nova fonte pode seguir qualquer dos dois caminhos — o critério é legibilidade.</p>
+<table>
+<thead>
+<tr>
+<th>Papel</th>
+<th>CVM</th>
+<th>B3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dados puros (types, enums)</td>
+<td><code>core.py</code></td>
+<td><code>models.py</code> + <code>years.py</code> + <code>processing.py</code></td>
+</tr>
+<tr>
+<td>Validação / domain services</td>
+<td><code>core.py</code> (<code>AvailableDocsCVM.validate_*</code>)</td>
+<td><code>assets.py</code> (<code>AvailableAssetsServiceB3</code>) + <code>filesystem.py</code> (<code>validate_directory_path</code>)</td>
+</tr>
+<tr>
+<td>Orquestração / use cases</td>
+<td><code>client.py</code></td>
+<td><code>client.py</code></td>
+</tr>
+<tr>
+<td>HTTP / download</td>
+<td><code>http.py</code> (<code>AsyncDownloadAdapterCVM</code>)</td>
+<td>(no <code>zip_reader.py</code> + <code>extraction_service/</code>; não há download HTTP)</td>
+</tr>
+<tr>
+<td>Extração / escrita Parquet</td>
+<td><code>extract.py</code> (<code>ParquetExtractorAdapterCVM</code>)</td>
+<td><code>parquet_writer/</code> (subpacote)</td>
+</tr>
+<tr>
+<td>Parser de formato</td>
+<td>—</td>
+<td><code>cotahist_parser.py</code></td>
+</tr>
+<tr>
+<td>Helpers de validação</td>
+<td><code>download_validation.py</code>, <code>download_extraction.py</code></td>
+<td>embutidos em <code>filesystem.py</code> / <code>client.py</code></td>
+</tr>
+<tr>
+<td>Exceções</td>
+<td><code>errors.py</code></td>
+<td><code>errors.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>Funções/classes auxiliares são internas ao módulo a menos que sejam usadas em outro arquivo — o ponto de extensibilidade real é a fonte, não o &ldquo;tipo de objeto&rdquo;.</p>
+<blockquote>
+<p><strong>Por que B3 não tem <code>core.py</code> consolidado.</strong> O conteúdo de B3 vive em módulos por tópico (<code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>) em vez de um único <code>core.py</code> porque cada um já tem massa crítica (~100–300 linhas) e diferentes consumidores. Consolidar trocaria 5 arquivos médios por 1 arquivo enorme.</p>
+</blockquote>
+<hr />
+<h2 id="camadas-observaveis">Camadas observáveis<a class="headerlink" href="#camadas-observaveis" title="Link para esta seção">&para;</a></h2>
+<p>A arquitetura tem <strong>duas camadas explícitas</strong> (em vez das 4 da Clean Architecture original):</p>
+<h3 id="1-facade-publico-application">1. Facade público (<code>application/</code>)<a class="headerlink" href="#1-facade-publico-application" title="Link para esta seção">&para;</a></h3>
+<p><strong>Responsabilidade</strong>: superfície semver-relevante para usuários da biblioteca.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/application/cvm_docs/fundamental_stocks_data.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...brazil.cvm.fundamental_stocks_data</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AsyncDownloadAdapterCVM</span><span class="p">,</span>
+    <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">,</span>
+    <span class="n">DownloadResultCVM</span><span class="p">,</span>
+    <span class="n">ParquetExtractorAdapterCVM</span><span class="p">,</span>
+    <span class="c1"># ...</span>
+<span class="p">)</span>
+
 <span class="k">class</span><span class="w"> </span><span class="nc">FundamentalStocksDataCVM</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">download_adapter</span> <span class="o">=</span> <span class="n">AsyncDownloadAdapterCVM</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__download_use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__download_use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">download_adapter</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">list_docs</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-        <span class="c1"># Orquestra casos de uso e formata resultados</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__download_use_case</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">list_docs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_year</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__download_use_case</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">destination_path</span><span class="o">=</span><span class="n">destination_path</span><span class="p">,</span>
+            <span class="n">list_docs</span><span class="o">=</span><span class="n">list_docs</span><span class="p">,</span>
+            <span class="n">initial_year</span><span class="o">=</span><span class="n">initial_year</span><span class="p">,</span>
+            <span class="n">last_year</span><span class="o">=</span><span class="n">last_year</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__result_formatter</span><span class="o">.</span><span class="n">print_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
 </code></pre></div>
-<h3 id="2-camada-de-dominio-domain">2. Camada de Domínio (<code>domain/</code>)<a class="headerlink" href="#2-camada-de-dominio-domain" title="Link para esta seção">&para;</a></h3>
-<p><strong>Responsabilidade</strong>: Entidades de negócio e regras de domínio.</p>
-<p><strong>Componentes</strong>:</p>
-<ul>
-<li>Value Objects (ex: <code>DictZipsToDownload</code>, <code>DocsToExtractorB3</code>)</li>
-<li>Validadores (ex: <code>AvailableDocs</code>, <code>AvailableYears</code>)</li>
-<li>Entidades de resultado (ex: <code>DownloadResultCVM</code>)</li>
-</ul>
-<p><strong>Características</strong>:</p>
-<ul>
-<li>Sem dependências externas</li>
-<li>Lógica de negócio pura</li>
-<li>Imutabilidade quando possível</li>
-</ul>
-<p><strong>Exemplo</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># brazil/cvm/fundamental_stocks_data/domain/available_docs.py</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AvailableDocs</span><span class="p">:</span>
+<p>O facade importa <strong>diretamente</strong> dos módulos planos da fonte (sem passar por re-exports intermediários em <code>brazil/__init__.py</code>).</p>
+<h3 id="2-implementacao-por-fonte-brazilpaisfonte">2. Implementação por fonte (<code>brazil/&lt;país&gt;/&lt;fonte&gt;/</code>)<a class="headerlink" href="#2-implementacao-por-fonte-brazilpaisfonte" title="Link para esta seção">&para;</a></h3>
+<p>Cada fonte é autocontida em ~5–8 arquivos. Exemplo CVM:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AvailableDocsCVM</span><span class="p">:</span>
     <span class="n">DOCS_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;DFP&quot;</span><span class="p">:</span> <span class="s2">&quot;Demonstração Financeira Padronizada&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ITR&quot;</span><span class="p">:</span> <span class="s2">&quot;Informação Trimestral&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;DFP&#39;</span><span class="p">:</span> <span class="s1">&#39;Demonstração Financeira Padronizada&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ITR&#39;</span><span class="p">:</span> <span class="s1">&#39;Informação Trimestral&#39;</span><span class="p">,</span>
         <span class="c1"># ...</span>
     <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_docs_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">doc_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DOCS_MAPPING</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">InvalidDocName</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid document: </span><span class="si">{</span><span class="n">doc_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InvalidDocName</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid document: </span><span class="si">{</span><span class="n">doc_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="3-camada-de-aplicacao-interna-application">3. Camada de Aplicação Interna (<code>application/</code>)<a class="headerlink" href="#3-camada-de-aplicacao-interna-application" title="Link para esta seção">&para;</a></h3>
-<p><strong>Responsabilidade</strong>: Casos de uso e orquestração de lógica de negócio.</p>
-<p><strong>Componentes</strong>:</p>
-<ul>
-<li>Use Cases (ex: <code>DownloadDocumentsUseCaseCVM</code>, <code>ExtractHistoricalQuotesUseCaseB3</code>)</li>
-<li>Interfaces/Repositories (ex: <code>DownloadDocsCVMRepository</code>)</li>
-</ul>
-<p><strong>Características</strong>:</p>
-<ul>
-<li>Orquestra operações complexas</li>
-<li>Define contratos (interfaces)</li>
-<li>Coordena domínio e infraestrutura</li>
-</ul>
-<p><strong>Exemplo</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># brazil/cvm/fundamental_stocks_data/application/use_cases/download_documents.py</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/brazil/cvm/fundamental_stocks_data/client.py</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DownloadDocumentsUseCaseCVM</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">download_repository</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__download_repository</span> <span class="o">=</span> <span class="n">download_repository</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">AsyncDownloadAdapterCVM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__repository</span><span class="p">:</span> <span class="n">AsyncDownloadAdapterCVM</span> <span class="o">=</span> <span class="n">repository</span>
+        <span class="c1"># ...</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">list_docs</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-        <span class="c1"># Validar inputs</span>
-        <span class="c1"># Gerar URLs</span>
-        <span class="c1"># Delegar download para repository</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__download_repository</span><span class="o">.</span><span class="n">download_docs</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">list_docs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_year</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="c1"># ... orquestração ...</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repository</span><span class="o">.</span><span class="n">download_docs</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="k">return</span> <span class="n">result</span>
 </code></pre></div>
-<h3 id="4-camada-de-infraestrutura-infra">4. Camada de Infraestrutura (<code>infra/</code>)<a class="headerlink" href="#4-camada-de-infraestrutura-infra" title="Link para esta seção">&para;</a></h3>
-<p><strong>Responsabilidade</strong>: Implementações concretas de adapters e serviços externos.</p>
-<p><strong>Componentes</strong>:</p>
-<ul>
-<li>Adapters de download (ex: <code>AsyncDownloadAdapterCVM</code>)</li>
-<li>Adapters de extração (ex: <code>ParquetExtractorAdapterCVM</code>)</li>
-<li>Clientes HTTP, manipuladores de arquivos, etc.</li>
-</ul>
-<p><strong>Características</strong>:</p>
-<ul>
-<li>Implementa interfaces definidas na camada de aplicação</li>
-<li>Lida com detalhes técnicos (HTTP, I/O, etc.)</li>
-<li>Isolada do domínio</li>
-</ul>
-<p><strong>Exemplo</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># brazil/cvm/fundamental_stocks_data/infra/adapters/async_download_adapter.py</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AsyncDownloadAdapterCVM</span><span class="p">(</span><span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">dict_zip_to_download</span><span class="p">):</span>
-        <span class="c1"># Implementação concreta usando httpx</span>
-        <span class="k">async</span> <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-            <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_download_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">]</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DownloadResultCVM</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/brazil/cvm/fundamental_stocks_data/http.py</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AsyncDownloadAdapterCVM</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
+        <span class="c1"># implementação concreta com httpx async, retry, integrity check</span>
+        <span class="o">...</span>
 </code></pre></div>
+<p>Note que <code>AsyncDownloadAdapterCVM</code> <strong>não</strong> herda de ABC — quando havia 1 implementação, o ABC só adicionava cerimônia. Tests fazem duck typing com classe stub simples (ver &ldquo;Testes&rdquo; mais abaixo).</p>
 <hr />
-<h2 id="padroes-de-design">Padrões de Design<a class="headerlink" href="#padroes-de-design" title="Link para esta seção">&para;</a></h2>
-<h3 id="repository-pattern">Repository Pattern<a class="headerlink" href="#repository-pattern" title="Link para esta seção">&para;</a></h3>
-<p><strong>Objetivo</strong>: Abstrair acesso a dados e serviços externos.</p>
-<p><strong>Implementação</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Interface (application/interfaces/)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">DownloadDocsCVMRepository</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
-        <span class="k">pass</span>
+<h2 id="padroes-de-design">Padrões de design<a class="headerlink" href="#padroes-de-design" title="Link para esta seção">&para;</a></h2>
+<h3 id="funcao-ou-classe-leve-por-operacao-em-clientpy">Função (ou classe leve) por operação em <code>client.py</code><a class="headerlink" href="#funcao-ou-classe-leve-por-operacao-em-clientpy" title="Link para esta seção">&para;</a></h3>
+<p>A maioria das operações é função de módulo ou classe com 1 método público, chamada diretamente pelo facade — sem <code>execute(...)</code> wrappers desnecessários e sem ABCs de implementação única. Classes existem apenas quando há <strong>estado real reutilizável</strong>: por exemplo, <code>ExtractHistoricalQuotesUseCaseB3</code> segura <code>zip_reader + parser + writer + processing_mode</code> entre chamadas e por isso permanece como classe.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Função simples em client.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_range_years</span><span class="p">(</span><span class="n">initial_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">last_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="o">...</span>
 
-<span class="c1"># Implementação concreta (infra/adapters/)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AsyncDownloadAdapterCVM</span><span class="p">(</span><span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
-        <span class="c1"># Implementação real</span>
-        <span class="k">pass</span>
+<span class="c1"># Classe com estado real</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractHistoricalQuotesUseCaseB3</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zip_reader</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">processing_mode</span><span class="p">):</span>
+        <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths_of_docs</span><span class="p">,</span> <span class="n">docs_to_extract</span><span class="p">):</span>
+        <span class="o">...</span>
 </code></pre></div>
-<p><strong>Benefícios</strong>:</p>
-<ul>
-<li>Fácil troca de implementações</li>
-<li>Testabilidade (mocking)</li>
-<li>Desacoplamento</li>
-</ul>
-<h3 id="use-case-pattern">Use Case Pattern<a class="headerlink" href="#use-case-pattern" title="Link para esta seção">&para;</a></h3>
-<p><strong>Objetivo</strong>: Encapsular lógica de negócio em casos de uso específicos.</p>
-<p><strong>Implementação</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DownloadDocumentsUseCaseCVM</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__repository</span> <span class="o">=</span> <span class="n">repository</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-        <span class="c1"># Orquestrar operação</span>
-        <span class="k">pass</span>
-</code></pre></div>
-<p><strong>Benefícios</strong>:</p>
-<ul>
-<li>Lógica de negócio centralizada</li>
-<li>Reutilizável</li>
-<li>Testável</li>
-</ul>
-<h3 id="result-pattern">Result Pattern<a class="headerlink" href="#result-pattern" title="Link para esta seção">&para;</a></h3>
-<p><strong>Objetivo</strong>: Encapsular resultados de operações com sucesso e erros.</p>
-<p><strong>Implementação</strong>:</p>
+<h3 id="adapters-concretos-sem-indirecao-por-abc">Adapters concretos, sem indireção por ABC<a class="headerlink" href="#adapters-concretos-sem-indirecao-por-abc" title="Link para esta seção">&para;</a></h3>
+<p><code>AsyncDownloadAdapterCVM</code>, <code>ParquetExtractorAdapterCVM</code>, etc. são importados e construídos diretamente. Quando uma segunda implementação aparecer (<code>WgetDownloadAdapter</code>, etc.), extrair um <code>Protocol</code> é trivial e custa 1 commit.</p>
+<h3 id="result-objects">Result objects<a class="headerlink" href="#result-objects" title="Link para esta seção">&para;</a></h3>
+<p>Operações que podem falhar parcialmente retornam um dataclass de resultado com sucessos e erros explícitos, em vez de <code>raise</code> em falhas parciais.</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DownloadResultCVM</span><span class="p">:</span>
     <span class="n">success_count_downloads</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">error_count_downloads</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">successful_downloads</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
-    <span class="n">failed_downloads</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">successful_downloads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">failed_downloads</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">elapsed_time</span><span class="p">:</span> <span class="nb">float</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">has_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_count_downloads</span> <span class="o">&gt;</span> <span class="mi">0</span>
 </code></pre></div>
-<p><strong>Benefícios</strong>:</p>
-<ul>
-<li>Tratamento de erros explícito</li>
-<li>Informações detalhadas</li>
-<li>Type-safe</li>
-</ul>
-<h3 id="value-object-pattern">Value Object Pattern<a class="headerlink" href="#value-object-pattern" title="Link para esta seção">&para;</a></h3>
-<p><strong>Objetivo</strong>: Objetos imutáveis que representam valores de domínio.</p>
-<p><strong>Implementação</strong>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">DictZipsToDownload</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dict_zips_to_download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_docs</span><span class="p">,</span> <span class="n">initial_year</span><span class="p">,</span> <span class="n">last_year</span><span class="p">):</span>
-        <span class="c1"># Gera estrutura imutável de URLs</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">doc</span><span class="p">:</span> <span class="p">[</span><span class="n">year1</span><span class="p">,</span> <span class="n">year2</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">list_docs</span><span class="p">}</span>
-</code></pre></div>
-<p><strong>Benefícios</strong>:</p>
-<ul>
-<li>Imutabilidade</li>
-<li>Validação encapsulada</li>
-<li>Reutilizável</li>
-</ul>
+<h3 id="value-objects">Value objects<a class="headerlink" href="#value-objects" title="Link para esta seção">&para;</a></h3>
+<p>Tipos imutáveis em <code>core.py</code> que encapsulam validação e construção (<code>DictZipsToDownloadCVM</code>, <code>DocsToExtractorB3</code>, etc.).</p>
+<h3 id="separacao-de-apresentacao">Separação de apresentação<a class="headerlink" href="#separacao-de-apresentacao" title="Link para esta seção">&para;</a></h3>
+<p>Saída de console/log de apresentação fica em módulos <code>*_formatter.py</code> dentro de <code>application/</code>. Código de <code>client.py</code> permanece I/O-free (exceto pelas chamadas a adapters concretos).</p>
+<h3 id="defesa-de-path-traversal-preservada-como-contrato">Defesa de path-traversal preservada como contrato<a class="headerlink" href="#defesa-de-path-traversal-preservada-como-contrato" title="Link para esta seção">&para;</a></h3>
+<p><code>VerifyPathsUseCasesCVM</code> (CVM, em <code>client.py</code>) e o helper <code>FileSystemServiceB3</code> (B3, em <code>filesystem.py</code>) levantam <code>SecurityError</code> antes de qualquer <code>mkdir</code>, bloqueando escrita em <code>/etc /sys /proc /dev /boot /root</code>. Esses helpers fazem parte do contrato observável de <code>FundamentalStocksDataCVM.download(destination_path=...)</code> e <code>HistoricalQuotesB3.extract(path_of_docs=...)</code> — devem permanecer bit-idênticos em qualquer refactor que mova o código.</p>
 <hr />
-<h2 id="fluxo-de-dados">Fluxo de Dados<a class="headerlink" href="#fluxo-de-dados" title="Link para esta seção">&para;</a></h2>
-<h3 id="download-de-documentos-cvm">Download de Documentos CVM<a class="headerlink" href="#download-de-documentos-cvm" title="Link para esta seção">&para;</a></h3>
+<h2 id="fluxo-de-dados">Fluxo de dados<a class="headerlink" href="#fluxo-de-dados" title="Link para esta seção">&para;</a></h2>
+<h3 id="download-de-documentos-cvm">Download de documentos CVM<a class="headerlink" href="#download-de-documentos-cvm" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>graph TD
-    A[FundamentalStocksDataCVM] --&gt;|1. Chamar download| B[DownloadDocumentsUseCaseCVM]
-    B --&gt;|2. Validar inputs| C[AvailableDocs/AvailableYears]
-    B --&gt;|3. Gerar URLs| D[DictZipsToDownload]
-    B --&gt;|4. Executar download| E[AsyncDownloadAdapterCVM]
-    E --&gt;|5. HTTP requests| F[Servidor CVM]
-    E --&gt;|6. Salvar arquivos| G[Sistema de Arquivos]
-    E --&gt;|7. Retornar resultado| B
-    B --&gt;|8. Retornar resultado| A
-    A --&gt;|9. Formatar saída| H[DownloadResultFormatter]
+    A[FundamentalStocksDataCVM] --&gt;|1. chamar download| B[DownloadDocumentsUseCaseCVM]
+    B --&gt;|2. validar inputs| C[AvailableDocsCVM / AvailableYearsCVM em core.py]
+    B --&gt;|3. gerar URLs| D[GenerateUrlsUseCaseCVM em client.py]
+    B --&gt;|4. verificar paths| E[VerifyPathsUseCasesCVM&lt;br/&gt;raise SecurityError em /etc, /sys, ...]
+    B --&gt;|5. executar download| F[AsyncDownloadAdapterCVM em http.py]
+    F --&gt;|6. HTTP requests| G[Servidor CVM]
+    F --&gt;|7. integrity check + salvar| H[Sistema de arquivos]
+    F --&gt;|8. retornar resultado| B
+    B --&gt;|9. retornar resultado| A
+    A --&gt;|10. formatar saída| I[DownloadResultFormatter]
 </code></pre></div>
-<h3 id="extracao-de-cotacoes-b3">Extração de Cotações B3<a class="headerlink" href="#extracao-de-cotacoes-b3" title="Link para esta seção">&para;</a></h3>
+<h3 id="extracao-de-cotacoes-b3">Extração de cotações B3<a class="headerlink" href="#extracao-de-cotacoes-b3" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>graph TD
-    A[HistoricalQuotesB3] --&gt;|1. Chamar extract| B[ExtractHistoricalQuotesUseCaseB3]
-    B --&gt;|2. Validar inputs| C[AvailableAssets/AvailableYears]
-    B --&gt;|3. Criar lista de docs| D[CreateDocsToExtractUseCaseB3]
-    D --&gt;|4. Retornar DocsToExtractorB3| B
-    B --&gt;|5. Executar extração| E[ExtractHistoricalQuotesUseCaseB3]
-    E --&gt;|6. Ler ZIPs| F[Sistema de Arquivos]
-    E --&gt;|7. Processar dados| G[Polars/Pandas]
-    E --&gt;|8. Escrever Parquet| H[Sistema de Arquivos]
-    E --&gt;|9. Retornar resultado| B
-    B --&gt;|10. Retornar resultado| A
-    A --&gt;|11. Formatar saída| I[ExtractionResultFormatter]
+    A[HistoricalQuotesB3] --&gt;|1. chamar extract| B[ExtractHistoricalQuotesUseCaseB3]
+    B --&gt;|2. validar inputs| C[validators em core.py]
+    B --&gt;|3. validar destino| D[validate_directory_path&lt;br/&gt;raise SecurityError em /etc, /sys, ...]
+    B --&gt;|4. listar arquivos| E[zip_reader.py]
+    E --&gt;|5. iterar ZIP entries| F[cotahist_parser.py]
+    F --&gt;|6. dataframes parciais| G[extraction_service/]
+    G --&gt;|7. orquestrar threadpool/flush| H[parquet_writer/]
+    H --&gt;|8. escrever Parquet| I[Sistema de arquivos]
+    B --&gt;|9. retornar resultado| A
+    A --&gt;|10. formatar saída| J[ExtractionResultFormatter]
 </code></pre></div>
 <hr />
-<h2 id="principios-solid">Princípios SOLID<a class="headerlink" href="#principios-solid" title="Link para esta seção">&para;</a></h2>
-<h3 id="single-responsibility-principle-srp">Single Responsibility Principle (SRP)<a class="headerlink" href="#single-responsibility-principle-srp" title="Link para esta seção">&para;</a></h3>
-<p>Cada classe tem uma única responsabilidade:</p>
+<h2 id="como-adicionar-uma-nova-fonte">Como adicionar uma nova fonte<a class="headerlink" href="#como-adicionar-uma-nova-fonte" title="Link para esta seção">&para;</a></h2>
+<p>Para uma nova fonte (ex.: SEC dos EUA), crie uma nova pasta-irmã com módulos nomeados por papel. Para fontes pequenas, o conjunto mínimo da CVM funciona bem; para fontes maiores, espelhe a granularidade de B3 e separe os tópicos antes que o <code>core.py</code> cresça demais.</p>
+<div class="highlight"><pre><span></span><code>src/globaldatafinance/usa/sec/fundamental_data/
+├── core.py        # entidades, value objects, validadores  (consolide se ≤ ~300 linhas)
+├── client.py      # use cases / orquestradores
+├── http.py        # adapter HTTP concreto
+├── extract.py     # adapter de extração concreto (se aplicável)
+└── errors.py      # exceções específicas
+</code></pre></div>
+<p>Em seguida:</p>
+<ol>
+<li><strong>Re-export interno</strong>: adicione <code>__init__.py</code> na pasta da fonte (ou deixe vazio se não houver consumidores internos).</li>
+<li><strong>Facade público</strong>: crie <code>src/globaldatafinance/application/sec_docs/fundamental_data.py</code> com uma classe <code>FundamentalDataSEC</code> que importa diretamente dos módulos planos:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">...usa.sec.fundamental_data</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DownloadAdapterSEC</span><span class="p">,</span>
+    <span class="n">DownloadDocumentsUseCaseSEC</span><span class="p">,</span>
+    <span class="c1"># ...</span>
+<span class="p">)</span>
+</code></pre></div>
+<ol start="3">
+<li><strong>API pública</strong>: re-exporte a nova classe em <code>src/globaldatafinance/__init__.py</code> e <code>src/globaldatafinance/application/__init__.py</code>. Trate como adição <strong>semver-relevante</strong>.</li>
+<li><strong>Testes</strong>: crie <code>tests/usa/sec/fundamental_data/</code> espelhando módulos por tópico (não por camada). Tests devem importar dos módulos planos.</li>
+<li><strong>Docs</strong>: atualize <code>AGENTS.md</code> (Repository Map / Architecture Map) e este arquivo. Adicione referência em <code>docs/reference/</code>.</li>
+</ol>
+<hr />
+<h2 id="testes">Testes<a class="headerlink" href="#testes" title="Link para esta seção">&para;</a></h2>
+<p>A árvore de testes espelha as fontes:</p>
+<div class="highlight"><pre><span></span><code>tests/
+├── brazil/
+│   ├── cvm/fundamental_stocks_data/
+│   │   ├── application/use_cases/    # tests por tópico (organizacional, não camada)
+│   │   ├── domain/                   # tests de value objects, validators (core.py)
+│   │   ├── infra/adapters/           # tests de adapters concretos (http.py, extract.py)
+│   │   ├── exceptions/               # tests das exceções (errors.py)
+│   │   └── integration/              # tests integration-marker
+│   └── b3_data/historical_quotes/    # layout plano: 21 test_*.py diretamente na pasta
+└── application/
+    ├── cvm_docs/   # tests do facade público
+    └── b3_docs/
+        └── result_formatters/
+</code></pre></div>
+<p>Os subdiretórios dentro da fonte CVM são <strong>organizacionais</strong> (agrupam por tópico para legibilidade), não arquiteturais — qualquer test importa dos módulos via <code>from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...</code>.</p>
+<h3 id="mocking-sem-abc">Mocking sem ABC<a class="headerlink" href="#mocking-sem-abc" title="Link para esta seção">&para;</a></h3>
+<p>Como adapters são concretos, tests substituem dependências via:</p>
 <ul>
-<li><code>FundamentalStocksDataCVM</code>: Interface pública</li>
-<li><code>DownloadDocumentsUseCaseCVM</code>: Orquestração de download</li>
-<li><code>AsyncDownloadAdapterCVM</code>: Implementação de download</li>
-<li><code>AvailableDocs</code>: Validação de documentos</li>
+<li><strong>Stub duck-typed</strong>: classe sem herança, expondo apenas os métodos usados.</li>
+<li><strong><code>monkeypatch.setattr</code></strong>: patcheia o método do adapter real.</li>
+<li><strong><code>httpx.MockTransport</code></strong>: para tests do adapter HTTP que precisam respostas determinísticas sem rede.</li>
 </ul>
-<h3 id="openclosed-principle-ocp">Open/Closed Principle (OCP)<a class="headerlink" href="#openclosed-principle-ocp" title="Link para esta seção">&para;</a></h3>
-<p>Aberto para extensão, fechado para modificação:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Fácil adicionar novo adapter sem modificar código existente</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">NewDownloadAdapter</span><span class="p">(</span><span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-        <span class="c1"># Nova implementação</span>
-        <span class="k">pass</span>
+<p>Exemplo (duck typing):</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MockRepository</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DownloadResultCVM</span><span class="p">(</span>
+            <span class="n">success_count_downloads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">error_count_downloads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">successful_downloads</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DFP_2023&#39;</span><span class="p">,</span> <span class="s1">&#39;ITR_2023&#39;</span><span class="p">],</span>
+            <span class="n">failed_downloads</span><span class="o">=</span><span class="p">{},</span>
+        <span class="p">)</span>
 
-<span class="c1"># Uso</span>
-<span class="n">new_adapter</span> <span class="o">=</span> <span class="n">NewDownloadAdapter</span><span class="p">()</span>
-<span class="n">use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="n">new_adapter</span><span class="p">)</span>
+<span class="n">use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="n">MockRepository</span><span class="p">())</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">use_case</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">destination_path</span><span class="o">=</span><span class="s1">&#39;/tmp/cvm&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">success_count_downloads</span> <span class="o">==</span> <span class="mi">2</span>
 </code></pre></div>
-<h3 id="liskov-substitution-principle-lsp">Liskov Substitution Principle (LSP)<a class="headerlink" href="#liskov-substitution-principle-lsp" title="Link para esta seção">&para;</a></h3>
-<p>Subtipos podem substituir tipos base:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Qualquer implementação de DownloadDocsCVMRepository pode ser usada</span>
-<span class="n">adapter</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span> <span class="o">=</span> <span class="n">AsyncDownloadAdapterCVM</span><span class="p">()</span>
-<span class="c1"># ou</span>
-<span class="n">adapter</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span> <span class="o">=</span> <span class="n">AsyncDownloadAdapterCVM</span><span class="p">()</span>
-<span class="c1"># ou</span>
-<span class="n">adapter</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span> <span class="o">=</span> <span class="n">AsyncDownloadAdapterCVM</span><span class="p">()</span>
-
-<span class="n">use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="interface-segregation-principle-isp">Interface Segregation Principle (ISP)<a class="headerlink" href="#interface-segregation-principle-isp" title="Link para esta seção">&para;</a></h3>
-<p>Interfaces específicas e focadas:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Interface específica para download</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">DownloadDocsCVMRepository</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-<span class="c1"># Interface específica para extração</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">FileExtractorRepository</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">extract_to_parquet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">pass</span>
-</code></pre></div>
-<h3 id="dependency-inversion-principle-dip">Dependency Inversion Principle (DIP)<a class="headerlink" href="#dependency-inversion-principle-dip" title="Link para esta seção">&para;</a></h3>
-<p>Depender de abstrações, não de implementações:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Use case depende de interface, não de implementação concreta</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">DownloadDocumentsUseCaseCVM</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repository</span><span class="p">:</span> <span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>  <span class="c1"># Abstração</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__repository</span> <span class="o">=</span> <span class="n">repository</span>
-</code></pre></div>
-<hr />
-<h2 id="extensibilidade">Extensibilidade<a class="headerlink" href="#extensibilidade" title="Link para esta seção">&para;</a></h2>
-<h3 id="adicionar-novo-adapter-de-download">Adicionar Novo Adapter de Download<a class="headerlink" href="#adicionar-novo-adapter-de-download" title="Link para esta seção">&para;</a></h3>
-<ol>
-<li>Criar classe que implementa <code>DownloadDocsCVMRepository</code>:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomAdapter</span><span class="p">(</span><span class="n">DownloadDocsCVMRepository</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">dict_zip_to_download</span><span class="p">):</span>
-        <span class="c1"># Sua implementação</span>
-        <span class="k">return</span> <span class="n">DownloadResultCVM</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-</code></pre></div>
-<ol start="2">
-<li>Usar no use case:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span class="n">adapter</span> <span class="o">=</span> <span class="n">MyCustomAdapter</span><span class="p">()</span>
-<span class="n">use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="adicionar-nova-fonte-de-dados">Adicionar Nova Fonte de Dados<a class="headerlink" href="#adicionar-nova-fonte-de-dados" title="Link para esta seção">&para;</a></h3>
-<ol>
-<li>Criar estrutura de domínio</li>
-<li>Criar use cases</li>
-<li>Criar adapters</li>
-<li>Criar interface pública em <code>application/</code></li>
-</ol>
+<p>Coverage é validado por capability: <code>tests/brazil/&lt;source&gt;/</code> + <code>tests/application/&lt;facade&gt;/</code> cobrem cada fonte como unidade isolada.</p>
 <hr />
 <h2 id="proximos-passos">Próximos Passos<a class="headerlink" href="#proximos-passos" title="Link para esta seção">&para;</a></h2>
 <ul>
-<li>📖 <strong><a href="../api-reference/">Referência da API</a></strong> - Documentação completa da API</li>
-<li>🤝 <strong><a href="../contributing/">Como Contribuir</a></strong> - Guia para contribuidores</li>
-<li>🧪 <strong><a href="../testing/">Testes</a></strong> - Como escrever e executar testes</li>
-<li>🔧 <strong><a href="../advanced-usage/">Uso Avançado</a></strong> - Customização e extensões</li>
+<li>📖 <strong><a href="../api-reference/">Referência da API</a></strong> — Documentação completa da API</li>
+<li>🤝 <strong><a href="../contributing/">Como Contribuir</a></strong> — Guia para contribuidores</li>
+<li>🧪 <strong><a href="../testing/">Testes</a></strong> — Como escrever e executar testes</li>
+<li>🔧 <strong><a href="../advanced-usage/">Uso Avançado</a></strong> — Customização e extensões</li>
 </ul>
 
 
@@ -1844,10 +1761,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.instant", "navigation.instant.progress", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="../../assets/javascripts/wide-toggle.js"></script>
       
