@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Design System Generator - Aggregates search results and applies reasoning.
 
 Generates comprehensive design system recommendations.
@@ -13,13 +12,14 @@ Usage:
     result = generate_design_system("SaaS dashboard", "My Project", persist=True, page="dashboard")
 """
 
+import contextlib
 import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from core import search, DATA_DIR
+from typing import Any
 
+from core import DATA_DIR, search
 
 # ============ CONFIGURATION ============
 REASONING_FILE = 'ui-reasoning.csv'
@@ -40,17 +40,17 @@ class DesignSystemGenerator:
     def __init__(self):
         self.reasoning_data = self._load_reasoning()
 
-    def _load_reasoning(self) -> List[Dict[str, Any]]:
+    def _load_reasoning(self) -> list[dict[str, Any]]:
         """Load reasoning rules from CSV."""
         filepath = DATA_DIR / REASONING_FILE
         if not filepath.exists():
             return []
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             return list(csv.DictReader(f))
 
     def _multi_domain_search(
-        self, query: str, style_priority: Optional[List] = None
-    ) -> Dict:
+        self, query: str, style_priority: list | None = None
+    ) -> dict:
         """Execute searches across multiple domains."""
         results = {}
         for domain, config in SEARCH_CONFIG.items():
@@ -67,7 +67,7 @@ class DesignSystemGenerator:
                 results[domain] = search(query, domain, config['max_results'])
         return results
 
-    def _find_reasoning_rule(self, category: str) -> Dict[str, Any]:
+    def _find_reasoning_rule(self, category: str) -> dict[str, Any]:
         """Find matching reasoning rule for a category."""
         category_lower = category.lower()
 
@@ -92,8 +92,8 @@ class DesignSystemGenerator:
         return {}
 
     def _apply_reasoning(
-        self, category: str, search_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, category: str, search_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Apply reasoning rules to search results."""
         rule = self._find_reasoning_rule(category)
 
@@ -111,10 +111,8 @@ class DesignSystemGenerator:
 
         # Parse decision rules JSON
         decision_rules = {}
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             decision_rules = json.loads(rule.get('Decision_Rules', '{}'))
-        except json.JSONDecodeError:
-            pass
 
         return {
             'pattern': rule.get('Recommended_Pattern', ''),
@@ -179,7 +177,7 @@ class DesignSystemGenerator:
         """Extract results list from search result dict."""
         return list(search_result.get('results', []))
 
-    def generate(self, query: str, project_name: Optional[str] = None) -> Dict:
+    def generate(self, query: str, project_name: str | None = None) -> dict:
         """Generate complete design system recommendation."""
         # Step 1: First search product to get category
         product_result = search(query, 'product', 1)
@@ -560,11 +558,11 @@ def format_markdown(design_system: dict) -> str:
 # ============ MAIN ENTRY POINT ============
 def generate_design_system(
     query: str,
-    project_name: Optional[str] = None,
+    project_name: str | None = None,
     output_format: str = 'ascii',
     persist: bool = False,
-    page: Optional[str] = None,
-    output_dir: Optional[str] = None,
+    page: str | None = None,
+    output_dir: str | None = None,
 ) -> str:
     """Main entry point for design system generation.
 
@@ -594,9 +592,9 @@ def generate_design_system(
 # ============ PERSISTENCE FUNCTIONS ============
 def persist_design_system(
     design_system: dict,
-    page: Optional[str] = None,
-    output_dir: Optional[str] = None,
-    page_query: Optional[str] = None,
+    page: str | None = None,
+    output_dir: str | None = None,
+    page_query: str | None = None,
 ) -> dict:
     """Persist design system to design-system/<project>/ folder.
 
@@ -957,7 +955,7 @@ def format_master_md(design_system: dict) -> str:
 
 
 def format_page_override_md(
-    design_system: dict, page_name: str, page_query: Optional[str] = None
+    design_system: dict, page_name: str, page_query: str | None = None
 ) -> str:
     """Format a page-specific override file with intelligent AI-generated content."""
     project = design_system.get('project_name', 'PROJECT')
@@ -1076,7 +1074,7 @@ def format_page_override_md(
 
 
 def _generate_intelligent_overrides(
-    page_name: str, page_query: Optional[str], design_system: dict
+    page_name: str, page_query: str | None, design_system: dict
 ) -> dict:
     """Generate intelligent overrides based on page type using layered search.
 
@@ -1103,12 +1101,12 @@ def _generate_intelligent_overrides(
     page_type = _detect_page_type(combined_context, style_results)
 
     # Build overrides from search results
-    layout: Dict[str, Any] = {}
-    spacing: Dict[str, Any] = {}
-    typography: Dict[str, Any] = {}
-    colors: Dict[str, Any] = {}
-    components: List[str] = []
-    unique_components: List[str] = []
+    layout: dict[str, Any] = {}
+    spacing: dict[str, Any] = {}
+    typography: dict[str, Any] = {}
+    colors: dict[str, Any] = {}
+    components: list[str] = []
+    unique_components: list[str] = []
     recommendations = []
 
     # Extract style-based overrides

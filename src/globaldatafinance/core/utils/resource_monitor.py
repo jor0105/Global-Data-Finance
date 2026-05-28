@@ -75,7 +75,7 @@ class ResourceMonitor:
                     cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, limits: Optional[ResourceLimits] = None):
+    def __init__(self, limits: ResourceLimits | None = None):
         """Initialize resource monitor.
 
         Args:
@@ -87,7 +87,7 @@ class ResourceMonitor:
 
         self.limits = limits or ResourceLimits()
         self._circuit_breaker_active = False
-        self._circuit_breaker_triggered_at: Optional[float] = None
+        self._circuit_breaker_triggered_at: float | None = None
         self._last_gc_time: float = 0
         self._gc_cooldown_seconds: int = 5  # Minimum 5s between forced GC
 
@@ -222,7 +222,7 @@ class ResourceMonitor:
         else:
             return ResourceState.HEALTHY
 
-    def get_safe_worker_count(self, max_workers: Optional[int] = None) -> int:
+    def get_safe_worker_count(self, max_workers: int | None = None) -> int:
         """Calculate safe number of workers based on available resources.
 
         Args:

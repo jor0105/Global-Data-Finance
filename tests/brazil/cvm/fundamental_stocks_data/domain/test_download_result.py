@@ -85,6 +85,28 @@ class TestDownloadResultProperties:
 
 
 @pytest.mark.unit
+class TestDownloadResultHasErrors:
+    def test_has_errors_is_false_on_empty_result(self):
+        result = DownloadResultCVM()
+        assert result.has_errors() is False
+
+    def test_has_errors_is_false_with_only_successes(self):
+        result = DownloadResultCVM(successful_downloads=['DFP_2020'])
+        assert result.has_errors() is False
+
+    def test_has_errors_is_true_with_failures(self):
+        result = DownloadResultCVM(failed_downloads={'DFP_2020': 'timeout'})
+        assert result.has_errors() is True
+
+    def test_has_errors_tracks_added_failures(self):
+        result = DownloadResultCVM()
+        assert result.has_errors() is False
+
+        result.add_error_downloads('ITR_2021', 'File not found')
+        assert result.has_errors() is True
+
+
+@pytest.mark.unit
 class TestDownloadResultAddSuccess:
     def test_add_success_to_empty_result(self):
         result = DownloadResultCVM()

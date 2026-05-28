@@ -1,4 +1,6 @@
-from typing import Any, Dict
+from typing import Any, cast
+
+from ..types import ExtractionResultB3
 
 
 class HistoricalQuotesResultFormatter:
@@ -14,7 +16,7 @@ class HistoricalQuotesResultFormatter:
     """
 
     @staticmethod
-    def generate_message(result: Dict[str, Any]) -> str:
+    def generate_message(result: dict[str, Any]) -> str:
         """Generate a user-friendly message from extraction results.
 
         Args:
@@ -43,7 +45,7 @@ class HistoricalQuotesResultFormatter:
             )
 
     @staticmethod
-    def determine_success(result: Dict[str, Any]) -> bool:
+    def determine_success(result: dict[str, Any]) -> bool:
         """Determine if extraction was successful based on error count.
 
         Args:
@@ -56,17 +58,19 @@ class HistoricalQuotesResultFormatter:
         return result_bool
 
     @staticmethod
-    def enrich_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    def enrich_result(result: dict[str, Any]) -> ExtractionResultB3:
         """Enrich extraction result with success flag and message.
 
         This method adds presentation-layer information to the result
-        dictionary returned by the extraction service.
+        dictionary returned by the extraction service and narrows it to the
+        public :class:`ExtractionResultB3` contract.
 
         Args:
             result: Raw extraction result from service layer
 
         Returns:
-            Enriched result with 'success' and 'message' fields
+            Enriched result with 'success' and 'message' fields, typed as the
+            public ``ExtractionResultB3`` contract.
         """
         result['success'] = HistoricalQuotesResultFormatter.determine_success(
             result
@@ -74,4 +78,4 @@ class HistoricalQuotesResultFormatter:
         result['message'] = HistoricalQuotesResultFormatter.generate_message(
             result
         )
-        return result
+        return cast(ExtractionResultB3, result)

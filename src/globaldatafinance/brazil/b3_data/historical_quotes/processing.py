@@ -1,10 +1,10 @@
 """Processing mode and extraction configuration validation."""
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import PurePosixPath, PureWindowsPath
-from typing import Mapping
 
 from .errors import InvalidOutputFilename, InvalidProcessingMode
 
@@ -70,9 +70,9 @@ class ExtractionConfigServiceB3:
         try:
             valid_mode: str = ProcessingModeEnumB3(mode.lower()).value
             return valid_mode
-        except ValueError:
+        except ValueError as exc:
             valid_modes = [m.value for m in ProcessingModeEnumB3]
-            raise InvalidProcessingMode(mode, valid_modes)
+            raise InvalidProcessingMode(mode, valid_modes) from exc
 
     @staticmethod
     def validate_output_filename(filename: str) -> str:

@@ -33,14 +33,14 @@ import tempfile
 import zipfile
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 def _build_cotahist_line(
     data_pregao: str, ticker: str, tpmerc: str, isin: str
 ) -> str:
     """Build a single 245-byte COTAHIST type-01 record."""
-    parts: List[str] = []
+    parts: list[str] = []
 
     def w(text: str, length: int) -> None:
         s = text.ljust(length)[:length]
@@ -133,7 +133,7 @@ def _canonical_content_hash(parquet_path: Path) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _capture_schema(parquet_path: Path) -> Dict[str, str]:
+def _capture_schema(parquet_path: Path) -> dict[str, str]:
     """Capture column name → Arrow dtype mapping."""
     import pyarrow.parquet as pq
 
@@ -141,7 +141,7 @@ def _capture_schema(parquet_path: Path) -> Dict[str, str]:
     return {field.name: str(field.type) for field in schema}
 
 
-def run() -> Dict[str, Any]:
+def run() -> dict[str, Any]:
     from globaldatafinance import HistoricalQuotesB3
 
     tmpdir = Path(tempfile.mkdtemp(prefix='smoke_b3_'))

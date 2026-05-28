@@ -18,6 +18,7 @@ Usage:
     python seo_checker.py <project_path>
 """
 
+import contextlib
 import json
 import re
 import sys
@@ -25,10 +26,8 @@ from datetime import datetime
 from pathlib import Path
 
 # Fix Windows console encoding
-try:
+with contextlib.suppress(AttributeError, OSError):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore
-except (AttributeError, OSError):
-    pass
 
 
 # Directories to skip
@@ -110,10 +109,9 @@ def is_authenticated_shell_file(file_path: Path, project_path: Path) -> bool:
         return True
     if path_key.startswith('src/app/providers/'):
         return True
-    if path_key.startswith('src/features/') and '/components/' in path_key:
-        return True
-
-    return False
+    return bool(
+        path_key.startswith('src/features/') and '/components/' in path_key
+    )
 
 
 def is_frontend_project(project_path: Path) -> bool:
@@ -179,10 +177,7 @@ def is_page_file(file_path: Path, project_path: Path) -> bool:
         return True
 
     # HTML files are usually pages
-    if file_path.suffix.lower() in ['.html', '.htm']:
-        return True
-
-    return False
+    return file_path.suffix.lower() in ['.html', '.htm']
 
 
 def find_pages(project_path: Path, skip_check: bool = False) -> list:

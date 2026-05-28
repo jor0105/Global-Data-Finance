@@ -28,6 +28,9 @@ class _LineParser(Protocol):
 class ZipProcessorB3:
     """Process one COTAHIST ZIP into one temporary Parquet file."""
 
+    SEQUENTIAL_FLUSH_CHECK_INTERVAL = 10_000
+    SEQUENTIAL_RESOURCE_CHECK_INTERVAL = 5_000
+
     def __init__(
         self,
         zip_reader: _LineReader,
@@ -49,8 +52,10 @@ class ZipProcessorB3:
     def close(self) -> None:
         """Shutdown the parser worker pool if parallel parsing is enabled."""
         if self.executor_pool is not None:
+            executor_pool = self.executor_pool
+            self.executor_pool = None
             with contextlib.suppress(Exception):
-                self.executor_pool.shutdown(wait=True, cancel_futures=False)
+                executor_pool.shutdown(wait=True, cancel_futures=False)
 
     async def process(
         self,
@@ -207,18 +212,19 @@ class ZipProcessorB3:
             if parsed:
                 buffer.append(parsed)
 
-            (
-                records_written,
-                is_first_write_to_temp,
-            ) = await self.buffered_writer.flush_if_needed(
-                buffer,
-                temp_output,
-                is_first_write=is_first_write_to_temp,
-            )
-            total_written += records_written
-
             line_count += 1
-            if line_count % 5000 == 0:
+            if line_count % self.SEQUENTIAL_FLUSH_CHECK_INTERVAL == 0:
+                (
+                    records_written,
+                    is_first_write_to_temp,
+                ) = await self.buffered_writer.flush_if_needed(
+                    buffer,
+                    temp_output,
+                    is_first_write=is_first_write_to_temp,
+                )
+                total_written += records_written
+
+            if line_count % self.SEQUENTIAL_RESOURCE_CHECK_INTERVAL == 0:
                 await self.resource_policy.check_and_wait_for_resources()
 
         return total_written, is_first_write_to_temp

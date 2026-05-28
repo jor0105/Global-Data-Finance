@@ -7,7 +7,6 @@ import argparse
 import json
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / '.agents' / 'workflows'
 GITHUB_PROMPTS_DIR = REPO_ROOT / '.github' / 'prompts'

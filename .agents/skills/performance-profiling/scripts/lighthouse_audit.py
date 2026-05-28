@@ -8,10 +8,10 @@ Output: JSON with performance scores
 Note: Requires lighthouse CLI (npm install -g lighthouse)
 """
 
-import subprocess  # nosec
 import json
-import sys
 import os
+import subprocess  # nosec
+import sys
 import tempfile
 
 
@@ -37,7 +37,7 @@ def run_lighthouse(url: str) -> dict:
         )  # nosec
 
         if os.path.exists(output_path):
-            with open(output_path, 'r', encoding='utf-8') as f:
+            with open(output_path, encoding='utf-8') as f:
                 report = json.load(f)
             os.unlink(output_path)
 

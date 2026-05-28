@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """UI/UX Search - BM25 search engine for UI/UX style guides.
 
 Usage: python search.py "<query>" [--domain <domain>] [--stack <stack>] [--max-results 3]
@@ -15,9 +14,10 @@ Persistence (Master + Overrides pattern):
 """
 
 import argparse
+
 from core import (
-    CSV_CONFIG,
     AVAILABLE_STACKS,
+    CSV_CONFIG,
     MAX_RESULTS,
     search,
     search_stack,

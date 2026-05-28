@@ -9,24 +9,24 @@ Usage:
     python .agents/skills/server-management/scripts/session_manager.py info [path]
 """
 
-import os
-import json
 import argparse
+import json
+import os
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 
 def get_project_root(path: str) -> Path:
     return Path(path).resolve()
 
 
-def analyze_package_json(root: Path) -> Dict[str, Any]:
+def analyze_package_json(root: Path) -> dict[str, Any]:
     pkg_file = root / 'package.json'
     if not pkg_file.exists():
         return {'type': 'unknown', 'dependencies': {}}
 
     try:
-        with open(pkg_file, 'r', encoding='utf-8') as f:
+        with open(pkg_file, encoding='utf-8') as f:
             data = json.load(f)
 
         deps = data.get('dependencies', {})
@@ -64,7 +64,7 @@ def analyze_package_json(root: Path) -> Dict[str, Any]:
         return {'error': str(e)}
 
 
-def count_files(root: Path) -> Dict[str, int]:
+def count_files(root: Path) -> dict[str, int]:
     stats = {'created': 0, 'modified': 0, 'total': 0}
     # Simple count for now, comprehensive tracking would require git diff or extensive history
     exclude = {
@@ -78,14 +78,14 @@ def count_files(root: Path) -> Dict[str, int]:
         '__pycache__',
     }
 
-    for root_dir, dirs, files in os.walk(root):
+    for _root_dir, dirs, files in os.walk(root):
         dirs[:] = [d for d in dirs if d not in exclude]
         stats['total'] += len(files)
 
     return stats
 
 
-def detect_features(root: Path) -> List[str]:
+def detect_features(root: Path) -> list[str]:
     # Heuristic: look at folder names in src/
     features = []
     src = root / 'src'

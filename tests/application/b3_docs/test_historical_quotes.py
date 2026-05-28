@@ -1,4 +1,6 @@
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from globaldatafinance.application.b3_docs import HistoricalQuotesB3
 
@@ -39,7 +41,7 @@ class TestHistoricalQuotes:
         self, mock_extract_use_case, mock_create_docs_use_case
     ):
         mock_docs = Mock()
-        mock_docs.set_documents_to_download = {'file1.zip', 'file2.zip'}
+        mock_docs.documents_to_download = {'file1.zip', 'file2.zip'}
         mock_create_docs_use_case.return_value.execute.return_value = mock_docs
 
         mock_result = {
@@ -52,7 +54,7 @@ class TestHistoricalQuotes:
             'output_file': '/output/test.parquet',
         }
         mock_extract_instance = Mock()
-        mock_extract_instance.execute_sync.return_value = mock_result
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
         mock_extract_use_case.return_value = mock_extract_instance
 
         b3 = HistoricalQuotesB3()
@@ -80,7 +82,7 @@ class TestHistoricalQuotes:
         self, mock_extract_use_case, mock_create_docs_use_case
     ):
         mock_docs = Mock()
-        mock_docs.set_documents_to_download = {'file1.zip'}
+        mock_docs.documents_to_download = {'file1.zip'}
         mock_create_docs_use_case.return_value.execute.return_value = mock_docs
 
         mock_result = {
@@ -93,7 +95,7 @@ class TestHistoricalQuotes:
             'output_file': '/data/cotahist/cotahist_extracted.parquet',
         }
         mock_extract_instance = Mock()
-        mock_extract_instance.execute_sync.return_value = mock_result
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
         mock_extract_use_case.return_value = mock_extract_instance
 
         b3 = HistoricalQuotesB3()
@@ -116,7 +118,7 @@ class TestHistoricalQuotes:
         self, mock_extract_use_case, mock_create_docs_use_case
     ):
         mock_docs = Mock()
-        mock_docs.set_documents_to_download = {'file1.zip', 'file2.zip'}
+        mock_docs.documents_to_download = {'file1.zip', 'file2.zip'}
         mock_create_docs_use_case.return_value.execute.return_value = mock_docs
 
         mock_result = {
@@ -130,7 +132,7 @@ class TestHistoricalQuotes:
             'errors': ['Error processing file2.zip'],
         }
         mock_extract_instance = Mock()
-        mock_extract_instance.execute_sync.return_value = mock_result
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
         mock_extract_use_case.return_value = mock_extract_instance
 
         b3 = HistoricalQuotesB3()
@@ -143,3 +145,117 @@ class TestHistoricalQuotes:
         assert result['success'] is False
         assert result['error_count'] == 1
         assert 'errors' in result
+
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3'
+    )
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3'
+    )
+    def test_extract_verbose_false_suppresses_print(
+        self, mock_extract_use_case, mock_create_docs_use_case
+    ):
+        mock_docs = Mock()
+        mock_docs.documents_to_download = {'file1.zip'}
+        mock_create_docs_use_case.return_value.execute.return_value = mock_docs
+
+        mock_result = {
+            'total_files': 1,
+            'success_count': 1,
+            'error_count': 0,
+            'total_records': 500,
+            'output_file': '/output/test.parquet',
+        }
+        mock_extract_instance = Mock()
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
+        mock_extract_use_case.return_value = mock_extract_instance
+
+        b3 = HistoricalQuotesB3()
+        b3._result_formatter = Mock()
+
+        result = b3.extract(
+            path_of_docs='/data/cotahist',
+            assets_list=['ações'],
+            initial_year=2023,
+            verbose=False,
+        )
+
+        assert result['success'] is True
+        b3._result_formatter.print_result.assert_not_called()
+
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3'
+    )
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3'
+    )
+    def test_extract_verbose_true_prints_by_default(
+        self, mock_extract_use_case, mock_create_docs_use_case
+    ):
+        mock_docs = Mock()
+        mock_docs.documents_to_download = {'file1.zip'}
+        mock_create_docs_use_case.return_value.execute.return_value = mock_docs
+
+        mock_result = {
+            'total_files': 1,
+            'success_count': 1,
+            'error_count': 0,
+            'total_records': 500,
+            'output_file': '/output/test.parquet',
+        }
+        mock_extract_instance = Mock()
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
+        mock_extract_use_case.return_value = mock_extract_instance
+
+        b3 = HistoricalQuotesB3()
+        b3._result_formatter = Mock()
+
+        b3.extract(
+            path_of_docs='/data/cotahist',
+            assets_list=['ações'],
+            initial_year=2023,
+        )
+
+        b3._result_formatter.print_result.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.CreateDocsToExtractUseCaseB3'
+    )
+    @patch(
+        'globaldatafinance.application.b3_docs.historical_quotes.ExtractHistoricalQuotesUseCaseB3'
+    )
+    async def test_extract_async_returns_result(
+        self, mock_extract_use_case, mock_create_docs_use_case
+    ):
+        mock_docs = Mock()
+        mock_docs.documents_to_download = {'file1.zip', 'file2.zip'}
+        mock_create_docs_use_case.return_value.execute.return_value = mock_docs
+
+        mock_result = {
+            'total_files': 2,
+            'success_count': 2,
+            'error_count': 0,
+            'total_records': 1000,
+            'output_file': '/output/test.parquet',
+        }
+        mock_extract_instance = Mock()
+        mock_extract_instance.execute = AsyncMock(return_value=mock_result)
+        mock_extract_use_case.return_value = mock_extract_instance
+
+        b3 = HistoricalQuotesB3()
+
+        result = await b3.extract_async(
+            path_of_docs='/data/cotahist',
+            destination_path='/output',
+            assets_list=['ações', 'etf'],
+            initial_year=2020,
+            last_year=2023,
+            verbose=False,
+        )
+
+        assert result['success'] is True
+        assert result['total_records'] == 1000
+        assert result['assets'] == ['ações', 'etf']
+        assert 'elapsed_time' in result
+        mock_extract_instance.execute.assert_awaited_once()

@@ -15,8 +15,8 @@ sys.path.append(
 from runtime_support import (
     list_findings,
     load_or_migrate_artifact,
-    resolve_session_dir,
     render_template,
+    resolve_session_dir,
 )
 
 

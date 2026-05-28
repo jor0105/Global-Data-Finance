@@ -15,15 +15,15 @@ class TestAvailableYears:
     def available_years(self):
         return AvailableYearsCVM()
 
-    def test_get_atual_year_returns_current_year(self, available_years):
-        atual_year = available_years.get_current_year()
+    def test_get_current_year_returns_current_year(self, available_years):
+        current_year = available_years.get_current_year()
         expected_year = date.today().year
 
-        assert atual_year == expected_year
+        assert current_year == expected_year
 
-    def test_get_atual_year_returns_integer(self, available_years):
-        atual_year = available_years.get_current_year()
-        assert isinstance(atual_year, int)
+    def test_get_current_year_returns_integer(self, available_years):
+        current_year = available_years.get_current_year()
+        assert isinstance(current_year, int)
 
     def test_get_minimal_geral_year_returns_2010(self, available_years):
         minimal_year = available_years.get_minimal_general_year()

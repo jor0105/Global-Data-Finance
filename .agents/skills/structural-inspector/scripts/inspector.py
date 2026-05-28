@@ -3,12 +3,13 @@
 Implementation of the 'structural-inspector' skill for the Antigravity Agent.
 """
 
-import csv
-import os
-import json
 import argparse
-from typing import Dict, Any
+import csv
+import json
+import os
 from pathlib import Path
+from typing import Any
+
 import polars
 
 
@@ -19,7 +20,7 @@ class StructuralInspector:
     Standard: Google Antigravity Skill Protocol (2026)
     """
 
-    def inspect(self, file_path: str) -> Dict[str, Any]:
+    def inspect(self, file_path: str) -> dict[str, Any]:
         path = Path(file_path)
         if not path.exists():
             return {'error': f'File not found: {file_path}'}
@@ -52,7 +53,7 @@ class StructuralInspector:
         except Exception as e:
             return {'error': str(e), 'meta': meta}
 
-    def _inspect_csv(self, path: Path, meta: Dict[str, Any]) -> Dict[str, Any]:
+    def _inspect_csv(self, path: Path, meta: dict[str, Any]) -> dict[str, Any]:
         try:
             with open(path, 'rb') as f:
                 # Sniffing maior para garantir detecção de delimitadores em arquivos largos
@@ -97,16 +98,16 @@ class StructuralInspector:
 
         except Exception as e:
             return {
-                'error': f'CSV Hunter-Inspection failed: {str(e)}',
+                'error': f'CSV Hunter-Inspection failed: {e!s}',
                 'meta': meta,
             }
 
     def _build_report(
         self,
         lz: polars.LazyFrame,
-        meta: Dict[str, Any],
+        meta: dict[str, Any],
         is_sample: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         schema = lz.collect_schema()
 
         # Sampling inteligente: Head + Tail para detectar se o final do arquivo muda de padrão
@@ -168,14 +169,14 @@ class StructuralInspector:
         }
 
     def _inspect_parquet(
-        self, path: Path, meta: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, path: Path, meta: dict[str, Any]
+    ) -> dict[str, Any]:
         lz = polars.scan_parquet(path)
         return self._build_report(lz, meta)
 
     def _inspect_excel(
-        self, path: Path, meta: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, path: Path, meta: dict[str, Any]
+    ) -> dict[str, Any]:
         # Excel is not fully lazy in Polars yet, `read_excel` is eager but optimized with Calamine.
         # We will read with limit just to inspector
         # Note: Polars uses `read_excel` which loads a sheet.
@@ -189,7 +190,7 @@ class StructuralInspector:
             return self._build_report(lz, meta, is_sample=True)
         except Exception as e:
             return {
-                'error': f'Excel inspection failed: {str(e)}',
+                'error': f'Excel inspection failed: {e!s}',
                 'meta': meta,
             }
 

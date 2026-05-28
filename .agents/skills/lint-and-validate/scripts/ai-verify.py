@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 import argparse
-import re
+import contextlib
 import fnmatch
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -14,7 +15,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SCRIPT_ROOT = Path(__file__).resolve().parent
@@ -225,9 +225,9 @@ def resolve_effective_profile(
             detected_profile,
             '; '.join(
                 dict.fromkeys(
-                    matched_reasons
-                    + [
-                        f"Perfil pedido '{requested_profile}' foi elevado para '{detected_profile}'."
+                    [
+                        *matched_reasons,
+                        f"Perfil pedido '{requested_profile}' foi elevado para '{detected_profile}'.",
                     ]
                 ),
             ),
@@ -521,12 +521,10 @@ def parse_precommit_output(output: str) -> list[PrecommitHookResult]:
                         1
                     ].strip()
                 elif line.startswith('- exit code: '):
-                    try:
+                    with contextlib.suppress(ValueError):
                         current_hook['exit_code'] = int(
                             line.split('- exit code: ')[1].strip()
                         )
-                    except ValueError:
-                        pass
                 elif 'files were modified by this hook' in line:
                     current_hook['modified_files'] = True
                     current_hook['classification'] = 'code'
@@ -639,7 +637,7 @@ def resolve_scope(profile: str, changed_files: list[str]) -> list[str]:
     if profile in ('high-risk', 'security-touch', 'ui-flow'):
         return ['--all-files']
     if changed_files:
-        return ['--files'] + changed_files[:100]
+        return ['--files', *changed_files[:100]]
     return ['--all-files']
 
 
@@ -673,7 +671,7 @@ def run_precommit_mode(
         return list_hooks_from_config_as_dry_run()
 
     scope = resolve_scope(effective_profile, changed_files)
-    cmd = ['pre-commit', 'run'] + scope
+    cmd = ['pre-commit', 'run', *scope]
 
     started = time.perf_counter()
     try:
@@ -746,7 +744,7 @@ def summarize_gates(
 ) -> str:
     if dry_run:
         return f'Dry run: {len(gates)} gates selecionados para o perfil {effective_profile}.'
-    counts = {status: 0 for status in GATE_STATUSES}
+    counts = dict.fromkeys(GATE_STATUSES, 0)
     for gate in gates:
         counts[gate['status']] += 1
     parts = []
@@ -935,15 +933,17 @@ def main() -> int:
         ),
     }
 
-    if any(
-        gate['status'] in {'failed', 'external_failure'}
-        for gate in gate_results
+    if (
+        any(
+            gate['status'] in {'failed', 'external_failure'}
+            for gate in gate_results
+        )
+        and not result['escalations']['reviewRequired']
     ):
-        if not result['escalations']['reviewRequired']:
-            result['escalations']['reviewRequired'] = True
-            result['escalations']['reasons'].append(
-                'Falha de gate exige revisao ou remediacao antes do encerramento.',
-            )
+        result['escalations']['reviewRequired'] = True
+        result['escalations']['reasons'].append(
+            'Falha de gate exige revisao ou remediacao antes do encerramento.',
+        )
 
     result['escalations']['reasons'] = list(
         dict.fromkeys(result['escalations']['reasons'])

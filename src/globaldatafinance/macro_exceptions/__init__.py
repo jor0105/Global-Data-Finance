@@ -12,14 +12,14 @@ from .macro_exceptions import (
 )
 
 __all__ = [
+    'CorruptedZipError',
+    'DiskFullError',
     'EmptyDirectoryError',
+    'ExtractionError',
     'InvalidDestinationPathError',
+    'NetworkError',
     'PathIsNotDirectoryError',
     'PathPermissionError',
-    'NetworkError',
-    'TimeoutError',
-    'DiskFullError',
-    'ExtractionError',
-    'CorruptedZipError',
     'SecurityError',
+    'TimeoutError',
 ]

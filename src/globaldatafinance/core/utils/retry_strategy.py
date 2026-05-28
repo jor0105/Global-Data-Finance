@@ -1,4 +1,5 @@
 import random
+from typing import ClassVar
 
 from ...macro_exceptions import (
     DiskFullError,
@@ -16,7 +17,7 @@ class RetryStrategy:
     hierarchy (macro_exceptions) to avoid dependencies on external libraries.
     """
 
-    _RETRYABLE_KEYWORDS = [
+    _RETRYABLE_KEYWORDS: ClassVar[list[str]] = [
         'timeout',
         'connection refused',
         'connection reset',

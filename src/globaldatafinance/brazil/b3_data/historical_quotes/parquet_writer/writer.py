@@ -142,7 +142,7 @@ class ParquetWriterB3:
                     extra={'output_path': str(output_path)},
                     exc_info=True,
                 )
-                raise DiskFullError(str(output_path))
+                raise DiskFullError(str(output_path)) from exc
 
             logger.error(
                 'Failed to write Parquet file',
@@ -152,7 +152,7 @@ class ParquetWriterB3:
                 },
                 exc_info=True,
             )
-            raise IOError(f'Failed to write Parquet file: {exc}')
+            raise OSError(f'Failed to write Parquet file: {exc}') from exc
         except MemoryError:
             raise
         except Exception as exc:

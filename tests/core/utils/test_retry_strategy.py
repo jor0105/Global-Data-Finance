@@ -187,7 +187,7 @@ class TestRetryStrategy:
 
         deterministic = [1.0, 2.0, 4.0, 8.0, 16.0]
         backoffs = [strategy.calculate_backoff(i) for i in range(5)]
-        for backoff, det in zip(backoffs, deterministic):
+        for backoff, det in zip(backoffs, deterministic, strict=False):
             assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_respects_max_backoff(self):
@@ -215,7 +215,7 @@ class TestRetryStrategy:
 
         deterministic = [2.0, 6.0, 18.0, 54.0]
         backoffs = [strategy.calculate_backoff(i) for i in range(4)]
-        for backoff, det in zip(backoffs, deterministic):
+        for backoff, det in zip(backoffs, deterministic, strict=False):
             assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_with_fractional_multiplier(self):
@@ -246,7 +246,7 @@ class TestRetryStrategy:
 
         deterministic = [0.1, 0.2, 0.4, 0.8]
         backoffs = [strategy.calculate_backoff(i) for i in range(4)]
-        for backoff, det in zip(backoffs, deterministic):
+        for backoff, det in zip(backoffs, deterministic, strict=False):
             assert det * 0.5 <= backoff <= det * 1.5
 
     def test_calculate_backoff_reaches_max_gradually(self):

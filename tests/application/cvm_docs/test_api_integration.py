@@ -4,6 +4,7 @@ import pytest
 
 from globaldatafinance.application.cvm_docs import FundamentalStocksDataCVM
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    AvailableYearsInfoCVM,
     DownloadResultCVM,
 )
 
@@ -66,6 +67,6 @@ class TestFundamentalStocksDataCVM:
         cvm = FundamentalStocksDataCVM()
         years = cvm.get_available_years()
 
-        assert isinstance(years, dict)
-        assert 'Current Year' in years
-        assert isinstance(years['Current Year'], int)
+        assert isinstance(years, AvailableYearsInfoCVM)
+        assert hasattr(years, 'current_year')
+        assert isinstance(years.current_year, int)

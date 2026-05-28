@@ -1,6 +1,7 @@
 import contextlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .....core import get_logger
 from .constants import (
@@ -136,7 +137,7 @@ async def append_with_streaming(
             extra={'output_path': str(output_path)},
             exc_info=True,
         )
-        raise IOError(f'Streaming append failed: {exc}')
+        raise OSError(f'Streaming append failed: {exc}') from exc
     finally:
         if writer is not None:
             with contextlib.suppress(Exception):
@@ -190,7 +191,7 @@ async def merge_parquet_files_streaming(
             extra={'output_path': str(output_path)},
             exc_info=True,
         )
-        raise IOError(f'Streaming merge failed: {exc}')
+        raise OSError(f'Streaming merge failed: {exc}') from exc
     finally:
         if writer is not None:
             with contextlib.suppress(Exception):

@@ -7,36 +7,33 @@ are migrated only by import path per Phase 1 plan.
 """
 
 import asyncio
-import os
+import inspect
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, cast
 
-from ....macro_exceptions import (
-    InvalidDestinationPathError,
-    PathIsNotDirectoryError,
-    PathPermissionError,
-)
+from ....macro_exceptions import InvalidDestinationPathError
 from .assets import AvailableAssetsServiceB3
+from .cotahist_parser import CotahistParserB3
 from .errors import InvalidOutputFilename
+from .extraction_service import ExtractionServiceB3
 from .filesystem import FileSystemServiceB3
 from .models import DocsToExtractorB3
+from .parquet_writer import ParquetWriterB3
 from .processing import ExtractionConfigServiceB3, ProcessingModeEnumB3
 from .years import YearValidationServiceB3
-from .cotahist_parser import CotahistParserB3
-from .extraction_service import ExtractionServiceB3
-from .parquet_writer import ParquetWriterB3
 from .zip_reader import ZipFileReaderB3
 
 
 class GetAvailableAssetsUseCaseB3:
     @staticmethod
-    def execute() -> List[str]:
+    def execute() -> list[str]:
         """Get the list of available assets for historical quotes data."""
         return AvailableAssetsServiceB3.get_available_assets()
 
 
 class GetAvailableYearsUseCaseB3:
-    def get_atual_year(self) -> int:
+    def get_current_year(self) -> int:
         """Get the current available year for historical quotes data."""
         return YearValidationServiceB3.get_current_year()
 
@@ -59,7 +56,7 @@ class CreateRangeYearsUseCaseB3:
 
 class CreateSetAssetsUseCaseB3:
     @staticmethod
-    def execute(assets_list: List[str]) -> Set[str]:
+    def execute(assets_list: list[str]) -> set[str]:
         """Create a set of available assets using AvailableAssetsServiceB3."""
         return AvailableAssetsServiceB3.validate_and_create_asset_set(
             assets_list
@@ -70,7 +67,7 @@ class CreateSetToDownloadUseCaseB3:
     """Use case for finding ZIP files in a directory based on year range."""
 
     @staticmethod
-    def execute(range_years: range, path: str) -> Set[str]:
+    def execute(range_years: range, path: str) -> set[str]:
         """Find all document files in the given path for the year range."""
         if not isinstance(path, str):
             raise TypeError(
@@ -90,45 +87,14 @@ class CreateSetToDownloadUseCaseB3:
 class VerifyDestinationPathsUseCaseB3:
     @staticmethod
     def execute(destination_path: str) -> Path:
-        if not isinstance(destination_path, str):
-            raise TypeError(
-                f'Destination path must be a string, got {type(destination_path).__name__}'
-            )
-
-        if not destination_path or destination_path.isspace():
-            raise InvalidDestinationPathError(
-                'path cannot be empty or whitespace'
-            )
-
-        normalized_path = Path(destination_path).expanduser().resolve()
-
-        FileSystemServiceB3._validate_path_safety(normalized_path)
-
-        if normalized_path.exists():
-            if not normalized_path.is_dir():
-                raise PathIsNotDirectoryError(str(normalized_path))
-
-            if not os.access(str(normalized_path), os.W_OK):
-                raise PathPermissionError(str(normalized_path))
-
-        else:
-            try:
-                normalized_path.mkdir(parents=True, exist_ok=True)
-            except PermissionError as e:
-                raise PathPermissionError(str(normalized_path)) from e
-            except OSError as e:
-                raise OSError(
-                    f'Failed to create directory {normalized_path}: {e}'
-                ) from e
-
-        return normalized_path
+        return FileSystemServiceB3().prepare_destination_path(destination_path)
 
 
 class ValidateExtractionConfigUseCaseB3:
     """Use case for validating extraction configuration."""
 
     @staticmethod
-    def execute(processing_mode: str, output_filename: str) -> Tuple[str, str]:
+    def execute(processing_mode: str, output_filename: str) -> tuple[str, str]:
         """Validate processing mode and output filename."""
         valid_mode = ExtractionConfigServiceB3.validate_processing_mode(
             processing_mode
@@ -145,10 +111,10 @@ class CreateDocsToExtractUseCaseB3:
     def __init__(
         self,
         path_of_docs: str,
-        assets_list: List[str],
+        assets_list: list[str],
         initial_year: int,
         last_year: int,
-        destination_path: Optional[str] = None,
+        destination_path: str | None = None,
     ):
         if not isinstance(path_of_docs, str):
             raise TypeError(
@@ -186,7 +152,7 @@ class CreateDocsToExtractUseCaseB3:
             if normalized_destination is not None
             else self.destination_path
         )
-        set_documents_to_download = CreateSetToDownloadUseCaseB3.execute(
+        documents_to_download = CreateSetToDownloadUseCaseB3.execute(
             range_years, self.path_of_docs
         )
 
@@ -195,7 +161,7 @@ class CreateDocsToExtractUseCaseB3:
             set_assets=set_assets,
             range_years=range_years,
             destination_path=destination_path,
-            set_documents_to_download=set_documents_to_download,
+            documents_to_download=documents_to_download,
         )
 
 
@@ -216,7 +182,7 @@ class ExtractHistoricalQuotesUseCaseB3:
         docs_to_extract: DocsToExtractorB3,
         processing_mode: str = 'fast',
         output_filename: str = 'cotahist_extracted.parquet',
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute the extraction process."""
         # D4: factory removed — construct ExtractionServiceB3 directly. Invalid
         # processing_mode is already validated by
@@ -230,48 +196,57 @@ class ExtractHistoricalQuotesUseCaseB3:
             processing_mode=mode,
         )
 
-        target_tpmerc_codes = (
-            AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
-                docs_to_extract.set_assets
-            )
-        )
-
-        zip_files: Set[str] = docs_to_extract.set_documents_to_download
-
-        if not zip_files:
-            return {
-                'total_files': 0,
-                'success_count': 0,
-                'error_count': 0,
-                'total_records': 0,
-                'errors': {},
-                'output_file': '',
-            }
-
-        output_path = Path(docs_to_extract.destination_path) / output_filename
-
-        destination_resolved = Path(docs_to_extract.destination_path).resolve()
-        output_resolved = output_path.resolve()
-        if not output_resolved.is_relative_to(destination_resolved):
-            raise InvalidOutputFilename(
-                f'output path escapes destination: '
-                f'{output_resolved} not under {destination_resolved}'
+        try:
+            target_tpmerc_codes = (
+                AvailableAssetsServiceB3.get_tpmerc_codes_for_assets(
+                    docs_to_extract.set_assets
+                )
             )
 
-        result = await extraction_service.extract_from_zip_files(
-            zip_files=zip_files,
-            target_tpmerc_codes=target_tpmerc_codes,
-            output_path=output_path,
-        )
+            zip_files: set[str] = docs_to_extract.documents_to_download
 
-        return result
+            if not zip_files:
+                return {
+                    'total_files': 0,
+                    'success_count': 0,
+                    'error_count': 0,
+                    'total_records': 0,
+                    'errors': {},
+                    'output_file': '',
+                }
+
+            output_path = (
+                Path(docs_to_extract.destination_path) / output_filename
+            )
+
+            destination_resolved = Path(
+                docs_to_extract.destination_path
+            ).resolve()
+            output_resolved = output_path.resolve()
+            if not output_resolved.is_relative_to(destination_resolved):
+                raise InvalidOutputFilename(
+                    f'output path escapes destination: '
+                    f'{output_resolved} not under {destination_resolved}'
+                )
+
+            result = await extraction_service.extract_from_zip_files(
+                zip_files=zip_files,
+                target_tpmerc_codes=target_tpmerc_codes,
+                output_path=output_path,
+            )
+            return result
+        finally:
+            close_service = cast(Callable[[], Any], extraction_service.close)
+            close_result = close_service()
+            if inspect.isawaitable(close_result):
+                await close_result
 
     def execute_sync(
         self,
         docs_to_extract: DocsToExtractorB3,
         processing_mode: str = 'fast',
         output_filename: str = 'cotahist_extracted.parquet',
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Synchronous wrapper for execute()."""
         return asyncio.run(
             self.execute(docs_to_extract, processing_mode, output_filename)

@@ -9,12 +9,12 @@ Note: Requires playwright (pip install playwright && playwright install chromium
 Screenshots: Saved to system temp directory (auto-cleaned by OS)
 """
 
-import sys
 import json
 import os
+import sys
 import tempfile
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 # Fix Windows console encoding for Unicode output
 if hasattr(sys.stdout, 'reconfigure'):

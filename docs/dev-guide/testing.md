@@ -6,7 +6,7 @@ Guia completo sobre testes no Global-Data-Finance.
 
 ## Estrutura de Testes
 
-A árvore de testes espelha cada fonte. Os subdiretórios dentro de cada feature são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer teste importa diretamente dos módulos da fonte (`from globaldatafinance.brazil.<país>.<fonte>.<módulo> import ...`). Os nomes de pastas `domain/` `infra/` `application/` são legado do layout pré-refactor e seguem em disco; a refactor `anti-overengineering` planeja reorganizá-los, mas hoje continuam como abaixo.
+A árvore de testes espelha cada fonte. Os subdiretórios dentro de cada feature são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer teste importa diretamente dos módulos da fonte (`from globaldatafinance.brazil.<país>.<fonte>.<módulo> import ...`).
 
 ```
 tests/
@@ -16,15 +16,7 @@ tests/
 │       └── result_formatters/
 ├── brazil/
 │   ├── b3_data/
-│   │   └── historical_quotes/
-│   │       ├── application/           # tests de orquestração (client.py)
-│   │       ├── domain/                # tests de value objects, validators, exceções, services
-│   │       │   ├── entities/
-│   │       │   ├── exceptions/
-│   │       │   ├── services/
-│   │       │   └── value_objects/
-│   │       ├── infra/                 # tests de parser, writer, extraction_service, zip_reader
-│   │       └── integration/           # tests integration-marker
+│   │   └── historical_quotes/         # layout plano: 21 test_*.py diretamente na pasta
 │   └── cvm/
 │       └── fundamental_stocks_data/
 │           ├── application/use_cases/ # tests de orquestração (client.py)
@@ -95,7 +87,7 @@ class TestAvailableDocs:
             docs.validate_docs_name("INVALID")
 ```
 
-> Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em `brazil.cvm.fundamental_stocks_data.core` e `brazil.cvm.fundamental_stocks_data.errors`; para B3 a divisão é mais granular — entidades em `models.py`, value objects em `years.py`/`processing.py`, validators de filesystem em `filesystem.py`, asset services em `assets.py`, exceções em `errors.py`. Pacotes intermediários `domain/`, `application/`, `infra/` em `src/` foram removidos; em `tests/` os nomes continuam (sem semântica de camada) até a refactor `anti-overengineering` reorganizá-los.
+> Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em `brazil.cvm.fundamental_stocks_data.core` e `brazil.cvm.fundamental_stocks_data.errors`; para B3 a divisão é mais granular — entidades em `models.py`, value objects em `years.py`/`processing.py`, validators de filesystem em `filesystem.py`, asset services em `assets.py`, exceções em `errors.py`.
 
 ### Mocking sem ABC
 
@@ -127,7 +119,6 @@ import pytest
 from globaldatafinance import FundamentalStocksDataCVM
 
 @pytest.mark.integration
-@pytest.mark.requires_network
 class TestFundamentalStocksDataIntegration:
     def test_get_available_docs(self):
         """Testa obtenção de documentos disponíveis."""

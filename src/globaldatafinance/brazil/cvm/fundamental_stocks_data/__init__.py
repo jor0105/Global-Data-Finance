@@ -6,52 +6,50 @@ dropped (`DownloadDocsCVMRepositoryCVM`, `FileExtractorRepositoryCVM`).
 
 from .client import (
     DownloadDocumentsUseCaseCVM,
-    GenerateRangeYearsUseCasesCVM,
-    GenerateUrlsUseCaseCVM,
-    GetAvailableDocsUseCaseCVM,
-    GetAvailableYearsUseCaseCVM,
     VerifyPathsUseCasesCVM,
+    generate_range_years,
+    generate_urls,
+    get_available_docs,
+    get_available_years,
 )
 from .core import (
-    AvailableDocsCVM,
     AvailableYearsCVM,
+    AvailableYearsInfoCVM,
     DictZipsToDownloadCVM,
     DownloadResultCVM,
-    UrlDocsCVM,
 )
 from .errors import (
     EmptyDocumentListError,
-    InvalidDocName,
+    InvalidDocumentName,
+    InvalidDocumentType,
     InvalidFirstYear,
     InvalidLastYear,
-    InvalidTypeDoc,
     MissingDownloadUrlError,
 )
 from .extract import ParquetExtractorAdapterCVM
 from .http import AsyncDownloadAdapterCVM
 
 __all__ = [
-    # core (domain)
-    'AvailableDocsCVM',
-    'UrlDocsCVM',
-    'AvailableYearsCVM',
-    'DictZipsToDownloadCVM',
-    'DownloadResultCVM',
-    # client (use cases)
-    'DownloadDocumentsUseCaseCVM',
-    'GenerateUrlsUseCaseCVM',
-    'GenerateRangeYearsUseCasesCVM',
-    'GetAvailableDocsUseCaseCVM',
-    'GetAvailableYearsUseCaseCVM',
-    'VerifyPathsUseCasesCVM',
     # IO adapters
     'AsyncDownloadAdapterCVM',
-    'ParquetExtractorAdapterCVM',
+    # core (domain)
+    'AvailableYearsCVM',
+    'AvailableYearsInfoCVM',
+    'DictZipsToDownloadCVM',
+    # client (use cases)
+    'DownloadDocumentsUseCaseCVM',
+    'DownloadResultCVM',
+    'EmptyDocumentListError',
+    'InvalidDocumentName',
+    'InvalidDocumentType',
     # errors
     'InvalidFirstYear',
     'InvalidLastYear',
-    'InvalidDocName',
-    'InvalidTypeDoc',
-    'EmptyDocumentListError',
     'MissingDownloadUrlError',
+    'ParquetExtractorAdapterCVM',
+    'VerifyPathsUseCasesCVM',
+    'generate_range_years',
+    'generate_urls',
+    'get_available_docs',
+    'get_available_years',
 ]

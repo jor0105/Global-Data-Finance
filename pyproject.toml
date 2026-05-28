@@ -36,10 +36,6 @@ Repository = "https://github.com/jor0105/Global-Data-Finance"
 Documentation = "https://github.com/jor0105/Global-Data-Finance"
 "Bug Tracker" = "https://github.com/jor0105/Global-Data-Finance/issues"
 
-[tool.setuptools.package-data]
-globaldatafinance = ["*.txt", "*.md"]
-
-
 [dependency-groups]
 dev = [
     "pre-commit>=4.3.0",
@@ -63,6 +59,28 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/globaldatafinance"]
+
+[tool.hatch.build]
+exclude = [
+    "**/cookies_*.py",
+    "**/Opcoes_B3/**",
+    "**/Dados_B3_Acoes/**",
+    "**/Dados_B3_FIIs/**",
+    "src/globaldatafinance/brazil/gerais/**",
+    "src/globaldatafinance/brazil/app_geral.py",
+    "**/__pycache__",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/globaldatafinance",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
 [tool.pydocstyle]
 convention = "google"
 match = "(?!test_).*\\.py"
@@ -85,12 +103,28 @@ exclude_dirs = [".venv"]
 line-length = 79
 
 [tool.ruff.lint]
-# Legacy standalone scripts under brazil/ use wildcard imports from external
-# modules that are not part of the installable package (e.g. Baixando_dados,
-# Criando_pastas, docs.imports). F403/F405 are suppressed only for those
-# files to avoid false positives on genuinely external dependencies.
+# Curated rule set for a distribution-shaped library. Beyond the default
+# E/F (pycodestyle errors + pyflakes) we enable import sorting (I), modern
+# syntax (UP), likely-bug detection (B), comprehension (C4) and simplify
+# (SIM) hygiene, plus Ruff's own rules (RUF). pydocstyle (D) stays delegated
+# to the dedicated pre-commit pydocstyle hook with its Google-convention
+# ignores.
+select = ["E", "W", "F", "I", "UP", "B", "C4", "SIM", "RUF"]
+# E501 (line-too-long) is owned by `ruff-format`, which wraps code at
+# line-length but deliberately leaves long strings/docstrings/comments
+# intact. Double-enforcing it in the linter only produces noise, so we let
+# the formatter be the single source of truth for line width.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["globaldatafinance"]
+
 [tool.ruff.lint.per-file-ignores]
-"src/globaldatafinance/brazil/b3_data/Opcoes_B3/Tabela_Ajustes_Divs/funcao_3.py" = ["F403", "F405"]
+# Test suites legitimately use patterns the linter discourages in library
+# code: broad `pytest.raises(Exception)` (B017), throwaway loop/unpacked
+# vars in parametrized cases (B007/RUF059), and nested `with` blocks that
+# read more clearly than a combined context (SIM117).
+"tests/**/*.py" = ["B007", "B017", "RUF059", "SIM117"]
 
 [tool.ruff.format]
 # Blue style: Single quotes

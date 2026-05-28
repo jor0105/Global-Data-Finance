@@ -81,7 +81,7 @@ class TestDataIntegrity:
         df_result = pd.read_parquet(tmp_path / 'special.parquet')
         for col in special_data.columns:
             for i, (original, result) in enumerate(
-                zip(special_data[col], df_result[col])
+                zip(special_data[col], df_result[col], strict=False)
             ):
                 assert original == result, (
                     f"Corrupted character at line {i}, column '{col}': "

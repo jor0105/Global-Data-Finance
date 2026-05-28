@@ -14,6 +14,7 @@ Checks:
     - Semantic HTML
 """
 
+import contextlib
 import json
 import re
 import sys
@@ -21,10 +22,8 @@ from datetime import datetime
 from pathlib import Path
 
 # Fix Windows console encoding
-try:
+with contextlib.suppress(OSError, UnicodeDecodeError):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore
-except (OSError, UnicodeDecodeError):
-    pass
 
 
 def is_frontend_project(project_path: Path) -> bool:
@@ -91,13 +90,11 @@ def check_accessibility(file_path: Path) -> list:
         # Check for form inputs without labels
         inputs = re.findall(r'<input[^>]*>', content, re.IGNORECASE)
         for inp in inputs:
-            if 'type="hidden"' not in inp.lower():
-                if (
-                    'aria-label' not in inp.lower()
-                    and 'id=' not in inp.lower()
-                ):
-                    issues.append('Input without label or aria-label')
-                    break
+            if 'type="hidden"' not in inp.lower() and (
+                'aria-label' not in inp.lower() and 'id=' not in inp.lower()
+            ):
+                issues.append('Input without label or aria-label')
+                break
 
         # Check for buttons without accessible text
         buttons = re.findall(
@@ -116,12 +113,12 @@ def check_accessibility(file_path: Path) -> list:
             issues.append('Missing lang attribute on <html>')
 
         # Check for missing skip link
-        if '<main' in content.lower() or '<body' in content.lower():
-            if (
-                'skip' not in content.lower()
-                and '#main' not in content.lower()
-            ):
-                issues.append('Consider adding skip-to-main-content link')
+        if (
+            ('<main' in content.lower() or '<body' in content.lower())
+            and 'skip' not in content.lower()
+            and '#main' not in content.lower()
+        ):
+            issues.append('Consider adding skip-to-main-content link')
 
         # Check for click handlers without keyboard support
         onclick_count = content.lower().count('onclick=')
@@ -132,21 +129,19 @@ def check_accessibility(file_path: Path) -> list:
             issues.append('onClick without keyboard handler (onKeyDown)')
 
         # Check for tabIndex misuse
-        if 'tabindex=' in content.lower():
-            if (
-                'tabindex="-1"' not in content.lower()
-                and 'tabindex="0"' not in content.lower()
-            ):
-                positive_tabindex = re.findall(
-                    r'tabindex="([1-9]\d*)"', content, re.IGNORECASE
-                )
-                if positive_tabindex:
-                    issues.append('Avoid positive tabIndex values')
+        if 'tabindex=' in content.lower() and (
+            'tabindex="-1"' not in content.lower()
+            and 'tabindex="0"' not in content.lower()
+        ):
+            positive_tabindex = re.findall(
+                r'tabindex="([1-9]\d*)"', content, re.IGNORECASE
+            )
+            if positive_tabindex:
+                issues.append('Avoid positive tabIndex values')
 
         # Check for autoplay media
-        if 'autoplay' in content.lower():
-            if 'muted' not in content.lower():
-                issues.append('Autoplay media should be muted')
+        if 'autoplay' in content.lower() and 'muted' not in content.lower():
+            issues.append('Autoplay media should be muted')
 
         # Check for role usage
         if 'role="button"' in content.lower():

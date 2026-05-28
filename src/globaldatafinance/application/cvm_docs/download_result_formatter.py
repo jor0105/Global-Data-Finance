@@ -4,8 +4,8 @@ This module provides senior-level formatting for download results,
 displaying successful and failed downloads in an organized manner.
 
 Example:
-    >>> from src.presentation.cvm_docs.download_result_formatter import DownloadResultFormatter
-    >>> from src.brazil.cvm.fundamental_stocks_data.domain import DownloadResultCVM
+    >>> from globaldatafinance.application.cvm_docs.download_result_formatter import DownloadResultFormatter
+    >>> from globaldatafinance.brazil.cvm.fundamental_stocks_data import DownloadResultCVM
     >>>
     >>> result = DownloadResultCVM()
     >>> result.add_success_downloads("DFP_2023")

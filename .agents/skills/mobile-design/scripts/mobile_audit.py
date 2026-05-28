@@ -68,10 +68,11 @@ Analyzes React Native / Flutter code for compliance with:
 Total: 50+ mobile-specific checks
 """
 
-import sys
+import contextlib
+import json
 import os
 import re
-import json
+import sys
 from pathlib import Path
 
 
@@ -84,7 +85,7 @@ class MobileAuditor:
 
     def audit_file(self, filepath: str) -> None:
         try:
-            with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+            with open(filepath, encoding='utf-8', errors='replace') as f:
                 content = f.read()
         except (OSError, UnicodeDecodeError):
             return
@@ -708,17 +709,16 @@ class MobileAuditor:
 
             # Check if using sp (scale-independent pixels)
             uses_sp = bool(re.search(r'\d+\s*sp\b', content))
-            if _has_display or _has_headline_material:
-                if not uses_sp:
-                    self.warnings.append(
-                        f'[Android Typography] {filename}: Material typography detected without sp units. Use sp for text to respect user font size preferences.'
-                    )
+            if (_has_display or _has_headline_material) and not uses_sp:
+                self.warnings.append(
+                    f'[Android Typography] {filename}: Material typography detected without sp units. Use sp for text to respect user font size preferences.'
+                )
 
         # 9.3 Modular Scale Check
         # Check if font sizes follow modular scale
         font_sizes = re.findall(r'fontSize:\s*(\d+(?:\.\d+)?)', content)
         if len(font_sizes) > 3:
-            sorted_sizes = sorted(set([float(s) for s in font_sizes]))
+            sorted_sizes = sorted({float(s) for s in font_sizes})
             ratios = []
             for i in range(1, len(sorted_sizes)):
                 if sorted_sizes[i - 1] > 0:
@@ -760,10 +760,8 @@ class MobileAuditor:
             numeric_weights = []
             for w in font_weights:
                 val = weight_map.get(w.lower(), w)
-                try:
+                with contextlib.suppress(ValueError):
                     numeric_weights.append(int(val))
-                except ValueError:
-                    pass
 
             # Check if overusing bold (mobile should be regular-dominant)
             bold_count = sum(1 for w in numeric_weights if w >= 700)

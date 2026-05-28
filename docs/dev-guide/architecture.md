@@ -8,8 +8,6 @@ Documentação completa da arquitetura do Global-Data-Finance, padrões de desig
 
 Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — apenas duas classes (`FundamentalStocksDataCVM` e `HistoricalQuotesB3`). Internamente, cada fonte de dados é implementada em um diretório próprio com **layout plano de módulos nomeados por papel**.
 
-> **Estado atual.** A refactor `anti-overengineering` (ver `openspec/changes/refactor-anti-overengineering/`) está em curso. CVM já está achatada (`core.py` + `client.py` + `http.py` + `extract.py` + helpers de download); B3 está parcialmente achatada — os subpacotes `domain/`/`application/`/`infra/` foram removidos, mas o conteúdo virou múltiplos módulos por papel em vez de um único `core.py` consolidado. Os caminhos abaixo refletem o disco hoje, não a forma final pretendida.
-
 Esta abordagem privilegia:
 
 - ✅ **Leitura**: poucos arquivos com nomes claros (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: módulos por papel — `client.py`, `assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados)
@@ -64,7 +62,6 @@ globaldatafinance/
 └── pyproject.toml
 ```
 
-Pastas pendentes de promoção (`brazil/b3_data/{Dados_B3_Acoes, Dados_B3_FIIs, Opcoes_B3}`, `brazil/gerais/`, `brazil/app_geral.py`) permanecem no diretório atual: estão fora do escopo do padrão plano e serão promovidas por changes OpenSpec futuras dedicadas a cada fonte.
 
 ---
 
@@ -85,7 +82,7 @@ Cada `brazil/<país>/<fonte>/` segue o mesmo conjunto de **papéis**. O mapeamen
 
 Funções/classes auxiliares são internas ao módulo a menos que sejam usadas em outro arquivo — o ponto de extensibilidade real é a fonte, não o "tipo de objeto".
 
-> **Por que B3 não tem `core.py` consolidado.** A refactor anti-overengineering deixou o conteúdo de B3 em módulos por tópico (`assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`) em vez de um único `core.py` porque cada um deles já tinha massa crítica (~100–300 linhas) e diferentes consumidores. Consolidar agora trocaria 5 arquivos médios por 1 arquivo enorme — exatamente o oposto da intenção da refactor.
+> **Por que B3 não tem `core.py` consolidado.** O conteúdo de B3 vive em módulos por tópico (`assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`) em vez de um único `core.py` porque cada um já tem massa crítica (~100–300 linhas) e diferentes consumidores. Consolidar trocaria 5 arquivos médios por 1 arquivo enorme.
 
 ---
 
@@ -191,7 +188,7 @@ class ExtractHistoricalQuotesUseCaseB3:
 
 ### Adapters concretos, sem indireção por ABC
 
-`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, `AsyncDownloadAdapterB3` (etc.) são importados e construídos diretamente. A indireção `DownloadDocsCVMRepositoryCVM` / `FileExtractorRepositoryCVM` foi removida quando se confirmou que havia 1 única implementação concreta — quando uma segunda implementação aparecer (`WgetDownloadAdapter`, etc.), extrair um `Protocol` é trivial e custa 1 commit.
+`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, etc. são importados e construídos diretamente. Quando uma segunda implementação aparecer (`WgetDownloadAdapter`, etc.), extrair um `Protocol` é trivial e custa 1 commit.
 
 ### Result objects
 
@@ -220,7 +217,7 @@ Saída de console/log de apresentação fica em módulos `*_formatter.py` dentro
 
 ### Defesa de path-traversal preservada como contrato
 
-`VerifyPathsUseCasesCVM` (CVM, em `client.py`) e o helper de validação de diretório (B3, em `core.py`) levantam `SecurityError` antes de qualquer `mkdir`, bloqueando escrita em `/etc /sys /proc /dev /boot /root`. Esses helpers fazem parte do contrato observável de `FundamentalStocksDataCVM.download(destination_path=...)` e `HistoricalQuotesB3.extract(path_of_docs=...)` — devem permanecer bit-idênticos em qualquer refactor que mova o código.
+`VerifyPathsUseCasesCVM` (CVM, em `client.py`) e o helper `FileSystemServiceB3` (B3, em `filesystem.py`) levantam `SecurityError` antes de qualquer `mkdir`, bloqueando escrita em `/etc /sys /proc /dev /boot /root`. Esses helpers fazem parte do contrato observável de `FundamentalStocksDataCVM.download(destination_path=...)` e `HistoricalQuotesB3.extract(path_of_docs=...)` — devem permanecer bit-idênticos em qualquer refactor que mova o código.
 
 ---
 
@@ -305,22 +302,14 @@ tests/
 │   │   ├── infra/adapters/           # tests de adapters concretos (http.py, extract.py)
 │   │   ├── exceptions/               # tests das exceções (errors.py)
 │   │   └── integration/              # tests integration-marker
-│   └── b3_data/historical_quotes/
-│       ├── application/              # tests de orquestração (client.py)
-│       ├── domain/                   # tests por tópico
-│       │   ├── entities/             # models.py
-│       │   ├── exceptions/           # errors.py
-│       │   ├── services/             # assets.py, filesystem.py
-│       │   └── value_objects/        # years.py, processing.py
-│       ├── infra/                    # tests de parser, writer, extraction_service, zip_reader
-│       └── integration/              # tests integration-marker
+│   └── b3_data/historical_quotes/    # layout plano: 21 test_*.py diretamente na pasta
 └── application/
     ├── cvm_docs/   # tests do facade público
     └── b3_docs/
         └── result_formatters/
 ```
 
-Os subdiretórios dentro de cada fonte são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer test importa dos módulos via `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...`. Os nomes `domain/` `infra/` `application/` são legado pré-refactor e seguem em disco; a refactor `anti-overengineering` planeja reorganizá-los.
+Os subdiretórios dentro da fonte CVM são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer test importa dos módulos via `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...`.
 
 ### Mocking sem ABC
 

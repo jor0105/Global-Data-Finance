@@ -10,7 +10,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = REPO_ROOT / '.agents' / 'agents'
 OPENCODE_CONFIG_PATH = REPO_ROOT / 'opencode.json'
@@ -56,7 +55,7 @@ def collect_agents_data() -> dict[str, dict[str, object]]:
     for path in sorted(AGENT_DIR.glob('*.agent.md')):
         agent_name = path.name.replace('.agent.md', '')
         source_text = path.read_text(encoding='utf-8')
-        metadata, body = parse_frontmatter(source_text)
+        metadata, _body = parse_frontmatter(source_text)
 
         manifest_path = AGENT_DIR / f'{agent_name}.manifest.json'
         allowed_agents: list[str] = []

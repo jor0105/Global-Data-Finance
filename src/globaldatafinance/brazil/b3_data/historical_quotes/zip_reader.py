@@ -1,4 +1,4 @@
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from ....macro_infra import ExtractorAdapter
 

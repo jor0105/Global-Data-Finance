@@ -177,7 +177,7 @@ class TestVerifyPathsUseCasesExecute:
             range_years=range(2020, 2022),
         )
 
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.DEBUG):
             use_case.execute()
 
         assert any(
@@ -471,7 +471,7 @@ class TestVerifyPathsUseCasesIntegration:
                 assert os.access(path, os.W_OK)
 
     def test_verify_paths_accepts_set_from_generate_urls(self, tmp_path):
-        new_set_docs = set(['DFP', 'ITR', 'FRE'])
+        new_set_docs = {'DFP', 'ITR', 'FRE'}
         range_years = range(2020, 2023)
 
         use_case_instance = VerifyPathsUseCasesCVM(

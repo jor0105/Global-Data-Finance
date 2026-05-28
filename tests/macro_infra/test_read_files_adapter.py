@@ -12,7 +12,7 @@ class TestReadFilesAdapter:
     @pytest.mark.parametrize(
         'content',
         [
-            'col1;col2\n1;2\n3;4\n'.encode('utf-8'),
+            b'col1;col2\n1;2\n3;4\n',
             'col1;col2\n1;2\n3;4\n'.encode('latin-1'),
             'col1;col2\n1;2\n3;4\n'.encode('iso-8859-1'),
             'col1;col2\n1;2\n3;4\n'.encode('cp1252'),
@@ -32,7 +32,7 @@ class TestReadFilesAdapter:
     def test_read_csv_test_encoding_detects_supported_encoding_with_non_ascii(
         self, tmp_path
     ):
-        csv_content = 'col1;col2\n1;2\n3;á\n'.encode('utf-8')
+        csv_content = 'col1;col2\n1;2\n3;á\n'.encode()
         csv_name = 'test.csv'
         zip_path = tmp_path / 'test.zip'
         with zipfile.ZipFile(zip_path, 'w') as zf:
@@ -46,7 +46,7 @@ class TestReadFilesAdapter:
     ):
         csv_name = 'test.csv'
         zip_path = tmp_path / 'test.zip'
-        content = 'col1;col2\n1;2\n3;á\n'.encode('utf-8')
+        content = 'col1;col2\n1;2\n3;á\n'.encode()
         with zipfile.ZipFile(zip_path, 'w') as zf:
             zf.writestr(csv_name, content)
         with zipfile.ZipFile(zip_path, 'r') as zf:

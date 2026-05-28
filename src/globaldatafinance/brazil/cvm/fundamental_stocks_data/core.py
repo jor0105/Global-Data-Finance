@@ -6,90 +6,109 @@ download result) into a single module per the flat per-source layout.
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Dict, List, Optional, Set, Tuple
+from typing import NamedTuple
 
 from .errors import (
-    InvalidDocName,
+    InvalidDocumentName,
+    InvalidDocumentType,
     InvalidFirstYear,
     InvalidLastYear,
-    InvalidTypeDoc,
 )
 
 
-class AvailableDocsCVM:
-    """Manages information about available CVM document types."""
+class AvailableYearsInfoCVM(NamedTuple):
+    """Type-safe container for CVM document year ranges.
 
-    __DICT_AVAILABLE_DOCS: Dict[str, str] = {
-        'CGVN': '(Governance Code Report) a periodic document that records information about adherence/compatibility with the Corporate Governance Code for publicly traded companies — governance structure, committees, policies, and relevant indicators.',
-        'FRE': '(Reference Form) an electronic document (periodic/eventual) that gathers corporate and descriptive information required by the CVM: activities, risk factors, corporate and capital structure, management, compensation policies, information about securities, auditing, and other regulatory disclosures.',
-        'FCA': "(Registration Form) an electronic form (periodic/eventual) with the company's official registration data and its updates: identification (CNPJ, corporate name), address, registration status, segment, identifier codes, and registration/contact information.",
-        'DFP': "(Standardized Financial Statements) a periodic electronic form (related to the closed fiscal year) containing the standardized financial statements required by the CVM: Balance Sheet (BPA/BPP), Income Statement (DRE), Cash Flow Statement (DFC — direct/indirect methods, as applicable), Statement of Value Added (DVA), explanatory notes, independent auditor's report, and standardized annexes.",
-        'ITR': '(Quarterly Information) a periodic electronic form with the statements and disclosures for each quarter — BPA/BPP, DRE, DFC (when applicable), and quarterly notes/disclosures required by the applicable regulation.',
-        'IPE': '(Periodic and Eventual Documents) a set of unstructured documents (minutes, material facts, announcements, reports, prospectuses, official letters, etc.) made available with metadata and a link/file; the format and content vary depending on the document type.',
-        'VLMO': '(Data on Negotiated and Held Securities) periodic reports on securities linked to the company (trades, quantities, positions, custody, and related information) provided as datasets on the CVM Open Data Portal.',
-    }
+    Provides attribute access for year information instead of
+    ``dict[str, int]`` with magic string keys.
 
-    def get_available_docs(self) -> Dict[str, str]:
-        """Gets a dictionary of all available documents."""
-        return self.__DICT_AVAILABLE_DOCS.copy()
+    Example:
+        >>> years = AvailableYearsInfoCVM(
+        ...     general_min_year=2010,
+        ...     itr_min_year=2011,
+        ...     cgvn_vlmo_min_year=2018,
+        ...     current_year=2026,
+        ... )
+        >>> years.general_min_year
+        2010
+        >>> years.current_year
+        2026
+        >>> years._asdict()  # escape hatch for dict consumers
+        {'general_min_year': 2010, ...}
+    """
 
-    def __get_available_docs_keys(self) -> List[str]:
-        """Gets a list of available document codes."""
-        return list(self.__DICT_AVAILABLE_DOCS.keys())
-
-    def validate_docs_name(self, docs_name: str) -> None:
-        """Validate that a document name is valid and of the correct type."""
-        if not isinstance(docs_name, str):
-            raise InvalidTypeDoc(docs_name)
-
-        key = docs_name.strip().upper()
-        if key not in self.__get_available_docs_keys():
-            raise InvalidDocName(docs_name, self.__get_available_docs_keys())
+    general_min_year: int
+    itr_min_year: int
+    cgvn_vlmo_min_year: int
+    current_year: int
 
 
-class UrlDocsCVM:
-    """Generates URLs for CVM document downloads."""
+_DICT_AVAILABLE_DOCS: dict[str, str] = {
+    'CGVN': '(Governance Code Report) a periodic document that records information about adherence/compatibility with the Corporate Governance Code for publicly traded companies — governance structure, committees, policies, and relevant indicators.',
+    'FRE': '(Reference Form) an electronic document (periodic/eventual) that gathers corporate and descriptive information required by the CVM: activities, risk factors, corporate and capital structure, management, compensation policies, information about securities, auditing, and other regulatory disclosures.',
+    'FCA': "(Registration Form) an electronic form (periodic/eventual) with the company's official registration data and its updates: identification (CNPJ, corporate name), address, registration status, segment, identifier codes, and registration/contact information.",
+    'DFP': "(Standardized Financial Statements) a periodic electronic form (related to the closed fiscal year) containing the standardized financial statements required by the CVM: Balance Sheet (BPA/BPP), Income Statement (DRE), Cash Flow Statement (DFC — direct/indirect methods, as applicable), Statement of Value Added (DVA), explanatory notes, independent auditor's report, and standardized annexes.",
+    'ITR': '(Quarterly Information) a periodic electronic form with the statements and disclosures for each quarter — BPA/BPP, DRE, DFC (when applicable), and quarterly notes/disclosures required by the applicable regulation.',
+    'IPE': '(Periodic and Eventual Documents) a set of unstructured documents (minutes, material facts, announcements, reports, prospectuses, official letters, etc.) made available with metadata and a link/file; the format and content vary depending on the document type.',
+    'VLMO': '(Data on Negotiated and Held Securities) periodic reports on securities linked to the company (trades, quantities, positions, custody, and related information) provided as datasets on the CVM Open Data Portal.',
+}
 
-    def __init__(self):
-        self.__available_docs = AvailableDocsCVM()
 
-        self.__dict_url_docs = {
-            'CGVN': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/CGVN/DADOS/cgvn_cia_aberta_',
-            'FRE': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FRE/DADOS/fre_cia_aberta_',
-            'FCA': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/FCA/DADOS/fca_cia_aberta_',
-            'DFP': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_',
-            'ITR': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/ITR/DADOS/itr_cia_aberta_',
-            'IPE': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_',
-            'VLMO': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/VLMO/DADOS/vlmo_cia_aberta_',
-        }
+def get_available_docs() -> dict[str, str]:
+    """Get a dictionary of all available CVM document types."""
+    return _DICT_AVAILABLE_DOCS.copy()
 
-    def get_url_docs(
-        self, list_docs: Optional[List[str]] = None
-    ) -> Tuple[Dict[str, str], Set[str]]:
-        """Get URLs for specified docs (or all docs if `list_docs` is None)."""
-        if list_docs and not isinstance(list_docs, list):
-            raise TypeError('list_docs must be a list of strings or None')
 
-        dict_urls: Dict[str, str] = {}
-        set_docs: set = set()
+def validate_docs_name(docs_name: str) -> None:
+    """Validate that a document name is valid and of the correct type."""
+    if not isinstance(docs_name, str):
+        raise InvalidDocumentType(docs_name)
 
-        if not list_docs:
-            dict_urls = self.__dict_url_docs.copy()
-            set_docs.update(self.__dict_url_docs.keys())
-            return dict_urls, set_docs
+    key = docs_name.strip().upper()
+    if key not in _DICT_AVAILABLE_DOCS:
+        raise InvalidDocumentName(docs_name, list(_DICT_AVAILABLE_DOCS))
 
-        for doc in list_docs:
-            self.__available_docs.validate_docs_name(doc)
 
-            doc_key = doc.strip().upper()
-            if doc_key not in self.__dict_url_docs:
-                raise ValueError(f"No URL available for doc '{doc}'")
+def _build_url_prefix(doc: str) -> str:
+    """Build the CVM ZIP prefix for a registered document code."""
+    return (
+        'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/'
+        f'{doc}/DADOS/{doc.lower()}_cia_aberta_'
+    )
 
-            if doc_key not in set_docs:
-                dict_urls[doc_key] = self.__dict_url_docs[doc_key]
-                set_docs.add(doc_key)
 
+_DICT_URL_DOCS: dict[str, str] = {
+    doc: _build_url_prefix(doc) for doc in _DICT_AVAILABLE_DOCS
+}
+
+
+def get_url_docs(
+    list_docs: list[str] | None = None,
+) -> tuple[dict[str, str], set[str]]:
+    """Get URLs for specified docs (or all docs if `list_docs` is None)."""
+    if list_docs and not isinstance(list_docs, list):
+        raise TypeError('list_docs must be a list of strings or None')
+
+    dict_urls: dict[str, str] = {}
+    set_docs: set[str] = set()
+
+    if not list_docs:
+        dict_urls = _DICT_URL_DOCS.copy()
+        set_docs.update(_DICT_URL_DOCS.keys())
         return dict_urls, set_docs
+
+    for doc in list_docs:
+        validate_docs_name(doc)
+
+        doc_key = doc.strip().upper()
+        if doc_key not in _DICT_URL_DOCS:
+            raise ValueError(f"No URL available for doc '{doc}'")
+
+        if doc_key not in set_docs:
+            dict_urls[doc_key] = _DICT_URL_DOCS[doc_key]
+            set_docs.add(doc_key)
+
+    return dict_urls, set_docs
 
 
 class AvailableYearsCVM:
@@ -134,8 +153,8 @@ class AvailableYearsCVM:
 
     def return_range_years(
         self,
-        initial_year: Optional[int] = None,
-        last_year: Optional[int] = None,
+        initial_year: int | None = None,
+        last_year: int | None = None,
     ) -> range:
         """Return inclusive year range; defaults span all supported years."""
         if initial_year is None:
@@ -152,23 +171,22 @@ class DictZipsToDownloadCVM:
     """Builds the per-doc ZIP-URL map for the requested year range."""
 
     def __init__(self):
-        self._url_docs = UrlDocsCVM()
         self._available_years = AvailableYearsCVM()
 
     def get_dict_zips_to_download(
         self,
-        list_docs: Optional[List[str]] = None,
-        initial_year: Optional[int] = None,
-        last_year: Optional[int] = None,
-    ) -> Tuple[Dict[str, List[str]], Set[str]]:
+        list_docs: list[str] | None = None,
+        initial_year: int | None = None,
+        last_year: int | None = None,
+    ) -> tuple[dict[str, list[str]], set[str]]:
         """Build a `{doc_code: [zip_url_per_year]}` map plus the doc set."""
         range_years: range = self._available_years.return_range_years(
             initial_year, last_year
         )
 
-        dict_urls_docs, set_docs = self._url_docs.get_url_docs(list_docs)
+        dict_urls_docs, set_docs = get_url_docs(list_docs)
 
-        dict_zips_to_download: Dict[str, List[str]] = {
+        dict_zips_to_download: dict[str, list[str]] = {
             doc: [url + str(year) + '.zip' for year in range_years]
             for doc, url in dict_urls_docs.items()
         }
@@ -180,9 +198,13 @@ class DictZipsToDownloadCVM:
 class DownloadResultCVM:
     """Aggregated result of a CVM download run."""
 
-    successful_downloads: List[str] = field(default_factory=list)
-    failed_downloads: Dict[str, str] = field(default_factory=dict)
+    successful_downloads: list[str] = field(default_factory=list)
+    failed_downloads: dict[str, str] = field(default_factory=dict)
     elapsed_time: float = 0.0
+    _success_set: set[str] = field(default_factory=set, init=False, repr=False)
+
+    def __post_init__(self):
+        self._success_set = set(self.successful_downloads)
 
     @property
     def success_count_downloads(self) -> int:
@@ -192,9 +214,14 @@ class DownloadResultCVM:
     def error_count_downloads(self) -> int:
         return len(self.failed_downloads)
 
+    def has_errors(self) -> bool:
+        """Return ``True`` when at least one download failed."""
+        return self.error_count_downloads > 0
+
     def add_success_downloads(self, item: str) -> None:
-        if item not in self.successful_downloads:
+        if item not in self._success_set:
             self.successful_downloads.append(item)
+            self._success_set.add(item)
 
     def add_error_downloads(self, item: str, error: str) -> None:
         self.failed_downloads[item] = error

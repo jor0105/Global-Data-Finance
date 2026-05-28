@@ -159,7 +159,7 @@ result = use_case.execute(
 )
 ```
 
-> Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial — o refactor atual removeu a ABC `DownloadDocsCVMRepository` porque havia apenas um adapter concreto (`AsyncDownloadAdapterCVM`) e a indireção não tinha polimorfismo real. Veja a discussão em `openspec/changes/refactor-anti-overengineering/design.md` e em `docs/dev-guide/architecture.md`.
+> Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial — hoje existe apenas um adapter concreto (`AsyncDownloadAdapterCVM`) e a indireção via ABC não justificava o custo. Veja `docs/dev-guide/architecture.md` para detalhes.
 
 ---
 

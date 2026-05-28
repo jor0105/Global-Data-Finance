@@ -33,7 +33,7 @@ import tempfile
 import zipfile
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 
@@ -124,14 +124,14 @@ def _canonical_content_hash(parquet_path: Path) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _capture_schema(parquet_path: Path) -> Dict[str, str]:
+def _capture_schema(parquet_path: Path) -> dict[str, str]:
     import pyarrow.parquet as pq
 
     schema = pq.read_schema(str(parquet_path))
     return {field.name: str(field.type) for field in schema}
 
 
-def run() -> Dict[str, Any]:
+def run() -> dict[str, Any]:
     from globaldatafinance import FundamentalStocksDataCVM
 
     tmpdir = Path(tempfile.mkdtemp(prefix='smoke_cvm_'))
@@ -150,11 +150,11 @@ def run() -> Dict[str, Any]:
                     automatic_extractor=True,
                 )
 
-        artifacts: List[Path] = sorted(
+        artifacts: list[Path] = sorted(
             p for p in dest.rglob('*') if p.is_file()
         )
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             'artifacts': [p.name for p in artifacts],
             'sha256': {},
             'schema': {},

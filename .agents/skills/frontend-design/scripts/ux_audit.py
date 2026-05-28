@@ -88,6 +88,7 @@ Analyzes code for compliance with:
 Total: 80+ checks across all design principles
 """
 
+import contextlib
 import json
 import os
 import re
@@ -149,7 +150,7 @@ class UXAuditor:
 
     def audit_file(self, filepath: str) -> None:
         try:
-            with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+            with open(filepath, encoding='utf-8', errors='replace') as f:
                 content = f.read()
         except (OSError, UnicodeDecodeError):
             return
@@ -523,22 +524,20 @@ class UXAuditor:
         # Uppercase without tracking
         if re.search(
             r'uppercase|text-transform:\s*uppercase', content, re.IGNORECASE
-        ):
-            if not re.search(r'tracking-|letter-spacing:', content):
-                self.warnings.append(
-                    f'[Typography] {filename}: Uppercase text without tracking. ALL CAPS needs +5-10% spacing.'
-                )
+        ) and not re.search(r'tracking-|letter-spacing:', content):
+            self.warnings.append(
+                f'[Typography] {filename}: Uppercase text without tracking. ALL CAPS needs +5-10% spacing.'
+            )
 
         # Large text (display/hero) should have negative tracking
         if re.search(
             r'text-(?:4xl|5xl|6xl|7xl|8xl|9xl)|font-size:\s*[3-9]\dpx', content
+        ) and not re.search(
+            r'tracking-tight|letter-spacing:\s*-[0-9]', content
         ):
-            if not re.search(
-                r'tracking-tight|letter-spacing:\s*-[0-9]', content
-            ):
-                self.warnings.append(
-                    f'[Typography] {filename}: Large display text without tracking-tight. Big text needs -1% to -4% spacing.'
-                )
+            self.warnings.append(
+                f'[Typography] {filename}: Large display text without tracking-tight. Big text needs -1% to -4% spacing.'
+            )
 
         # 2.5 Weight and Emphasis - Contrast levels
         # Check for adjacent weight levels (poor contrast)
@@ -564,10 +563,8 @@ class UXAuditor:
                     'black': '900',
                 }
                 val = weight_map.get(val.lower(), val)
-                try:
+                with contextlib.suppress(ValueError):
                     weight_values.append(int(val))
-                except ValueError:
-                    pass
 
         # Check for adjacent weights (400/500, 500/600, etc.)
         for i in range(len(weight_values) - 1):
@@ -661,13 +658,14 @@ class UXAuditor:
         # --- 3. VISUAL EFFECTS (visual-effects.md) ---
 
         # Glassmorphism Check
-        if 'backdrop-filter' in content or 'blur(' in content:
-            if not re.search(
-                r'background:\s*rgba|bg-opacity|bg-[a-z0-9]+\/\d+', content
-            ):
-                self.warnings.append(
-                    f'[Visual] {filename}: Blur used without semi-transparent background (Glassmorphism fail)'
-                )
+        if (
+            'backdrop-filter' in content or 'blur(' in content
+        ) and not re.search(
+            r'background:\s*rgba|bg-opacity|bg-[a-z0-9]+\/\d+', content
+        ):
+            self.warnings.append(
+                f'[Visual] {filename}: Blur used without semi-transparent background (Glassmorphism fail)'
+            )
 
         # GPU Acceleration / Performance
         if re.search(r'@keyframes|transition:', content):
@@ -701,12 +699,11 @@ class UXAuditor:
         neo_shadows = re.findall(r'box-shadow:\s*([^;]+)', content)
         for shadow in neo_shadows:
             # Neomorphism has two shadows: positive offset + negative offset
-            if ',' in shadow and '-' in shadow:
+            if ',' in shadow and '-' in shadow and 'inset' in shadow:
                 # Check for inset pattern (pressed state)
-                if 'inset' in shadow:
-                    self.warnings.append(
-                        f'[Visual] {filename}: Neomorphism inset detected. Ensure adequate contrast for accessibility.'
-                    )
+                self.warnings.append(
+                    f'[Visual] {filename}: Neomorphism inset detected. Ensure adequate contrast for accessibility.'
+                )
 
         # --- 3.2 SHADOW HIERARCHY ---
         # Count shadow levels to check for elevation consistency
@@ -1047,12 +1044,13 @@ class UXAuditor:
                 r'onScroll|scroll.*trigger|IntersectionObserver', content
             )
         )
-        if has_scroll_anim:
+        if has_scroll_anim and re.search(
+            r'onScroll.*[^\w](width|height|top|left)', content
+        ):
             # Check if using expensive properties in scroll handlers
-            if re.search(r'onScroll.*[^\w](width|height|top|left)', content):
-                self.issues.append(
-                    f'[Animation] {filename}: Scroll handler animating layout properties. Use transform/opacity for 60fps.'
-                )
+            self.issues.append(
+                f'[Animation] {filename}: Scroll handler animating layout properties. Use transform/opacity for 60fps.'
+            )
 
         # --- 6. MOTION GRAPHICS (motion-graphics.md) ---
 
@@ -1193,7 +1191,7 @@ class UXAuditor:
         # Check for many frontend files
         frontend_files = 0
         extensions = {'.tsx', '.jsx', '.html', '.vue', '.svelte'}
-        for root, dirs, files in os.walk(directory):
+        for _root, dirs, files in os.walk(directory):
             # Skip heavy dirs during check
             dirs[:] = [
                 d

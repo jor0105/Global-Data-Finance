@@ -14,15 +14,17 @@ O módulo `fundamental_stocks_data` foi projetado para simplificar a aquisição
 
 ## 🏗️ Arquitetura
 
-Layout plano de 5 módulos (sem subcamadas `domain`/`application`/`infra`):
+Layout plano de 7 módulos:
 
 ```text
 brazil/cvm/fundamental_stocks_data/
-├── core.py     # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM, UrlDocsCVM
-├── client.py   # DownloadDocumentsUseCaseCVM (orquestrador), GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM, etc.
-├── http.py     # AsyncDownloadAdapterCVM (httpx async + retry/back-off + integrity check)
-├── extract.py  # ParquetExtractorAdapterCVM (CSV → Parquet com rollback atômico)
-└── errors.py   # InvalidDocName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
+├── core.py                   # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM, UrlDocsCVM
+├── client.py                 # DownloadDocumentsUseCaseCVM (orquestrador), GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM, etc.
+├── http.py                   # AsyncDownloadAdapterCVM (httpx async + retry/back-off + integrity check)
+├── extract.py                # ParquetExtractorAdapterCVM (CSV → Parquet com rollback atômico)
+├── errors.py                 # InvalidDocName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
+├── download_validation.py    # Validação de ZIPs e Parquets gerados (integridade estrutural e de dados)
+└── download_extraction.py    # Delegação de extração e rastreamento de artefatos para rollback
 ```
 
 `DownloadDocumentsUseCaseCVM` orquestra: geração de URLs (`GenerateUrlsUseCaseCVM`), validação de paths (`VerifyPathsUseCasesCVM` — raise `SecurityError` em `/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) e o download via `AsyncDownloadAdapterCVM` injetado.
@@ -36,8 +38,10 @@ brazil/cvm/fundamental_stocks_data/
 | `client.py`  | `VerifyPathsUseCasesCVM`      | Use case              | Cria estrutura de diretórios de destino. Raise `SecurityError` em paths sensíveis.   |
 | `core.py`    | `DownloadResultCVM`           | Result object         | Resultado agregado contendo sucessos, falhas e contadores (`elapsed_time` incluso).  |
 | `core.py`    | `DictZipsToDownloadCVM`       | Value object          | Mapeamento documento → URLs por ano.                                                  |
-| `http.py`    | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e validação de integridade.                  |
-| `extract.py` | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).    |
+| `http.py`                | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e delegação de extração.                     |
+| `extract.py`             | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).    |
+| `download_extraction.py` | `extract_downloaded_file`     | Helper / Use case     | Gerencia atomicidade da extração, rastreando parquets gerados para rollback.          |
+| `download_validation.py` | `validate_downloaded_file`    | Helper                | Valida integridade e completude de ZIPs e arquivos Parquet extraídos.                 |
 
 
 ## 🚀 Guia de Uso
@@ -92,7 +96,7 @@ if __name__ == "__main__":
 | Parâmetro          | Tipo        | Obrigatório | Descrição                                                                                                          |
 | ------------------ | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
 | `destination_path` | `str`       | Sim         | Caminho base onde as pastas por documento serão criadas.                                                           |
-| `list_docs`        | `List[str]` | Não         | Lista de códigos de documentos. Valores válidos: `DFP`, `ITR`, `FRE`, `FCA`, `CGVN`, `IPE`, `VLMO`. Padrão: todos. |
+| `list_docs`        | `list[str]` | Não         | Lista de códigos de documentos que serão baixados. Valores válidos: `DFP`, `ITR`, `FRE`, `FCA`, `CGVN`, `IPE`, `VLMO`. Padrão: todos. |
 | `initial_year`     | `int`       | Não         | Ano de início da coleta.                                                                                           |
 | `last_year`        | `int`       | Não         | Ano final da coleta.                                                                                               |
 
@@ -112,8 +116,8 @@ if __name__ == "__main__":
 
 Objeto retornado pelo método `execute`, contendo:
 
-- `successful_downloads` (`List[str]`): Lista com os caminhos completos dos arquivos baixados.
-- `failed_downloads` (`Dict[str, str]`): Dicionário onde a chave é o identificador do documento e o valor é a mensagem de erro.
+- `successful_downloads` (`list[str]`): Lista com os caminhos completos dos arquivos baixados.
+- `failed_downloads` (`dict[str, str]`): Dicionário onde a chave é o identificador do documento e o valor é a mensagem de erro.
 - `success_count_downloads` (`int`): Contagem total de sucessos.
 - `error_count_downloads` (`int`): Contagem total de erros.
 
@@ -138,7 +142,7 @@ Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.er
 
 ## 🔎 Como funciona a extração dos arquivos da CVM
 
-A extração é realizada pelo **`ParquetExtractorAdapterCVM`** em `extract.py` — adapter concreto (sem ABC) chamado diretamente pelo facade quando `automatic_extractor=True`. O fluxo completo é:
+A extração é orquestrada pelo **`download_extraction.py`** e executada pelo **`ParquetExtractorAdapterCVM`** (adapter concreto em `extract.py`). O fluxo é acionado de forma automática quando `automatic_extractor=True`. O fluxo completo é:
 
 1. **Listagem dos CSVs dentro do ZIP**
    - O adaptador delega a `ExtractorAdapter.list_files_in_zip` para obter a lista de arquivos com extensão `.csv` presentes no ZIP.
@@ -147,8 +151,10 @@ A extração é realizada pelo **`ParquetExtractorAdapterCVM`** em `extract.py` 
 3. **Rastreamento de arquivos criados**
    - Só após a verificação de existência (`parquet_path.exists()`) o caminho é adicionado à lista `created_files`. Isso garante que apenas arquivos realmente gravados sejam considerados para rollback.
 4. **Transação atômica (all‑or‑nothing)**
-   - Se **qualquer** arquivo falhar, o método `__rollback_extraction` é acionado. Ele remove todos os arquivos listados em `created_files` e lança `ExtractionError` com um resumo das falhas.
-5. **Tratamento de exceções específicas**
+   - Internamente em `extract.py`, se qualquer arquivo falhar, o método `__rollback_extraction` é acionado, removendo todos os arquivos parciais.
+5. **Rastreamento de Artefatos e Validação**
+   - Em `download_extraction.py`, um snapshot do diretório é feito antes da extração. Após a conclusão, os arquivos recém-criados são identificados e passam pela validação (`download_validation.py`) para garantir que não estejam vazios ou corrompidos.
+6. **Tratamento de exceções específicas**
    - `CorruptedZipError` – ZIP inválido ou corrompido.
    - `DiskFullError` – Falta de espaço em disco (propagado imediatamente).
    - `ExtractionError` – Qualquer erro durante a conversão, que dispara o rollback.

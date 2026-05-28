@@ -1,5 +1,4 @@
 import contextlib
-from typing import Dict, Optional
 
 import httpx
 
@@ -40,8 +39,8 @@ class RequestsAdapter:
     async def async_head(
         self,
         url: str,
-        headers: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
         **kwargs,
     ) -> httpx.Response:
         """
@@ -72,8 +71,8 @@ class RequestsAdapter:
         url: str,
         output_path: str,
         chunk_size: int = 8192,
-        headers: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
     ) -> None:
         """
         Asynchronous file download with streaming.
@@ -90,53 +89,38 @@ class RequestsAdapter:
             httpx.RequestError: If network error occurs
             OSError: If disk write fails
         """
-        file_handle = None
         try:
-            async with httpx.AsyncClient(
-                timeout=timeout or self.timeout,
-                follow_redirects=True,
-                max_redirects=self.max_redirects,
-                verify=self.verify,
-                http2=self.http2,
-            ) as client:
-                async with client.stream(
-                    'GET', url, headers=headers
-                ) as response:
-                    response.raise_for_status()
+            async with (
+                httpx.AsyncClient(
+                    timeout=timeout or self.timeout,
+                    follow_redirects=True,
+                    max_redirects=self.max_redirects,
+                    verify=self.verify,
+                    http2=self.http2,
+                ) as client,
+                client.stream('GET', url, headers=headers) as response,
+            ):
+                response.raise_for_status()
 
-                    # Open file for writing
-                    file_handle = open(output_path, 'wb')
-
-                    try:
-                        async for chunk in response.aiter_bytes(
-                            chunk_size=chunk_size
-                        ):
-                            if chunk:
-                                try:
-                                    file_handle.write(chunk)
-                                except OSError as write_err:
-                                    # Critical: disk full, permission error, etc
-                                    raise OSError(
-                                        f'Failed to write chunk to {output_path}: {write_err}'
-                                    ) from write_err
-                    finally:
-                        # Ensure file is closed even on error
-                        if file_handle is not None:
-                            file_handle.close()
-                            file_handle = None
+                with open(output_path, 'wb') as file_handle:
+                    async for chunk in response.aiter_bytes(
+                        chunk_size=chunk_size
+                    ):
+                        if chunk:
+                            try:
+                                file_handle.write(chunk)
+                            except OSError as write_err:
+                                # Critical: disk full, permission error, etc
+                                raise OSError(
+                                    f'Failed to write chunk to {output_path}: {write_err}'
+                                ) from write_err
 
         except Exception:
-            # Clean up partial file on any error
-            if file_handle is not None:
-                with contextlib.suppress(Exception):
-                    file_handle.close()
-
-            # Try to remove partial file
+            # Clean up partial file on any error, then re-raise.
             with contextlib.suppress(Exception):
                 import os
 
                 if os.path.exists(output_path):
                     os.remove(output_path)
 
-            # Re-raise original error
             raise

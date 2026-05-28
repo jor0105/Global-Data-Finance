@@ -11,24 +11,23 @@ Supports:
     - Python: pytest, unittest
 """
 
+import contextlib
+import json
 import subprocess  # nosec
 import sys
-import json
-from pathlib import Path
-from typing import Any, Dict
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 # Fix Windows console encoding
 if hasattr(sys.stdout, 'reconfigure'):
-    try:
+    with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    except (AttributeError, OSError):
-        pass
 
 
 def detect_test_framework(project_path: Path) -> dict:
     """Detect test framework and commands."""
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         'type': 'unknown',
         'framework': None,
         'cmd': None,
@@ -96,7 +95,7 @@ def detect_test_framework(project_path: Path) -> dict:
 
 def run_tests(cmd: list, cwd: Path) -> dict:
     """Run tests and return results."""
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         'passed': False,
         'output': '',
         'error': '',

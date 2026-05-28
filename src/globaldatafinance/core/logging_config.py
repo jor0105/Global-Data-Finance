@@ -54,7 +54,7 @@ import sys
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -85,7 +85,7 @@ class LoggingSettings(BaseSettings):
         description='Log message format',
     )
 
-    log_file: Optional[str] = Field(
+    log_file: str | None = Field(
         default=None, description='Path to log file (None = console only)'
     )
 
@@ -155,8 +155,8 @@ class StructuredFormatter(logging.Formatter):
 
 
 def setup_logging(
-    level: Optional[str] = None,
-    log_file: Optional[str] = None,
+    level: str | None = None,
+    log_file: str | None = None,
     structured: bool = False,
     use_detailed_format: bool = False,
 ) -> None:

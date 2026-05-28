@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Automated UI/UX visual-system workflow.
 
 Wraps the lower-level search and design-system scripts so the skill can keep a
@@ -9,7 +8,7 @@ single operational entrypoint without relying on a slash-command workflow file.
 from __future__ import annotations
 
 import argparse
-from typing import Iterable
+from collections.abc import Iterable
 
 from core import (
     AVAILABLE_STACKS,

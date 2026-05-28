@@ -12,14 +12,16 @@ from globaldatafinance.brazil.b3_data.historical_quotes.client import (
     CreateDocsToExtractUseCaseB3,
     CreateSetToDownloadUseCaseB3,
 )
-from globaldatafinance.brazil.b3_data.historical_quotes.processing import (
-    ExtractionConfigServiceB3,
-)
 from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
     InvalidOutputFilename,
     InvalidProcessingMode,
 )
+from globaldatafinance.brazil.b3_data.historical_quotes.processing import (
+    ExtractionConfigServiceB3,
+)
 from globaldatafinance.macro_exceptions import InvalidDestinationPathError
+
+pytestmark = pytest.mark.unit
 
 
 class TestCreateSetToDownloadUseCaseB3TypeErrors:

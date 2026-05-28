@@ -409,8 +409,6 @@ Consulte o arquivo [LICENSE](https://github.com/jor0105/Global-Data-Finance/blob
 
 ---
 
-**Versão:** 0.1.2
-**Última atualização:** 26/11/2025
 **Status:** 🚀 Projeto em produção! Aberto para contribuições e sugestões.
 
 <div align="center">

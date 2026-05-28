@@ -42,7 +42,7 @@ uv run pre-commit install
 - Seguir **PEP 8**
 - Usar **type hints** em todo código
 - Docstrings no formato **Google Style**
-- Máximo de 88 caracteres por linha (Black)
+- Máximo de 79 caracteres por linha (ruff, Blue-style formatting)
 
 ### Exemplo de Docstring
 
@@ -50,7 +50,7 @@ uv run pre-commit install
 def download_docs(
     self,
     destination_path: str,
-    list_docs: Optional[List[str]] = None
+    list_docs: list[str] | None = None,
 ) -> DownloadResultCVM:
     """Baixa documentos CVM.
 

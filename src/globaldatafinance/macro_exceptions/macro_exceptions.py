@@ -1,6 +1,3 @@
-from typing import Optional
-
-
 class EmptyDirectoryError(Exception):
     def __init__(self, path):
         super().__init__(f'Directory is empty: {path!r}')
@@ -26,14 +23,14 @@ class PathPermissionError(OSError):
 
 
 class NetworkError(Exception):
-    def __init__(self, doc_name: str, message: Optional[str] = None):
+    def __init__(self, doc_name: str, message: str | None = None):
         super().__init__(
             f"Network error while downloading '{doc_name}'. {message or ''}"
         )
 
 
 class TimeoutError(Exception):
-    def __init__(self, doc_name: str, timeout: Optional[float] = None):
+    def __init__(self, doc_name: str, timeout: float | None = None):
         msg = f"Timeout while downloading '{doc_name}'."
         if timeout:
             msg += f' Timeout: {timeout}s.'
@@ -56,7 +53,7 @@ class DiskFullError(OSError):
 
 
 class SecurityError(Exception):
-    def __init__(self, message: str, path: Optional[str] = None):
+    def __init__(self, message: str, path: str | None = None):
         if path:
             super().__init__(f"Security violation: {message} (path: '{path}')")
         else:

@@ -1,7 +1,8 @@
 import contextlib
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import List
+
+import pyarrow.parquet as pq  # type: ignore
 
 from .....core import get_logger
 
@@ -9,21 +10,19 @@ logger = get_logger(__name__)
 
 
 async def merge_temp_files_streaming(
-    temp_files: List[Path],
+    temp_files: list[Path],
     final_output: Path,
     *,
     check_resources: Callable[[], Awaitable[None]],
 ) -> int:
     """Merge temporary parquet files without loading all rows into memory."""
-    import pyarrow.parquet as pq  # type: ignore
-
     if not temp_files:
         logger.warning('No temporary files to merge')
         return 0
 
     if len(temp_files) == 1:
-        logger.info('Only one temp file, renaming to final output')
-        temp_files[0].rename(final_output)
+        logger.info('Only one temp file, replacing final output')
+        temp_files[0].replace(final_output)
         return count_parquet_rows(final_output)
 
     logger.info(
@@ -113,8 +112,6 @@ async def merge_temp_files_streaming(
 
 def count_parquet_rows(path: Path) -> int:
     """Count rows in parquet file without loading rows into memory."""
-    import pyarrow.parquet as pq  # type: ignore
-
     try:
         parquet_file = pq.ParquetFile(str(path))
         result: int = parquet_file.metadata.num_rows

@@ -1,9 +1,11 @@
 import asyncio
+import gc
 import io
 import time
 import zipfile
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import IO, AsyncIterator
+from typing import IO
 
 import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
@@ -57,7 +59,7 @@ class ExtractorAdapter:
                     name for name in names if name.lower().endswith(extension)
                 ]
         except zipfile.BadZipFile as e:
-            raise CorruptedZipError(zip_path, str(e))
+            raise CorruptedZipError(zip_path, str(e)) from e
 
     @staticmethod
     def open_file_from_zip(
@@ -177,13 +179,15 @@ class ExtractorAdapter:
                 await loop.run_in_executor(None, zip_file.close)
 
         except zipfile.BadZipFile as e:
-            raise CorruptedZipError(zip_path, str(e))
+            raise CorruptedZipError(zip_path, str(e)) from e
         except Exception as e:
             if isinstance(
                 e, (ExtractionError, CorruptedZipError, FileNotFoundError)
             ):
                 raise
-            raise ExtractionError(zip_path, f'Error reading TXT from ZIP: {e}')
+            raise ExtractionError(
+                zip_path, f'Error reading TXT from ZIP: {e}'
+            ) from e
 
     def extract_csv_from_zip_to_parquet(
         self,
@@ -195,7 +199,6 @@ class ExtractorAdapter:
         """Extract single CSV from ZIP and convert to Parquet.
 
         Uses streaming processing to avoid loading entire CSV into memory.
-        Falls back to in-memory processing if streaming fails.
 
         Args:
             zip_file: Open ZipFile object
@@ -217,19 +220,9 @@ class ExtractorAdapter:
                 zip_file, csv_filename
             )
 
-            # Try streaming conversion
-            try:
-                self.__stream_csv_to_parquet(
-                    zip_file, csv_filename, parquet_path, encoding
-                )
-            except Exception as stream_error:
-                logger.warning(
-                    f'Streaming failed for {csv_filename}, '
-                    f'attempting fallback: {stream_error}'
-                )
-
-                # Clean up partial file before fallback
-                self.__safe_delete_file(parquet_path, max_attempts=3)
+            self.__stream_csv_to_parquet(
+                zip_file, csv_filename, parquet_path, encoding
+            )
 
         except DiskFullError:
             self.__safe_delete_file(parquet_path)
@@ -240,7 +233,7 @@ class ExtractorAdapter:
             raise ExtractionError(
                 str(parquet_path),
                 f'Error converting {csv_filename} to Parquet: {e}',
-            )
+            ) from e
 
     def __stream_csv_to_parquet(
         self,
@@ -268,16 +261,22 @@ class ExtractorAdapter:
         try:
             with zip_file.open(csv_filename) as csv_file:
                 text_wrapper = io.TextIOWrapper(
-                    csv_file, encoding=encoding, newline=''
+                    csv_file,
+                    encoding=encoding,
+                    newline='',
                 )
-
                 csv_reader = ReadFilesAdapter.read_csv_chunk_size(
                     text_wrapper, chunk_size=self.CHUNK_SIZE_PARQUET
                 )
+                try:
+                    for chunk_df in csv_reader:
+                        if len(chunk_df) == 0:
+                            continue
 
-                for chunk_df in csv_reader:
-                    if len(chunk_df) > 0:
-                        table = pa.Table.from_pandas(chunk_df)
+                        table = pa.Table.from_pandas(
+                            chunk_df,
+                            preserve_index=False,
+                        )
 
                         if writer is None:
                             writer = pq.ParquetWriter(
@@ -293,12 +292,19 @@ class ExtractorAdapter:
                             total_rows += len(chunk_df)
                         except OSError as e:
                             if 'No space left on device' in str(e):
-                                raise DiskFullError(str(parquet_path))
+                                raise DiskFullError(str(parquet_path)) from e
                             raise
+                        finally:
+                            del table
+                            del chunk_df
+                finally:
+                    csv_reader.close()
+                    text_wrapper.close()
 
                 if writer is not None:
                     writer.close()
                     writer_closed = True
+                    self.__release_arrow_memory()
                     logger.debug(
                         f'Completed {csv_filename}: {total_rows} rows written'
                     )
@@ -310,6 +316,17 @@ class ExtractorAdapter:
                 except Exception as close_err:
                     logger.error(f'Failed to close writer: {close_err}')
             raise
+        finally:
+            gc.collect()
+
+    @staticmethod
+    def __release_arrow_memory() -> None:
+        """Return unused Arrow allocations after a bounded CSV stream."""
+        release_unused = getattr(
+            pa.default_memory_pool(), 'release_unused', None
+        )
+        if release_unused is not None:
+            release_unused()
 
     def __safe_delete_file(
         self, file_path: Path, max_attempts: int = 3
@@ -339,7 +356,7 @@ class ExtractorAdapter:
                         str(file_path),
                         f'Cannot delete file after {max_attempts} attempts: {e}. '
                         f'Manual intervention required.',
-                    )
+                    ) from e
                 time.sleep(0.1 * (attempt + 1))
                 logger.debug(
                     f'Retrying deletion of {file_path.name} '

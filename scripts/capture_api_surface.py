@@ -21,7 +21,7 @@ import inspect
 import json
 import re
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 # Strip internal module prefixes from annotation strings so the signature is
 # stable across internal module moves. The public class name (e.g.
@@ -36,15 +36,15 @@ def _normalize_signature(text: str) -> str:
     return _MODULE_PREFIX.sub('', text)
 
 
-def _capture_signatures(cls: type, method_names: List[str]) -> Dict[str, str]:
-    out: Dict[str, str] = {}
+def _capture_signatures(cls: type, method_names: list[str]) -> dict[str, str]:
+    out: dict[str, str] = {}
     for name in method_names:
         method = getattr(cls, name)
         out[name] = _normalize_signature(str(inspect.signature(method)))
     return out
 
 
-def capture() -> Dict[str, Any]:
+def capture() -> dict[str, Any]:
     import globaldatafinance as gdf
     from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 

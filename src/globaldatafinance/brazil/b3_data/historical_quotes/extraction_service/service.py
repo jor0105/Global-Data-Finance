@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Any
 
 from .....core import SimpleProgressBar, get_logger, log_execution_time
-from ..processing import ProcessingModeEnumB3
 from ..cotahist_parser import CotahistParserB3
 from ..parquet_writer import ParquetWriterB3
+from ..processing import ProcessingModeEnumB3
 from ..zip_reader import ZipFileReaderB3
 from .buffered_writer import BufferedParquetWriterB3
 from .resource_policy import ResourcePolicyB3
@@ -43,6 +43,7 @@ class ExtractionServiceB3:
             buffered_writer=self.buffered_writer,
             resource_policy=self.resource_policy,
         )
+        self._closed = False
 
         self._log_initialization()
 
@@ -70,12 +71,19 @@ class ExtractionServiceB3:
             },
         )
 
-    def __del__(self):
-        """Shut down the parser worker pool when the service is garbage collected."""
-        # __del__ may run before __init__ finishes if construction raises mid-way.
+    def close(self) -> None:
+        """Release parser workers owned by this extraction service."""
+        if getattr(self, '_closed', False):
+            return
+
         zip_processor = getattr(self, 'zip_processor', None)
         if zip_processor is not None:
             zip_processor.close()
+        self._closed = True
+
+    def __del__(self):
+        """Fallback cleanup when callers forget to close the service."""
+        self.close()
 
     async def extract_from_zip_files(
         self,
@@ -208,15 +216,17 @@ class ExtractionServiceB3:
                     logger.error(
                         f'Failed to merge temporary files: {e}', exc_info=True
                     )
+                    error_count += 1
                     errors['MERGE'] = str(e)
 
+            output_file = str(output_path) if output_path.exists() else ''
             result_summary: ExtractionSummary = {
                 'total_files': len(zip_files),
                 'success_count': success_count,
                 'error_count': error_count,
                 'total_records': total_records_written,
                 'errors': errors,
-                'output_file': str(output_path),
+                'output_file': output_file,
             }
 
             logger.info('Extraction completed', extra=result_summary)

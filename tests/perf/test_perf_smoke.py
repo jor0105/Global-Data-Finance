@@ -3,7 +3,7 @@
 Estes benchmarks estabelecem uma regua reprodutivel para duas operacoes
 hot path da lib:
 
-1. Geracao de URLs de download CVM (`GenerateUrlsUseCaseCVM`) - compute
+1. Geracao de URLs de download CVM (`generate_urls`) - compute
    puro, sem rede.
 2. Parsing positional de linhas COTAHIST B3 (`CotahistParserB3.parse_line`)
    - compute puro, sem I/O.
@@ -27,7 +27,7 @@ from globaldatafinance.brazil.b3_data.historical_quotes.cotahist_parser import (
     CotahistParserB3,
 )
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
-    GenerateUrlsUseCaseCVM,
+    generate_urls,
 )
 
 
@@ -77,10 +77,9 @@ def test_benchmark_cvm_url_generation(benchmark) -> None:
     Pure-compute path: hits `DictZipsToDownloadCVM` value object logic
     without touching the network.
     """
-    use_case = GenerateUrlsUseCaseCVM()
 
     def _run() -> int:
-        dict_zips, _ = use_case.execute(
+        dict_zips, _ = generate_urls(
             list_docs=['DFP'],
             initial_year=2020,
             last_year=2022,

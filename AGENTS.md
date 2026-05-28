@@ -77,24 +77,27 @@ src/globaldatafinance/
 │       └── result_formatters/
 ├── brazil/                        FEATURE IMPLEMENTATIONS (Brazil sources)
 │   ├── cvm/
-│   │   └── fundamental_stocks_data/        ~5 flat modules
+│   │   └── fundamental_stocks_data/        ~7 flat modules
 │   │       ├── core.py            entities, value objects, validators
 │   │       ├── client.py          use-case-shaped functions + orchestrator
 │   │       ├── http.py            AsyncDownloadAdapterCVM (HTTP I/O)
 │   │       ├── extract.py         ParquetExtractorAdapterCVM (file extraction)
+│   │       ├── download_validation.py  ZIP and Parquet validation helpers
+│   │       ├── download_extraction.py  atomic extraction delegator/snapshotter
 │   │       └── errors.py          feature-specific exceptions
 │   └── b3_data/
-│       ├── historical_quotes/     ~7–8 flat modules
-│       │   ├── core.py            enums, value objects, validators, file-system safety
+│       ├── historical_quotes/     ~11 flat modules
+│       │   ├── models.py          value objects (DocsToExtractorB3)
+│       │   ├── filesystem.py      file-system safety, path validation, COTAHIST matching
+│       │   ├── assets.py          asset name validation and lists
+│       │   ├── processing.py      processing mode enum and validation, filename sanitization
+│       │   ├── years.py           year range limits and validation
 │       │   ├── client.py          use-case-shaped functions + ExtractHistoricalQuotesUseCaseB3 (stateful)
 │       │   ├── cotahist_parser.py positional COTAHIST parser (preserved as own module)
-│       │   ├── parquet_writer.py  Parquet writer (preserved as own module)
-│       │   ├── extraction_service.py  streaming/threadpool orchestration (preserved as own module)
+│       │   ├── parquet_writer/    Parquet writer subpackage (preserved as own module)
+│       │   ├── extraction_service/ streaming/threadpool orchestration subpackage (preserved as own module)
 │       │   ├── zip_reader.py      ZIP reader
 │       │   └── errors.py
-│       ├── Dados_B3_Acoes/        pending-promotion B3 datasets (D8 — in-place; no internal callers)
-│       ├── Dados_B3_FIIs/
-│       └── Opcoes_B3/
 ├── core/                          cross-cutting utilities
 │   ├── config.py                  pydantic-settings configuration
 │   ├── logging_config.py          structured logging setup
@@ -111,57 +114,17 @@ src/globaldatafinance/
 
 ### Test Layout
 
-```text
-tests/
-├── core/                          mirrors src/.../core/
-│   └── utils/
-├── macro_infra/
-├── macro_exceptions/
-├── application/                   covers the public facade
-│   ├── cvm_docs/
-│   └── b3_docs/
-│       └── result_formatters/
-└── brazil/                        per-feature test trees
-    ├── cvm/fundamental_stocks_data/   tests grouped by topic (domain types, use cases, adapters, integration)
-    └── b3_data/historical_quotes/     tests grouped by topic (parser, writer, extraction, integration, type validation)
-```
-
-Test files import from the flat source paths (e.g. `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import DownloadDocumentsUseCaseCVM`). The test subdirectories under each feature are organizational, not architectural — they mirror logical groupings, not the (now removed) Clean Architecture layers.
-
-Test files use `test_*.py`; the pytest config (`pytest.ini`) registers the markers `unit`, `integration`, `slow`, `asyncio` and enforces `--strict-markers`, `--strict-config`, and `--maxfail=1`.
+The `tests/` directory mirrors the `src/` structure. Test files import from flat source paths and use `test_*.py`. They are grouped logically by topic within their feature subdirectory. Pytest config is in `pytest.ini`.
 
 ### Documentation Layout
 
-```text
-docs/
-├── index.md
-├── user-guide/                    installation, quickstart, CVM/B3 usage, FAQ
-├── dev-guide/                     architecture, testing, contributing, advanced usage
-├── reference/                     per-module API reference (cvm-api, b3-api, exceptions)
-└── assets/                        static assets for MkDocs Material
-```
+The MkDocs site lives in `docs/` (user-guide, dev-guide, reference) and is configured via `mkdocs.yml`.
 
-`mkdocs.yml` configures the documentation site; `mkdocs-material` is the theme.
+### Architectural Rules
 
-## Per-source module pattern
-
-Each `brazil/<country>/<source>/` directory uses a flat layout with role-named modules:
-
-- `core.py` — pure data types (entities, value objects, enums), validators, and any path/file-safety helpers. No HTTP, no I/O side-effects beyond filesystem checks.
-- `client.py` — use-case-shaped functions (or stateful orchestrator classes where adapters are reused across calls). Wires `core.py` types and `http.py` / `extract.py` adapters.
-- `http.py` — concrete HTTP/download adapter for the source (e.g. `AsyncDownloadAdapterCVM`). Used directly; no ABC indirection.
-- `extract.py` — concrete file/extraction adapter (e.g. `ParquetExtractorAdapterCVM`). Used directly; no ABC indirection.
-- `errors.py` — feature-specific exception classes (subclasses of `macro_exceptions` bases).
-- Heavy parsing/IO modules (e.g. B3 `cotahist_parser.py`, `parquet_writer.py`, `extraction_service.py`) stay as their own modules when their size or focus justifies it.
-
-Cross-cutting rules:
-
-- The public facade lives in `application/<facade>/<source>.py` and imports directly from the flat source modules (e.g. `from ...brazil.cvm.fundamental_stocks_data import DownloadDocumentsUseCaseCVM`).
-- `core/` and `macro_infra/` are shared utilities consumable from any module, but they must stay generic — feature-specific logic does not belong here.
-- `macro_exceptions/` holds project-wide exception base classes; feature-specific exceptions live inside the feature's `errors.py`.
-- Intermediate `__init__.py` files (`brazil/__init__.py`, `brazil/<country>/__init__.py`, `brazil/<country_data>/__init__.py`) are intentionally near-empty. Re-exports live in two canonical places: the top-level `globaldatafinance/__init__.py` and each source's `__init__.py`.
-
-When adding a new data source, create a new folder under the appropriate country/market namespace with the flat module set above (`core.py` + `client.py` minimum), and expose the public class via a new module under `src/globaldatafinance/application/`.
+- **Per-source modules**: Each `brazil/<country>/<source>/` uses a flat layout with role-named modules (`core.py` for pure data types/validators, `client.py` for use-cases wiring adapters, `http.py`/`extract.py` for concrete adapters, `errors.py` for specific exceptions). Heavy I/O/parsers stay as separate modules.
+- **Cross-cutting**: `core/` and `macro_infra/` hold generic shared utilities. Feature-specific logic never goes here.
+- **Adding a new source**: Create a new folder under `brazil/<country>/` with the flat module set above (`core.py` + `client.py` minimum). Expose the public class via a new module under `src/globaldatafinance/application/`.
 
 ## Public API Surface
 
@@ -173,16 +136,15 @@ from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 
 These two classes are re-exported in `src/globaldatafinance/__init__.py`. Any new public entrypoint must be re-exported there to be part of the API contract. Treat additions as semver-relevant changes.
 
-**Pending-promotion paths.** `brazil/b3_data/{Dados_B3_Acoes, Dados_B3_FIIs, Opcoes_B3}`, `brazil/gerais/`, and `brazil/app_geral.py` are kept in-place but are explicitly **out of scope** for the flat per-source pattern. They have no internal callers and will be promoted (per source) in future OpenSpec changes that bring each one onto the `core.py` / `client.py` convention.
 
 ## Design Patterns In Use
 
 - **Function-per-operation in `client.py`**: most operations are module-level functions or classes with a single public method, called directly from the facade — no `execute(...)`-only wrappers and no single-impl ABCs. Classes are reserved for genuine stateful orchestration (e.g. `ExtractHistoricalQuotesUseCaseB3` caches its adapters across calls).
-- **Concrete adapters, no ABC indirection**: HTTP and extraction adapters (`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, etc.) are imported and constructed directly. The pre-refactor `DownloadDocsCVMRepositoryCVM` / `FileExtractorRepositoryCVM` interfaces and `ExtractionServiceFactoryB3` were removed when they had a single implementation.
+- **Concrete adapters, no ABC indirection**: HTTP and extraction adapters (`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, etc.) are imported and constructed directly.
 - **Result objects**: operations return typed result dataclasses (e.g. `DownloadResultCVM`) with explicit success / failure breakdowns instead of raising for partial failures.
-- **Value Objects**: immutable types (e.g. `DictZipsToDownloadCVM`, `DocsToExtractorB3`) encapsulate validation and construction; they live in `core.py`.
+- **Value Objects**: immutable types (e.g. `DictZipsToDownloadCVM`, `DocsToExtractorB3`) encapsulate validation and construction; they live in `core.py` (ou `models.py` para B3).
 - **Formatter separation**: presentation/console output lives in dedicated `*_formatter.py` modules under `application/` so the `client.py` layer stays I/O-free.
-- **Path-traversal defense as contract**: `VerifyPathsUseCasesCVM` (CVM `client.py`) and the `validate_directory_path` helper (B3 `core.py`) raise `SecurityError` before any `mkdir`, blocking writes to `/etc /sys /proc /dev /boot /root`. Behavior must stay bit-identical when these helpers move.
+- **Path-traversal defense as contract**: `VerifyPathsUseCasesCVM` (CVM `client.py`) and the `FileSystemServiceB3` helper (B3 `filesystem.py`) raise `SecurityError` (ou `PathPermissionError`) before any `mkdir`, blocking writes to `/etc /sys /proc /dev /boot /root`. Behavior must stay bit-identical when these helpers move.
 
 See `docs/dev-guide/architecture.md` for worked examples of each pattern.
 
@@ -199,13 +161,8 @@ See `docs/dev-guide/architecture.md` for worked examples of each pattern.
 
 - `pyproject.toml` is the single source of truth for dependencies, build, and tooling config. Project pins **Python 3.12+** (also classified for 3.13 / 3.14).
 - `core/config.py` uses `pydantic-settings` for runtime configuration where applicable.
-- Tooling config (all inside `pyproject.toml` unless noted):
-  - `ruff`: `line-length = 79`, single quotes, Blue-style formatting.
-  - `mypy`: `python_version = "3.12"`, `warn_return_any`, `ignore_missing_imports`.
-  - `bandit`: excludes `.venv`; tests skip `B101`/`B108`.
-  - `pydocstyle`: Google convention, only on non-test files.
-  - `pytest.ini`: testpaths `tests`, coverage `fail_under = 70`, strict markers/config.
-  - `.pre-commit-config.yaml`: orchestrates lint/format/typecheck/security hooks.
+- Tooling config (ruff, mypy, bandit, pydocstyle) lives in `pyproject.toml` and test config in `pytest.ini`. Read those files for specifics.
+- `.pre-commit-config.yaml` orchestrates lint/format/typecheck/security hooks.
 
 ## Validation Workflow
 

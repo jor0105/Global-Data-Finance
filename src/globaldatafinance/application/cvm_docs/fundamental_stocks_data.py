@@ -27,15 +27,14 @@ Example:
     >>> print(f"Downloaded {result.success_count_downloads} files successfully")
 """
 
-from typing import Dict, List, Optional
-
 from ...brazil.cvm.fundamental_stocks_data import (
     AsyncDownloadAdapterCVM,
+    AvailableYearsInfoCVM,
     DownloadDocumentsUseCaseCVM,
     DownloadResultCVM,
-    GetAvailableDocsUseCaseCVM,
-    GetAvailableYearsUseCaseCVM,
     ParquetExtractorAdapterCVM,
+    get_available_docs,
+    get_available_years,
 )
 from ...core import get_logger
 from .download_result_formatter import DownloadResultFormatter
@@ -52,8 +51,6 @@ class FundamentalStocksDataCVM:
 
     You can also customize the adapter:
     - AsyncDownloadAdapterCVM (default): Fast, no external dependencies
-    - Aria2cAdapter: Maximum speed (5-10x faster), requires aria2 installation
-    - WgetDownloadAdapter: Original single-threaded, for compatibility
 
     Attributes:
         None - all dependencies are managed internally
@@ -76,8 +73,8 @@ class FundamentalStocksDataCVM:
         ...     last_year=2023
         ... )
         >>>
-        >>> if result.has_errors():
-        ...     print(f"Some downloads failed: {result.errors}")
+        >>> if result.error_count_downloads > 0:
+        ...     print(f"Some downloads failed: {result.failed_downloads}")
     """
 
     def __init__(self):
@@ -94,8 +91,6 @@ class FundamentalStocksDataCVM:
         self.__download_use_case = DownloadDocumentsUseCaseCVM(
             self.download_adapter
         )
-        self.__available_docs_use_case = GetAvailableDocsUseCaseCVM()
-        self.__available_years_use_case = GetAvailableYearsUseCaseCVM()
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
@@ -106,9 +101,9 @@ class FundamentalStocksDataCVM:
     def download(
         self,
         destination_path: str,
-        list_docs: Optional[List[str]] = None,
-        initial_year: Optional[int] = None,
-        last_year: Optional[int] = None,
+        list_docs: list[str] | None = None,
+        initial_year: int | None = None,
+        last_year: int | None = None,
         automatic_extractor: bool = False,
     ) -> DownloadResultCVM:
         """Download CVM financial documents to a specified location.
@@ -148,7 +143,7 @@ class FundamentalStocksDataCVM:
             - Methods: add_success_downloads(), add_error_downloads()
 
         Raises:
-            InvalidDocName: If an invalid document type is specified.
+            InvalidDocumentName: If an invalid document type is specified.
             InvalidFirstYear: If initial_year is outside valid range.
             InvalidLastYear: If last_year is outside valid range.
             ValueError: If destination_path is invalid.
@@ -182,18 +177,13 @@ class FundamentalStocksDataCVM:
                 f'got {type(automatic_extractor).__name__}: {automatic_extractor!r}'
             )
 
-        # Override automatic_extractor if explicitly provided
-        if automatic_extractor:
-            self.download_adapter.automatic_extractor = True
-            logger.debug('Automatic extractor enabled for this download')
-        else:
-            self.download_adapter.automatic_extractor = False
-            logger.debug('Automatic extractor disabled for this download')
-
         logger.info(
-            f'Download requested: path={destination_path}, '
-            f'docs={list_docs}, years={initial_year}-{last_year}, '
-            f'auto_extract={automatic_extractor}'
+            'Download requested: path=%s, docs=%s, years=%s-%s, auto_extract=%s',
+            destination_path,
+            list_docs,
+            initial_year,
+            last_year,
+            automatic_extractor,
         )
 
         result: DownloadResultCVM = self.__download_use_case.execute(
@@ -201,11 +191,13 @@ class FundamentalStocksDataCVM:
             list_docs=list_docs,
             initial_year=initial_year,
             last_year=last_year,
+            automatic_extractor=automatic_extractor,
         )
 
         logger.info(
-            f'Download completed: {result.success_count_downloads} successful, '
-            f'{result.error_count_downloads} errors'
+            'Download completed: %d successful, %d errors',
+            result.success_count_downloads,
+            result.error_count_downloads,
         )
 
         # Display formatted output
@@ -214,7 +206,73 @@ class FundamentalStocksDataCVM:
         # Return the result for programmatic access
         return result
 
-    def get_available_docs(self) -> Dict[str, str]:
+    async def async_download(
+        self,
+        destination_path: str,
+        list_docs: list[str] | None = None,
+        initial_year: int | None = None,
+        last_year: int | None = None,
+        automatic_extractor: bool = False,
+    ) -> DownloadResultCVM:
+        """Asynchronous variant of :meth:`download`.
+
+        Same behavior and arguments as :meth:`download`, but awaits the
+        download inside the caller's event loop instead of spinning a new
+        one via ``asyncio.run``. Use this when composing CVM downloads into
+        already-async code (the synchronous :meth:`download` raises
+        ``RuntimeError`` if called from within a running loop).
+
+        Example:
+            >>> import asyncio
+            >>> cvm = FundamentalStocksDataCVM()
+            >>>
+            >>> async def main():
+            ...     return await cvm.async_download(
+            ...         destination_path="/home/user/cvm_data",
+            ...         list_docs=["DFP"],
+            ...         initial_year=2022,
+            ...     )
+            >>>
+            >>> result = asyncio.run(main())
+        """
+        if not isinstance(automatic_extractor, bool):
+            raise TypeError(
+                f'automatic_extractor must be a boolean (True or False), '
+                f'got {type(automatic_extractor).__name__}: '
+                f'{automatic_extractor!r}'
+            )
+
+        logger.info(
+            'Async download requested: path=%s, docs=%s, years=%s-%s, '
+            'auto_extract=%s',
+            destination_path,
+            list_docs,
+            initial_year,
+            last_year,
+            automatic_extractor,
+        )
+
+        result: DownloadResultCVM = (
+            await self.__download_use_case.execute_async(
+                destination_path=destination_path,
+                list_docs=list_docs,
+                initial_year=initial_year,
+                last_year=last_year,
+                automatic_extractor=automatic_extractor,
+            )
+        )
+
+        logger.info(
+            'Async download completed: %d successful, %d errors',
+            result.success_count_downloads,
+            result.error_count_downloads,
+        )
+
+        self.__result_formatter.print_result(result)
+
+        return result
+
+    def get_available_docs(self) -> dict[str, str]:
         """Get all available CVM document types with descriptions.
 
         This method retrieves a mapping of document type codes to their
@@ -242,43 +300,44 @@ class FundamentalStocksDataCVM:
             ...     print(f"DFP available: {docs['DFP']}")
         """
         logger.debug('Retrieving available document types')
-        result: Dict[str, str] = self.__available_docs_use_case.execute()
+        result: dict[str, str] = get_available_docs()
         return result
 
-    def get_available_years(self) -> Dict[str, int]:
+    def get_available_years(self) -> AvailableYearsInfoCVM:
         """Get information about available years for CVM documents.
 
         This method returns the year ranges for which documents are available,
         including minimum years for different document types and the current year.
 
         Returns:
-            Dictionary with year information:
-            - 'General Document Years': Minimum year for general documents (e.g., 2000)
-            - 'ITR Document Years': Minimum year for ITR documents (e.g., 2011)
-            - 'CGVN and VMLO Document Years': Minimum year for CGVN/VLMO (e.g., 2017)
-            - 'Current Year': Current year (e.g., 2025)
+            AvailableYearsInfoCVM named tuple with:
+            - general_min_year: Minimum year for general documents (e.g., 2010)
+            - itr_min_year: Minimum year for ITR documents (e.g., 2011)
+            - cgvn_vlmo_min_year: Minimum year for CGVN/VLMO (e.g., 2018)
+            - current_year: Current year (e.g., 2026)
 
         Example:
             >>> cvm = FundamentalStocksDataCVM()
             >>> years = cvm.get_available_years()
             >>>
-            >>> # Display available year ranges
-            >>> print(f"General documents available from: {years['General Document Years']}")
-            >>> print(f"ITR documents available from: {years['ITR Document Years']}")
-            >>> print(f"Current year: {years['Current Year']}")
+            >>> # Access via typed attributes (IDE-friendly)
+            >>> print(f"General documents available from: {years.general_min_year}")
+            >>> print(f"ITR documents available from: {years.itr_min_year}")
+            >>> print(f"Current year: {years.current_year}")
+            >>>
+            >>> # Dict escape hatch for backward compat
+            >>> years_dict = years._asdict()
             >>>
             >>> # Use this info to make informed download requests
-            >>> minimal_year = years['General Document Years']
-            >>> max_year = years['Current Year']
             >>> result = cvm.download(
             ...     destination_path="/data",
             ...     list_docs=["DFP"],
-            ...     initial_year=minimal_year,
-            ...     last_year=max_year
+            ...     initial_year=years.general_min_year,
+            ...     last_year=years.current_year
             ... )
         """
         logger.debug('Retrieving available years information')
-        result: Dict[str, int] = self.__available_years_use_case.execute()
+        result: AvailableYearsInfoCVM = get_available_years()
         return result
 
     def __repr__(self) -> str:

@@ -8,7 +8,6 @@ import re
 import sys
 from pathlib import Path
 
-
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = AGENTS_ROOT / 'skills'
 INDEX_FILE = AGENTS_ROOT / 'skill-index.md'

@@ -4,7 +4,7 @@ This module provides formatted output for B3 historical quotes extraction result
 making it easy for users to understand what happened during the extraction process.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
 class ExtractionResultFormatter:
@@ -41,7 +41,7 @@ class ExtractionResultFormatter:
             return f'{color}{text}{self.RESET}'
         return text
 
-    def print_result(self, result: Dict[str, Any]) -> None:
+    def print_result(self, result: dict[str, Any]) -> None:
         """Print formatted extraction results.
 
         Args:

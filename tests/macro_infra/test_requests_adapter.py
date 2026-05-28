@@ -102,7 +102,7 @@ class TestRequestsAdapterDownload:
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_open.return_value = mock_file
+        mock_open.return_value.__enter__.return_value = mock_file
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
@@ -112,7 +112,7 @@ class TestRequestsAdapterDownload:
         assert mock_file.write.call_count == 2
         mock_file.write.assert_any_call(b'chunk1')
         mock_file.write.assert_any_call(b'chunk2')
-        mock_file.close.assert_called_once()
+        mock_open.return_value.__exit__.assert_called_once()
 
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
@@ -139,7 +139,7 @@ class TestRequestsAdapterDownload:
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_open.return_value = mock_file
+        mock_open.return_value.__enter__.return_value = mock_file
 
         adapter = RequestsAdapter()
         await adapter.async_download_file(
@@ -217,7 +217,7 @@ class TestRequestsAdapterDownload:
 
         mock_file = MagicMock()
         mock_file.write.side_effect = OSError('Disk full')
-        mock_open.return_value = mock_file
+        mock_open.return_value.__enter__.return_value = mock_file
 
         mock_exists.return_value = True
 

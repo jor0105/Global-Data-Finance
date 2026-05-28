@@ -1,6 +1,5 @@
 from globaldatafinance import HistoricalQuotesB3
 
-
 b3 = HistoricalQuotesB3()
 
 # result = b3.extract(

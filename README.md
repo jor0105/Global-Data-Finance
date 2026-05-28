@@ -24,7 +24,7 @@ A API pública é deliberadamente estreita (apenas duas classes: `FundamentalSto
 
 ### 🌟 Por que escolher Global-Data-Finance?
 
-- **🚀 Performance**: Downloads assíncronos com `httpx[http2]`, retry/back-off com `tenacity` e concorrência adaptativa monitorada por CPU/RAM (`psutil`).
+- **🚀 Performance**: Downloads assíncronos com `httpx[http2]`, retry/back-off exponencial próprio (`core/utils/retry_strategy.py`) e concorrência adaptativa monitorada por CPU/RAM (`psutil`).
 - **🛡️ Robustez**: Validação de integridade após download, rollback atômico na extração e defesa contra path-traversal em paths sensíveis.
 - **💾 Formato Colunar**: Saída canônica em **Parquet** (via `pyarrow`), pronto para Pandas/Polars.
 - **🧩 Layout Plano por Fonte**: Adicionar uma fonte = criar uma pasta-irmã com 5–8 arquivos nomeados por papel. Sem cerimônia de Clean Architecture, sem ABCs sem polimorfismo real.

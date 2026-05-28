@@ -5,10 +5,10 @@ import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     DictZipsToDownloadCVM,
-    InvalidDocName,
+    InvalidDocumentName,
+    InvalidDocumentType,
     InvalidFirstYear,
     InvalidLastYear,
-    InvalidTypeDoc,
 )
 
 
@@ -20,7 +20,6 @@ class TestDictZipsToDownload:
 
     def test_initialization(self, dict_zips):
         assert dict_zips is not None
-        assert hasattr(dict_zips, '_url_docs')
         assert hasattr(dict_zips, '_available_years')
 
     def test_get_dict_zips_to_download_returns_dict(self, dict_zips):
@@ -214,13 +213,13 @@ class TestDictZipsToDownload:
     def test_get_dict_zips_to_download_with_invalid_doc_raises_error(
         self, dict_zips
     ):
-        with pytest.raises(InvalidDocName):
+        with pytest.raises(InvalidDocumentName):
             dict_zips.get_dict_zips_to_download(['INVALID_DOC'], 2020, 2020)
 
     def test_get_dict_zips_to_download_with_non_string_doc_raises_error(
         self, dict_zips
     ):
-        with pytest.raises(InvalidTypeDoc):
+        with pytest.raises(InvalidDocumentType):
             dict_zips.get_dict_zips_to_download([123], 2020, 2020)
 
     def test_get_dict_zips_to_download_with_invalid_first_year_raises_error(
@@ -429,26 +428,24 @@ class TestDictZipsToDownload:
         assert len(result3['ITR']) == 1
 
     @patch(
-        'globaldatafinance.brazil.cvm.fundamental_stocks_data.core.UrlDocsCVM'
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.core.get_url_docs'
     )
     @patch(
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.core.AvailableYearsCVM'
     )
     def test_get_dict_zips_to_download_uses_dependencies_correctly(
-        self, mock_available_years, mock_url_docs
+        self, mock_available_years, mock_get_url_docs
     ):
         mock_years_instance = MagicMock()
         mock_years_instance.return_range_years.return_value = range(2020, 2022)
         mock_available_years.return_value = mock_years_instance
 
-        mock_url_instance = MagicMock()
-        mock_url_instance.get_url_docs.return_value = (
+        mock_get_url_docs.return_value = (
             {
                 'DFP': 'https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_'
             },
             {'DFP'},
         )
-        mock_url_docs.return_value = mock_url_instance
 
         dict_zips_test = DictZipsToDownloadCVM()
         result, set_docs = dict_zips_test.get_dict_zips_to_download(
@@ -458,7 +455,7 @@ class TestDictZipsToDownload:
         mock_years_instance.return_range_years.assert_called_once_with(
             2020, 2021
         )
-        mock_url_instance.get_url_docs.assert_called_once_with(['DFP'])
+        mock_get_url_docs.assert_called_once_with(['DFP'])
 
         assert len(result) == 1
         assert 'DFP' in result

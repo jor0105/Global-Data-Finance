@@ -177,6 +177,21 @@ class TestHistoricalQuotesResultFormatter:
         assert enriched['success'] is False
         assert 'Extraction completed with errors' in enriched['message']
 
+    def test_enrich_result_marks_merge_failure_as_unsuccessful(self):
+        result = {
+            'error_count': 1,
+            'total_records': 0,
+            'success_count': 2,
+            'total_files': 2,
+            'output_file': '',
+            'errors': {'MERGE': 'merge broke'},
+        }
+
+        enriched = HistoricalQuotesResultFormatter.enrich_result(result)
+
+        assert enriched['success'] is False
+        assert 'Extraction completed with errors' in enriched['message']
+
     def test_enrich_result_returns_modified_dict(self):
         result = {
             'error_count': 0,

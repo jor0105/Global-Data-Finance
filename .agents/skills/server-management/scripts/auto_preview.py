@@ -9,12 +9,12 @@ Usage:
     python .agents/skills/server-management/scripts/auto_preview.py status
 """
 
-import os
-import sys
-import json
-import signal
 import argparse
+import json
+import os
+import signal
 import subprocess  # nosec
+import sys
 from pathlib import Path
 
 AGENT_DIR = Path('.agents')
@@ -39,7 +39,7 @@ def get_start_command(root):
     if not pkg_file.exists():
         return None
 
-    with open(pkg_file, 'r') as f:
+    with open(pkg_file) as f:
         data = json.load(f)
 
     scripts = data.get('scripts', {})
@@ -90,7 +90,7 @@ def start_server(port=3000):
 
 def stop_server():
     if not PID_FILE.exists():
-        print('ℹ️  No preview server found.')
+        print('[INFO] No preview server found.')
         return
 
     try:
@@ -104,7 +104,7 @@ def stop_server():
             )
             print(f'🛑 Preview stopped (PID: {pid})')
         else:
-            print('ℹ️  Process was not running.')
+            print('[INFO] Process was not running.')
     except Exception as e:
         print(f'❌ Error stopping server: {e}')
     finally:

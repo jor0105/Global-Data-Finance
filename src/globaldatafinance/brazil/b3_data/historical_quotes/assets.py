@@ -1,11 +1,8 @@
 """Asset class validation and TPMERC code mapping."""
 
-from typing import Dict, List, Set
+from typing import ClassVar
 
-from ....core import get_logger
 from .errors import EmptyAssetListError, InvalidAssetsName
-
-logger = get_logger(__name__)
 
 
 class AvailableAssetsServiceB3:
@@ -24,7 +21,7 @@ class AvailableAssetsServiceB3:
     - 017: AUCTION (Leilão)
     """
 
-    _AVAILABLE_ASSETS_BY_CLASS: Dict[str, List[str]] = {
+    _AVAILABLE_ASSETS_BY_CLASS: ClassVar[dict[str, list[str]]] = {
         'ações': ['010', '020'],
         'etf': ['010', '020'],
         'opções': ['070', '080'],
@@ -35,12 +32,12 @@ class AvailableAssetsServiceB3:
     }
 
     @classmethod
-    def get_available_assets(cls) -> List[str]:
+    def get_available_assets(cls) -> list[str]:
         """Return the list of available asset class names."""
         return list(cls._AVAILABLE_ASSETS_BY_CLASS.keys())
 
     @classmethod
-    def validate_and_create_asset_set(cls, assets_list: List[str]) -> Set[str]:
+    def validate_and_create_asset_set(cls, assets_list: list[str]) -> set[str]:
         """Validate the provided list of asset classes and return a set."""
         if not isinstance(assets_list, list) or not assets_list:
             raise EmptyAssetListError()
@@ -64,26 +61,10 @@ class AvailableAssetsServiceB3:
         return set(assets_list)
 
     @classmethod
-    def get_tpmerc_codes_for_assets(cls, asset_set: Set[str]) -> Set[str]:
-        """Convert a set of asset classes to their corresponding TPMERC codes.
-
-        Invalid asset classes are logged but don't stop processing.
-        """
-        valid_codes: Set[str] = set()
-        invalid_inputs: List[str] = []
-
-        for asset_class in asset_set:
-            normalized_class = asset_class.lower().strip()
-            if normalized_class in cls._AVAILABLE_ASSETS_BY_CLASS:
-                codes = cls._AVAILABLE_ASSETS_BY_CLASS[normalized_class]
-                valid_codes.update(codes)
-            else:
-                invalid_inputs.append(asset_class)
-
-        if invalid_inputs:
-            logger.warning(
-                'Invalid asset classes were ignored',
-                extra={'invalid_inputs': invalid_inputs},
-            )
-
-        return valid_codes
+    def get_tpmerc_codes_for_assets(cls, asset_set: set[str]) -> set[str]:
+        """Convert validated asset classes to their TPMERC codes."""
+        return {
+            code
+            for asset_class in asset_set
+            for code in cls._AVAILABLE_ASSETS_BY_CLASS[asset_class]
+        }

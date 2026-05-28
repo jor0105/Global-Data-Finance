@@ -7,9 +7,9 @@ import argparse
 import json
 import re
 import sys
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
 
 SOURCE_EXTENSIONS = {'.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs'}
 SKIP_DIRS = {

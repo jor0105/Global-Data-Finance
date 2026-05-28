@@ -1,6 +1,9 @@
 from unittest.mock import Mock, patch
 
 from globaldatafinance.application import FundamentalStocksDataCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    AvailableYearsInfoCVM,
+)
 
 
 class TestFundamentalStocksData:
@@ -24,8 +27,8 @@ class TestFundamentalStocksData:
     def test_get_available_years(self):
         cvm = FundamentalStocksDataCVM()
         years = cvm.get_available_years()
-        assert isinstance(years, dict)
-        assert len(years) > 0
+        assert isinstance(years, AvailableYearsInfoCVM)
+        assert hasattr(years, 'general_min_year')
 
     @patch(
         'globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM'
@@ -95,8 +98,9 @@ class TestFundamentalStocksData:
         cvm = FundamentalStocksDataCVM()
 
         cvm.download(destination_path='/data/cvm', automatic_extractor=True)
-
-        assert cvm.download_adapter.automatic_extractor is True
+        mock_download_instance.execute.assert_called_once()
+        call_args = mock_download_instance.execute.call_args
+        assert call_args[1]['automatic_extractor'] is True
 
     @patch(
         'globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM'
@@ -254,20 +258,17 @@ class TestFundamentalStocksData:
         docs = cvm.get_available_docs()
         assert isinstance(docs, dict)
 
-    def test_get_available_years_returns_dict(self):
+    def test_get_available_years_returns_named_tuple(self):
         cvm = FundamentalStocksDataCVM()
         years = cvm.get_available_years()
-        assert isinstance(years, dict)
+        assert isinstance(years, AvailableYearsInfoCVM)
 
     def test_initialization_creates_use_cases(self):
         cvm = FundamentalStocksDataCVM()
+        # The stateless docs/years use cases became module-level functions
+        # (Phase 4.1) and are no longer cached on the instance; only the
+        # stateful download orchestrator and the formatter are held.
         assert hasattr(cvm, '_FundamentalStocksDataCVM__download_use_case')
-        assert hasattr(
-            cvm, '_FundamentalStocksDataCVM__available_docs_use_case'
-        )
-        assert hasattr(
-            cvm, '_FundamentalStocksDataCVM__available_years_use_case'
-        )
         assert hasattr(cvm, '_FundamentalStocksDataCVM__result_formatter')
 
     @patch(

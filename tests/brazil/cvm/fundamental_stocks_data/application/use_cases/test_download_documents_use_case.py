@@ -6,7 +6,7 @@ import pytest
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCaseCVM,
     DownloadResultCVM,
-    InvalidDocName,
+    InvalidDocumentName,
     InvalidFirstYear,
 )
 
@@ -15,10 +15,17 @@ class MockRepository:
     def __init__(self):
         self.download_docs_called = False
         self.last_tasks = None
+        self.last_automatic_extractor = None
 
-    def download_docs(self, tasks: list) -> DownloadResultCVM:
+    def download_docs(
+        self,
+        tasks: list,
+        *,
+        automatic_extractor: bool = False,
+    ) -> DownloadResultCVM:
         self.download_docs_called = True
         self.last_tasks = tasks
+        self.last_automatic_extractor = automatic_extractor
 
         return DownloadResultCVM(successful_downloads=['DFP_2020', 'DFP_2021'])
 
@@ -214,7 +221,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
-        with pytest.raises(InvalidDocName):
+        with pytest.raises(InvalidDocumentName):
             use_case.execute(
                 destination_path=str(tmp_path),
                 list_docs=['INVALID'],
@@ -240,7 +247,12 @@ class TestDownloadDocumentsUseCaseErrorHandling:
 
     def test_repository_error_is_propagated(self, tmp_path):
         class ErrorRepository:
-            def download_docs(self, tasks):
+            def download_docs(
+                self,
+                tasks,
+                *,
+                automatic_extractor=False,
+            ):
                 raise RuntimeError('Download failed')
 
         error_repo = ErrorRepository()
@@ -263,20 +275,6 @@ class TestDownloadDocumentsUseCaseInitialization:
 
         assert use_case is not None
         assert use_case._DownloadDocumentsUseCaseCVM__repository is mock_repo
-
-    def test_init_creates_sub_use_cases(self):
-        mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
-
-        assert hasattr(use_case, '_DownloadDocumentsUseCaseCVM__url_generator')
-        assert hasattr(
-            use_case, '_DownloadDocumentsUseCaseCVM__range_years_generator'
-        )
-        assert use_case._DownloadDocumentsUseCaseCVM__url_generator is not None
-        assert (
-            use_case._DownloadDocumentsUseCaseCVM__range_years_generator
-            is not None
-        )
 
 
 @pytest.mark.unit
@@ -568,7 +566,12 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
 
 
 class MockRepositoryWithFailures:
-    def download_docs(self, tasks: list) -> DownloadResultCVM:
+    def download_docs(
+        self,
+        tasks: list,
+        *,
+        automatic_extractor: bool = False,
+    ) -> DownloadResultCVM:
         return DownloadResultCVM(
             successful_downloads=['DFP_2020'],
             failed_downloads={'DFP_2021': 'connection reset'},

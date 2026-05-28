@@ -62,15 +62,57 @@ class AsyncDownloadAdapterCVM:
         )
 
         logger.debug(
-            f'AsyncDownloadAdapterCVM initialized with max_concurrent={max_concurrent}, '
-            f'http2={http2}, timeout={timeout}'
+            'AsyncDownloadAdapterCVM initialized with max_concurrent=%d, http2=%s, timeout=%s',
+            max_concurrent,
+            http2,
+            timeout,
         )
 
     def download_docs(
         self,
         tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
     ) -> DownloadResultCVM:
-        """Asynchronously download documents."""
+        """Synchronously download documents.
+
+        Thin wrapper that owns the event loop via ``asyncio.run``. Call
+        :meth:`async_download_docs` directly to compose downloads into
+        already-async code.
+
+        Args:
+            tasks: List of download tasks to execute.
+            automatic_extractor: If ``True``, extract downloaded ZIPs
+                to Parquet after download.  When ``None`` (the default),
+                falls back to ``self.automatic_extractor``.
+        """
+        return asyncio.run(
+            self.async_download_docs(
+                tasks,
+                automatic_extractor=automatic_extractor,
+            )
+        )
+
+    async def async_download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
+        """Asynchronously download documents in the current event loop.
+
+        Args:
+            tasks: List of download tasks to execute.
+            automatic_extractor: If ``True``, extract downloaded ZIPs
+                to Parquet after download.  When ``None`` (the default),
+                falls back to ``self.automatic_extractor``.
+        """
+        effective_extractor = (
+            automatic_extractor
+            if automatic_extractor is not None
+            else self.automatic_extractor
+        )
+
         result = DownloadResultCVM()
         total_files = len(tasks)
 
@@ -79,23 +121,31 @@ class AsyncDownloadAdapterCVM:
             return result
 
         logger.info(
-            f'Starting async download of {total_files} files '
-            f'with {self.max_concurrent} concurrent downloads'
+            'Starting async download of %d files with %d concurrent downloads',
+            total_files,
+            self.max_concurrent,
         )
 
-        asyncio.run(self._execute_async_downloads(tasks, result))
+        await self._run_downloads(
+            tasks,
+            result,
+            automatic_extractor=effective_extractor,
+        )
 
         logger.info(
-            f'Download completed: {result.success_count_downloads} successful, '
-            f'{result.error_count_downloads} errors'
+            'Download completed: %d successful, %d errors',
+            result.success_count_downloads,
+            result.error_count_downloads,
         )
 
         return result
 
-    async def _execute_async_downloads(
+    async def _run_downloads(
         self,
         tasks: list[DownloadTaskCVM],
         result: DownloadResultCVM,
+        *,
+        automatic_extractor: bool = False,
     ) -> None:
         """Execute async downloads with concurrency control."""
         progress_bar = SimpleProgressBar(
@@ -107,7 +157,13 @@ class AsyncDownloadAdapterCVM:
             async with semaphore:
                 url, doc_name, year, dest_path = task
                 await self._download_and_extract(
-                    url, dest_path, doc_name, year, result, progress_bar
+                    url,
+                    dest_path,
+                    doc_name,
+                    year,
+                    result,
+                    progress_bar,
+                    automatic_extractor=automatic_extractor,
                 )
 
         try:
@@ -124,6 +180,8 @@ class AsyncDownloadAdapterCVM:
         year: str,
         result: DownloadResultCVM,
         progress_bar: SimpleProgressBar,
+        *,
+        automatic_extractor: bool = False,
     ) -> None:
         """Download a file and extract its contents."""
         filename = url.split('/')[-1].split('?')[0] or 'download'
@@ -137,6 +195,7 @@ class AsyncDownloadAdapterCVM:
                 doc_name=doc_name,
                 year=year,
                 result=result,
+                automatic_extractor=automatic_extractor,
             )
         finally:
             progress_bar.update(1)
@@ -149,6 +208,8 @@ class AsyncDownloadAdapterCVM:
         doc_name: str,
         year: str,
         result: DownloadResultCVM,
+        *,
+        automatic_extractor: bool = False,
     ) -> None:
         success, error_msg = await self._download_with_retry(
             url, filepath, doc_name, year
@@ -164,8 +225,9 @@ class AsyncDownloadAdapterCVM:
         expected_size = await self._get_content_length(url)
         if not self._validate_downloaded_file(filepath, expected_size):
             logger.error(
-                f'Downloaded file validation failed for {document_key}: '
-                f'{filepath}'
+                'Downloaded file validation failed for %s: %s',
+                document_key,
+                filepath,
             )
             self._add_download_error(
                 result,
@@ -175,7 +237,7 @@ class AsyncDownloadAdapterCVM:
             remove_file(filepath, log_on_error=True)
             return
 
-        if self.automatic_extractor:
+        if automatic_extractor:
             self._extract_downloaded_file(
                 filepath=filepath,
                 dest_path=dest_path,
@@ -186,7 +248,7 @@ class AsyncDownloadAdapterCVM:
             return
 
         self._add_download_success(result, document_key)
-        logger.info(f'✓ Downloaded {document_key} (extraction disabled)')
+        logger.info('✓ Downloaded %s (extraction disabled)', document_key)
 
     def _extract_downloaded_file(
         self,
@@ -223,15 +285,19 @@ class AsyncDownloadAdapterCVM:
                         attempt - 1
                     )
                     logger.info(
-                        f'Retry {attempt}/{self.max_retries} for {doc_name}_{year} '
-                        f'after {backoff:.1f}s'
+                        'Retry %d/%d for %s_%s after %.1fs',
+                        attempt,
+                        self.max_retries,
+                        doc_name,
+                        year,
+                        backoff,
                     )
                     await asyncio.sleep(backoff)
 
-                logger.debug(f'Downloading {doc_name}_{year} (async)')
+                logger.debug('Downloading %s_%s (async)', doc_name, year)
 
                 await self._stream_download(url, filepath)
-                logger.info(f'Successfully downloaded {doc_name}_{year}')
+                logger.info('Successfully downloaded %s_%s', doc_name, year)
                 return True, None
 
             except Exception as e:
@@ -242,14 +308,21 @@ class AsyncDownloadAdapterCVM:
                     or attempt >= self.max_retries
                 ):
                     logger.error(
-                        f'Download failed for {doc_name}_{year}: '
-                        f'{type(e).__name__}: {e}'
+                        'Download failed for %s_%s: %s: %s',
+                        doc_name,
+                        year,
+                        type(e).__name__,
+                        e,
                     )
                     break
 
                 logger.warning(
-                    f'Download error for {doc_name}_{year} '
-                    f'(attempt {attempt + 1}/{self.max_retries + 1}): {e}'
+                    'Download error for %s_%s (attempt %d/%d): %s',
+                    doc_name,
+                    year,
+                    attempt + 1,
+                    self.max_retries + 1,
+                    e,
                 )
 
         remove_file(filepath, log_on_error=False)
@@ -282,15 +355,17 @@ class AsyncDownloadAdapterCVM:
             if content_length:
                 size_bytes = int(content_length)
                 logger.debug(
-                    f'Content-Length for {url}: {size_bytes / 1024 / 1024:.2f} MB'
+                    'Content-Length for %s: %.2f MB',
+                    url,
+                    size_bytes / 1024 / 1024,
                 )
                 return size_bytes
             else:
-                logger.debug(f'No Content-Length header for {url}')
+                logger.debug('No Content-Length header for %s', url)
                 return None
 
         except Exception as e:
-            logger.warning(f'Failed to get Content-Length for {url}: {e}')
+            logger.warning('Failed to get Content-Length for %s: %s', url, e)
             return None
 
     def _validate_downloaded_file(
