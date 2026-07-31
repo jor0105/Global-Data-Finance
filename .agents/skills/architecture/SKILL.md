@@ -1,13 +1,13 @@
 ---
 name: architecture
 description: >
-  Use para guiar decisões de arquitetura de software, revisar propostas estruturais
-  e comparar alternativas com trade-offs explícitos. Ative quando o usuário pedir
-  "como separo esses módulos?", "isso fica no backend ou no frontend?", "devo
-  extrair um serviço agora ou manter no monólito?", "vale usar fila, CQRS ou
-  event-driven aqui?", "preciso de um ADR", "essa arquitetura está acoplada
-  demais?" ou trouxer dúvidas informais sobre fronteiras, responsabilidades,
-  deploy, consistência, operabilidade, custo de mudança e evolução do sistema.
+  Use para decisões estruturais de software com trade-offs reais. Ative quando o
+  usuário perguntar "isso fica onde?", "separo em módulos?", "crio outro
+  serviço?", "vale usar fila?", "monólito ou serviço?", "isso está acoplado
+  demais?", "preciso de ADR" ou "como organizo essa responsabilidade?". Cobre
+  fronteiras, ownership, consistência, deploy, operabilidade e custo de mudança.
+  Não use para bug isolado, refactor local já delimitado, escolha de índice,
+  layout visual ou plano simples sem decisão arquitetural.
 ---
 
 # Architecture
@@ -52,7 +52,7 @@ Se o problema tocar HTTP, handlers, authz, status codes ou contratos de API, use
 consistencia ou ownership, use `database-design`. Se virar RLS, grants, pooling,
 service role ou tuning especifico de Supabase/Postgres, use
 `supabase-postgres-best-practices`. Se a dúvida for organização local de componente,
-hook ou módulo, use `modularizar`, `frontend-design` ou `react-performance`.
+hook ou módulo, use `modularizar` ou `frontend-design`.
 
 ## Procedimento
 

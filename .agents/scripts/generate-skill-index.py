@@ -36,6 +36,29 @@ def parse_value(raw: str) -> object:
     return raw
 
 
+def _consume_multiline_value(
+    lines: list[str],
+    index: int,
+) -> tuple[str, int]:
+    paragraphs: list[str] = []
+    current_paragraph: list[str] = []
+    while index < len(lines):
+        continuation = lines[index]
+        if not continuation.startswith((' ', '\t')):
+            break
+        stripped = continuation.strip()
+        if stripped:
+            current_paragraph.append(stripped)
+        elif current_paragraph:
+            paragraphs.append(' '.join(current_paragraph))
+            current_paragraph = []
+        index += 1
+
+    if current_paragraph:
+        paragraphs.append(' '.join(current_paragraph))
+    return '\n\n'.join(paragraphs), index
+
+
 def parse_frontmatter(path: Path) -> dict[str, object]:
     text = path.read_text(encoding='utf-8')
     match = re.match(r'---\n(.*?)\n---\n', text, re.S)
@@ -55,25 +78,7 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
         value = raw.strip()
 
         if value in {'>', '|', '>-', '|-'}:
-            index += 1
-            paragraphs: list[str] = []
-            current_paragraph: list[str] = []
-            while index < len(lines):
-                continuation = lines[index]
-                if not continuation.startswith((' ', '\t')):
-                    break
-                stripped = continuation.strip()
-                if stripped:
-                    current_paragraph.append(stripped)
-                elif current_paragraph:
-                    paragraphs.append(' '.join(current_paragraph))
-                    current_paragraph = []
-                index += 1
-
-            if current_paragraph:
-                paragraphs.append(' '.join(current_paragraph))
-
-            metadata[key] = '\n\n'.join(paragraphs)
+            metadata[key], index = _consume_multiline_value(lines, index + 1)
             continue
 
         metadata[key] = parse_value(raw)

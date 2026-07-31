@@ -5,7 +5,7 @@
 - `.agents/workflows/` é a fonte canônica. A skill roteia e reforça regras; ela não substitui os prompts `OPSX`.
 - Use `openspec status` e `openspec instructions` sempre que houver dúvida sobre schema, ordem de artefatos, estados `ready/blocked/done` ou arquivos de contexto.
 - Não reintroduza instruções baseadas em arquivos flat em `openspec/changes/*.md` como caminho padrão de execução.
-- Sempre que editar um prompt ativo em `.agents/workflows/`, sincronize o espelho em `.github/prompts/`.
+- Sempre que editar um prompt ativo em `.agents/workflows/`, sincronize os espelhos em `.github/prompts/` e `.opencode/commands/`, preferencialmente com `python3 .agents/scripts/sync-workflows.py`.
 
 ## Diferença crítica de seleção
 
@@ -14,6 +14,12 @@
 - `bulk-archive` sempre usa multi-seleção explícita.
 
 ## Guardrails por comando
+
+### `new` e `ff`
+
+- Executar o *Preflight Spec Consistency Check* antes de scaffoldar a mudança.
+- Identificar changes ativas com delta specs e avisar se houver alterações de specs em andamento.
+- Recomendar proativamente `/opsx:sync` e `/opsx:archive` caso exista alguma change concluída cujos delta specs não foram mesclados em `openspec/specs/`.
 
 ### `continue`
 

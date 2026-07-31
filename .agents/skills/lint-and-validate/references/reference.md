@@ -14,7 +14,7 @@ Use `lint-and-validate` quando o trabalho principal for validacao objetiva de um
 - escolher o comando canonico de verificacao sem inventar fluxo local;
 - validar diff comum com gates repo-native e `gate-report`;
 - validar uma skill contra `skill-governance`;
-- validar agents, manifests e protocol skills do reviewer.
+- validar agents, manifests e o protocolo `review-workflow`.
 
 ## Por que usar esta skill
 
@@ -22,7 +22,7 @@ Ela existe para evitar tres erros comuns:
 
 - escolher gates manualmente por intuicao;
 - misturar falha de ambiente com falha de codigo;
-- encerrar uma entrega sem evidencias reutilizaveis para reviewer, tester ou security.
+- encerrar uma entrega sem evidencias reutilizaveis para `review-workflow` ou security.
 
 Em vez disso, a skill separa o problema por entrypoint canonico:
 
@@ -45,7 +45,7 @@ Em vez disso, a skill separa o problema por entrypoint canonico:
 
 ## O que nao fazer
 
-- Nao substituir `reviewer`, `tester` ou `security-engineer`.
+- Nao substituir `review-workflow` ou `security-engineer`.
 - Nao usar autofix amplo como comportamento padrao.
 - Nao criar wrapper local se o script oficial do repo ja cobre a necessidade.
 - Nao escolher perfil manualmente sem motivo claro.

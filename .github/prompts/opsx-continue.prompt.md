@@ -35,6 +35,8 @@ Continue working on a change by creating the next artifact.
    openspec status --change "<name>" --json
    ```
 
+   *(CLI Fallback: If `openspec` CLI fails or is unavailable, inspect `openspec/changes/<name>/` directly to determine progress)*
+
    Parse the JSON to understand current state. The response includes:
    - `schemaName`: The workflow schema being used (e.g., "spec-driven")
    - `artifacts`: Array of artifacts with their status ("done", "ready", "blocked")
@@ -71,7 +73,7 @@ Continue working on a change by creating the next artifact.
      - Apply `context` and `rules` as constraints when writing - but do NOT copy them into the file
      - Write to the output path specified in instructions
    - Show what was created and what's now unlocked
-   - STOP after creating ONE artifact
+   - **If the scope is clear and unambiguous**, you MAY proceed to generate the next ready artifact in the same turn without stopping, unless user review is explicitly required by the schema or if clarification is needed.
 
    ***
 
@@ -112,7 +114,7 @@ For other schemas, follow the `instruction` field from the CLI output.
 
 **Guardrails**
 
-- Create ONE artifact per invocation
+- You MAY create multiple artifacts per invocation if the task is unambiguous (e.g., proposal -> design) to reduce friction. Pause when user direction is needed.
 - Always read dependency artifacts before creating a new one
 - Never skip artifacts or create out of order
 - If context is unclear, ask the user before creating

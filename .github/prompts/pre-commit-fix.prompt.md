@@ -22,7 +22,7 @@ Acione o agente **Developer Engineer** e solicite que ele execute o seguinte wor
 
 3. **Follow System Rules and Principles**
    - Ensure all fixes strictly adhere to the best programming principles (Clean Code, SOLID, proper typing).
-   - You MUST follow all system constraints, project structures, and guidelines defined in `AGENTS.md` and `.agents/rules/*.md`.
+   - You MUST follow all system constraints, project structures, and guidelines defined in `AGENTS.md`.
    - Maintain the functional integrity and performance of the existing codebase.
 
 4. **Verify the Fixes**

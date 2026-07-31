@@ -185,16 +185,15 @@ metrics.prom
 
 # Project specific - Refactor scratch artifacts (modularizar workflow inputs/outputs)
 modularizar_*.md
-# .uv-cache/
-# .agents/
-# .github/instructions/
-# .github/prompts/
-# .codex/
-# .vscode/
-# docs/ideias/
+.uv-cache/
+.agents/
+.github/instructions/
+.github/prompts/
+.codex/
+.vscode/
+.claude/
+.opencode/
+opencode.json
+docs/ideias/
+openspec/
 # examples/
-# src/globaldatafinance/brazil/gerais/
-# src/globaldatafinance/brazil/b3_data/Capital_Social_B3_Acoes/
-# src/globaldatafinance/brazil/b3_data/Dados_B3_Acoes/
-# src/globaldatafinance/brazil/b3_data/Dados_B3_FIIs/
-# src/globaldatafinance/brazil/b3_data/Opcoes_B3/

@@ -214,6 +214,102 @@ section_matches_regex() {
   printf "%s\n" "$section_text" | grep -Eq "$regex"
 }
 
+extract_field_value_from_text() {
+  local text="$1"
+  local field_name="$2"
+
+  printf "%s\n" "$text" | sed -n "s#^- ${field_name}:[[:space:]]*##p" | head -n 1
+}
+
+extract_field_value_from_file() {
+  local file="$1"
+  local field_name="$2"
+  extract_field_value_from_text "$(cat "$file")" "$field_name"
+}
+
+collect_backticked_values_from_text() {
+  local text="$1"
+  printf "%s\n" "$text" | grep -o '`[^`]\+`' | tr -d '`' || true
+}
+
+ensure_backticked_paths_or_none() {
+  local value="$1"
+  local label="$2"
+
+  if [[ "$value" == "none" || "$value" == "not applicable" ]]; then
+    return 0
+  fi
+
+  local paths
+  paths="$(collect_backticked_values_from_text "$value")"
+  [[ -n "$paths" ]] || fail "${label} must list backticked file paths or use 'none'"
+}
+
+ensure_no_private_basenames() {
+  local paths="$1"
+  local label="$2"
+  local allow_init="$3"
+
+  while IFS= read -r path; do
+    [[ -n "$path" ]] || continue
+    local basename="${path##*/}"
+    if [[ "$basename" == _* ]]; then
+      if [[ "$allow_init" == "true" && "$basename" == "__init__.py" ]]; then
+        continue
+      fi
+      fail "${label} contains disallowed private basename '${basename}'"
+    fi
+  done <<< "$paths"
+}
+
+validate_extracted_module_files_value() {
+  local value="$1"
+  local label="$2"
+
+  ensure_backticked_paths_or_none "$value" "$label"
+  if [[ "$value" == "none" || "$value" == "not applicable" ]]; then
+    return 0
+  fi
+
+  ensure_no_private_basenames \
+    "$(collect_backticked_values_from_text "$value")" \
+    "$label" \
+    "false"
+}
+
+validate_canonical_entrypoint_value() {
+  local value="$1"
+  local label="$2"
+
+  ensure_backticked_paths_or_none "$value" "$label"
+  local paths
+  paths="$(collect_backticked_values_from_text "$value")"
+  [[ -n "$paths" ]] || fail "${label} must declare one backticked compatibility entrypoint"
+  local count
+  count="$(printf "%s\n" "$paths" | sed '/^$/d' | wc -l)"
+  [[ "$count" -eq 1 ]] || fail "${label} must declare exactly one compatibility entrypoint"
+
+  ensure_no_private_basenames "$paths" "$label" "true"
+}
+
+ensure_backticked_paths_required() {
+  local value="$1"
+  local label="$2"
+
+  ensure_backticked_paths_or_none "$value" "$label"
+  [[ "$value" != "none" && "$value" != "not applicable" ]] || fail "${label} must list backticked file paths"
+}
+
+ensure_paths_value_contains_path() {
+  local value="$1"
+  local required_path="$2"
+  local label="$3"
+  local paths
+
+  paths="$(collect_backticked_values_from_text "$value")"
+  printf "%s\n" "$paths" | grep -Fxq "$required_path" || fail "${label} must include path '${required_path}'"
+}
+
 enforce_no_finding_sentinels() {
   local block="$1"
   local block_id="$2"
@@ -450,6 +546,8 @@ validate_phase2_plan() {
   require_line_regex "$plan_file" "^## 6\\. Phase 2A - Modularization Proposal" "Phase 2A section is missing"
   require_line_regex "$plan_file" "^- Final public entrypoints:[[:space:]]+.+$" "Final public entrypoints are missing"
   require_line_regex "$plan_file" "^- Public entrypoint justification:[[:space:]]+.+$" "Public entrypoint justification is missing"
+  require_line_regex "$plan_file" "^- File naming policy for extracted modules:[[:space:]]+.+$" "File naming policy for extracted modules is missing"
+  require_line_regex "$plan_file" "^- Canonical compatibility entrypoint:[[:space:]]+.+$" "Canonical compatibility entrypoint is missing"
   require_line_regex "$plan_file" "^- Internal modules and responsibilities:[[:space:]]+.+$" "Internal modules and responsibilities are missing"
   require_line_regex "$plan_file" "^- Symbols promoted to public:[[:space:]]+.+$" "Phase 2 promoted public symbols are missing"
   require_line_regex "$plan_file" "^- Promotion justification:[[:space:]]+.+$" "Promotion justification is missing"
@@ -457,17 +555,54 @@ validate_phase2_plan() {
   require_line_regex "$plan_file" "^- Why symbols stay internal:[[:space:]]+.+$" "Internal symbol justification is missing"
   require_line_regex "$plan_file" "^- Imports/exports to update:[[:space:]]+.+$" "Phase 2 import/export migration plan is missing"
   require_line_regex "$plan_file" "^- Callers to migrate:[[:space:]]+.+$" "Phase 2 caller migration plan is missing"
-  require_line_regex "$plan_file" "^- Legacy files to remove or reduce to gateway:[[:space:]]+.+$" "Legacy file handling plan is missing"
+  require_line_regex "$plan_file" "^- Breakages expected after legacy file removal:[[:space:]]+.+$" "Phase 2 legacy removal fallout plan is missing"
+  require_line_regex "$plan_file" "^- Legacy files to remove:[[:space:]]+.+$" "Legacy file removal plan is missing"
+
+  local phase2_map_text
+  phase2_map_text="$(extract_section_block "$plan_file" "### 6.1 Final module map" "### 6.2 Import and caller migration plan")"
+  local target_path
+  target_path="$(extract_field_value_from_file "$plan_file" "Target module/file")"
+  local naming_policy
+  naming_policy="$(extract_field_value_from_text "$phase2_map_text" "File naming policy for extracted modules")"
+  section_matches_regex "$naming_policy" "(^|[[:space:];])public-only([[:space:];]|$)" || fail "File naming policy for extracted modules must declare 'public-only'"
+
+  local canonical_entrypoint_value
+  canonical_entrypoint_value="$(extract_field_value_from_text "$phase2_map_text" "Canonical compatibility entrypoint")"
+  validate_canonical_entrypoint_value "$canonical_entrypoint_value" "Canonical compatibility entrypoint"
+
+  local canonical_entrypoint
+  canonical_entrypoint="$(collect_backticked_values_from_text "$canonical_entrypoint_value" | head -n 1)"
+  [[ "$canonical_entrypoint" != "$target_path" ]] || fail "Phase 2 plan cannot use the legacy target path as canonical compatibility entrypoint; legacy files must be removed"
+
+  local phase2_migration_text
+  phase2_migration_text="$(extract_section_block "$plan_file" "### 6.2 Import and caller migration plan" "### 6.3 Step-by-step extraction sequence")"
+  local legacy_files_to_remove_value
+  legacy_files_to_remove_value="$(extract_field_value_from_text "$phase2_migration_text" "Legacy files to remove")"
+  ensure_backticked_paths_required "$legacy_files_to_remove_value" "Legacy files to remove"
+  ensure_paths_value_contains_path "$legacy_files_to_remove_value" "$target_path" "Legacy files to remove"
 
   local phase2_steps_text
   phase2_steps_text="$(extract_section_block "$plan_file" "### 6.3 Step-by-step extraction sequence" "### 6.4 Gate 2 approval")"
   validate_heading_blocks_in_section "$phase2_steps_text" "Phase 2 extraction sequence" "^#### Planned step P2-STEP-" "#### Planned step " "^#### Planned step " \
     "^- Extraction order:[[:space:]]+.+$|||Phase 2 extraction order is missing" \
     "^- Files touched:[[:space:]]+.+$|||Phase 2 extraction step files are missing" \
+    "^- Extracted module files:[[:space:]]+.+$|||Phase 2 extraction step extracted module files are missing" \
     "^- Responsibility moved:[[:space:]]+.+$|||Phase 2 extraction step responsibility is missing" \
     "^- Public/private symbol impact:[[:space:]]+.+$|||Phase 2 extraction step symbol impact is missing" \
     "^- Validation checkpoint:[[:space:]]+.+$|||Phase 2 extraction step validation checkpoint is missing" \
     "^- Why this step comes now:[[:space:]]+.+$|||Phase 2 extraction step ordering rationale is missing"
+
+  local phase2_step_headings
+  phase2_step_headings="$(collect_matching_lines_from_text "$phase2_steps_text" "^#### Planned step P2-STEP-")"
+  while IFS= read -r heading; do
+    [[ -n "$heading" ]] || continue
+    local block
+    block="$(extract_block_from_text "$phase2_steps_text" "$heading" "^#### Planned step ")"
+    local extracted_files_value
+    extracted_files_value="$(extract_field_value_from_text "$block" "Extracted module files")"
+    local step_id="${heading#\#\#\#\# Planned step }"
+    validate_extracted_module_files_value "$extracted_files_value" "Phase 2 plan extracted module files for ${step_id}"
+  done <<< "$phase2_step_headings"
 
   local gate2_text
   gate2_text="$(extract_section_block "$plan_file" "### 6.4 Gate 2 approval" "## 7. Phase 2B - Modularization Execution Log")"
@@ -546,9 +681,13 @@ validate_phase2_report_against_plan() {
     require_section_regex "$block" "^- Step ID:[[:space:]]+${plan_id}$" "Phase 2 report step ID line is missing for ${plan_id}"
     require_section_regex "$block" "^- Execution status:[[:space:]]+(executed|adjusted)([[:space:]]|$)" "Phase 2 report execution status is missing for ${plan_id}"
     require_section_regex "$block" "^- Files changed:[[:space:]]+.+$" "Phase 2 report changed files are missing for ${plan_id}"
+    require_section_regex "$block" "^- Extracted module files:[[:space:]]+.+$" "Phase 2 report extracted module files are missing for ${plan_id}"
     require_section_regex "$block" "^- Summary:[[:space:]]+.+$" "Phase 2 report summary is missing for ${plan_id}"
     require_section_regex "$block" "^- Validation evidence:[[:space:]]+.+$" "Phase 2 report validation evidence is missing for ${plan_id}"
     require_section_regex "$block" "^- Rollback note:[[:space:]]+.+$" "Phase 2 report rollback note is missing for ${plan_id}"
+    local extracted_files_value
+    extracted_files_value="$(extract_field_value_from_text "$block" "Extracted module files")"
+    validate_extracted_module_files_value "$extracted_files_value" "Phase 2 report extracted module files for ${plan_id}"
   done <<< "$plan_ids"
 }
 
@@ -734,12 +873,50 @@ cmd_validate_report() {
   require_line_regex "$report_file" "^- Gate 2 approval evidence:[[:space:]]+.+$" "Gate 2 approval evidence is missing in report"
   require_line_regex "$report_file" "^- Scope changes after approval:[[:space:]]+.+$" "Scope change summary is missing in report"
 
+  require_line_regex "$report_file" "^- Extracted module files:[[:space:]]+.+$" "Extracted module files record is missing in report"
+  require_line_regex "$report_file" "^- Canonical compatibility entrypoint used:[[:space:]]+.+$" "Canonical compatibility entrypoint used is missing in report"
+  require_line_regex "$report_file" "^- Legacy files removed:[[:space:]]+.+$" "Legacy files removed record is missing in report"
   require_line_regex "$report_file" "^- Public symbols promoted:[[:space:]]+.+$" "Public symbols promoted record is missing in report"
   require_line_regex "$report_file" "^- Import/export migrations applied:[[:space:]]+.+$" "Import/export migration record is missing in report"
   require_line_regex "$report_file" "^- Caller migrations applied:[[:space:]]+.+$" "Caller migration record is missing in report"
+  require_line_regex "$report_file" "^- Breakages fixed after legacy file removal:[[:space:]]+.+$" "Legacy removal fallout fix record is missing in report"
   require_line_regex "$report_file" "^- ai:verify command/profile:[[:space:]]+.+$" "ai:verify command/profile record is missing in report"
   require_line_regex "$report_file" "^- Refactor status:[[:space:]]+(complete|incomplete)([[:space:]]|$)" "Refactor status is missing in report"
   require_line_regex "$report_file" "^- Recommended next action:[[:space:]]+.+$" "Recommended next action is missing in report"
+
+  local plan_phase2_map_text
+  plan_phase2_map_text="$(extract_section_block "$plan_path" "### 6.1 Final module map" "### 6.2 Import and caller migration plan")"
+  local plan_phase2_migration_text
+  plan_phase2_migration_text="$(extract_section_block "$plan_path" "### 6.2 Import and caller migration plan" "### 6.3 Step-by-step extraction sequence")"
+  local target_path
+  target_path="$(extract_field_value_from_file "$plan_path" "Target module/file")"
+  local plan_legacy_files_to_remove_value
+  plan_legacy_files_to_remove_value="$(extract_field_value_from_text "$plan_phase2_migration_text" "Legacy files to remove")"
+
+  local report_phase2_map_text
+  report_phase2_map_text="$(extract_section_block "$report_file" "### 5.1 Module map applied" "### 5.2 Migration evidence")"
+  local report_extracted_files_value
+  report_extracted_files_value="$(extract_field_value_from_text "$report_phase2_map_text" "Extracted module files")"
+  validate_extracted_module_files_value "$report_extracted_files_value" "Phase 2 report extracted module files"
+
+  local report_canonical_entrypoint_value
+  report_canonical_entrypoint_value="$(extract_field_value_from_text "$report_phase2_map_text" "Canonical compatibility entrypoint used")"
+  validate_canonical_entrypoint_value "$report_canonical_entrypoint_value" "Canonical compatibility entrypoint used"
+  local report_canonical_entrypoint
+  report_canonical_entrypoint="$(collect_backticked_values_from_text "$report_canonical_entrypoint_value" | head -n 1)"
+  [[ "$report_canonical_entrypoint" != "$target_path" ]] || fail "Report cannot use the legacy target path as canonical compatibility entrypoint; legacy files must be removed"
+
+  local report_legacy_files_removed_value
+  report_legacy_files_removed_value="$(extract_field_value_from_text "$report_phase2_map_text" "Legacy files removed")"
+  ensure_backticked_paths_required "$report_legacy_files_removed_value" "Legacy files removed"
+  ensure_paths_value_contains_path "$report_legacy_files_removed_value" "$target_path" "Legacy files removed"
+
+  local planned_legacy_paths
+  planned_legacy_paths="$(collect_backticked_values_from_text "$plan_legacy_files_to_remove_value")"
+  while IFS= read -r planned_legacy_path; do
+    [[ -n "$planned_legacy_path" ]] || continue
+    ensure_paths_value_contains_path "$report_legacy_files_removed_value" "$planned_legacy_path" "Legacy files removed"
+  done <<< "$planned_legacy_paths"
 
   validate_phase1_report_against_plan "$plan_path" "$report_file"
   validate_phase2_report_against_plan "$plan_path" "$report_file"

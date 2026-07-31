@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/AI-Huang/schemas/main/copilot-hooks-schema.json",
-  "description": "Quality hooks for FinAI - Run lint and typecheck after edits",
+  "description": "Quality hooks - Run lint and typecheck after edits",
   "hooks": {
     "PostToolUse": [
       {

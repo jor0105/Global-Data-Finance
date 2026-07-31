@@ -1,13 +1,13 @@
 ---
 name: performance-profiling
 description: >
-  Use para localizar o gargalo dominante quando o sistema esta lento, a regressao
-  de performance ainda nao foi isolada ou o usuario quer medir antes de otimizar.
-  Ative quando o pedido for "esta lento e nao sei onde", "mede antes/depois",
-  "qual gargalo atacar primeiro?" ou "quero evidencia antes de mexer". Nao use
-  como owner principal para re-render React especifico, query/Postgres ja
-  localizados, debugging sem sintoma de performance, validacao de repo ou
-  jornada E2E de navegador.
+  Use para localizar o gargalo dominante quando a lentidão ainda não está
+  isolada. Ative com "está lento e não sei onde", "mede antes/depois", "qual
+  gargalo atacar primeiro?", "quero prova antes de otimizar", "ficou mais lento"
+  ou "onde está o bottleneck?". Cobre perfil, baseline, comparação e evidência
+  antes/depois. Não use quando a causa já é uma query Postgres, uma query Polars,
+  re-render React específico, teste de navegador ou bug funcional sem sintoma de
+  performance; use a skill especialista.
 ---
 
 # Performance Profiling
@@ -156,7 +156,7 @@ Entrada: a investigacao inicial mostra que a lentidao vem de waterfall React e b
 
 Assertions:
 - [ ] output explica por que o caso deixou de ser triagem cross-layer
-- [ ] output encaminha o owner principal para `react-performance`
+- [ ] output encaminha o owner principal para `frontend-design`
 - [ ] output preserva a evidencia coletada para o handoff
 - [ ] output explicita o que deve ser validado depois da intervencao
 

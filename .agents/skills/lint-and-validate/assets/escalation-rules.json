@@ -32,10 +32,6 @@
     {
       "pattern": ".agents/**",
       "reason": "Harness de agents alterado."
-    },
-    {
-      "pattern": ".claude/**",
-      "reason": "Harness Claude Code alterado (agents, commands, settings)."
     }
   ],
   "securityRequired": [

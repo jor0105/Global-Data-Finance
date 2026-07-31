@@ -1,11 +1,13 @@
 ---
 name: "OPSX: Apply"
-description: Implement tasks from an OpenSpec change (Experimental)
+description: Implement tasks from an OpenSpec change using Developer Engineer
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
 
-Implement tasks from an OpenSpec change.
+Implement tasks from an OpenSpec change using the **Developer Engineer** agent (`developer-engineer`).
+
+**Agent**: Always activate the **Developer Engineer** agent (`developer-engineer`) as the primary executor before proceeding with any steps below.
 
 **Input**: Optionally specify a change name (e.g., `/opsx:apply add-auth`). If omitted, `apply` is the only OPSX workflow allowed to infer from conversation context or auto-select when there is exactly one safe active candidate. If that is not true, you MUST prompt for available changes.
 
@@ -15,7 +17,11 @@ Implement tasks from an OpenSpec change.
 
 **Steps**
 
-1. **Select the change (exception policy)**
+1. **Activate Developer Engineer Agent**
+
+   Invoke and adopt the identity and rules of the **Developer Engineer** agent (`developer-engineer`). All code modifications, verifications, and task updates in this workflow MUST be executed under this agent's identity and governance.
+
+2. **Select the change (exception policy)**
 
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
@@ -39,6 +45,8 @@ Implement tasks from an OpenSpec change.
    ```bash
    openspec instructions apply --change "<name>" --json
    ```
+
+   *(CLI Fallback: If `openspec` CLI fails or is unavailable, read the artifact files directly from `openspec/changes/<name>/`)*
 
    This returns:
    - Context file paths (varies by schema)
@@ -72,7 +80,8 @@ Implement tasks from an OpenSpec change.
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
+   - **Execute project tests/validation** (e.g. project test suite, linters) relevant to the changes to ensure no regressions
+   - Mark task complete in the tasks file: `- [ ]` → `- [x]` **only AFTER verification passes**
    - Continue to next task
 
    **Pause if:**
@@ -143,11 +152,12 @@ What would you like to do?
 **Guardrails**
 
 - Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
+- Always read context files before starting (from the apply instructions output or directory fallback)
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task
-- Update task checkbox immediately after completing each task
+- **Validate task changes using the project's native test/build command before checking the task off**
+- Update task checkbox immediately after completing and validating each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
 

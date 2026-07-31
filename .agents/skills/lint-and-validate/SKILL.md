@@ -1,10 +1,13 @@
 ---
 name: lint-and-validate
 description: >
-  Use para escolher e executar validação repo-native após mudanças: lint, typecheck,
-  testes, ai:verify, perfis e gate-report. Ative quando o usuário pedir "valida", "roda os
-  checks", "garante que não quebrou", "gera gate-report" ou quando uma entrega precisa
-  evidência terminal.
+  Use para escolher e executar validação repo-native depois de mudanças. Ative
+  quando o usuário pedir "valida", "roda os checks", "garante que não quebrou",
+  "roda testes", "passa o lint", "gera gate-report", "confere antes de
+  finalizar" ou quando a entrega precisa evidência terminal. Cobre lint,
+  typecheck, testes, `ai:verify`, perfis e gate-report. Não use para desenhar
+  estratégia de testes, investigar root cause incerta ou validar UI em navegador
+  quando a evidência precisa ser Playwright/screenshot.
 ---
 
 # Lint And Validate
@@ -21,7 +24,7 @@ description: >
    - diff comum do repositório: `npm run ai:verify`
    - uma skill específica: `npm run skills:validate -- --skill <nome>`
    - skill central do pack principal: `npm run skills:validate:central`
-   - agents, manifests e protocol skills do reviewer: `npm run agents:validate-protocols`
+   - agents, manifests e protocolo `review-workflow`: `npm run agents:validate-protocols`
 2. Para diff comum, escolha o menor perfil que ainda cubra o risco da mudança. Use `assets/verification-profiles.json` como fonte de verdade dos gates e `npm run ai:verify -- --dry-run` quando a seleção de perfil fizer parte da decisão.
 3. Leia a saída do `ai:verify` nesta ordem: `status`, `effectiveProfile`, `escalations`, `gates`, `summary`. Não trate gate `skipped` como sucesso implícito.
 4. Responda com evidência terminal mínima: comando, escopo, status, classificação da falha quando existir e próximo passo. Não declare sucesso sem output correspondente.
@@ -81,7 +84,7 @@ Assertions:
 
 ### Cenário 3 - protocolo de agents
 
-Entrada: reviewer pede validação de agents, manifests e protocol skills.
+Entrada: pedido para validar agents, manifests e protocolo `review-workflow`.
 
 Assertions:
 

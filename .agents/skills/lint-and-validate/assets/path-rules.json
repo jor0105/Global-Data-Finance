@@ -22,6 +22,31 @@
       "reason": "Tipos compartilhados alterados."
     },
     {
+      "pattern": "src/filters/dfp_itr/mapping/**",
+      "profile": "high-risk",
+      "reason": "Contrato de mapping DFP/ITR alterado."
+    },
+    {
+      "pattern": "openspec/changes/**",
+      "profile": "high-risk",
+      "reason": "Contrato OpenSpec ativo alterado."
+    },
+    {
+      "pattern": "src/**/*.py",
+      "profile": "standard",
+      "reason": "Codigo Python de producao alterado."
+    },
+    {
+      "pattern": "tests/**/*.py",
+      "profile": "standard",
+      "reason": "Testes Python alterados."
+    },
+    {
+      "pattern": "scripts/**/*.py",
+      "profile": "standard",
+      "reason": "Script operacional Python alterado."
+    },
+    {
       "pattern": "tests/frontend/e2e/**",
       "profile": "ui-flow",
       "reason": "Fluxo E2E alterado."
@@ -38,7 +63,7 @@
     },
     {
       "pattern": "src/**/*.tsx",
-      "reason": "UI visivel alterada; tester pode ser util."
+      "reason": "UI visivel alterada; teste dedicado pode ser util."
     },
     {
       "pattern": ".agents/**",
@@ -46,14 +71,14 @@
       "reason": "Infra de agents alterada."
     },
     {
-      "pattern": ".claude/**",
+      "pattern": ".github/agents/**",
       "profile": "high-risk",
-      "reason": "Harness Claude Code alterado (agents, commands, settings)."
+      "reason": "Espelho local de agents alterado."
     },
     {
-      "pattern": "kilo.jsonc",
+      "pattern": ".codex/agents/**",
       "profile": "high-risk",
-      "reason": "Runtime de agents alterado."
+      "reason": "Espelho local de agents alterado."
     },
     {
       "pattern": "opencode.json",

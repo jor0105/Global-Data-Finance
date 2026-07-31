@@ -23,7 +23,7 @@ Esperado: usar `npm run ai:verify -- --dry-run` e explicar `effectiveProfile`, g
 ## Exemplo 5 - positivo
 
 Pedido: "Meu diff nao esta bem refletido no git; valide esse arquivo especifico."
-Esperado: usar `npm run ai:verify -- --changed-file src/domain/models.py`.
+Esperado: usar `npm run ai:verify -- --changed-file src/domain/columns.py`.
 
 ## Exemplo 6 - positivo
 
@@ -42,7 +42,7 @@ Esperado: usar `npm run skills:validate -- --skill lint-and-validate`.
 
 ## Exemplo 9 - positivo
 
-Pedido: "Confere agents, manifests e protocol skills do reviewer."
+Pedido: "Confere agents, manifests e protocolo review-workflow."
 Esperado: usar `npm run agents:validate-protocols` e deixar claro que isso nao cobre toda skill do repo.
 
 ## Exemplo 10 - negativo

@@ -33,7 +33,18 @@ Fast-forward through artifact creation - generate everything needed to start imp
    - A specific schema name -> use `--schema <name>`
    - "show workflows" or "what workflows" -> run `openspec schemas --json` and let them choose
 
-3. **Create the change directory**
+3. **Preflight Spec Consistency Check**
+
+   Before creating the change directory and generating artifacts, inspect existing changes to ensure main specs (`openspec/specs/`) are up to date:
+
+   a. Run `openspec list --json` (or inspect active changes under `openspec/changes/`).
+   b. Identify active changes containing delta specs at `specs/<capability>/spec.md`.
+   c. **Check for un-synced completed changes**: If any active change has all tasks completed (`- [x]`) or status `all_done`, but its delta specs have not been merged into `openspec/specs/`:
+      - Display warning `[WARNING]`: *"Change `<name>` appears completed but its delta specs are not synced to main specs (`openspec/specs/`). Recommended: run `/opsx:sync <name>` and `/opsx:archive <name>` before designing the new change."*
+      - Ask the user via **AskUserQuestion tool** whether to sync first or proceed anyway.
+   d. **Check for active concurrent changes**: If active changes modify related specs, display an informational note `[INFO]`: *"Active changes with delta specs in progress: `<list>`. Be aware of potential spec overlap."*
+
+4. **Create the change directory**
 
    ```bash
    openspec new change "<name>"
@@ -42,7 +53,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
    Add `--schema <name>` only if the user requested a specific workflow.
    This creates a scaffolded change at `openspec/changes/<name>/`.
 
-4. **Get the artifact build order**
+5. **Get the artifact build order**
 
    ```bash
    openspec status --change "<name>" --json
@@ -52,7 +63,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
    - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
    - `artifacts`: list of all artifacts with their status and dependencies
 
-5. **Create artifacts in sequence until apply-ready**
+6. **Create artifacts in sequence until apply-ready**
 
    Use the **TodoWrite tool** to track progress through the artifacts.
 
@@ -84,7 +95,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
    - Use **AskUserQuestion tool** to clarify
    - Then continue with creation
 
-6. **Show final status**
+7. **Show final status**
    ```bash
    openspec status --change "<name>"
    ```

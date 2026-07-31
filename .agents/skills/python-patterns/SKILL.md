@@ -1,15 +1,13 @@
 ---
 name: python-patterns
 description: >
-  Use para implementar, refatorar ou revisar codigo Python idiomatico quando o
-  problema central estiver em contratos tipados, async/I/O, validacao de dados
-  externos, escolha entre Pydantic e dataclass, traducao de excecoes, serializacao
-  de borda ou lifecycle de recursos. Ative quando o usuario disser "tipa essa
-  funcao", "esse async Python esta bloqueando", "como trato esse erro sem engolir
-  excecao?", "esse model Pydantic ta estranho", "isso deveria ser dataclass ou
-  Pydantic?", "esse JSON ta saindo errado", "esse with faz sentido?" ou pedir
-  revisao de codigo Python idiomatico. Nao use para schema de banco, desenho de API
-  HTTP, E2E de browser, ou debugging amplo quando a causa raiz ainda e desconhecida.
+  Use para implementar, refatorar ou revisar Python idiomático quando o problema
+  central for typing, async/I/O, validação, Pydantic vs dataclass, serialização,
+  tradução de exceções ou lifecycle de recursos. Ative com "tipa essa função",
+  "async está bloqueando", "como trato esse erro sem engolir exceção?", "model
+  Pydantic estranho", "JSON sai errado", "esse with faz sentido?" ou "refatora
+  esse Python". Não use para schema de banco, API HTTP, E2E de browser,
+  performance/query Polars ou debugging amplo cuja causa raiz ainda é incerta.
 ---
 
 # Python Patterns
@@ -31,8 +29,10 @@ forcar a escolha do boundary certo antes de refatorar.
    async/I/O, modelagem de dados, exceptions, ou cleanup de recurso. Nao tente
    resolver tudo com a mesma ferramenta.
 3. Confirme a versao de Python e as bibliotecas ja adotadas pelo repositorio antes
-   de sugerir sintaxe ou recurso novo. `X | None`, `TaskGroup`, `Self` ou Pydantic
-   v2 so ajudam quando o runtime real suporta isso.
+   de sugerir sintaxe ou recurso novo. Consulte a configuracao real do projeto
+   (`pyproject.toml`, lockfile, container, CI ou runtime declarado) e use o executor
+   ja adotado pelo projeto. `X | None`, `TaskGroup`, `Self` ou Pydantic v2 so ajudam
+   quando o runtime real suporta isso.
 4. Tipa primeiro o contrato que cruza modulo, camada ou boundary externo. Tipar
    apenas variavel local obvia gera ruido; deixar funcao publica sem contrato gera
    regressao silenciosa.
@@ -53,13 +53,15 @@ forcar a escolha do boundary certo antes de refatorar.
    lugar certo.
 9. Valide no comportamento alterado: teste focado, comando do entrypoint ou fluxo
    que exercita serializacao, concorrencia ou tratamento de erro real, incluindo caso
-   feliz e falha representativa.
+   feliz e falha representativa. Para mudancas em um projeto existente, use os
+   gates nativos: teste focado, lint/format, typecheck, smoke do entrypoint ou CI
+   local equivalente, conforme o risco.
 
 ## Heuristicas de decisao
 
-- Prefira stdlib e padroes ja presentes no repo antes de introduzir mais uma camada
-  de abstracao. Em Python, dependencia nova costuma custar mais em operacao do que
-  no primeiro diff.
+- Prefira stdlib e padroes ja presentes no projeto antes de introduzir mais uma
+  camada de abstracao. Em Python, dependencia nova costuma custar mais em operacao
+  do que no primeiro diff.
 - Use `Pydantic` quando o dado vem de fora do modulo: HTTP, fila, env, arquivo,
   banco desserializado, ou integracao. Para estruturas internas simples e estaveis,
   `dataclass` costuma ser suficiente e mais leve.
@@ -86,6 +88,10 @@ forcar a escolha do boundary certo antes de refatorar.
 - Quando traduzir erro externo para erro de dominio, preserve a causa original e
   remova segredo, token ou payload sensivel do log. Perder a cadeia causal dificulta
   debug; vazar dado sensivel piora a operacao.
+- Se o sintoma for lentidao em `LazyFrame`, plano de query, `collect`, join Polars
+  ou consumo de memoria em parquet/csv grande, resolva primeiro com
+  `polars-optimization`. Tipagem Python pode ajudar a borda, mas nao substitui
+  inspecao do plano.
 
 ## Anti-patterns a evitar
 
@@ -125,7 +131,7 @@ blocos curtos:
 cliente async, offload ou boundary sync explicito, e validar no endpoint real.
 
 ### Caso positivo
-**Entrada:** "Tipa esse repositorio Python sem encher de `Any`."
+**Entrada:** "Tipa esse projeto Python sem encher de `Any`."
 **Saida esperada:** Anotar contratos publicos, escolher `Protocol`, `TypedDict` ou
 tipos concretos conforme a fronteira, e evitar ruido em variaveis locais obvias.
 
@@ -147,6 +153,11 @@ e evitar serializacao incidental baseada em `default=str`.
 **Entrada:** "Revisa status code, cache e idempotencia desse endpoint."
 **Por que nao:** O problema principal e contrato HTTP/API; use `api-patterns`.
 
+### Caso negativo
+**Entrada:** "Essa query Polars com `scan_parquet` e `join` estoura memoria."
+**Por que nao:** O foco e plano Polars, materializacao e processamento vetorizado;
+use `polars-optimization`.
+
 ## Evals de trigger
 
 Deve acionar:
@@ -162,6 +173,7 @@ Nao deve acionar:
 - "me ajuda a escolher status code e paginacao da minha API"
 - "testa esse fluxo no Playwright"
 - "tem um bug intermitente estranho e eu nem sei por onde comecar"
+- "otimiza esse join Polars em milhoes de linhas"
 
 ## Evals de workflow
 
@@ -184,3 +196,8 @@ Nao deve acionar:
 - [ ] output considera redacao de dados sensiveis em logs/erros
 - [ ] output propoe `with`, `async with` ou ownership explicito para recursos
 - [ ] output inclui uma forma concreta de validar a correcao
+
+### Cenario: projeto Python com contrato publico
+- [ ] output confirma a versao/bibliotecas reais antes de recomendar recurso novo
+- [ ] output usa validacao nativa do projeto quando a mudanca afeta arquivos
+- [ ] output nao muda contrato publico sem apontar caller, teste ou migracao afetada

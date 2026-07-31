@@ -45,14 +45,23 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 4. **Initialize verification report structure**
 
-   Create a report structure with three dimensions:
+   Create a report structure with four dimensions:
+   - **Quality**: Track build, test, and lint execution (using generic project commands)
    - **Completeness**: Track tasks and spec coverage
    - **Correctness**: Track requirement implementation and scenario coverage
    - **Coherence**: Track design adherence and pattern consistency
 
    Each dimension can have CRITICAL, WARNING, or SUGGESTION issues.
 
-5. **Verify Completeness**
+5. **Verify Quality**
+
+   **Project Verification**:
+   - Execute the standard project test suite, static analysis, and build checks (e.g., using the repository's native validation commands)
+   - If any tests, builds, or linters fail:
+     - Add CRITICAL issue for the failure
+     - Recommendation: "Fix build/test/lint failures: <details>"
+
+6. **Verify Completeness**
 
    **Task Completion**:
    - If tasks.md exists in contextFiles, read it
@@ -72,7 +81,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
        - Add CRITICAL issue: "Requirement not found: <requirement name>"
        - Recommendation: "Implement requirement X: <description>"
 
-6. **Verify Correctness**
+7. **Verify Correctness**
 
    **Requirement Implementation Mapping**:
    - For each requirement from delta specs:
@@ -91,7 +100,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
        - Add WARNING: "Scenario not covered: <scenario name>"
        - Recommendation: "Add test or implementation for scenario: <description>"
 
-7. **Verify Coherence**
+8. **Verify Coherence**
 
    **Design Adherence**:
    - If design.md exists in contextFiles:
@@ -109,7 +118,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Add SUGGESTION: "Code pattern deviation: <details>"
      - Recommendation: "Consider following project pattern: <example>"
 
-8. **Generate Verification Report**
+9. **Generate Verification Report**
 
    **Summary Scorecard**:
 
@@ -119,6 +128,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    ### Summary
    | Dimension    | Status           |
    |--------------|------------------|
+   | Quality      | Pass/Fail        |
    | Completeness | X/Y tasks, N reqs|
    | Correctness  | M/N reqs covered |
    | Coherence    | Followed/Issues  |

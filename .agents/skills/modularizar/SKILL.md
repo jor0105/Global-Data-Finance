@@ -1,70 +1,77 @@
 ---
 name: modularizar
 description: >
-  Use para sanear god files, god components e módulos monolíticos quando o
-  refactor exigir migração auditável de callers/imports/exports, risco
-  estrutural explícito, ou gates de aprovação antes de espalhar mudanças.
-  Ative quando o usuário pedir "quebra esse arquivo gigante", "remove
-  duplicação e separa em módulos", "extrai utilitários compartilhados desse
-  bloco", ou trouxer um alvo delimitado com acoplamento, repetição e impacto
-  rastreável fora do arquivo. Não use para refactor local de baixo risco só
-  porque o arquivo é grande.
+  Use para sanear god files, god components e módulos monolíticos com migração
+  auditável. Ative quando o usuário pedir "quebra esse arquivo gigante", "esse
+  componente virou monstro", "separa em módulos", "remove duplicação", "extrai
+  utilitários" ou invocar `[$modularizar]`. Aplique quando imports, exports,
+  callers, contratos e gates precisam ser rastreados. Não use para ajuste local
+  simples, rename pequeno, função isolada grande, ou quando o melhor caminho é
+  arquitetura/planejamento antes de tocar código.
 ---
 
 # Modularizar
 
-## Fundamentos
+## Guardrails permanentes
 
 - **Saneie antes de modularizar:** trate repetição, complexidade, comentários ruins, naming fraco e visibilidade inadequada antes de quebrar o arquivo em partes. Isso evita espalhar problemas antigos por vários módulos novos.
 - **Reaproveite antes de extrair:** se a duplicação já foi resolvida em outro ponto do repositório, prefira migrar para a abstração existente em vez de criar mais um helper local.
 - **Otimize com evidência:** proponha melhorias de complexidade e Big-O quando o ganho esperado for claro, com impacto, risco e validação registrados no plano.
 - **Pode quebrar e migrar:** a skill pode atualizar callers, imports, exports, entrypoints e utilitários compartilhados quando isso deixar o design final melhor, desde que cada mudança fique registrada e aprovada.
+- **Privado Python achado na Fase 1 vira público:** ao encontrar código Python com naming privado inadequado para a superfície real de uso durante a Fase 1, promova o símbolo de privado para público já no saneamento profundo; não empurre esse ajuste para a Fase 2 nem preserve underscore por inércia.
+- **Arquivos extraídos precisam ter basename público:** na Fase 2, não crie arquivos extraídos cujo basename comece com `_`. Arquivos canônicos exigidos pela linguagem para entrypoint, como `__init__.py`, são exceção somente quando cumprem esse papel de entrypoint, não como módulo extraído de responsabilidade.
 - **Promova o que virar reutilizável:** símbolos extraídos que passam a servir outros módulos devem virar públicos. O restante pode continuar interno para não inflar a API sem motivo.
+- **Compatibilidade vem do entrypoint canônico, não do arquivo legado:** o god file deve virar um módulo/pacote por responsabilidade real, e a compatibilidade deve ser preservada pelo entrypoint público final desse módulo ou pacote. O arquivo legado deve ser removido na Fase 2; se a remoção quebrar imports, callers, exports ou testes, o agente deve corrigir a fallout até não restar gateway legado.
 - **Faça a limpeza completa:** comentários obsoletos, redundantes ou pouco profissionais devem ser removidos ou reescritos; nomes ambíguos ou anti-profissionais devem ser corrigidos.
 - **Modularize por responsabilidade real:** a divisão final deve refletir fronteiras de responsabilidade, não apenas uma quebra mecânica em pastas.
 
-## Procedimento
+## Roteamento por etapa
 
 1. Trate todo caso como workflow faseado. Não há subfluxo leve sem gates.
-2. Na **Fase 1A**, rode `bash .agents/skills/modularizar/scripts/modularizar_guard.sh init-plan --target <file-or-module> --task <task-name> --author developer-engineer` e preencha `modularizar_<target-basename>.md`.
-3. Na **Fase 1A**, complete o inventário obrigatório:
-   - duplicatas internas
-   - duplicatas que devem ser trocadas por utilitário já existente
-   - candidatos de otimização de complexidade e Big-O
-   - comentários a remover ou reescrever
-   - nomes e visibilidades que precisam ficar mais profissionais
-   - mudanças em callers, imports, exports ou arquivos compartilhados necessárias para concluir a limpeza
-4. Registre cada categoria de forma explícita no plano. Se uma categoria não tiver achado material, ainda assim crie um item com `Finding status: no-finding` usando o formato oficial do template; no report final, espelhe esse caso como `Execution status: no-change`. Isso evita placeholder improvisado e impede que o inventário pareça completo quando uma frente importante nem foi analisada.
-5. Antes de editar código, peça aprovação explícita do usuário para o Gate 1. Esse gate existe para congelar riscos, migrações e otimizações antes que a limpeza se espalhe pelo repositório.
-6. Na **Fase 1B**, rode `bash .agents/skills/modularizar/scripts/modularizar_guard.sh validate-plan --phase phase1 --target <file-or-module>` ou `--plan <generated-plan-path>` e execute apenas o saneamento profundo aprovado.
-7. Registre no mesmo plano o que foi executado na Fase 1B, incluindo callers migrados, símbolos promovidos e validações locais já concluídas.
-8. Na **Fase 2A**, proponha a modularização pós-limpeza: mapa de módulos, entrypoints públicos, símbolos internos, símbolos promovidos a públicos, migração de imports/exports/callers e sequência unitária de extração.
-9. Antes de modularizar, peça aprovação explícita do usuário para o Gate 2. Esse gate existe para separar limpeza de redesign estrutural e evitar extrações prematuras com contratos ainda instáveis.
-10. Na **Fase 2B**, rode `bash .agents/skills/modularizar/scripts/modularizar_guard.sh validate-plan --phase phase2 --target <file-or-module>` ou `--plan <generated-plan-path>` e execute a modularização aprovada.
-11. Registre a execução em `modularizar_<target-basename>-output.md` usando `references/OUTPUT_TEMPLATE.md`. O report final deve espelhar cada `Inventory item` aprovado na Fase 1 e cada `Planned step` aprovado na Fase 2 com bloco próprio, status, evidência e rollback. Depois valide via `lint-and-validate` e finalize com `bash .agents/skills/modularizar/scripts/modularizar_guard.sh validate-report --target <file-or-module>` ou `--report <generated-report-path>`.
-12. Se o escopo mudar materialmente durante qualquer fase, revise o plano e peça nova aprovação antes de continuar. O objetivo é manter o workflow auditável, não “ganhar velocidade” escondendo mudança nova dentro do diff.
+2. Identifique a etapa atual antes de abrir referências adicionais:
+   - sem plano, Gate 1 pendente ou Fase 1 ainda em execução -> abra apenas `references/PHASE_1.md`
+   - Gate 1 aprovado, Fase 1 executada e o usuário quer seguir para a extração -> abra apenas `references/PHASE_2.md`
+3. Abra `references/PLAN_TEMPLATE.md` somente quando for preencher ou atualizar `modularizar_<target-basename>.md`.
+4. Abra `references/OUTPUT_TEMPLATE.md` somente quando for montar `modularizar_<target-basename>-output.md`.
+5. Não carregue os dois references de fase na mesma passada de contexto, a menos que esteja revisando a skill em si. O objetivo é manter uma única frente operacional ativa por vez.
+6. Enquanto estiver na Fase 1, escreva no plano apenas baseline, proposta e execução da própria Fase 1. Não preencha `## 6. Phase 2A - Modularization Proposal` nem `## 7. Phase 2B - Modularization Execution Log` antes de `GATE_1_APPROVED: YES` e `PHASE_1_EXECUTED: YES`.
+7. Antes de editar código, peça a aprovação explícita do gate correspondente.
+8. Em cada gate, valide com `.agents/skills/modularizar/scripts/modularizar_guard.sh` antes de avançar.
+9. Se o escopo mudar materialmente em qualquer etapa, revise o plano e peça nova aprovação antes de continuar.
 
+## Procedimento
+N/A
 ## Exemplos
 
 ### Caso positivo
 
 **Entrada:** "Quebra esse componente enorme, remove duplicação, reaproveita os helpers já existentes e deixa os nomes profissionais."
-**Saída esperada:** Abrir `modularizar`, criar o plano faseado, listar o inventário completo da Fase 1, pedir aprovação, executar a limpeza, propor a modularização e só então extrair os módulos.
+**Saída esperada:** Abrir `modularizar`, roteá-lo para `references/PHASE_1.md`, criar o plano faseado, listar o inventário completo da Fase 1 e parar no Gate 1 antes de qualquer execução.
 
 ### Caso positivo
 
 **Entrada:** "Esse service está virando um god file; se precisar mexer nos callers e promover utilitários públicos, pode fazer, mas me mostra tudo por fase."
-**Saída esperada:** Abrir `modularizar`, registrar impactos em callers/imports/exports no plano, tratar deduplicação compartilhada e modularizar somente após o Gate 2.
+**Saída esperada:** Abrir `modularizar`, registrar impactos em callers/imports/exports no plano, executar a limpeza aprovada e só abrir `references/PHASE_2.md` quando a Fase 1 estiver concluída.
+
+### Caso positivo
+
+**Entrada:** "Quebra esse arquivo Python grande em módulos, mas mantém o import público pelo pacote."
+**Saída esperada:** Abrir `modularizar`, registrar na Fase 1 a promoção necessária de símbolos Python privados, e na Fase 2 exigir entrypoint canônico via pacote sem preservar o arquivo legado como gateway.
 
 ### Caso negativo
 
 **Entrada:** "Desenha a arquitetura nova do backend para suportar múltiplos bounded contexts."
-**Por quê não:** Isso é arquitetura ou planning amplo; use `architecture`, `planner` ou `openspec-workflow`.
+**Por quê não:** Isso é arquitetura ou planning amplo; use `architecture` ou `openspec-workflow`.
 
 ### Caso negativo
 
 **Entrada:** "Mede o gargalo desse fluxo antes de qualquer mudança."
 **Por quê não:** Isso é profiling puro; use `performance-profiling`.
+
+### Caso negativo
+
+**Entrada:** "Extrai `_helper.py` e deixa `foo.py` só reexportando tudo para manter compatibilidade."
+**Por quê não:** Isso viola o contrato da Fase 2. Arquivos extraídos não podem ter basename privado e o arquivo legado deve ser removido, não preservado como shim ou gateway.
 
 ## Evals de trigger
 
@@ -76,6 +83,8 @@ Deve acionar:
 - "modulariza esse god component sem esconder os impactos nos callers"
 - "saneia esse módulo enorme e me mostra o plano faseado"
 - "modularisa esse arquivozao e reaproveita os utils que ja existem"
+- "quebra esse arquivo em módulos mas mantém o import público pelo pacote"
+- "[$modularizar] src/foo/bar.py"
 
 Não deve acionar:
 
@@ -85,26 +94,35 @@ Não deve acionar:
 - "redesenha esse endpoint REST"
 - "só organiza esse arquivo grande por legibilidade; não precisa mexer em callers, contratos ou gates"
 - "preciso de um refactor amplo multi-time sem alvo claro"
+- "cria `_helper.py` e deixa o arquivo antigo como shim"
 
 ## Evals de workflow
 
-### Cenário 1: limpeza profunda com deduplicação compartilhada
+### Cenário 1: roteamento para a Fase 1
 
 **Entrada:** "Esse service virou um god file. Remove duplicação, reutiliza utilitários existentes, melhora o algoritmo e me mostra tudo por fase."
 
+- [ ] abre `references/PHASE_1.md`
+- [ ] não abre `references/PHASE_2.md` antes do Gate 2
 - [ ] cria `modularizar_<target-basename>.md`
-- [ ] o plano inclui pelo menos uma entrada para `P1-INT`, `P1-SHARED`, `P1-BIGO`, `P1-COMMENT`, `P1-NAME` e `P1-CALLER`
 - [ ] pede Gate 1 antes de editar código
-- [ ] registra a execução da Fase 1B no mesmo plano antes de propor a Fase 2
 
-### Cenário 2: modularização após limpeza aprovada
+### Cenário 2: transição controlada para a Fase 2
 
 **Entrada:** "Depois da limpeza, extrai os módulos, ajusta os callers e promove só o que virar reutilizável."
 
+- [ ] abre `references/PHASE_2.md`
+- [ ] não reabre `references/PHASE_1.md` como referência principal da execução
 - [ ] valida `phase2` antes de extrair módulos
-- [ ] descreve entrypoints públicos, símbolos internos e sequência unitária de extração
 - [ ] gera `modularizar_<target-basename>-output.md`
-- [ ] o report final lista símbolos públicos promovidos, migrações de import/export e migrações de callers
+
+### Cenário 3: invariantes mantidos na Fase 2
+
+**Entrada:** "Extrai `_helper.py` e deixa `foo.py` só redirecionando imports."
+
+- [ ] `references/PHASE_2.md` deixa explícito que basename privado é inválido
+- [ ] `references/PHASE_2.md` deixa explícito que gateway legado é inválido
+- [ ] `validate-plan --phase phase2` continua falhando se o plano violar esses pontos
 
 ## Scripts
 
@@ -116,7 +134,7 @@ Leia apenas o arquivo relevante para a etapa atual:
 
 | Situação | Arquivo |
 |---|---|
-| Preencher o plano faseado e o inventário obrigatório | `references/PLAN_TEMPLATE.md` |
-| Entender a sequência operacional e os gates | `references/PHASES.md` |
+| Sem plano, Gate 1 pendente ou Fase 1 em execução | `references/PHASE_1.md` |
+| Gate 1 aprovado, Fase 1 executada e modularização prestes a começar | `references/PHASE_2.md` |
+| Preencher ou atualizar o plano faseado | `references/PLAN_TEMPLATE.md` |
 | Montar o relatório final com evidência das execuções | `references/OUTPUT_TEMPLATE.md` |
-| Ver exemplos de Fase 1 e Fase 2 com migração de callers | `references/EXAMPLES.md` |

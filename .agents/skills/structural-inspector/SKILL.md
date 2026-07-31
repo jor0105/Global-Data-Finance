@@ -1,9 +1,12 @@
 ---
 name: structural-inspector
 description: >
-  Use para inspecionar arquivos, datasets ou formatos desconhecidos sem carregar tudo em
-  memória: encoding, delimitador, schema, BOM, CRLF/LF, JSONL, CSV, Parquet e
-  oportunidades de otimização por amostragem/byte-sniffing.
+  Use para inspecionar arquivos, datasets ou formatos desconhecidos sem carregar
+  tudo em memória. Ative com "que arquivo é esse?", "qual encoding?", "qual
+  delimitador?", "descobre o schema", "CSV/JSONL/Parquet estranho?", "tem BOM?",
+  "CRLF ou LF?", "por que esse parser falha?" ou quando a estrutura ainda não é
+  confiável. Cobre byte sniffing, amostragem, schema e formato. Não use para
+  otimizar query Polars já conhecida, modelar banco ou validar regra de negócio.
 ---
 
 # Structural Inspector

@@ -80,8 +80,10 @@ Para cada item aprovado na Fase 1A, crie um bloco próprio:
 ### 5.1 Module map applied
 
 - Public entrypoints:
+- Extracted module files:
 - Internal modules:
-- Legacy files removed or reduced to gateway:
+- Canonical compatibility entrypoint used:
+- Legacy files removed:
 
 ### 5.2 Migration evidence
 
@@ -89,6 +91,7 @@ Para cada item aprovado na Fase 1A, crie um bloco próprio:
 - Symbols kept internal:
 - Import/export migrations applied:
 - Caller migrations applied:
+- Breakages fixed after legacy file removal:
 
 ### 5.3 Step execution evidence
 
@@ -99,6 +102,7 @@ Para cada passo aprovado na Fase 2A, crie um bloco próprio:
 - Step ID:
 - Execution status: executed/adjusted
 - Files changed:
+- Extracted module files:
 - Summary:
 - Validation evidence:
 - Rollback note:

@@ -31,6 +31,40 @@ required_files=(
   "${evals}"
 )
 
+description_text="$(
+  python3 - "${skill_file}" <<'PY'
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding='utf-8')
+match = re.match(r'---\n(.*?)\n---\n', text, re.S)
+if not match:
+    raise SystemExit('frontmatter missing')
+
+frontmatter = match.group(1)
+description_lines: list[str] = []
+collecting = False
+for line in frontmatter.splitlines():
+    if line.startswith('description:'):
+        collecting = True
+        _, _, value = line.partition(':')
+        value = value.strip()
+        if value != '>':
+            description_lines.append(value)
+        continue
+    if collecting:
+        if line.startswith((' ', '\t')):
+            description_lines.append(line.strip())
+            continue
+        break
+
+print(' '.join(description_lines))
+PY
+)"
+
 for file in "${required_files[@]}"; do
   if [[ ! -f "${file}" ]]; then
     echo "Missing required file: ${file}" >&2
@@ -40,7 +74,8 @@ done
 
 for command in "${expected_commands[@]}"; do
   workflow="${repo_root}/.agents/workflows/opsx-${command}.prompt.md"
-  mirror="${repo_root}/.github/prompts/opsx-${command}.prompt.md"
+  github_mirror="${repo_root}/.github/prompts/opsx-${command}.prompt.md"
+  opencode_mirror="${repo_root}/.opencode/commands/opsx-${command}.md"
   token="/opsx:${command}"
 
   if [[ ! -f "${workflow}" ]]; then
@@ -48,28 +83,43 @@ for command in "${expected_commands[@]}"; do
     exit 1
   fi
 
-  if [[ ! -f "${mirror}" ]]; then
-    echo "Missing workflow mirror: ${mirror}" >&2
+  if [[ ! -f "${github_mirror}" ]]; then
+    echo "Missing workflow mirror: ${github_mirror}" >&2
     exit 1
   fi
 
-  if ! cmp -s "${workflow}" "${mirror}"; then
-    echo "Mirror drift detected for ${token}" >&2
+  if [[ ! -f "${opencode_mirror}" ]]; then
+    echo "Missing workflow mirror: ${opencode_mirror}" >&2
     exit 1
   fi
 
-  if ! rg -q --fixed-strings "${token}" "${skill_file}"; then
+  if ! cmp -s "${workflow}" "${github_mirror}"; then
+    echo "Mirror drift detected for ${token} in GitHub mirror" >&2
+    exit 1
+  fi
+
+  if ! cmp -s "${workflow}" "${opencode_mirror}"; then
+    echo "Mirror drift detected for ${token} in OpenCode mirror" >&2
+    exit 1
+  fi
+
+  if ! grep -F -q "${token}" "${skill_file}"; then
     echo "Command token missing from skill: ${token}" >&2
     exit 1
   fi
 
-  if ! rg -q --fixed-strings "${token}" "${command_map}"; then
+  if [[ "${description_text}" != *"${token}"* ]]; then
+    echo "Command token missing from skill description: ${token}" >&2
+    exit 1
+  fi
+
+  if ! grep -F -q "${token}" "${command_map}"; then
     echo "Command token missing from command map: ${token}" >&2
     exit 1
   fi
 done
 
-if rg -n 'openspec/changes/<(name|target)>\.md' "${skill_dir}"; then
+if grep -r -n -E 'openspec/changes/[^[:space:]`"'"'"'<>*]+\.md' "${skill_dir}"; then
   echo "Forbidden legacy execution pattern found in openspec-workflow skill" >&2
   exit 1
 fi

@@ -1,16 +1,13 @@
 ---
 name: plan-writing
 description: >
-  Use para estruturar planos de implementacao detalhados quando o pedido ja tem
-  contexto suficiente para virar handoff executavel e a mudanca cabe em um
-  plano direto em arquivo `.md`, sem precisar de change artifact formal.
-  Ative quando o usuario pedir "monte um plano", "quebre em etapas", "faca o
-  handoff", "planeje a implementacao", "organize essa mudanca em checklist",
-  ou trouxer correcoes, features e refactors delimitados. Para refatoracoes
-  complexas, amplas, multi-fase, com contrato duradouro, impacto arquitetural
-  relevante ou necessidade de `proposal`, `design`, `tasks` e rastreabilidade
-  formal, prefira `openspec-workflow`. Nao use para ideacao vaga, change
-  artifact formal do OpenSpec, ou validacao pos-codigo.
+  Use para transformar uma mudança delimitada em plano executável ou handoff.
+  Ative quando o usuário pedir "monta um plano", "quebra em etapas", "faz um
+  checklist", "planeja a implementação", "organiza o handoff" ou descrever um
+  objetivo já claro que precisa virar passos. Não use para ideação vaga, escolha
+  entre opções ainda nebulosa, implementação imediata já autorizada, ou refactor
+  amplo com `proposal`, `design`, `tasks` ou OpenSpec; prefira `brainstorming`
+  ou `openspec-workflow`.
 ---
 
 # Plan Writing

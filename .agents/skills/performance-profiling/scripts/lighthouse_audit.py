@@ -13,6 +13,7 @@ import os
 import subprocess  # nosec
 import sys
 import tempfile
+from shutil import which
 
 
 def run_lighthouse(url: str) -> dict:
@@ -21,9 +22,13 @@ def run_lighthouse(url: str) -> dict:
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
             output_path = f.name
 
+        lighthouse_bin = which('lighthouse')
+        if lighthouse_bin is None:
+            return {'error': 'lighthouse executable not found'}
+
         process_result = subprocess.run(
             [
-                'lighthouse',
+                lighthouse_bin,
                 url,
                 '--output=json',
                 f'--output-path={output_path}',
@@ -62,11 +67,10 @@ def run_lighthouse(url: str) -> dict:
                 },
                 'summary': get_summary(categories),
             }
-        else:
-            return {
-                'error': 'Lighthouse failed to generate report',
-                'stderr': process_result.stderr[:500],
-            }
+        return {
+            'error': 'Lighthouse failed to generate report',
+            'stderr': process_result.stderr[:500],
+        }
 
     except subprocess.TimeoutExpired:
         return {'error': 'Lighthouse audit timed out'}
@@ -81,10 +85,9 @@ def get_summary(categories: dict) -> str:
     perf = categories.get('performance', {}).get('score', 0) * 100
     if perf >= 90:
         return '[OK] Excellent performance'
-    elif perf >= 50:
+    if perf >= 50:
         return '[!] Needs improvement'
-    else:
-        return '[X] Poor performance'
+    return '[X] Poor performance'
 
 
 if __name__ == '__main__':

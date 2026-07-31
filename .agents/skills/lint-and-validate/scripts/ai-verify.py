@@ -66,14 +66,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         '--profile',
-        choices=[
-            'auto',
-            'quick',
-            'standard',
-            'high-risk',
-            'ui-flow',
-            'security-touch',
-        ],
         default='auto',
     )
     parser.add_argument('--session-dir', default=None)
@@ -91,6 +83,128 @@ def parse_args() -> argparse.Namespace:
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def require_mapping(value: object, *, field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(f'{field} must be an object in extension config')
+    return value
+
+
+def merge_escalation_rules(
+    base: dict[str, list[dict[str, Any]]],
+    extra: object,
+) -> None:
+    rules_by_flag = require_mapping(extra, field='escalationRules')
+    for flag_name in (
+        'reviewRequired',
+        'securityRequired',
+        'testerRecommended',
+    ):
+        rules = rules_by_flag.get(flag_name, [])
+        if not isinstance(rules, list):
+            raise TypeError(
+                f'escalationRules.{flag_name} must be a list in extension config'
+            )
+        base.setdefault(flag_name, []).extend(rules)
+
+
+def merge_extension_config(
+    config: dict[str, Any],
+    extension: dict[str, Any],
+    extension_path: Path,
+) -> None:
+    if extension.get('schemaVersion') != '1.0.0':
+        raise ValueError(
+            f'{extension_path}: unsupported ai-verify extension schemaVersion'
+        )
+
+    profiles = require_mapping(
+        extension.get('profiles', {}),
+        field='profiles',
+    )
+    for profile_id, raw_profile_config in profiles.items():
+        profile_config = require_mapping(
+            raw_profile_config,
+            field=f'profiles.{profile_id}',
+        )
+        if profile_id in config['profiles']:
+            raise ValueError(
+                f'{extension_path}: duplicate ai:verify profile {profile_id!r}'
+            )
+        priority = profile_config.get('priority')
+        if not isinstance(priority, int):
+            raise TypeError(
+                f'{extension_path}: profile {profile_id!r} requires integer '
+                'priority'
+            )
+        config['profiles'][profile_id] = profile_config
+        PROFILE_PRIORITY[profile_id] = priority
+
+    gates = require_mapping(extension.get('gates', {}), field='gates')
+    for gate_id, raw_gate_config in gates.items():
+        gate_config = require_mapping(
+            raw_gate_config,
+            field=f'gates.{gate_id}',
+        )
+        if gate_id in config['gates']:
+            raise ValueError(
+                f'{extension_path}: duplicate ai:verify gate {gate_id!r}'
+            )
+        config['gates'][gate_id] = gate_config
+
+    path_rules = extension.get('pathRules', [])
+    if not isinstance(path_rules, list):
+        raise TypeError(f'{extension_path}: pathRules must be a list')
+    config['pathRules'].extend(path_rules)
+
+    merge_escalation_rules(
+        config['escalationRules'],
+        extension.get('escalationRules', {}),
+    )
+
+
+def load_verification_config() -> dict[str, Any]:
+    profiles_config = load_json(
+        SKILL_ROOT / 'assets' / 'verification-profiles.json'
+    )
+    path_rules = load_json(SKILL_ROOT / 'assets' / 'path-rules.json')['rules']
+    escalation_rules = load_json(
+        SKILL_ROOT / 'assets' / 'escalation-rules.json'
+    )
+
+    config: dict[str, Any] = {
+        'gates': dict(profiles_config.get('gates', {})),
+        'profiles': dict(profiles_config.get('profiles', {})),
+        'pathRules': list(path_rules),
+        'escalationRules': {
+            'reviewRequired': list(escalation_rules.get('reviewRequired', [])),
+            'securityRequired': list(
+                escalation_rules.get('securityRequired', [])
+            ),
+            'testerRecommended': list(
+                escalation_rules.get('testerRecommended', [])
+            ),
+        },
+    }
+
+    for profile_id, profile_config in config['profiles'].items():
+        if profile_id not in PROFILE_PRIORITY:
+            PROFILE_PRIORITY[profile_id] = int(
+                profile_config.get('priority', len(PROFILE_PRIORITY) + 1)
+            )
+
+    extension_paths = sorted(
+        (REPO_ROOT / '.agents' / 'skills').glob(
+            '*/assets/ai-verify-extension.json'
+        )
+    )
+    for extension_path in extension_paths:
+        merge_extension_config(
+            config, load_json(extension_path), extension_path
+        )
+
+    return config
 
 
 def normalize_repo_path(raw_path: str) -> str:
@@ -178,7 +292,47 @@ def path_matches(pattern: str, changed_file: str) -> bool:
 def strongest_profile(profiles: list[str]) -> str | None:
     if not profiles:
         return None
-    return max(profiles, key=lambda profile: PROFILE_PRIORITY[profile])
+    return max(profiles, key=lambda profile: PROFILE_PRIORITY.get(profile, 0))
+
+
+def _matched_profile_rules(
+    changed_files: list[str],
+    path_rules: list[dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    matched_profiles: list[str] = []
+    matched_reasons: list[str] = []
+    for changed_file in changed_files:
+        for rule in path_rules:
+            pattern = str(rule.get('pattern', ''))
+            profile = rule.get('profile')
+            if (
+                pattern
+                and isinstance(profile, str)
+                and path_matches(pattern, changed_file)
+            ):
+                matched_profiles.append(profile)
+                matched_reasons.append(
+                    str(rule.get('reason', f'Matched {pattern}.'))
+                )
+    return matched_profiles, matched_reasons
+
+
+def _resolve_auto_profile(
+    detected_profile: str | None,
+    changed_files: list[str],
+    matched_reasons: list[str],
+) -> tuple[str, str]:
+    if detected_profile:
+        return detected_profile, '; '.join(dict.fromkeys(matched_reasons))
+    if not changed_files:
+        return (
+            'standard',
+            'Nenhum arquivo alterado detectado; usando perfil standard por default.',
+        )
+    return (
+        'standard',
+        'Nenhuma regra especial disparou; usando perfil standard.',
+    )
 
 
 def resolve_effective_profile(
@@ -186,41 +340,20 @@ def resolve_effective_profile(
     changed_files: list[str],
     path_rules: list[dict[str, Any]],
 ) -> tuple[str, str]:
-    matched_profiles: list[str] = []
-    matched_reasons: list[str] = []
-
-    for changed_file in changed_files:
-        for rule in path_rules:
-            pattern = str(rule.get('pattern', ''))
-            profile = rule.get('profile')
-            if not pattern or not isinstance(profile, str):
-                continue
-            if path_matches(pattern, changed_file):
-                matched_profiles.append(profile)
-                matched_reasons.append(
-                    str(rule.get('reason', f'Matched {pattern}.'))
-                )
-
+    matched_profiles, matched_reasons = _matched_profile_rules(
+        changed_files, path_rules
+    )
     detected_profile = strongest_profile(matched_profiles)
     if requested_profile == 'auto':
-        if detected_profile:
-            return detected_profile, '; '.join(dict.fromkeys(matched_reasons))
-        if not changed_files:
-            return (
-                'standard',
-                'Nenhum arquivo alterado detectado; usando perfil standard por default.',
-            )
-        return (
-            'standard',
-            'Nenhuma regra especial disparou; usando perfil standard.',
+        return _resolve_auto_profile(
+            detected_profile,
+            changed_files,
+            matched_reasons,
         )
 
-    requested_effective = requested_profile
-    if (
-        detected_profile
-        and PROFILE_PRIORITY[detected_profile]
-        > PROFILE_PRIORITY[requested_profile]
-    ):
+    if detected_profile and PROFILE_PRIORITY.get(
+        detected_profile, 0
+    ) > PROFILE_PRIORITY.get(requested_profile, 0):
         return (
             detected_profile,
             '; '.join(
@@ -233,7 +366,7 @@ def resolve_effective_profile(
             ),
         )
     return (
-        requested_effective,
+        requested_profile,
         f"Perfil '{requested_profile}' solicitado explicitamente.",
     )
 
@@ -300,14 +433,15 @@ def parse_custom_gate(raw_gate: str) -> GateSpec:
 
 
 def build_gate_specs(
-    requested_profile: str,
     effective_profile: str,
     skip_defaults: bool,
     custom_gates: list[str],
+    profiles_config: dict[str, Any] | None = None,
 ) -> list[GateSpec]:
-    profiles_config = load_json(
-        SKILL_ROOT / 'assets' / 'verification-profiles.json'
-    )
+    if profiles_config is None:
+        profiles_config = load_json(
+            SKILL_ROOT / 'assets' / 'verification-profiles.json'
+        )
     gate_defs = profiles_config.get('gates', {})
     gates: list[GateSpec] = []
 
@@ -340,11 +474,8 @@ def build_gate_specs(
                 ),
             )
 
-    for raw_gate in custom_gates:
-        gates.append(parse_custom_gate(raw_gate))
+    gates.extend(parse_custom_gate(raw_gate) for raw_gate in custom_gates)
 
-    if not gates and not custom_gates:
-        pass
     return gates
 
 
@@ -481,90 +612,96 @@ def run_gate(
     }
 
 
-def parse_precommit_output(output: str) -> list[PrecommitHookResult]:
-    lines = output.splitlines()
-    results = []
+def _new_precommit_hook(match: re.Match[str]) -> dict[str, Any]:
+    label = match.group('label').strip()
+    return {
+        'hook_id': label.replace(' ', '-').lower(),
+        'label': label,
+        'status': match.group('status').lower(),
+        'classification': 'code',
+        'exit_code': None,
+        'modified_files': False,
+        'duration_ms': 0,
+    }
 
-    current_hook = None
-    details_buffer = []
+
+def _consume_precommit_detail(
+    current_hook: dict[str, Any],
+    line: str,
+) -> None:
+    if line.startswith('- hook id: '):
+        current_hook['hook_id'] = line.split('- hook id: ')[1].strip()
+    elif line.startswith('- exit code: '):
+        with contextlib.suppress(ValueError):
+            current_hook['exit_code'] = int(
+                line.split('- exit code: ')[1].strip()
+            )
+    elif 'files were modified by this hook' in line:
+        current_hook['modified_files'] = True
+        current_hook['classification'] = 'code'
+
+    if current_hook.get('exit_code') == 127:
+        current_hook['classification'] = 'environment'
+    if 'Executable' in line and 'not found' in line:
+        current_hook['classification'] = 'environment'
+
+
+def _append_precommit_hook(
+    results: list[dict[str, Any]],
+    current_hook: dict[str, Any] | None,
+    details_buffer: list[str],
+) -> None:
+    if current_hook is not None:
+        current_hook['details'] = '\n'.join(details_buffer).strip()
+        results.append(current_hook)
+
+
+def _finalize_precommit_hook(
+    hook: dict[str, Any],
+) -> PrecommitHookResult:
+    details_text = str(hook['details'])
+    lines_detail = details_text.splitlines()
+    if len(lines_detail) > 10:
+        details_text = '\n'.join(lines_detail[:10])
+    if hook['modified_files']:
+        details_text = (
+            'autofix aplicado — arquivos modificados, reexecute\n'
+            + details_text
+        )
+    return PrecommitHookResult(
+        hook_id=hook['hook_id'],
+        label=hook['label'],
+        status=hook['status'],
+        classification=hook['classification'],
+        exit_code=hook['exit_code'],
+        details=details_text.strip(),
+        modified_files=hook['modified_files'],
+        duration_ms=hook['duration_ms'],
+    )
+
+
+def parse_precommit_output(output: str) -> list[PrecommitHookResult]:
+    results: list[dict[str, Any]] = []
+    current_hook: dict[str, Any] | None = None
+    details_buffer: list[str] = []
 
     result_regex = re.compile(
         r'^(?P<label>.+?)\.+(?:\(no files to check\))?\s*(?P<status>Passed|Failed|Skipped)\s*$',
         re.IGNORECASE,
     )
 
-    for line in lines:
+    for line in output.splitlines():
         match = result_regex.match(line)
         if match:
-            if current_hook:
-                current_hook['details'] = '\n'.join(details_buffer).strip()
-                results.append(current_hook)
-
-            label = match.group('label').strip()
-            status = match.group('status').lower()
-            current_hook = {
-                'hook_id': label.replace(' ', '-').lower(),
-                'label': label,
-                'status': status,
-                'classification': 'code',
-                'exit_code': None,
-                'modified_files': False,
-                'duration_ms': 0,
-            }
+            _append_precommit_hook(results, current_hook, details_buffer)
+            current_hook = _new_precommit_hook(match)
             details_buffer = []
-        else:
-            if current_hook and current_hook['status'] == 'failed':
-                details_buffer.append(line)
+        elif current_hook and current_hook['status'] == 'failed':
+            details_buffer.append(line)
+            _consume_precommit_detail(current_hook, line)
 
-                if line.startswith('- hook id: '):
-                    current_hook['hook_id'] = line.split('- hook id: ')[
-                        1
-                    ].strip()
-                elif line.startswith('- exit code: '):
-                    with contextlib.suppress(ValueError):
-                        current_hook['exit_code'] = int(
-                            line.split('- exit code: ')[1].strip()
-                        )
-                elif 'files were modified by this hook' in line:
-                    current_hook['modified_files'] = True
-                    current_hook['classification'] = 'code'
-
-                if current_hook.get('exit_code') == 127:
-                    current_hook['classification'] = 'environment'
-                if 'Executable' in line and 'not found' in line:
-                    current_hook['classification'] = 'environment'
-
-    if current_hook:
-        current_hook['details'] = '\n'.join(details_buffer).strip()
-        results.append(current_hook)
-
-    final_results = []
-    for h in results:
-        details_text = h['details']
-        lines_detail = details_text.splitlines()
-        if len(lines_detail) > 10:
-            details_text = '\n'.join(lines_detail[:10])
-
-        if h['modified_files']:
-            details_text = (
-                'autofix aplicado — arquivos modificados, reexecute\n'
-                + details_text
-            )
-
-        final_results.append(
-            PrecommitHookResult(
-                hook_id=h['hook_id'],
-                label=h['label'],
-                status=h['status'],
-                classification=h['classification'],
-                exit_code=h['exit_code'],
-                details=details_text.strip(),
-                modified_files=h['modified_files'],
-                duration_ms=h['duration_ms'],
-            )
-        )
-
-    return final_results
+    _append_precommit_hook(results, current_hook, details_buffer)
+    return [_finalize_precommit_hook(hook) for hook in results]
 
 
 def load_hook_policy() -> dict[str, Any]:
@@ -634,7 +771,13 @@ def list_hooks_from_config_as_dry_run() -> list[dict[str, Any]]:
 
 
 def resolve_scope(profile: str, changed_files: list[str]) -> list[str]:
-    if profile in ('high-risk', 'security-touch', 'ui-flow'):
+    if profile in (
+        'high-risk',
+        'security-touch',
+        'ui-flow',
+    ) or PROFILE_PRIORITY.get(profile, 0) >= PROFILE_PRIORITY.get(
+        'high-risk', 3
+    ):
         return ['--all-files']
     if changed_files:
         return ['--files', *changed_files[:100]]
@@ -776,7 +919,7 @@ def should_fail_exit_code(gates: list[dict[str, Any]]) -> bool:
 
 
 def load_runtime_support():
-    sys.path.append(str(REPO_ROOT / '.agents' / 'runtime' / 'reviewer'))
+    sys.path.append(str(REPO_ROOT / '.agents' / 'runtime' / 'review'))
     from runtime_support import (  # type: ignore
         assert_transition,
         build_empty_gate_report,
@@ -883,10 +1026,16 @@ def validate_result_shape(result: dict[str, Any]) -> None:
 
 def main() -> int:
     args = parse_args()
-    path_rules = load_json(SKILL_ROOT / 'assets' / 'path-rules.json')['rules']
-    escalation_rules = load_json(
-        SKILL_ROOT / 'assets' / 'escalation-rules.json'
-    )
+    config = load_verification_config()
+    valid_profiles = {'auto', *config['profiles']}
+    if args.profile not in valid_profiles:
+        choices = ', '.join(sorted(valid_profiles))
+        raise SystemExit(
+            f'ai-verify.py: error: argument --profile: invalid choice: '
+            f'{args.profile!r} (choose from {choices})'
+        )
+    path_rules = config['pathRules']
+    escalation_rules = config['escalationRules']
     package_scripts = load_package_scripts()
     changed_files = detect_changed_files(args.changed_file, args.session_dir)
     effective_profile, profile_reason = resolve_effective_profile(
@@ -894,16 +1043,18 @@ def main() -> int:
         changed_files,
         path_rules,
     )
-    if args.mode == 'precommit':
+    profile_config = config['profiles'].get(effective_profile, {})
+    profile_has_gates = bool(profile_config.get('gates'))
+    if args.mode == 'precommit' and not profile_has_gates:
         gate_results = run_precommit_mode(
             changed_files, effective_profile, args.dry_run, args.session_dir
         )
     else:
         gates = build_gate_specs(
-            requested_profile=args.profile,
             effective_profile=effective_profile,
             skip_defaults=args.skip_defaults,
             custom_gates=args.gate,
+            profiles_config=config,
         )
         gate_results = [
             run_gate(

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync local workflow mirrors from .agents/workflows to GitHub, OpenCode, and Claude Code."""
+"""Sync local workflow mirrors from .agents/workflows."""
 
 from __future__ import annotations
 
@@ -72,7 +72,7 @@ def sync_directory(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Sync local GitHub prompts, OpenCode commands, and Claude Code commands from .agents/workflows.'
+        description='Sync local GitHub prompts, OpenCode commands, and Claude commands from .agents/workflows.'
     )
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()

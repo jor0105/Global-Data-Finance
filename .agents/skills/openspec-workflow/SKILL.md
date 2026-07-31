@@ -1,19 +1,14 @@
 ---
 name: openspec-workflow
 description: >
-  Use para rotear pedidos explicitamente ligados a OpenSpec ou OPSX para os
-  workflows canônicos em `.agents/workflows/opsx-*.prompt.md`, e tambem quando
-  a mudanca for um refactor complexo que precisa de artifact formal e
-  rastreabilidade antes ou junto da implementacao. Ative quando o usuario citar
-  `OpenSpec`, `OPSX`, `/opsx:new`, `/opsx:continue`, `/opsx:apply`,
-  `/opsx:verify`, `/opsx:sync`, `/opsx:archive`, `/opsx:explore`, `/opsx:ff`,
-  `/opsx:onboard`, ou pedir ajuda com `change`, `proposal`, `design.md`,
-  `tasks.md`, `spec delta`, `sync`, `verify` ou `archive` de uma change
-  OpenSpec. Ative tambem para refatoracoes amplas, multi-fase, com contrato
-  duradouro, impacto arquitetural relevante ou necessidade de `proposal`,
-  `design`, `tasks` e verificacao rastreavel. Nao use para planejamento
-  generico, refactors delimitados que cabem em um unico plano `.md`, bugs
-  isolados, ou revisao/criacao de outra skill.
+  Use para workflows OpenSpec/OPSX e mudanças que precisam de artefatos formais.
+  Ative quando o usuário citar OpenSpec, OPSX, `/opsx:new`, `/opsx:continue`,
+  `/opsx:apply`, `/opsx:verify`, `/opsx:sync`, `/opsx:archive`, `/opsx:ff`,
+  `/opsx:bulk-archive`, `/opsx:explore`, `/opsx:onboard`, "cria uma change",
+  "faz proposal/design/tasks", "valida spec" ou "sincroniza specs". Também use
+  para refactors grandes, multi-fase ou com contrato duradouro. Não use para
+  plano simples em `.md`, bug isolado, revisão/criação de skill ou refactor
+  delimitado sem necessidade de rastreabilidade formal.
 ---
 
 # OpenSpec Workflow
@@ -29,9 +24,9 @@ description: >
 
 | Intenção do usuário | Workflow canônico | Primeira ação |
 |---|---|---|
-| Criar uma nova change, iniciar OPSX, pedir `/opsx:new` | `.agents/workflows/opsx-new.prompt.md` | Criar a change, mostrar o primeiro artefato `ready` e parar antes de gerar artefatos |
+| Criar uma nova change, iniciar OPSX, pedir `/opsx:new` | `.agents/workflows/opsx-new.prompt.md` | Executar preflight spec check, criar a change, mostrar o primeiro artefato `ready` e parar antes de gerar artefatos |
 | Continuar uma change, criar `proposal.md`, `design.md`, `tasks.md` ou o próximo artefato | `.agents/workflows/opsx-continue.prompt.md` | Se o nome da change não vier no pedido, selecionar explicitamente a change e criar um único artefato `ready` |
-| Fast-forward, gerar artefatos até ficar apply-ready, pedir `/opsx:ff` | `.agents/workflows/opsx-ff.prompt.md` | Criar a change, respeitar o schema escolhido e avançar até satisfazer `apply.requires` |
+| Fast-forward, gerar artefatos até ficar apply-ready, pedir `/opsx:ff` | `.agents/workflows/opsx-ff.prompt.md` | Executar preflight spec check, criar a change, respeitar o schema escolhido e avançar até satisfazer `apply.requires` |
 | Implementar tarefas de uma change, pedir `/opsx:apply` | `.agents/workflows/opsx-apply.prompt.md` | Ler `status` e `instructions apply`; `apply` é a única exceção que pode inferir ou auto-selecionar a change quando isso for seguro |
 | Verificar implementação antes de arquivar, pedir `/opsx:verify` | `.agents/workflows/opsx-verify.prompt.md` | Selecionar explicitamente a change e comparar implementação com tarefas, specs, cenários e decisões de design |
 | Sincronizar delta specs com `openspec/specs`, pedir `/opsx:sync` | `.agents/workflows/opsx-sync.prompt.md` | Selecionar explicitamente a change, ler delta spec e main spec, e mesclar preservando conteúdo intocado |
@@ -44,12 +39,13 @@ description: >
 
 - Nunca instrua o agente a aplicar código a partir de um arquivo flat em `openspec/changes/*.md`; esse não é o modelo ativo principal.
 - Não assuma `proposal -> specs -> design -> tasks` fora de um schema confirmado como `spec-driven`; para outros schemas, use o output do CLI como fonte de verdade.
+- `new` e `ff` devem sempre executar o *Preflight Spec Consistency Check* para garantir que a proposta seja desenhada contra `openspec/specs/` atualizadas e avisar sobre delta specs ativos em andamento.
 - `continue`, `sync`, `archive` e `verify` devem pedir seleção explícita da change quando o nome não vier no pedido. `apply` é a única exceção que pode inferir ou auto-selecionar quando isso for seguro, mas deve anunciar a escolha e como sobrescrevê-la.
 - `continue` cria exatamente um artefato `ready` por invocação.
 - `sync` deve ler delta spec e main spec antes de editar, preservar cenários e requisitos não tocados, e ser idempotente.
 - `verify` deve comparar a implementação com todos os artefatos disponíveis da change, não apenas com a checklist de tarefas.
 - `archive` deve avaliar artifacts, tasks e estado de sync antes de mover a change para `archive/`.
-- Ao editar qualquer `opsx-*.prompt.md` em `.agents/workflows/`, atualize o espelho correspondente em `.github/prompts/` no mesmo diff.
+- Ao editar qualquer `opsx-*.prompt.md` em `.agents/workflows/`, atualize os espelhos correspondentes em `.github/prompts/` e `.opencode/commands/` no mesmo diff, preferencialmente com `python3 .agents/scripts/sync-workflows.py`.
 
 ## Procedimento
 
@@ -84,7 +80,7 @@ description: >
 ### Caso negativo
 
 **Entrada:** "essa skill está fraca"
-**Por quê não:** Isso é trabalho de governança ou autoria de skill; use `skill-author`.
+**Por quê não:** Isso é trabalho de governança ou autoria de skill; use `skill-governance`.
 
 ### Caso negativo
 
@@ -146,4 +142,4 @@ Leia apenas o arquivo necessário para o pedido atual:
 
 ## Scripts
 
-- `scripts/check_opsx_alignment.sh`: valida que os workflows OPSX citados por esta skill existem, que os espelhos em `.github/prompts/` estão sincronizados e que o texto local não reintroduziu o padrão legado proibido.
+- `scripts/check_opsx_alignment.sh`: valida que os workflows OPSX citados por esta skill existem, que os espelhos em `.github/prompts/` e `.opencode/commands/` estão sincronizados e que o texto local não reintroduziu o padrão legado proibido.

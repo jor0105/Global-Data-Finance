@@ -33,9 +33,18 @@ Start a new change using the experimental artifact-driven approach.
    - A specific schema name → use `--schema <name>`
    - "show workflows" or "what workflows" → run `openspec schemas --json` and let them choose
 
-   **Otherwise**: Omit `--schema` to use the default.
+3. **Preflight Spec Consistency Check**
 
-3. **Create the change directory**
+   Before scaffolding the new change, inspect existing changes to ensure main specs (`openspec/specs/`) are up to date:
+
+   a. Run `openspec list --json` (or inspect active changes under `openspec/changes/`).
+   b. Identify active changes containing delta specs at `specs/<capability>/spec.md`.
+   c. **Check for un-synced completed changes**: If any active change has all tasks completed (`- [x]`) or status `all_done`, but its delta specs have not been merged into `openspec/specs/`:
+      - Display warning `[WARNING]`: *"Change `<name>` appears completed but its delta specs are not synced to main specs (`openspec/specs/`). Recommended: run `/opsx:sync <name>` and `/opsx:archive <name>` before designing the new change."*
+      - Ask the user via **AskUserQuestion tool** whether to sync first or proceed anyway.
+   d. **Check for active concurrent changes**: If active changes modify related specs, display an informational note `[INFO]`: *"Active changes with delta specs in progress: `<list>`. Be aware of potential spec overlap."*
+
+4. **Create the change directory**
 
    ```bash
    openspec new change "<name>"
@@ -44,7 +53,9 @@ Start a new change using the experimental artifact-driven approach.
    Add `--schema <name>` only if the user requested a specific workflow.
    This creates a scaffolded change at `openspec/changes/<name>/` with the selected schema.
 
-4. **Show the artifact status**
+   *(CLI Fallback: If `openspec` CLI fails or is missing, manually create the directory `openspec/changes/<name>/` and scaffold basic empty markdown files like `proposal.md`)*
+
+5. **Show the artifact status**
 
    ```bash
    openspec status --change "<name>"
@@ -52,7 +63,9 @@ Start a new change using the experimental artifact-driven approach.
 
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
-5. **Get instructions for the first artifact**
+   *(CLI Fallback: If `openspec` CLI fails, simply list the empty files that need to be filled in order)*
+
+6. **Get instructions for the first artifact**
    The first artifact depends on the schema. Check the status output to find the first artifact with status "ready".
 
    ```bash
@@ -61,7 +74,9 @@ Start a new change using the experimental artifact-driven approach.
 
    This outputs the template and context for creating the first artifact.
 
-6. **STOP and wait for user direction**
+   *(CLI Fallback: If `openspec` CLI fails, use standard markdown structure for the first artifact, e.g., a simple proposal outline)*
+
+7. **STOP and wait for user direction**
 
 **Output**
 

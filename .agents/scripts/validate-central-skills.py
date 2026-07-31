@@ -6,7 +6,7 @@ todos os fluxos. Este script roda o mesmo validador base (validate-skills.py)
 e adiciona checagens específicas das skills centrais:
   - Existência do arquivo SKILL.md
   - Ausência de termos legados banidos
-  - Consistência com o pack-registry (quando existir)
+  - Consistência com o review pack-registry (quando existir)
 """
 
 from __future__ import annotations
@@ -21,14 +21,15 @@ from pathlib import Path
 SCRIPTS_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPTS_ROOT.parent.parent
 SKILLS_ROOT = REPO_ROOT / '.agents' / 'skills'
-REVIEWER_RUNTIME_ROOT = REPO_ROOT / '.agents' / 'runtime' / 'reviewer'
-PACK_REGISTRY_PATH = REVIEWER_RUNTIME_ROOT / 'pack-registry.json'
+REVIEW_RUNTIME_ROOT = REPO_ROOT / '.agents' / 'runtime' / 'review'
+PACK_REGISTRY_PATH = REVIEW_RUNTIME_ROOT / 'pack-registry.json'
 
 # Skills consideradas centrais para o sistema de agentes.
 # Atualizar aqui quando uma nova skill central for adicionada.
 CENTRAL_SKILLS: list[str] = [
     'modularizar',
     'lint-and-validate',
+    'review-workflow',
     'brainstorming',
     'plan-writing',
     'architecture',
@@ -36,13 +37,15 @@ CENTRAL_SKILLS: list[str] = [
     'frontend-design',
     'ui-ux',
     'database-design',
+    'python-patterns',
+    'structural-inspector',
+    'systematic-debugging',
     'performance-profiling',
     'testing-patterns',
     'tdd-workflow',
     'webapp-testing',
     'vulnerability-scanner',
     'red-team-tactics',
-    'react-performance',
     'supabase-postgres-best-practices',
 ]
 
@@ -88,9 +91,11 @@ def _validate_single_via_subprocess(skill_name: str) -> list[str]:
 
 def _check_banned_terms(path: Path, text: str, errors: list[str]) -> None:
     lowered = text.lower()
-    for term in BANNED_LEGACY_TERMS:
-        if term.lower() in lowered:
-            errors.append(f"{path}: contém termo legado banido '{term}'")
+    errors.extend(
+        f"{path}: contém termo legado banido '{term}'"
+        for term in BANNED_LEGACY_TERMS
+        if term.lower() in lowered
+    )
 
 
 def _check_exposed_python_scripts(
@@ -128,7 +133,7 @@ def _validate_pack_registry(
     registry: dict[str, dict] = json.loads(
         PACK_REGISTRY_PATH.read_text(encoding='utf-8')
     )
-    checklist_path = REVIEWER_RUNTIME_ROOT / 'review-rubric.md'
+    checklist_path = REVIEW_RUNTIME_ROOT / 'review-rubric.md'
     checklist_text = (
         checklist_path.read_text(encoding='utf-8')
         if checklist_path.exists()
@@ -149,11 +154,11 @@ def _validate_pack_registry(
                     f"{PACK_REGISTRY_PATH}: pack '{pack_name}' referencia skill arquivada '{skill_name}'"
                 )
 
-        for checklist_id in pack.get('checklists', []):
-            if checklist_id not in checklist_text:
-                errors.append(
-                    f"{PACK_REGISTRY_PATH}: pack '{pack_name}' referencia checklist inexistente '{checklist_id}'"
-                )
+        errors.extend(
+            f"{PACK_REGISTRY_PATH}: pack '{pack_name}' referencia checklist inexistente '{checklist_id}'"
+            for checklist_id in pack.get('checklists', [])
+            if checklist_id not in checklist_text
+        )
 
 
 def main() -> int:

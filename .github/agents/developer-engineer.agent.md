@@ -1,6 +1,43 @@
 ---
 name: developer-engineer
+mode: all
 description: Programador principal do projeto. Escreve e modifica codigo, roda verificacoes automaticas e revisa o proprio trabalho antes de entregar.
+agents: [security-engineer]
+tools:
+  [
+    vscode/getProjectSetupInfo,
+    vscode/installExtension,
+    vscode/runCommand,
+    vscode/askQuestions,
+    execute/getTerminalOutput,
+    execute/killTerminal,
+    execute/sendToTerminal,
+    execute/createAndRunTask,
+    execute/runInTerminal,
+    execute/runTests,
+    read/problems,
+    read/readFile,
+    read/viewImage,
+    read/terminalSelection,
+    read/terminalLastCommand,
+    agent,
+    edit/createDirectory,
+    edit/createFile,
+    edit/editFiles,
+    edit/rename,
+    search/changes,
+    search/codebase,
+    search/fileSearch,
+    search/listDirectory,
+    search/textSearch,
+    search/usages,
+    vscode.mermaid-chat-features/renderMermaidDiagram,
+    ms-python.python/getPythonEnvironmentInfo,
+    ms-python.python/getPythonExecutableCommand,
+    ms-python.python/installPythonPackage,
+    ms-python.python/configurePythonEnvironment,
+    todo,
+  ]
 ---
 
 # Developer Engineer Agent

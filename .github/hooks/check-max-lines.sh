@@ -8,6 +8,7 @@ violations=()
 if (( $# > 0 )); then
   candidates=("$@")
 else
+  # mapfile -t candidates < <(git ls-files src backend .agents/scripts .agents/skills)
   mapfile -t candidates < <(git ls-files src backend)
 fi
 
@@ -17,9 +18,10 @@ for file in "${candidates[@]}"; do
   fi
 
   case "$file" in
-    backend/.venv/*|src/shared/generated/*|backend/tests/*|backend/testing/*|src/globaldatafinance/brazil/gerais/*)
+    backend/.venv/*|src/shared/generated/*|backend/tests/*|backend/testing/*)
       continue
       ;;
+    # src/*|backend/*|.agents/scripts/*|.agents/skills/*/scripts/*)
     src/*|backend/*)
       ;;
     *)

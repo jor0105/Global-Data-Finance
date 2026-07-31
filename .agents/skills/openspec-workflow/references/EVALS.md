@@ -65,7 +65,7 @@ Não deve acionar:
 **Entrada:** "essa skill está fraca"
 
 - [ ] não roteia para OpenSpec/OPSX
-- [ ] indica `skill-author` como caminho correto
+- [ ] indica `skill-governance` como caminho correto
 
 ### Cenário 6: near-miss de planning genérico
 
@@ -74,3 +74,12 @@ Não deve acionar:
 - [ ] não roteia para OpenSpec/OPSX
 - [ ] não sugere `archive`, `sync` ou `apply`
 - [ ] encaminha para planning genérico
+
+### Cenário 7: `new` / `ff` com preflight spec check
+
+**Entrada:** "/opsx:new nova-feature"
+
+- [ ] executa a checagem preflight de especificações ativas e un-synced
+- [ ] alerta caso existam changes concluídas com delta specs pendentes de sync
+- [ ] informa caso existam delta specs ativos em andamento
+- [ ] prossegue com o scaffold da change após a verificação

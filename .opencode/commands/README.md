@@ -17,3 +17,4 @@ Para integração com outras ferramentas:
 - `.github/prompts/` deve conter cópias ou links simbólicos para integração com Copilot.
 - `.opencode/commands/` deve espelhar os workflows para integração com o OpenCode.
   Qualquer alteração em um workflow ativo nesta pasta deve ser replicada em seus espelhos correspondentes.
+- Use `python3 .agents/scripts/sync-workflows.py` para sincronizar os espelhos locais e `python3 .agents/scripts/sync-workflows.py --check` para detectar drift sem escrever.

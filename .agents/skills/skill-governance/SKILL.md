@@ -1,11 +1,12 @@
 ---
-name: skill-author
+name: skill-governance
 description: >
-  Use esta skill para criar, reescrever ou avaliar qualquer SKILL.md de agente.
-  Ative sempre que o pedido envolver "criar uma skill", "melhorar uma skill",
-  "essa skill está fraca", "devo fazer uma skill ou um script?", ou qualquer
-  variação — mesmo informal. Ative também quando o usuário descrever um workflow
-  repetitivo e não souber se merece virar skill.
+  Use para criar, avaliar, reescrever ou governar skills de agente. Ative quando
+  o usuário disser "cria uma skill", "melhora essa skill", "essa skill não
+  dispara", "a description está boa?", "segue governança?", "devo fazer skill ou
+  script?", "revise esse SKILL.md" ou perguntar sobre `references/`, `scripts` e
+  assets de uma skill. Não use para melhorar código comum do projeto, escrever
+  documentação geral ou criar workflow OpenSpec sem relação com skills.
 ---
 
 # Skill Author
@@ -120,7 +121,7 @@ Ativa para tudo ou para nada. Sem fronteira, sem utilidade.
 
 ```yaml
 description: >
-  Use para escrever ou melhorar release notes e changelogs de qualquer deploy.
+  Use essa skill para escrever ou melhorar release notes e changelogs de qualquer deploy.
   Ative quando o usuário pedir "documenta o que mudou", "gera as notas da versão",
   "preciso de um changelog", ou descrever commits e querer transformar em texto
   para o cliente.
@@ -293,3 +294,4 @@ os mesmos passos auxiliares em todo teste, esse trabalho pertence a `scripts/`.
 - [ ] Nenhuma seção repete o que outra já diz
 - [ ] O SKILL.md tem menos de 500 linhas
 - [ ] Scripts reutilizáveis estão em `scripts/` e otimizados para o melhor big O Notation possivel e também inline
+- [ ] As `references/` (se criadas) foram otimizadas para relatar cenários isolados (em vez de diversos cenários com pouca profundidade)

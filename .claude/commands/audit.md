@@ -15,7 +15,7 @@ You are now in **DEEP AUDIT MODE**.
 
 - **ACTIVATE**: `@lint-and-validate` — use this skill for profile selection, gate execution, and structured output. Prefer the canonical repo entrypoint `npm run ai:verify`.
 - **OPTIONAL**: For security-sensitive scope, also activate `@vulnerability-scanner`.
-- **READ**: `.agents/runtime/reviewer/review-rubric.md` — use as reference for severity, confidence and blocking thresholds during expert review.
+- **READ**: `.agents/runtime/review/review-rubric.md` — use as reference for severity, confidence and blocking thresholds during expert review.
 
 ---
 

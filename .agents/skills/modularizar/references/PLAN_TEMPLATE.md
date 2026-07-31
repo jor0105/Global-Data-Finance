@@ -138,6 +138,10 @@ For each finding, copy the block below:
 
 For each finding, copy the block below:
 
+> Para Python, registre explicitamente aqui símbolos privados com prefixo `_`
+> que precisem virar públicos na Fase 1. Não deixe essa promoção implícita
+> nem adie para a Fase 2 quando a superfície real de uso já estiver clara.
+
 #### Inventory item P1-NAME-01
 
 - Finding status: finding/no-finding
@@ -191,12 +195,20 @@ For each finding, copy the block below:
 - Validation evidence for Phase 1:
 - Residual risks after Phase 1:
 
+> [!IMPORTANT]
+>
+> Não preencha `## 6` nem `## 7` durante a Fase 1. Essas seções só devem ser
+> atualizadas depois de `GATE_1_APPROVED: YES`, `PHASE_1_EXECUTED: YES` e nova
+> aprovação explícita do usuário para iniciar a Fase 2.
+
 ## 6. Phase 2A - Modularization Proposal
 
 ### 6.1 Final module map
 
 - Final public entrypoints:
 - Public entrypoint justification:
+- File naming policy for extracted modules:
+- Canonical compatibility entrypoint:
 - Internal modules and responsibilities:
 - Symbols promoted to public:
 - Promotion justification:
@@ -207,7 +219,8 @@ For each finding, copy the block below:
 
 - Imports/exports to update:
 - Callers to migrate:
-- Legacy files to remove or reduce to gateway:
+- Breakages expected after legacy file removal:
+- Legacy files to remove:
 
 ### 6.3 Step-by-step extraction sequence
 
@@ -215,6 +228,7 @@ For each finding, copy the block below:
 
 - Extraction order:
 - Files touched:
+- Extracted module files:
 - Responsibility moved:
 - Public/private symbol impact:
 - Validation checkpoint:
@@ -224,6 +238,7 @@ For each finding, copy the block below:
 
 - Extraction order:
 - Files touched:
+- Extracted module files:
 - Responsibility moved:
 - Public/private symbol impact:
 - Validation checkpoint:
@@ -241,10 +256,12 @@ For each finding, copy the block below:
 - Phase 2 execution summary:
 - Files changed in Phase 2:
 - Modules extracted:
+- Canonical compatibility entrypoint used:
 - Imports/exports migrated in Phase 2:
 - Callers migrated in Phase 2:
+- Breakages fixed after legacy file removal:
 - Public symbols promoted in Phase 2:
-- Legacy files removed or reduced to gateway:
+- Legacy files removed:
 - Validation evidence for Phase 2:
 - Residual risks after Phase 2:
 

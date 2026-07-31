@@ -41,16 +41,20 @@ class StructuralInspector:
         try:
             if extension == '.csv' or extension == '.txt':
                 return self._inspect_csv(path, meta)
-            elif extension == '.parquet':
+            if extension == '.parquet':
                 return self._inspect_parquet(path, meta)
-            elif extension in ['.xlsx', '.xls']:
+            if extension in ['.xlsx', '.xls']:
                 return self._inspect_excel(path, meta)
-            else:
-                return {
-                    'error': f'Unsupported format: {extension}',
-                    'meta': meta,
-                }
-        except Exception as e:
+            return {
+                'error': f'Unsupported format: {extension}',
+                'meta': meta,
+            }
+        except (
+            OSError,
+            ValueError,
+            csv.Error,
+            polars.exceptions.PolarsError,
+        ) as e:
             return {'error': str(e), 'meta': meta}
 
     def _inspect_csv(self, path: Path, meta: dict[str, Any]) -> dict[str, Any]:
@@ -75,7 +79,7 @@ class StructuralInspector:
             try:
                 dialect = csv.Sniffer().sniff(text_head)
                 delimiter = dialect.delimiter
-            except Exception:
+            except csv.Error:
                 counts = {
                     sep: text_head.count(sep) for sep in [';', ',', '\t', '|']
                 }
@@ -96,7 +100,12 @@ class StructuralInspector:
 
             return self._build_report(lz, meta)
 
-        except Exception as e:
+        except (
+            OSError,
+            ValueError,
+            csv.Error,
+            polars.exceptions.PolarsError,
+        ) as e:
             return {
                 'error': f'CSV Hunter-Inspection failed: {e!s}',
                 'meta': meta,
@@ -165,6 +174,7 @@ class StructuralInspector:
                 'strategy': 'Lazy Scan + Predicate Pushdown',
                 'recommended_n_threads': os.cpu_count(),
                 'estimated_read_speed': 'High (Zero-copy)',
+                'source_is_sample': is_sample,
             },
         }
 
@@ -188,7 +198,12 @@ class StructuralInspector:
             )
             lz = df.lazy()
             return self._build_report(lz, meta, is_sample=True)
-        except Exception as e:
+        except (
+            ImportError,
+            OSError,
+            ValueError,
+            polars.exceptions.PolarsError,
+        ) as e:
             return {
                 'error': f'Excel inspection failed: {e!s}',
                 'meta': meta,

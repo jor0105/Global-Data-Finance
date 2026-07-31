@@ -1,11 +1,13 @@
 ---
 name: systematic-debugging
 description: >
-  Use para debugging estruturado quando a causa é incerta: reproduzir, eliminar ruído
-  de ambiente, isolar hipóteses, provar root cause e validar correção. Ative quando o
-  usuário disser "não sei por que quebra", "bug intermitente", "funciona na minha
-  máquina", "CI passa mas local falha", "módulo ou import não encontrado", "minhas
-  variáveis não estão carregando", "stack trace", ou "acha a causa raiz".
+  Use para debugging estruturado quando a causa raiz é incerta. Ative com "não
+  sei por que quebra", "acha a causa raiz", "bug intermitente", "funciona na
+  minha máquina", "CI passa mas local falha", "deu stack trace", "módulo não
+  encontrado", "import quebrou", "env não carrega" ou "por que esse erro
+  acontece?". Cobre reproduzir, isolar hipóteses e validar correção. Não use para
+  performance já assumida, teste/validação final, refactor planejado ou bug com
+  causa e correção já delimitadas.
 ---
 
 # Systematic Debugging

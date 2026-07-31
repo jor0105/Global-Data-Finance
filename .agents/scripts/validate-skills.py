@@ -23,6 +23,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -285,15 +287,45 @@ def _check_path_refs(path: Path, text: str, errors: list[str]) -> None:
         text,
     )
 
-    for ref in absolute_refs:
-        if not (REPO_ROOT / ref).exists():
-            errors.append(f'{path}: referência de caminho não existe: {ref}')
+    errors.extend(
+        f'{path}: referência de caminho não existe: {ref}'
+        for ref in absolute_refs
+        if not (REPO_ROOT / ref).exists()
+    )
+    errors.extend(
+        f'{path}: referência relativa não existe na pasta da skill: {ref}'
+        for ref in relative_refs
+        if not (path.parent / ref).exists()
+    )
 
-    for ref in relative_refs:
-        if not (path.parent / ref).exists():
-            errors.append(
-                f'{path}: referência relativa não existe na pasta da skill: {ref}'
-            )
+
+def _check_skill_specific_contracts(path: Path, errors: list[str]) -> None:
+    """Run bundled validators for skills with protocol-specific contracts."""
+    if path.parent.name != 'openspec-workflow':
+        return
+
+    script = path.parent / 'scripts' / 'check_opsx_alignment.sh'
+    if not script.exists():
+        errors.append(f'{path}: validador específico ausente: {script}')
+        return
+
+    bash_path = shutil.which('bash')
+    if not bash_path:
+        errors.append(f'{path}: bash não encontrado no PATH')
+        return
+
+    result = subprocess.run(
+        [bash_path, str(script)],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        errors.append(
+            f'{path}: falha no contrato OPSX ({script.name}): {detail}'
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -325,6 +357,7 @@ def validate_skill(path: Path, active_names: set[str]) -> list[str]:
     _check_size(path, text, errors)
     _check_references_size(path, errors)
     _check_path_refs(path, text, errors)
+    _check_skill_specific_contracts(path, errors)
 
     return errors
 

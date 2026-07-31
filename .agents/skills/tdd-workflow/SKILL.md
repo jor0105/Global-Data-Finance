@@ -1,10 +1,13 @@
 ---
 name: tdd-workflow
 description: >
-  Use para Test-Driven Development: RED-GREEN-REFACTOR, bug regression-first, acceptance
-  criteria e refactor protegido por testes. Ative quando o usuário pedir "faz com TDD",
-  "escreve teste falhando primeiro", "cobre essa regressão" ou quiser evitar teste
-  tautológico.
+  Use para Test-Driven Development e regressão antes da correção. Ative quando o
+  usuário pedir "faz com TDD", "escreve o teste falhando primeiro", "cobre essa
+  regressão antes de corrigir", "quero RED-GREEN-REFACTOR", "protege esse
+  refactor com teste" ou "esse teste é tautológico?". Cobre acceptance criteria,
+  RED/GREEN/REFACTOR e teste que falha sem o fix. Não use para apenas rodar
+  suíte existente, desenhar estratégia ampla de testes ou E2E de navegador sem
+  ciclo TDD explícito.
 ---
 
 # TDD Workflow

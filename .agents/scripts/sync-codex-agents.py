@@ -6,14 +6,16 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agent_render
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = REPO_ROOT / '.agents' / 'agents'
 CODEX_AGENT_DIR = REPO_ROOT / '.codex' / 'agents'
-EXPECTED_AGENT_MODES = {
-    'coordinator': 'primary',
-}
+EXPECTED_AGENT_MODES: dict[str, str] = {}
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
@@ -112,7 +114,8 @@ def collect_markdown_sources() -> dict[str, str]:
     for path in sorted(AGENT_DIR.glob('*.agent.md')):
         agent_name = path.name.replace('.agent.md', '')
         metadata, body = parse_frontmatter(path.read_text(encoding='utf-8'))
-        rendered[agent_name] = render_toml(agent_name, metadata, body)
+        compiled = agent_render.compile_body(body)
+        rendered[agent_name] = render_toml(agent_name, metadata, compiled)
     return rendered
 
 

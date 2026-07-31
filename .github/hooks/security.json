@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/AI-Huang/schemas/main/copilot-hooks-schema.json",
-  "description": "Security hooks for FinAI - Block dangerous operations, require approvals",
+  "description": "Security hooks - Block dangerous operations, require approvals",
   "hooks": {
     "PreToolUse": [
       {

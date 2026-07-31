@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync local OpenCode, Kilo, Codex, and Claude Code agent mirrors from .agents/agents."""
+"""Sync local OpenCode, Codex, Claude, and GitHub agent mirrors."""
 
 from __future__ import annotations
 
@@ -10,12 +10,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import agent_render
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = REPO_ROOT / '.agents' / 'agents'
 OPENCODE_CONFIG_PATH = REPO_ROOT / 'opencode.json'
-KILO_CONFIG_PATH = REPO_ROOT / 'kilo.jsonc'
+CLAUDE_AGENT_DIR = REPO_ROOT / '.claude' / 'agents'
+GITHUB_AGENT_DIR = REPO_ROOT / '.github' / 'agents'
 CODEX_SYNC_SCRIPT = REPO_ROOT / '.agents' / 'scripts' / 'sync-codex-agents.py'
-CLAUDE_AGENTS_DIR = REPO_ROOT / '.claude' / 'agents'
 
 
 def sanitize_json_like(text: str) -> str:
@@ -55,40 +58,27 @@ def collect_agents_data() -> dict[str, dict[str, object]]:
     for path in sorted(AGENT_DIR.glob('*.agent.md')):
         agent_name = path.name.replace('.agent.md', '')
         source_text = path.read_text(encoding='utf-8')
-        metadata, _body = parse_frontmatter(source_text)
+        metadata, body = parse_frontmatter(source_text)
+        raw_frontmatter = re.match(
+            r'---\n(.*?)\n---\n', source_text, re.S
+        ).group(1)
+        compiled_body = agent_render.compile_body(body)
 
-        manifest_path = AGENT_DIR / f'{agent_name}.manifest.json'
+        raw_agents = metadata.get('agents', [])
         allowed_agents: list[str] = []
-        if manifest_path.exists():
-            manifest = read_json_file(manifest_path)
-            sidecars = manifest.get('allowed_sidecars', [])
-            next_steps = [
-                step
-                for step in manifest.get('allowed_next_steps', [])
-                if step not in ('user', 'end', 'blocked')
+        if isinstance(raw_agents, list):
+            allowed_agents = [
+                item for item in raw_agents if isinstance(item, str)
             ]
-            seen: set[str] = set()
-            for item in [*sidecars, *next_steps]:
-                if (
-                    isinstance(item, str)
-                    and item != agent_name
-                    and item not in seen
-                ):
-                    allowed_agents.append(item)
-                    seen.add(item)
-
-        if not allowed_agents:
-            raw_agents = metadata.get('agents', [])
-            if isinstance(raw_agents, list):
-                allowed_agents = [
-                    item for item in raw_agents if isinstance(item, str)
-                ]
 
         configs[agent_name] = {
+            'name': agent_name,
             'description': metadata.get('description', ''),
             'mode': metadata.get('mode', 'all'),
-            'prompt': f'{{file:.agents/agents/{agent_name}.agent.md}}',
+            'prompt': compiled_body,
             'agents': allowed_agents,
+            'raw_frontmatter': raw_frontmatter,
+            'compiled_body': compiled_body,
         }
 
     return configs
@@ -138,56 +128,6 @@ def sync_json_config(
     return [rel], [rel]
 
 
-def render_claude_agent(agent_name: str, description: str, body: str) -> str:
-    front = f'---\nname: {agent_name}\ndescription: {description}\n---\n'
-    return front + body
-
-
-def sync_claude_agents(
-    agents_config: dict[str, dict[str, object]],
-    *,
-    check: bool,
-) -> tuple[list[str], list[str]]:
-    CLAUDE_AGENTS_DIR.mkdir(parents=True, exist_ok=True)
-    stale: list[str] = []
-    updated: list[str] = []
-
-    rendered: dict[str, str] = {}
-    for agent_name, payload in agents_config.items():
-        source_path = AGENT_DIR / f'{agent_name}.agent.md'
-        source_text = source_path.read_text(encoding='utf-8')
-        _, body = parse_frontmatter(source_text)
-        description = str(payload.get('description', ''))
-        rendered[f'{agent_name}.md'] = render_claude_agent(
-            agent_name, description, body
-        )
-
-    for name, content in rendered.items():
-        output_path = CLAUDE_AGENTS_DIR / name
-        current = (
-            output_path.read_text(encoding='utf-8')
-            if output_path.exists()
-            else None
-        )
-        if current != content:
-            rel = str(output_path.relative_to(REPO_ROOT))
-            stale.append(rel)
-            if not check:
-                output_path.write_text(content, encoding='utf-8')
-                updated.append(rel)
-
-    expected = set(rendered)
-    for path in sorted(CLAUDE_AGENTS_DIR.iterdir()):
-        if path.is_file() and path.name not in expected:
-            rel = str(path.relative_to(REPO_ROOT))
-            stale.append(rel)
-            if not check:
-                path.unlink()
-                updated.append(rel)
-
-    return stale, updated
-
-
 def run_codex_sync(*, check: bool) -> tuple[list[str], list[str]]:
     cmd = [sys.executable, str(CODEX_SYNC_SCRIPT)]
     if check:
@@ -214,9 +154,172 @@ def run_codex_sync(*, check: bool) -> tuple[list[str], list[str]]:
     return stale, updated
 
 
+GITHUB_TOOLS: dict[str, list[str]] = {
+    'developer-engineer': [
+        'vscode/getProjectSetupInfo',
+        'vscode/installExtension',
+        'vscode/runCommand',
+        'vscode/askQuestions',
+        'execute/getTerminalOutput',
+        'execute/killTerminal',
+        'execute/sendToTerminal',
+        'execute/createAndRunTask',
+        'execute/runInTerminal',
+        'execute/runTests',
+        'read/problems',
+        'read/readFile',
+        'read/viewImage',
+        'read/terminalSelection',
+        'read/terminalLastCommand',
+        'agent',
+        'edit/createDirectory',
+        'edit/createFile',
+        'edit/editFiles',
+        'edit/rename',
+        'search/changes',
+        'search/codebase',
+        'search/fileSearch',
+        'search/listDirectory',
+        'search/textSearch',
+        'search/usages',
+        'vscode.mermaid-chat-features/renderMermaidDiagram',
+        'ms-python.python/getPythonEnvironmentInfo',
+        'ms-python.python/getPythonExecutableCommand',
+        'ms-python.python/installPythonPackage',
+        'ms-python.python/configurePythonEnvironment',
+        'todo',
+    ],
+    'security-engineer': [
+        'vscode/getProjectSetupInfo',
+        'vscode/runCommand',
+        'vscode/askQuestions',
+        'execute/testFailure',
+        'execute/getTerminalOutput',
+        'execute/killTerminal',
+        'execute/sendToTerminal',
+        'execute/createAndRunTask',
+        'execute/runInTerminal',
+        'execute/runTests',
+        'read/problems',
+        'read/readFile',
+        'read/viewImage',
+        'read/terminalSelection',
+        'read/terminalLastCommand',
+        'agent',
+        'search/changes',
+        'search/codebase',
+        'search/fileSearch',
+        'search/listDirectory',
+        'search/textSearch',
+        'search/usages',
+        'web/fetch',
+        'playwright/browser_click',
+        'playwright/browser_close',
+        'playwright/browser_console_messages',
+        'playwright/browser_drag',
+        'playwright/browser_evaluate',
+        'playwright/browser_file_upload',
+        'playwright/browser_fill_form',
+        'playwright/browser_handle_dialog',
+        'playwright/browser_hover',
+        'playwright/browser_install',
+        'playwright/browser_navigate',
+        'playwright/browser_navigate_back',
+        'playwright/browser_network_requests',
+        'playwright/browser_press_key',
+        'playwright/browser_resize',
+        'playwright/browser_run_code',
+        'playwright/browser_select_option',
+        'playwright/browser_snapshot',
+        'playwright/browser_tabs',
+        'playwright/browser_take_screenshot',
+        'playwright/browser_type',
+        'playwright/browser_wait_for',
+        'browser/openBrowserPage',
+        'browser/readPage',
+        'browser/screenshotPage',
+        'browser/navigatePage',
+        'browser/clickElement',
+        'browser/dragElement',
+        'browser/hoverElement',
+        'browser/typeInPage',
+        'browser/runPlaywrightCode',
+        'browser/handleDialog',
+        'vscode.mermaid-chat-features/renderMermaidDiagram',
+        'ms-python.python/getPythonEnvironmentInfo',
+        'ms-python.python/getPythonExecutableCommand',
+        'todo',
+    ],
+}
+
+
+def render_claude(payload: dict[str, object]) -> str:
+    return (
+        f'---\nname: {payload["name"]}\n'
+        f'description: {payload["description"]}\n---\n'
+        f'{payload["compiled_body"]}'
+    )
+
+
+def render_github(payload: dict[str, object]) -> str:
+    agent_name = str(payload['name'])
+    raw_front = str(payload['raw_frontmatter']).strip()
+    tools = payload.get('tools') or GITHUB_TOOLS.get(agent_name, [])
+    if tools and 'tools:' not in raw_front:
+        tools_formatted = (
+            'tools:\n  [\n' + ''.join(f'    {t},\n' for t in tools) + '  ]'
+        )
+        raw_front = f'{raw_front}\n{tools_formatted}'
+    return f'---\n{raw_front}\n---\n{payload["compiled_body"]}'
+
+
+def sync_dir_mirror(
+    target_dir: Path,
+    suffix: str,
+    render_fn,
+    agents_config: dict[str, dict[str, object]],
+    *,
+    check: bool,
+) -> tuple[list[str], list[str]]:
+    target_dir.mkdir(parents=True, exist_ok=True)
+    stale: list[str] = []
+    updated: list[str] = []
+    expected: set[str] = set()
+
+    for agent_name, payload in agents_config.items():
+        content = render_fn(payload)
+        output_path = target_dir / f'{agent_name}{suffix}'
+        expected.add(output_path.name)
+        current = (
+            output_path.read_text(encoding='utf-8')
+            if output_path.exists()
+            else None
+        )
+        if current != content:
+            rel = str(output_path.relative_to(REPO_ROOT))
+            stale.append(rel)
+            if not check:
+                output_path.write_text(content, encoding='utf-8')
+                updated.append(rel)
+
+    for path in sorted(target_dir.iterdir()):
+        if (
+            path.is_file()
+            and path.name.endswith(suffix)
+            and path.name not in expected
+        ):
+            rel = str(path.relative_to(REPO_ROOT))
+            stale.append(rel)
+            if not check:
+                path.unlink()
+                updated.append(rel)
+
+    return stale, updated
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Sync local OpenCode, Kilo, Codex, and Claude Code agent mirrors from .agents/agents.'
+        description='Sync local OpenCode, Codex, Claude, and GitHub agent mirrors from .agents/agents.'
     )
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
@@ -227,24 +330,32 @@ def main() -> int:
         agents_config,
         check=args.check,
     )
-    kilo_stale, kilo_updated = sync_json_config(
-        KILO_CONFIG_PATH,
+    codex_stale, codex_updated = run_codex_sync(check=args.check)
+    claude_stale, claude_updated = sync_dir_mirror(
+        CLAUDE_AGENT_DIR,
+        '.md',
+        render_claude,
         agents_config,
         check=args.check,
     )
-    codex_stale, codex_updated = run_codex_sync(check=args.check)
-    claude_stale, claude_updated = sync_claude_agents(
-        agents_config, check=args.check
+    github_stale, github_updated = sync_dir_mirror(
+        GITHUB_AGENT_DIR,
+        '.agent.md',
+        render_github,
+        agents_config,
+        check=args.check,
     )
 
-    stale = opencode_stale + kilo_stale + codex_stale + claude_stale
-    updated = opencode_updated + kilo_updated + codex_updated + claude_updated
+    stale = opencode_stale + codex_stale + claude_stale + github_stale
+    updated = (
+        opencode_updated + codex_updated + claude_updated + github_updated
+    )
 
     payload = {
         'status': 'ok'
         if not stale
         else ('stale' if args.check else 'updated'),
-        'checked': len(agents_config) + 3,
+        'checked': len(agents_config) * 3 + 1,
         'stale': stale,
         'updated': updated,
     }

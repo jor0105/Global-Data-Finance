@@ -15,7 +15,7 @@ O harness faz cinco coisas:
 4. Executa as gates na ordem declarada.
 5. Devolve JSON estruturado e, quando pedido, persiste `gate-report`.
 
-Ele nao substitui `reviewer`, `tester` ou `security-engineer`. Ele cobre a parte mecanica da validacao para que esses owners trabalhem com evidencia estavel.
+Ele nao substitui `review-workflow` ou `security-engineer`. Ele cobre a parte mecanica da validacao para que esses fluxos trabalhem com evidencia estavel.
 
 ## Fluxo
 
@@ -70,7 +70,7 @@ Regra mental simples:
 O harness monta `changedFiles` nesta ordem:
 
 1. `--changed-file`
-2. `review-session.json` da `--session-dir`
+2. artifact `review-session.json` da `--session-dir`
 3. `git diff --cached`
 4. `git diff`
 5. arquivos untracked via git
@@ -84,7 +84,7 @@ Depois ele consulta `path-rules.json`.
 Regras relevantes no estado atual:
 
 - `src/features/auth/**` e `src/shared/api/**` elevam para `security-touch`.
-- `src/app/store/**`, `src/shared/types/**`, `.agents/**`, `.github/agents/**`, `.codex/agents/**`, `kilo.jsonc`, `opencode.json` e `package.json` elevam para `high-risk`.
+- `src/app/store/**`, `src/shared/types/**`, `.agents/**`, `.github/agents/**`, `.codex/agents/**`, `opencode.json` e `package.json` elevam para `high-risk`.
 - `tests/frontend/e2e/**` e configs Playwright elevam para `ui-flow`.
 - `docs/**` e `**/*.md` puxam para `quick` quando nenhuma regra mais forte se aplica.
 
@@ -99,9 +99,9 @@ O resultado sempre traz:
 
 Leitura pratica:
 
-- `reviewRequired=true` significa que a mudanca nao deveria encerrar sem review final.
+- `reviewRequired=true` significa que a mudanca nao deveria encerrar sem `review-workflow`.
 - `securityRequired=true` significa que o diff tocou area que pede `security-engineer`.
-- `testerRecommended=true` significa que a mudanca toca superficie visual ou fluxo que merece teste dedicado.
+- `testerRecommended=true` significa que a mudanca toca superficie visual ou fluxo que merece teste dedicado — hoje isso e responsabilidade direta do `developer-engineer`, apoiado pelas skills `tdd-workflow`/`testing-patterns`.
 
 Mesmo quando nenhuma regra previa pedia review, uma gate com `failed` ou `external_failure` adiciona `reviewRequired=true`.
 
@@ -151,7 +151,7 @@ Quando voce usa `--session-dir`, o harness persiste:
 - `views/gate-report.md`
 - `logs/ai-verify/<gate>.log`
 
-O reviewer consome o JSON canonico. O Markdown e apenas view humana.
+O `review-workflow` consome o JSON canonico. O Markdown e apenas view humana.
 
 Campos importantes do `gate-report`:
 
@@ -190,7 +190,7 @@ Interpretacao do top-level:
 - `.agents/skills/lint-and-validate/scripts/ai-verify.py`: harness primario.
 - `.agents/skills/lint-and-validate/assets/verification-profiles.json`: define gates, labels, timeouts e perfis.
 - `.agents/skills/lint-and-validate/assets/path-rules.json`: resolve perfil por diff.
-- `.agents/skills/lint-and-validate/assets/escalation-rules.json`: resolve review, security e tester.
+- `.agents/skills/lint-and-validate/assets/escalation-rules.json`: resolve review, security e recomendacao de teste dedicado.
 - `.agents/skills/lint-and-validate/schemas/ai-verify.schema.json`: contrato estavel da saida.
 - `.agents/skills/lint-and-validate/references/examples.md`: exemplos de pedidos e uso da skill.
 
@@ -200,7 +200,7 @@ Interpretacao do top-level:
 - Nao trata gate nao executada como `passed`.
 - Nao roda E2E por padrao fora de `ui-flow`.
 - Nao substitui julgamento de seguranca quando `securityRequired=true`.
-- Nao substitui estrategia de teste; quando `testerRecommended=true`, isso e um sinal, nao uma autoexecucao do `tester`.
+- Nao substitui estrategia de teste; quando `testerRecommended=true`, isso e um sinal para o `developer-engineer` dar atencao dedicada, nao uma execucao automatica.
 
 ## Troubleshooting
 
@@ -208,7 +208,7 @@ Interpretacao do top-level:
   use `--dry-run` e confira `changedFiles` e `profileReason`.
 - O diff real nao apareceu:
   passe `--changed-file` manualmente.
-- O reviewer nao encontrou gates:
+- O `review-workflow` nao encontrou gates:
   rode novamente com `--session-dir`.
 - O comando falhou mas nao parece bug do codigo:
   confira `classification` e o `logPath` da gate.

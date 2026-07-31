@@ -1,13 +1,13 @@
 ---
 name: brainstorming
 description: >
-  Use quando o pedido ainda não está pronto para ser implementado — o problema é
-  vago, as opções não estão definidas, ou o usuário quer explorar abordagens antes
-  de decidir. Ative quando ouvir: "não sei por onde começar", "quais são as
-  opções?", "me ajuda a pensar nisso", "quero explorar ideias", "como eu
-  estruturaria isso?", "tô em dúvida entre X e Y", ou quando o pedido descreve
-  um objetivo mas não uma solução. Ative também quando o coordinator ou planner
-  precisar convergir incertezas antes de criar um plano executável.
+  Use quando o usuário ainda quer explorar antes de decidir. Ative com "não sei
+  por onde começar", "me ajuda a pensar", "quais são as opções?", "estou em
+  dúvida entre X e Y", "isso faz sentido?", "como eu estruturaria isso?" ou
+  quando há objetivo, mas não solução escolhida. Ajuda a reduzir incerteza e
+  chegar a uma direção executável. Não use quando o usuário já pediu implementar,
+  validar, escrever um plano fechado ou seguir um workflow específico como
+  OpenSpec, auditoria CVM ou revisão de security.
 ---
 
 # Brainstorming
