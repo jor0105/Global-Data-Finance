@@ -194,6 +194,8 @@ modularizar_*.md
 .claude/
 .opencode/
 opencode.json
+CLAUDE.md
+kilo.jsonc
 docs/ideias/
 openspec/
 # examples/
