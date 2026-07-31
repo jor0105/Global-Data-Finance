@@ -189,6 +189,7 @@ modularizar_*.md
 .agents/
 .github/instructions/
 .github/prompts/
+.github/agents/
 .codex/
 .vscode/
 .claude/
