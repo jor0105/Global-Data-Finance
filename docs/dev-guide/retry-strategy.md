@@ -1,4 +1,4 @@
-# Retry Strategy
+# Estratégia de Retry
 
 Documentação da estratégia de retry do Global-Data-Finance.
 

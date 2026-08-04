@@ -1,7 +1,7 @@
-"""CVM fundamental_stocks_data — flat per-source layout.
+"""CVM fundamental_stocks_data source implementation.
 
-`InvalidRepositoryTypeError` was removed when the single-impl ABCs were
-dropped (`DownloadDocsCVMRepositoryCVM`, `FileExtractorRepositoryCVM`).
+Provides direct access to CVM regulatory document downloading, validation,
+and extraction features using a straightforward, role-oriented structure.
 """
 
 from .client import (

@@ -2,77 +2,77 @@
 
 <div align="center">
 
-**Biblioteca Python profissional para extração e processamento de dados financeiros globais com arquitetura limpa e alto desempenho.**
+**Professional Python library for extracting and processing global financial data with a flat source layout, high performance, and extensible tools.**
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jor0105/Global-Data-Finance/blob/develop/LICENSE)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
+[![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
-[Documentação Oficial](https://jor0105.github.io/Global-Data-Finance/) • [Instalação](#-instalação) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [Contribuir](#-contribuindo)
+[Official Documentation](https://jordanestralioto.github.io/Global-Data-Finance/) • [Installation](#-installation) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [Contributing](#-contributing)
 
 </div>
 
 ---
 
-## 🎯 Sobre
+## 🎯 About
 
-**Global-Data-Finance** é uma solução robusta e de alto desempenho para engenharia de dados financeiros. Projetada para desenvolvedores, cientistas de dados e analistas quantitativos, a biblioteca abstrai a complexidade de extrair e normalizar dados de fontes regulatórias (CVM) e de mercado (B3).
+**Global-Data-Finance** is a robust, high-performance solution for financial data engineering. Designed for developers, data scientists, and quantitative analysts, the library abstracts the complexity of extracting and normalizing data from regulatory (CVM) and market (B3) sources.
 
-A API pública é deliberadamente estreita (apenas duas classes: `FundamentalStocksDataCVM` e `HistoricalQuotesB3`), e cada fonte de dados é implementada internamente em um **layout plano de módulos nomeados por papel** (`core.py` (ou modelos granulares), `client.py`, `http.py`, `extract.py`, `errors.py`). O resultado é código direto, fácil de ler e fácil de estender com uma nova fonte.
+The public API is deliberately narrow (re-exporting `FundamentalStocksDataCVM` and `HistoricalQuotesB3` at the root, along with the `ExtractionResultB3` type), and each data source is implemented internally in a **flat layout of role-named modules** (`core.py` (or granular models), `client.py`, `http.py`, `extract.py`, `errors.py`). The result is straightforward, easy-to-read code that is easy to extend with a new data source.
 
-### 🌟 Por que escolher Global-Data-Finance?
+### 🌟 Why Choose Global-Data-Finance?
 
-- **🚀 Performance**: Downloads assíncronos com `httpx[http2]`, retry/back-off exponencial próprio (`core/utils/retry_strategy.py`) e concorrência adaptativa monitorada por CPU/RAM (`psutil`).
-- **🛡️ Robustez**: Validação de integridade após download, rollback atômico na extração e defesa contra path-traversal em paths sensíveis.
-- **💾 Formato Colunar**: Saída canônica em **Parquet** (via `pyarrow`), pronto para Pandas/Polars.
-- **🧩 Layout Plano por Fonte**: Adicionar uma fonte = criar uma pasta-irmã com 5–8 arquivos nomeados por papel. Sem cerimônia de Clean Architecture, sem ABCs sem polimorfismo real.
-- **✨ Developer Experience**: Type hints completos, logging estruturado, markers de teste estritos (`unit`, `integration`, `slow`, `asyncio`).
-
----
-
-## ✨ Funcionalidades
-
-### 📈 Fontes de Dados Suportadas
-
-| Fonte   | Tipo de Dado            | Detalhes                                  | Status      |
-| :------ | :---------------------- | :---------------------------------------- | :---------- |
-| **CVM** | Documentos Regulatórios | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE       | ✅ Produção |
-| **B3**  | Cotações Históricas     | Ações, ETFs, BDRs, Opções, Termo, Futuros | ✅ Produção |
-
-### ⚙️ Destaques Técnicos
-
-- **Download Manager Assimétrico**:
-  - Gerenciamento automático de concorrência.
-  - Backoff exponencial para falhas de rede.
-  - Validação de integridade de arquivos (ZIP/MD5).
-- **Processamento de Cotações (B3)**:
-  - Parser otimizado para arquivos posicionais legados.
-  - Modos de execução: `fast` (in-memory) e `slow` (low-memory).
-  - Filtragem avançada por tipo de ativo (Ações, Opções, etc.).
+- **🚀 Performance**: Async downloads with `httpx[http2]`, custom exponential retry/backoff (`core/utils/retry_strategy.py`), and adaptive concurrency monitored by CPU/RAM (`psutil`).
+- **🛡️ Robustness**: Integrity validation after download, atomic rollback during extraction, and path-traversal defense for sensitive paths.
+- **💾 Columnar Format**: Canonical output in **Parquet** (via `pyarrow`), ready for Pandas/Polars.
+- **🧩 Flat Layout per Source**: Adding a data source simply requires creating a dedicated directory with role-named modules (e.g., client, models, http, extract), resulting in intuitive, modular, and directly maintainable code.
+- **✨ Developer Experience**: Complete type hints, structured logging, strict test markers (`unit`, `integration`, `slow`, `asyncio`).
 
 ---
 
-## 🚀 Instalação
+## ✨ Features
 
-Requer **Python 3.12+**.
+### 📈 Supported Data Sources
 
-### Via Pip (consumir como dependência)
+| Source  | Data Type           | Details                                   | Status      |
+| :------ | :------------------ | :---------------------------------------- | :---------- |
+| **CVM** | Regulatory Documents | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE       | ✅ Production |
+| **B3**  | Historical Quotes   | Stocks, ETFs, BDRs, Options, Forward, Futures | ✅ Production |
+
+### ⚙️ Technical Highlights
+
+- **Asymmetric Download Manager**:
+  - Automatic concurrency management.
+  - Exponential backoff for network failures.
+  - File integrity validation (ZIP/MD5).
+- **Quotes Processing (B3)**:
+  - Optimized parser for legacy positional files.
+  - Execution modes: `fast` (in-memory) and `slow` (low-memory).
+  - Advanced filtering by asset type (Stocks, Options, etc.).
+
+---
+
+## 🚀 Installation
+
+Requires **Python 3.12+**.
+
+### Via Pip (consume as dependency)
 
 ```bash
 pip install globaldatafinance
 ```
 
-### Via uv (desenvolvimento)
+### Via uv (development)
 
-`uv` é o gestor canônico do projeto. Para hackear localmente:
+`uv` is the canonical package manager for the project. To hack locally:
 
 ```bash
-git clone https://github.com/jor0105/Global-Data-Finance.git
+git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
-uv sync                       # cria .venv e instala todas as deps + dev deps
-uv run pytest                 # testes
+uv sync                       # creates .venv and installs all deps + dev deps
+uv run pytest                 # tests
 uv run pre-commit run --all-files  # lint + typecheck + bandit + etc.
 ```
 
@@ -80,118 +80,118 @@ uv run pre-commit run --all-files  # lint + typecheck + bandit + etc.
 
 ## 💡 Quick Start
 
-### 1. Dados Fundamentais (CVM)
+### 1. Fundamental Data (CVM)
 
-Baixe demonstrações financeiras (DFP, ITR) e formulários de referência de forma massiva e resiliente.
+Download financial statements (DFP, ITR) and reference forms in a massive and resilient way.
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
 import logging
 
-# (Opcional) Configurar logging para ver o progresso detalhado
+# (Optional) Configure logging to view detailed progress
 logging.basicConfig(level=logging.INFO)
 
-# Inicializar cliente
+# Initialize client
 cvm = FundamentalStocksDataCVM()
 
-# Baixar e extrair automaticamente para Parquet
+# Download and automatically extract to Parquet
 result = cvm.download(
     destination_path="./dados_cvm",
-    list_docs=["DFP", "ITR"],    # Tipos de documentos
-    initial_year=2023,           # Ano inicial
-    last_year=2024,              # Ano final
-    automatic_extractor=True     # Converte ZIP -> Parquet
+    list_docs=["DFP", "ITR"],    # Document types
+    initial_year=2023,           # Start year
+    last_year=2024,              # End year
+    automatic_extractor=True     # Converts ZIP -> Parquet
 )
-print(f"Downloads com sucesso: {result.success_count_downloads}")
+print(f"Successful downloads: {result.success_count_downloads}")
 ```
 
-### 2. Cotações Históricas (B3)
+### 2. Historical Quotes (B3)
 
-Processe a série histórica da B3, transformando arquivos de texto complexos em DataFrames prontos para análise.
+Process B3 historical series, transforming complex text files into analysis-ready DataFrames.
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
 
-# Inicializar cliente
+# Initialize client
 b3 = HistoricalQuotesB3()
 
-# Extrair cotações de Ações e ETFs
+# Extract Stock and ETF quotes
 result = b3.extract(
-    path_of_docs="./dados_brutos_b3",  # Onde estão os ZIPs da B3 (COTAHIST_A2023.ZIP)
+    path_of_docs="./dados_brutos_b3",  # Where B3 ZIP files are located (COTAHIST_A2023.ZIP)
     destination_path="./dados_processados",
     assets_list=["ações", "etf"],
     initial_year=2023,
-    processing_mode="fast"  # Modo otimizado
+    processing_mode="fast"  # Optimized mode
 )
 
-print(f"Processamento concluído! Registros extraídos: {result['total_records']:,}")
-print(f"Arquivo salvo em: {result['output_file']}")
+print(f"Processing completed! Extracted records: {result['total_records']:,}")
+print(f"File saved at: {result['output_file']}")
 ```
 
-### 3. Analisando os Dados
+### 3. Analyzing Data
 
-Os dados são salvos em formato **Parquet**, ideal para análise com Pandas ou Polars.
+Data is saved in **Parquet** format, ideal for analysis with Pandas or Polars.
 
 ```python
 import pandas as pd
 
-# Ler o arquivo gerado
+# Read generated file
 df = pd.read_parquet("./dados_processados/cotahist_extracted.parquet")
 
-# Analisar
+# Analyze
 print(df.head())
 print(df.groupby("cod_negociacao")["preco_fechamento"].mean())
 ```
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-Duas camadas explícitas:
+Two explicit layers:
 
-1. **Facade público (`application/`)** — superfície semver-relevante. Cada fonte é exposta por uma classe top-level (`FundamentalStocksDataCVM`, `HistoricalQuotesB3`) e um formatter dedicado.
-2. **Implementação por fonte (`brazil/<país>/<fonte>/`)** — layout plano de módulos nomeados por papel.
+1. **Public Facade (`application/`)** — SemVer-relevant surface. Each source is exposed by a top-level class (`FundamentalStocksDataCVM`, `HistoricalQuotesB3`) and a dedicated formatter.
+2. **Implementation per Source (`brazil/<country>/<source>/`)** — flat layout of role-named modules.
 
 ```mermaid
 graph TD
-    User[Usuário / Script] --> Facade
+    User[User / Script] --> Facade
 
     subgraph "globaldatafinance"
         Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
-        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>módulos planos por papel<br/>(client.py, models.py, errors.py...)"]
+        Facade --> Source["Source (brazil/&lt;country&gt;/&lt;source&gt;/)<br/>flat role-named modules<br/>(client.py, models.py, errors.py...)"]
         Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
     Source --> External[Web / File System / Parquet]
 ```
 
-### Estrutura de Diretórios
+### Directory Structure
 
 ```text
 src/
 └── globaldatafinance/
-    ├── application/                       # Facade público
+    ├── application/                       # Public facade
     │   ├── cvm_docs/fundamental_stocks_data.py
     │   └── b3_docs/historical_quotes.py
     ├── brazil/
     │   ├── cvm/
-    │   │   └── fundamental_stocks_data/   # ~7 módulos planos
+    │   │   └── fundamental_stocks_data/   # ~7 flat modules
     │   │       ├── core.py · client.py · errors.py
     │   │       ├── http.py · extract.py
     │   │       └── download_validation.py · download_extraction.py
     │   └── b3_data/
-    │       └── historical_quotes/         # ~11 módulos planos
+    │       └── historical_quotes/         # ~11 flat modules
     │           ├── models.py · filesystem.py · assets.py · processing.py · years.py
     │           ├── client.py · zip_reader.py · errors.py
     │           ├── cotahist_parser.py
-    │           ├── parquet_writer/        # subpacote (writer/schema/streaming/...)
-    │           └── extraction_service/    # subpacote (service/batch_parser/...)
+    │           ├── parquet_writer/        # subpackage (writer/schema/streaming/...)
+    │           └── extraction_service/    # subpackage (service/batch_parser/...)
     ├── core/                              # logging, config, retry, resource monitor
-    ├── macro_infra/                       # adapters HTTP/IO genéricos
-    └── macro_exceptions/                  # exceções de base
+    ├── macro_infra/                       # generic HTTP/IO adapters
+    └── macro_exceptions/                  # base exceptions
 ```
 
-Detalhes em [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) e [`AGENTS.md`](AGENTS.md).
+Details in [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) and [`AGENTS.md`](AGENTS.md).
 
 ---
 
@@ -199,61 +199,61 @@ Detalhes em [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) e
 
 ### `FundamentalStocksDataCVM`
 
-Gerenciador de downloads de documentos da CVM.
+Manager for downloading CVM documents.
 
-| Método                    | Assinatura                                                                                                                                 | Descrição                                                     |
-| :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
-| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Realiza o download e opcionalmente a extração dos documentos. |
-| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Variante assíncrona do método `download`.                     |
-| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                     | Retorna lista de documentos disponíveis e suas descrições.    |
-| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                              | Retorna o intervalo de anos disponíveis para download.        |
+| Method                    | Signature                                                                                                                                  | Description                                                |
+| :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------- |
+| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Downloads and optionally extracts documents.               |
+| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Asynchronous variant of `download`.                        |
+| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                     | Returns list of available documents and their descriptions.|
+| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                              | Returns range of available years for download.             |
 
 ### `HistoricalQuotesB3`
 
-Extrator de cotações históricas da B3.
+Extractor for B3 historical quotes.
 
-| Método                     | Assinatura                                                                                                                                                                                             | Descrição                                                          |
-| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Processa arquivos ZIP da B3 e gera um arquivo Parquet consolidado. |
-| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Variante assíncrona do método `extract`.                           |
-| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                            | Retorna tipos de ativos suportados (ex: 'ações', 'opções').        |
-| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                       | Retorna o intervalo de anos disponíveis para os dados históricos.  |
+| Method                     | Signature                                                                                                                                                                                             | Description                                                     |
+| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Processes B3 ZIP files and generates a consolidated Parquet file. |
+| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Asynchronous variant of `extract`.                              |
+| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                            | Returns supported asset types (e.g., 'ações', 'opções').        |
+| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                       | Returns range of available years for historical data.           |
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Contribuições são muito bem-vindas! Se você deseja adicionar novas fontes de dados, melhorar a performance ou corrigir bugs:
+Contributions are very welcome! If you wish to add new data sources, improve performance, or fix bugs:
 
-1.  **Fork** o projeto.
-2.  Crie uma branch para sua feature (`git checkout -b feature/nova-feature`).
-3.  Implemente suas mudanças.
-4.  Execute os testes e linters:
+1. **Fork** the repository.
+2. Create a branch for your feature (`git checkout -b feature/new-feature`).
+3. Implement your changes.
+4. Run tests and linters:
     ```bash
     uv run pre-commit run --all-files
     uv run pytest
     ```
-5.  Abra um **Pull Request**.
+5. Open a **Pull Request**.
 
-Consulte o [Guia de Contribuição](https://jor0105.github.io/Global-Data-Finance/dev-guide/contributing/) para mais detalhes.
-
----
-
-## 📄 Licença
-
-Este projeto é distribuído sob a licença **Apache 2.0**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
+See the [Contributing Guide](https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/contributing/) for more details.
 
 ---
 
-## 📞 Suporte e Contato
+## 📄 License
 
-- **Autor**: Jordan Estralioto
-- **GitHub**: [@jor0105](https://github.com/jor0105)
+This project is distributed under the **Apache 2.0** license. See the [LICENSE](LICENSE) file for more information.
+
+---
+
+## 📞 Support and Contact
+
+- **Author**: Jordan Estralioto
+- **GitHub**: [@jordanestralioto](https://github.com/jordanestralioto)
 - **Email**: estraliotojordan@gmail.com
-- **Issues**: [Reportar Bug](https://github.com/jor0105/Global-Data-Finance/issues)
+- **Issues**: [Report Bug](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 
 ---
 
 <div align="center">
-    <sub>Copyright © 2025 Jordan Estralioto • Licensed under Apache 2.0</sub>
+    <sub>Copyright © 2026 Jordan Estralioto • Licensed under Apache 2.0</sub>
 </div>

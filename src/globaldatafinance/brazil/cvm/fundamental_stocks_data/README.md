@@ -130,7 +130,7 @@ Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.er
 - `InvalidFirstYear` / `InvalidLastYear`: ano inválido ou fora do range suportado.
 - `SecurityError` (de `macro_exceptions`): tentativa de escrita em path sensível (`/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) — defesa em `VerifyPathsUseCasesCVM`.
 
-> Nota: `InvalidRepositoryTypeError` foi removido junto com a ABC `DownloadDocsCVMRepositoryCVM` quando o refactor anti-overengineering eliminou a indireção sem polimorfismo real. `mypy` já cobre o caso, e o adapter concreto (`AsyncDownloadAdapterCVM`) é construído diretamente.
+> Nota: A integridade da tipagem dos adaptadores é checada estaticamente via ferramentas como `mypy` e verificação de contratos de métodos (duck typing), promovendo a adoção direta e limpa do adapter concreto (`AsyncDownloadAdapterCVM`).
 
 ## 🔧 Troubleshooting
 

@@ -6,14 +6,14 @@ Documentação completa da arquitetura do Global-Data-Finance, padrões de desig
 
 ## Visão Geral
 
-Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — apenas duas classes (`FundamentalStocksDataCVM` e `HistoricalQuotesB3`). Internamente, cada fonte de dados é implementada em um diretório próprio com **layout plano de módulos nomeados por papel**.
+Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — exportando na raiz as classes `FundamentalStocksDataCVM` e `HistoricalQuotesB3`, além do contrato `ExtractionResultB3`. Internamente, cada fonte de dados é implementada em um diretório próprio com **layout plano de módulos nomeados por papel**.
 
 Esta abordagem privilegia:
 
 - ✅ **Leitura**: poucos arquivos com nomes claros (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: módulos por papel — `client.py`, `assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados)
-- ✅ **Manutenibilidade**: zero cerimônia de camadas Clean Architecture para uma lib com 1 implementação por papel
+- ✅ **Manutenibilidade**: estrutura limpa, concisa e orientada de forma pragmática às funcionalidades dos módulos
 - ✅ **Extensibilidade**: adicionar nova fonte = adicionar nova pasta-irmã com o mesmo conjunto plano de módulos
-- ✅ **Testabilidade**: duck typing direto (sem ABCs sem polimorfismo real); tests mockam adapters concretos
+- ✅ **Testabilidade**: uso de duck typing direto e injeção de dependência para isolar e testar componentes de forma simples
 
 ---
 
@@ -88,7 +88,7 @@ Funções/classes auxiliares são internas ao módulo a menos que sejam usadas e
 
 ## Camadas observáveis
 
-A arquitetura tem **duas camadas explícitas** (em vez das 4 da Clean Architecture original):
+A arquitetura do projeto é estruturada ao redor de **duas camadas explícitas** e bem delineadas:
 
 ### 1. Facade público (`application/`)
 
@@ -163,7 +163,7 @@ class AsyncDownloadAdapterCVM:
         ...
 ```
 
-Note que `AsyncDownloadAdapterCVM` **não** herda de ABC — quando havia 1 implementação, o ABC só adicionava cerimônia. Tests fazem duck typing com classe stub simples (ver "Testes" mais abaixo).
+O orquestrador interage com `AsyncDownloadAdapterCVM` através do seu contrato observável de métodos, permitindo que os testes utilizem stubs de duck typing simples sem complexidade adicional (ver "Testes" mais abaixo).
 
 ---
 
@@ -171,7 +171,7 @@ Note que `AsyncDownloadAdapterCVM` **não** herda de ABC — quando havia 1 impl
 
 ### Função (ou classe leve) por operação em `client.py`
 
-A maioria das operações é função de módulo ou classe com 1 método público, chamada diretamente pelo facade — sem `execute(...)` wrappers desnecessários e sem ABCs de implementação única. Classes existem apenas quando há **estado real reutilizável**: por exemplo, `ExtractHistoricalQuotesUseCaseB3` segura `zip_reader + parser + writer + processing_mode` entre chamadas e por isso permanece como classe.
+A maioria das operações é modelada como função de módulo ou classe objetiva focada na sua responsabilidade específica, acionada diretamente pelo facade. Classes são utilizadas principalmente quando há **estado real reutilizável**: por exemplo, `ExtractHistoricalQuotesUseCaseB3` segura `zip_reader + parser + writer + processing_mode` entre chamadas e por isso permanece como classe.
 
 ```python
 # Função simples em client.py
@@ -186,9 +186,9 @@ class ExtractHistoricalQuotesUseCaseB3:
         ...
 ```
 
-### Adapters concretos, sem indireção por ABC
+### Adapters concretos e diretos
 
-`AsyncDownloadAdapterCVM`, `ParquetExtractorAdapterCVM`, etc. são importados e construídos diretamente. Quando uma segunda implementação aparecer (`WgetDownloadAdapter`, etc.), extrair um `Protocol` é trivial e custa 1 commit.
+Os adapters responsáveis por I/O, como `AsyncDownloadAdapterCVM` e `ParquetExtractorAdapterCVM`, são importados e instanciados diretamente nos fluxos principais, garantindo rastreabilidade e simplicidade na navegação da base de código.
 
 ### Result objects
 
@@ -311,11 +311,11 @@ tests/
 
 Os subdiretórios dentro da fonte CVM são **organizacionais** (agrupam por tópico para legibilidade), não arquiteturais — qualquer test importa dos módulos via `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...`.
 
-### Mocking sem ABC
+### Estratégias de Mock e Stub
 
-Como adapters são concretos, tests substituem dependências via:
+Para testar orquestradores e adapters de forma limpa e isolada, os testes substituem as dependências através de:
 
-- **Stub duck-typed**: classe sem herança, expondo apenas os métodos usados.
+- **Stub duck-typed**: classes simples focadas nos métodos consumidos no teste, mantendo alta flexibilidade.
 - **`monkeypatch.setattr`**: patcheia o método do adapter real.
 - **`httpx.MockTransport`**: para tests do adapter HTTP que precisam respostas determinísticas sem rede.
 

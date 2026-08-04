@@ -1,8 +1,7 @@
-"""Exceptions for CVM fundamental_stocks_data flat layout.
+"""Exceptions for CVM fundamental_stocks_data module.
 
-Aggregates the prior `exceptions/` package. `InvalidRepositoryTypeError`
-was intentionally dropped as part of the refactor: the single-impl ABCs
-that used to back it were removed (per design.md R2 / tasks 3.2.x).
+Contains all specific domain and validation exception types raised
+during CVM regulatory data processing, filtering, and extraction.
 """
 
 

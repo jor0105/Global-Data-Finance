@@ -119,7 +119,7 @@ for attempt in range(max_retries):
 
 ## Customização de Adapters
 
-O adapter HTTP (`AsyncDownloadAdapterCVM`) e o adapter de extração (`ParquetExtractorAdapterCVM`) são **classes concretas, sem ABC** — o orquestrador (`DownloadDocumentsUseCaseCVM`) aceita qualquer objeto que exponha o mesmo método público (`download_docs(tasks)`), por duck typing. Para substituir o adapter, basta passar uma classe alternativa que implemente o mesmo contrato.
+O adapter HTTP (`AsyncDownloadAdapterCVM`) e o adapter de extração (`ParquetExtractorAdapterCVM`) operam como classes concretas com contratos limpos e bem definidos. O orquestrador (`DownloadDocumentsUseCaseCVM`) aceita qualquer objeto que exponha o método público (`download_docs(tasks)`), utilizando duck typing. Para substituir o adapter, basta passar uma classe alternativa que implemente o mesmo contrato de métodos.
 
 ### Substituir o Adapter HTTP
 
@@ -159,7 +159,7 @@ result = use_case.execute(
 )
 ```
 
-> Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial — hoje existe apenas um adapter concreto (`AsyncDownloadAdapterCVM`) e a indireção via ABC não justificava o custo. Veja `docs/dev-guide/architecture.md` para detalhes.
+> O sistema foi desenhado visando clareza e extensibilidade: o orquestrador interage com adaptadores através do seu contrato público de métodos (duck typing), permitindo que customizações sejam injetadas sem burocracia ou herança complexa. Veja `docs/dev-guide/architecture.md` para detalhes.
 
 ---
 

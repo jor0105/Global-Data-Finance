@@ -50,6 +50,7 @@ def capture() -> dict[str, Any]:
 
     cvm_methods = [
         '__init__',
+        'async_download',
         'download',
         'get_available_docs',
         'get_available_years',
@@ -57,6 +58,7 @@ def capture() -> dict[str, Any]:
     b3_methods = [
         '__init__',
         'extract',
+        'extract_async',
         'get_available_assets',
         'get_available_years',
     ]

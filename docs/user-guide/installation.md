@@ -84,7 +84,7 @@ Se você deseja contribuir com o projeto ou modificar o código-fonte:
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/jor0105/Global-Data-Finance.git
+git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
 ```
 

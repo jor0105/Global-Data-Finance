@@ -1,380 +1,313 @@
 # AGENTS.md
 
 > Owner: Library Engineering
-> Last reviewed: 2026-07-31
-> Status: Canonical
+> Last reviewed: 2026-08-03
+> Status: Confirmed
 > Knowledge class: Agent policy
 
-Project context for agentic coding agents working on the Global-Data-Finance codebase.
+Project context and operating policy for agentic coding agents working in the
+Global-Data-Finance repository.
 
 ## System Overview
 
-Global-Data-Finance (`globaldatafinance`) is a Python 3.12+ library published
-on PyPI for extracting, normalizing, and persisting global financial and
-economic data. It is distribution-shaped (`src/` layout, `hatchling` build,
-consumed as a dependency) — not a running service. Current production data
-sources are Brazilian regulatory feeds (CVM) and exchange feeds (B3); the
-architecture is intentionally extensible to other markets.
+Global-Data-Finance (`globaldatafinance`) is a Python distribution library for
+extracting, normalizing, and persisting financial and economic data. The
+implemented sources are Brazilian regulatory feeds from CVM and historical
+market data from B3. It is consumed as a dependency, not run as a web service,
+backend, frontend, database, queue, or deployment runtime.
 
-The library exposes two main entrypoints — `FundamentalStocksDataCVM` (bulk
-download of DFP, ITR, FRE, FCA, CGVN, VLMO, IPE with async concurrency,
-retries, integrity checks, and optional Parquet extraction) and
-`HistoricalQuotesB3` (positional COTAHIST ZIP parsing into consolidated
-Parquet with asset filtering and `fast`/`slow` processing modes) — plus a
-public `ExtractionResultB3` TypedDict contract for typed result access.
+The public boundary is intentionally narrow: the package root re-exports
+`FundamentalStocksDataCVM`, `HistoricalQuotesB3`, and the public
+`ExtractionResultB3` `TypedDict` from `src/globaldatafinance/__init__.py`.
+Inputs include source selections, year ranges, COTAHIST files, configuration,
+and caller-owned paths; outputs include typed results, source files, and
+Parquet artifacts.
 
-**Design priorities** (in order): data integrity → public API stability →
-bulk throughput → ease of adding new sources.
+Durable priorities and invariants are:
 
-**Target users**: Python developers, data scientists, quantitative analysts,
-and fintech teams who need reliable financial datasets without reinventing
-parsers and ETL.
+- data integrity before throughput or convenience;
+- public names, signatures, return shapes, exception behavior, and persisted
+  schemas are compatibility-sensitive;
+- inputs and downloaded content are validated before extraction or writes;
+- path-safety checks run before directory creation or file writes;
+- partial operations expose explicit success/error details;
+- source-specific logic stays under `brazil/`, while generic utilities stay in
+  `core/` or `macro_infra/`.
 
 ## Success Metrics
 
-| Metric                             | Target                                |
-| ---------------------------------- | ------------------------------------- |
-| Test coverage (`pytest --cov`)     | `fail_under = 70` enforced by config  |
-| Lint / format / typecheck          | 100% green (`ruff`, `mypy`, `bandit`) |
-| Public API stability               | No silent contract changes            |
-| Bulk download / extraction speedup | Materially faster than naive baseline |
+| Metric        | Target                                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| Coverage gate | At least 70% when the CI coverage command runs (`pytest.ini` and `pipeline.yml`)                      |
+| Quality gate  | CI passes the uv lock check, security checks, pre-commit, mypy, pydocstyle, and coverage-backed tests |
+| Compatibility | No unapproved changes to public API contracts or persisted output schemas                             |
 
-## Architecture
+## Pipeline Architecture
 
-The package has two parallel axes: a **public facade** in `application/`
-that users import, and **feature implementations** in `brazil/<source>/`,
-each laid out as a flat set of role-named modules. Cross-cutting utilities
-live in `core/` and `macro_infra/`. Heavy I/O/parsers stay as separate
-modules within each feature.
+The documentation route starts at [`README.md`](README.md) and
+[`docs/index.md`](docs/index.md). The runtime route starts at
+`src/globaldatafinance/__init__.py`, delegates to public facades under
+`application/`, and then to source implementations under `brazil/`.
 
-Architecture patterns, code ownership, and layering contracts are owned by
-[`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md). This
-file does not restate them — see "Related Documentation" below for the full
-doc set.
-
-### Source Tree
+The relevant source tree is:
 
 ```text
 src/globaldatafinance/
-├── __init__.py                    re-exports the public API
-├── application/                   PUBLIC FACADE — top-level entrypoints
-│   ├── cvm_docs/
-│   │   ├── fundamental_stocks_data.py     FundamentalStocksDataCVM
-│   │   └── download_result_formatter.py
-│   └── b3_docs/
-│       ├── historical_quotes.py           HistoricalQuotesB3
-│       ├── types.py                       ExtractionResultB3 (public TypedDict)
-│       ├── extraction_result_formatter.py
-│       └── result_formatters/
-├── brazil/                        FEATURE IMPLEMENTATIONS (Brazil sources)
-│   ├── cvm/
-│   │   └── fundamental_stocks_data/
-│   │       ├── core.py            entities, value objects, validators
-│   │       ├── client.py          use-case orchestrator
-│   │       ├── http.py            AsyncDownloadAdapterCVM (HTTP I/O)
-│   │       ├── extract.py         ParquetExtractorAdapterCVM
-│   │       ├── download_validation.py
-│   │       ├── download_extraction.py
-│   │       └── errors.py
-│   └── b3_data/
-│       └── historical_quotes/
-│           ├── models.py          value objects (DocsToExtractorB3)
-│           ├── filesystem.py      path validation, COTAHIST matching
-│           ├── assets.py          asset name validation
-│           ├── processing.py      processing mode enum, filename sanitization
-│           ├── years.py           year range limits and validation
-│           ├── client.py          ExtractHistoricalQuotesUseCaseB3 (stateful)
-│           ├── cotahist_parser.py positional COTAHIST parser
-│           ├── parquet_writer/    Parquet writer subpackage
-│           ├── extraction_service/ streaming/threadpool orchestration
-│           ├── zip_reader.py
-│           └── errors.py
-├── core/                          cross-cutting utilities
-│   ├── config.py                  pydantic-settings configuration
-│   ├── logging_config.py          structured logging setup
-│   └── utils/
-│       ├── resource_monitor.py    CPU/RAM-aware concurrency
-│       ├── retry_strategy.py      exponential backoff policy
-│       ├── progress.py            progress reporting
-│       ├── path_safety.py         path traversal defense helpers
-│       └── files.py               file utility helpers
-├── macro_infra/                   shared generic infrastructure
-│   ├── requests_adapter.py        generic HTTP client wrapper
-│   ├── extractor_file.py          generic ZIP / file extractor
-│   └── read_files.py              file reading helpers
-└── macro_exceptions/              project-wide exception base classes
+├── __init__.py                 public re-exports
+├── application/                public facades and formatters
+├── brazil/                     CVM and B3 feature implementations
+├── core/                       configuration, logging, safety, retries, resources
+├── macro_infra/                generic HTTP and file helpers
+└── macro_exceptions/           project exception base classes
 ```
 
-### Public API Surface
+The implemented flows are:
 
-The public surface is intentionally narrow:
+- **CVM:** `FundamentalStocksDataCVM` validates selections, years, and paths;
+  `AsyncDownloadAdapterCVM` performs async downloads with retry and integrity
+  handling; `ParquetExtractorAdapterCVM` extracts when requested; and
+  `DownloadResultCVM` reports successful and failed downloads.
+- **B3:** `HistoricalQuotesB3` validates assets, years, paths, output names,
+  and mode; `ExtractHistoricalQuotesUseCaseB3` reads official COTAHIST ZIP/TXT
+  files, parses the positional format, filters assets, and writes consolidated
+  Parquet through the extraction service. `fast` and `slow` preserve distinct
+  resource policies, and `ExtractionResultB3` remains the public mapping
+  contract.
 
-```python
-from globaldatafinance import (
-    FundamentalStocksDataCVM,
-    HistoricalQuotesB3,
-    ExtractionResultB3,
-)
-```
+Facades expose the API, use cases wire components, adapters own network and
+filesystem I/O, pure modules own validation and transformation, and
+`*_formatter.py` modules own console presentation. Concrete adapters are instantiated and used directly, ensuring simple and readable code pathways.
 
-These three symbols are re-exported in `src/globaldatafinance/__init__.py`.
-Any new public entrypoint must be re-exported there to be part of the API
-contract. Treat additions as semver-relevant changes.
+When adding a source, create its feature modules under `brazil/<source>/`, add
+the facade under `application/`, re-export new public symbols from
+`__init__.py`, and default new persisted artifacts to Parquet unless an
+accepted contract says otherwise.
 
-### Design Patterns
+For a first safe change:
 
-- **Flat per-source modules**: each `brazil/<source>/` uses role-named
-  modules (`core.py` for types/validators, `client.py` for use-case
-  orchestration, `http.py`/`extract.py` for adapters, `errors.py` for
-  exceptions). No nested `domain/infra/exceptions` subdirectories.
-- **Concrete adapters, no ABC indirection**: HTTP and extraction adapters
-  are imported and constructed directly — no single-impl ABCs.
-- **Result objects over exceptions for partial failures**: operations return
-  typed result dataclasses or TypedDicts (e.g. `DownloadResultCVM`,
-  `ExtractionResultB3`) with explicit success/failure breakdowns.
-- **Formatter separation**: console output lives in `*_formatter.py`
-  modules under `application/`; `client.py` stays I/O-free.
-- **Path-traversal defense as contract**: path validation helpers raise
-  `SecurityError`/`PathPermissionError` before any `mkdir`, blocking
-  writes to `/etc /sys /proc /dev /boot /root`.
+1. Read [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md)
+   for ownership and module boundaries.
+1. Open the owning facade and source modules: CVM starts at
+   `application/cvm_docs/` and `brazil/cvm/`; B3 starts at
+   `application/b3_docs/` and `brazil/b3_data/`.
+1. Read [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md), the matching
+   tests, and [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md)
+   before changing behavior.
+1. Use the relevant smoke or API-surface script when deterministic runtime
+   evidence is needed.
 
-### Runtime & I/O Model
-
-- HTTP I/O is async via `httpx[http2]` with custom retry/backoff.
-- Concurrency is adaptive: `resource_monitor.py` reads CPU/RAM (`psutil`)
-  to keep download fan-out within machine capacity.
-- File integrity is validated after each download before extraction.
-- B3 has two processing modes: `fast` (in-memory) and `slow` (streamed).
-- Canonical persisted format is **Parquet**. New sources default to Parquet.
-- Logging via `core/logging_config.py` only — never `print(...)` from
-  non-formatter code.
-
-### Adding a New Source
-
-Create a new folder under `brazil/<source>/` with the flat module set
-(`core.py` + `client.py` minimum). Expose the public class via a new module
-under `application/`. Re-export in `__init__.py`.
+Implemented code, manifests, tests, and accepted decisions describe the
+current state. Proposals, unimplemented plans, and the empty `openspec/`
+directory do not change runtime behavior.
 
 ## Configuration & Runtime
 
-| Surface | Location | Purpose |
-| ------- | -------- | ------- |
-| `pyproject.toml` | repo root | Dependencies, build, ruff/mypy/bandit config (single source of truth) |
-| `PydanticSettings` | `core/config.py` | Runtime configuration where applicable |
-| `pytest.ini` | repo root | Test config and coverage enforcement |
-| `.pre-commit-config.yaml` | repo root | Lint/format/typecheck/security hooks |
-| `.env` | repo root | Optional local environment overrides |
-| `uv.lock` | repo root | Pinned dependency lockfile |
+| Surface             | Location                                                           | Purpose                                                                        |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Package and tooling | [`pyproject.toml`](pyproject.toml)                                 | Metadata, Hatchling build, dependency groups, and static quality configuration |
+| Dependency lock     | [`uv.lock`](uv.lock)                                               | Reproducible uv environment and CI dependency input                            |
+| Test configuration  | [`pytest.ini`](pytest.ini)                                         | Discovery, markers, and `fail_under = 70` when coverage is enabled             |
+| Local hooks         | [`.pre-commit-config.yaml`](.pre-commit-config.yaml)               | File hygiene, lock, security, lint, tests, type, and docstring hooks           |
+| Runtime settings    | `src/globaldatafinance/core/config.py`                             | Network timeout/retry/user-agent settings and debug flag                       |
+| Logging settings    | `src/globaldatafinance/core/logging_config.py`                     | Level, file, structured, and detailed logging configuration                    |
+| Package CI          | [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) | uv setup, lock, security, quality, type, docstring, and test gates             |
+
+Confirmed environment names are:
+
+- `DATAFINANCE_NETWORK_TIMEOUT`, `DATAFINANCE_NETWORK_MAX_RETRIES`,
+  `DATAFINANCE_NETWORK_RETRY_BACKOFF`, `DATAFINANCE_NETWORK_USER_AGENT`, and
+  `DATAFINANCE_DEBUG`;
+- `DATAFIN_LOG_LEVEL`, `DATAFIN_LOG_FILE`, `DATAFIN_LOG_STRUCTURED`, and
+  `DATAFIN_LOG_DETAILED_FORMAT`.
+
+Use `uv` and the committed `uv.lock` for repository development. Do not create
+or update Poetry, Pipenv, npm, Yarn, or other lockfiles during ordinary Python
+library work. The tracked docs and publish workflows still use Poetry without
+a tracked `poetry.lock`, while two security/deployment workflows reference
+absent `npm`, `frontend`, and `backend` paths. These are unresolved workflow
+conflicts, not evidence of a second runtime or release contract.
 
 ### Commands
 
-| Action | Command |
-| ------ | ------- |
-| Validation (lint + typecheck + tests) | `uv run pre-commit run --all-files` |
-| Tests (coverage enforced) | `uv run pytest` |
-| Tests (unit only) | `uv run pytest -m unit` |
-| Tests (integration, skip slow) | `uv run pytest -m "integration and not slow"` |
-| Smoke CVM | `uv run python scripts/smoke_cvm.py` |
-| Smoke B3 | `uv run python scripts/smoke_b3.py` |
-
-`uv` is the canonical environment/dependency manager. Poetry usage in docs
-is historical; prefer `uv` for local workflows unless instructed otherwise.
+| Action                                     | Command                                                                                                                    |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Sync development environment               | `uv sync`                                                                                                                  |
+| Install hooks                              | `uv run pre-commit install`                                                                                                |
+| Run full tests                             | `uv run pytest`                                                                                                            |
+| Run unit tests                             | `uv run pytest -m unit`                                                                                                    |
+| Run integration tests excluding slow cases | `uv run pytest -m "integration and not slow"`                                                                              |
+| Run CI coverage gate                       | `uv run pytest -m "not integration and not slow" --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=70` |
+| Run repository quality hooks               | `uv run pre-commit run --all-files --show-diff-on-failure`                                                                 |
+| Run type checking                          | `uv run mypy src --ignore-missing-imports --pretty`                                                                        |
+| Run security and docstring checks          | `uv run bandit -c pyproject.toml -r src -ll` and `uv run pydocstyle src --convention=google`                               |
+| Check lockfile                             | `uv lock --check`                                                                                                          |
+| Run CVM/B3 smoke checks                    | `uv run python scripts/smoke_cvm.py` / `uv run python scripts/smoke_b3.py`                                                 |
+| Capture public API surface                 | `uv run python scripts/capture_api_surface.py`                                                                             |
+| Build documentation                        | `uv run mkdocs build --strict`                                                                                             |
 
 ## Technical Stack
 
-- Python `3.12+` (classified for 3.13 / 3.14)
-- `httpx[http2]` for async HTTP I/O
-- `asyncio` for concurrency orchestration
-- `polars`, `pandas`, `pyarrow` for columnar processing and Parquet I/O
-- `psutil` for adaptive CPU/RAM-aware concurrency
-- `pydantic-settings` for runtime configuration
-- `hatchling` as build backend (PyPI distribution)
-- `ruff` for linting and formatting (Blue style, 79 chars, single quotes)
-- `mypy` for type checking
-- `bandit` for security scanning
-- `pydocstyle` for docstring convention (Google style)
-- `pytest` for testing (with `pytest-cov`, `pytest-asyncio`, `pytest-benchmark`)
-- `pre-commit` for git hook enforcement
-- `uv` for dependency management and execution
-- `MkDocs` + `mkdocs-material` for documentation site
+| Concern                | Current choice                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| Runtime and build      | Python `>=3.12,<4.0`, `src/` layout, Hatchling, `uv`                              |
+| HTTP and concurrency   | `httpx[http2]`, `asyncio`, retries, and `psutil` resource monitoring              |
+| Data processing        | `polars`, `pandas`, `pyarrow`, and Parquet                                        |
+| Configuration and logs | `pydantic-settings` and the project logging configuration                         |
+| Quality and security   | pytest, Ruff, mypy, pydocstyle, Bandit, pip-audit, detect-secrets, and pre-commit |
+| Documentation          | MkDocs Material, configured for Portuguese (`pt`)                                 |
 
 ## Mandatory Rules
 
-### Project-Specific
-
-- Do not write irrelevant comments in the code.
-- Verify files before editing; do not assume structure or behavior.
-- `Code/Git = English` and `Chat = Portuguese`.
-- Plan before modifying and keep scope small and verifiable.
-- Prefer `uv run` for Python commands.
-- Treat source data and persisted Parquet outputs as canonical; new sources
-  should default to Parquet.
-- Do not `print(...)` from non-formatter code; use `core/logging_config.py`.
-- Keep feature-specific logic in `brazil/<source>/`; `core/` and
-  `macro_infra/` hold only generic shared utilities.
-- Treat current runtime code and accepted decisions as current state. Active
-  OpenSpec changes are planned state until implementation and verification.
-- Start architecture questions at `docs/dev-guide/architecture.md`, then open
-  only the owning doc, reference, or guide needed for the task.
-- Do not move system details into this file; use links for canonical docs.
-
-### Engineering Standards
-
-These apply regardless of language or stack. Agents must follow them
-without exception:
-
-- **Never swallow exceptions silently.** Every `except` block must either
-  re-raise, translate to a domain exception with context, or log at WARNING
-  or above with the original traceback. Bare `except: pass` is forbidden.
-- **Use the project's exception hierarchy.** Feature exceptions inherit
-  from `macro_exceptions/`. Do not raise raw `Exception`, `ValueError`, or
-  `RuntimeError` from library code — wrap in a domain exception that
-  carries the original cause (`raise DomainError(...) from e`).
-- **Type-annotate all public signatures.** Every function, method, and
-  class attribute in the public API and in `client.py`/`core.py` modules
-  must have complete type annotations. Internal helpers should be annotated
-  when non-obvious. `mypy` must pass.
-- **Write tests for every behavioral change.** New features need at least
-  one happy-path and one error-path test. Bug fixes must include a
-  regression test that fails without the fix and passes with it. Tests
-  mirror `src/` structure under `tests/`.
-- **Preserve backward compatibility by default.** Do not change return
-  types, parameter names, default values, or exception types of public
-  API methods without explicit user approval. If a breaking change is
-  unavoidable, document it and treat it as semver-major.
-- **Keep functions focused and small.** A function should do one thing. If
-  a function needs a comment block explaining "step 1, step 2, step 3",
-  extract each step. Prefer pure functions where state is not needed.
-- **Name things for clarity, not brevity.** Variable, function, and class
-  names must be self-documenting. Avoid abbreviations except
-  domain-standard ones (`CVM`, `B3`, `DFP`, `ITR`, etc.). Use
-  `snake_case` for modules, functions, variables; `PascalCase` for
-  classes and type aliases.
-- **Write Google-style docstrings for public APIs.** Every public class and
-  function must have a docstring. Follow the Google convention enforced by
-  `pydocstyle`. Include `Args`, `Returns`, `Raises` sections when
-  non-trivial.
-- **No dead code, no commented-out code.** If code is not needed, delete
-  it. Version control is the archive. Unused imports, unreachable branches,
-  and TODO-without-issue are code smells to fix immediately.
-- **Separate I/O from logic.** Pure computation lives in `core.py` or
-  domain modules. I/O (HTTP, file system, database) lives in adapter
-  modules (`http.py`, `extract.py`, `filesystem.py`). The `client.py`
-  module wires them together but does not contain I/O itself.
-- **Handle resources explicitly.** Use `async with` / `with` for anything
-  that acquires and releases a resource (HTTP clients, file handles,
-  temporary directories). Never leave resources to garbage collection.
-- **Do not hardcode values.** Magic numbers, paths, URLs, and thresholds
-  belong in configuration (`core/config.py`), constants modules, or
-  function parameters with documented defaults — not inline in logic.
-- **Fail fast and loud.** Validate inputs at the boundary (public API
-  methods, adapter entry points). Raise immediately with a clear message
-  rather than propagating invalid state through multiple layers.
-- **Imports must be sorted and grouped.** `ruff` with `isort` rules
-  handles this automatically. First-party imports use
-  `known-first-party = ["globaldatafinance"]`.
+- Verify files before editing; plan before modifying; keep scope small,
+  reviewable, and verifiable.
+- `Chat = Portuguese`. New code, identifiers, comments, docstrings, and Git
+  metadata use English. Keep user-facing MkDocs documentation aligned with
+  the existing Portuguese corpus.
+- Use `uv` and `uv run` for Python work. Do not mix dependency managers or
+  regenerate another lockfile unless the task explicitly includes migration.
+- Prefer repository-native entrypoints and official scripts. Run the relevant
+  focused tests and then the official quality gate; report skipped, blocked, or
+  failing validation with its impact.
+- Treat implemented code, manifests, tests, and accepted decisions as current
+  state. Treat proposals and unimplemented planning artifacts as planned state.
+- Use the canonical doc route in `Related Documentation`; detailed contracts
+  belong in canonical docs or owning modules, not duplicated in this file.
+- Preserve the distribution-oriented package shape, the public facade under
+  `application/`, and flat role-named source modules under `brazil/<source>/`.
+- Keep source-specific behavior in its owning `brazil/<source>/` folder;
+  `core/` and `macro_infra/` contain only genuinely generic behavior.
+- Keep I/O in HTTP/filesystem/extraction/writer adapters, orchestration in
+  clients/use cases, pure validation/transformation in logic modules, and
+  console output in `*_formatter.py`. Never call `print(...)` from library
+  code outside formatters; use the logging configuration instead.
+- New sources need a source implementation, public facade, root re-export, and
+  Parquet-by-default persistence unless an accepted contract says otherwise.
+- Preserve public root exports, parameter names, defaults, return shapes,
+  exception contracts, persisted schemas, and output naming unless the user
+  explicitly approves a breaking change.
+- Treat source input and Parquet output as data contracts. Validate integrity
+  before extraction and preserve deterministic parser/writer behavior.
+- Write tests for every behavioral change: happy and error paths for new
+  behavior, and a regression test for every bug fix. Keep tests under `tests/`.
+- Type-annotate public signatures and public-facing `client.py`/`core.py`
+  surfaces; write Google-style docstrings; keep mypy and pydocstyle green.
+- Never swallow exceptions silently. Re-raise, translate to a project
+  exception with context, or log at WARNING or above with the original
+  traceback. Do not raise raw `Exception`, `ValueError`, or `RuntimeError`
+  from new library code; preserve the cause with `raise ... from exc`.
+- Validate inputs at public and adapter boundaries and fail fast with a clear
+  project exception. Use `async with` or `with` for acquired resources.
+- Keep functions focused, names clear, imports sorted, and reusable values in
+  configuration/constants or documented parameters. Do not leave irrelevant
+  comments, dead/commented-out code, unused imports, unreachable branches, or
+  stale compatibility paths.
+- Run path-safety checks before `mkdir` or writes; preserve the shared blocklist
+  for POSIX system directories, sensitive home directories, and documented
+  Windows system paths.
+- Preserve the B3 `COTAHIST_AYYYY.(ZIP|TXT)` filename contract, basename-only
+  output names, and `fast`/`slow` processing semantics.
+- For partial source failures, use the established result objects with explicit
+  success and error details rather than inventing an exception-only flow.
+- If code, docs, workflows, or tooling disagree about a manager, command,
+  runtime, public contract, security boundary, or ownership, stop and report
+  the conflict instead of choosing silently.
 
 ## Execution Policy
 
 ### Precedence
 
-Rank: system constraints → repo/workspace policy and tooling → user request.
-Act on the highest-ranking unambiguous, safe instruction without asking again.
-If same-rank instructions conflict: prefer the more specific and safer one.
+Rank: system constraints → repository/workspace policy and tooling → user
+request. Act on the highest-ranking unambiguous, safe instruction without
+asking again. If same-rank instructions conflict, prefer the more specific and
+safer one.
 
 ### Hard Blocks
 
 Never execute without the user naming the exact action:
 
-- `git reset --hard`, `git reset --soft`, `git reset --mixed`,
-  `git reset HEAD`, `git clean -fd`, forced checkouts, or any history
-  rewrite.
+- `git reset --hard`, `git reset --soft`, `git reset --mixed`, `git reset HEAD`,
+  `git clean -fd`, forced checkouts, or any history rewrite.
 - `git push --force`, `git push --force-with-lease`, `git rebase --root`,
   `git rebase -i --root`, `git filter-branch`, `git reflog expire`,
-  `git update-ref --delete` or any destructive remote/history operation.
+  `git update-ref --delete`, or any destructive remote/history operation.
 - Remote piping: `curl | bash`, `wget | sh`, or any equivalent.
-- Writes to `/etc`, `~/.ssh`, system packages, or paths outside the
-  workspace.
-- Anything that bypasses permissions, sandbox limits, or auth controls.
+- Writes to `/etc`, `~/.ssh`, system packages, or paths outside the authorized
+  repository/workspace scope.
+- Anything that bypasses permissions, sandbox limits, authentication, or
+  authorization controls.
 
 ### Secrets
 
 Never seek, log, copy, or expand secrets. Treat `.env`, API keys, tokens,
-cookies, auth sessions, and private keys as sensitive. If a secret appears
-in output: stop, redact, report that sensitive data was found.
+cookies, auth sessions, certificates, and private keys as sensitive. If a
+secret appears in output: stop, redact it, and report that sensitive data was
+found.
 
 ### Repo Alignment
 
-Follow the repository's canonical contracts, docs, and official scripts
-before inventing a new workflow. Prefer existing project patterns,
-entrypoints, and abstractions over ad hoc alternatives. Do not silently
-change public contracts, persisted formats, auth flows, runtime topology,
-or security boundaries. If code, docs, and tooling disagree: stop, report
-the ambiguity, and identify the conflicting sources.
+Follow canonical contracts, documentation, current code, accepted decisions,
+and official scripts before inventing a workflow. Prefer existing patterns,
+entrypoints, and abstractions. Do not silently change public contracts,
+persisted formats, auth flows, runtime topology, or security boundaries. If
+sources disagree, stop, report the ambiguity, and identify the conflict.
+
+For this package, the aligned technical sources are `pyproject.toml`,
+`uv.lock`, implemented `src/` code, tests, and
+`.github/workflows/pipeline.yml`. The legacy workflow mismatch is documented
+under `Configuration & Runtime` and must not be silently resolved by agents.
 
 ### Autonomy
 
-Execute reversible workspace changes without confirmation only when all
-hold:
-
-- Goal and success criteria are unambiguous.
-- Change is contained inside the workspace.
-- Change is fully recoverable via version control.
-
-Stop and ask when: ambiguous scope, destructive side effects, external
-systems, production impact, secrets involved, or conflict between
-same-rank instructions.
+Execute reversible repository/workspace changes without confirmation only when
+the goal and success criteria are unambiguous, the change stays within the
+authorized workspace, and version control can recover it. Stop and ask when
+scope is ambiguous, side effects are destructive, external systems or
+production are involved, secrets are involved, or same-rank instructions
+conflict.
 
 ### Validation
 
 Before concluding code or tooling changes, use the repository's official
-validation entrypoint when applicable. Prefer repo-native commands and
-scripts over custom one-off equivalents. If validation is skipped,
-unsupported, or failing, report that explicitly with the reason and
-impact.
+validation entrypoint when applicable. Prefer repository-native commands and
+scripts over custom one-off equivalents. If validation is skipped, unsupported,
+or failing, report the reason and impact.
 
 ### Execution Safety
 
-Before any destructive, publish, migration, or deployment-like operation:
+Before any destructive, publish, migration, deployment-like, or external-state
+operation:
 
 1. State exactly what will be affected.
-2. Run a dry run when the command supports it.
-3. Break complex operations into readable steps — never opaque one-liners.
+1. Inspect and validate the exact target and scope.
+1. Run a dry run when the command supports it.
+1. Break complex operations into readable steps; do not hide behavior in opaque
+   one-liners.
 
-Before running local scripts that call the OS: inspect the command path.
-Stop and ask if the script is obfuscated, downloads executables, touches
-secrets, or has unclear side effects.
+Before running local scripts that call the operating system, inspect the
+command path. Stop and ask if the script is obfuscated, downloads executables,
+touches secrets, or has unclear side effects.
 
 ### Failure Handling
 
-If a security lock, permission denial, or auth boundary blocks the task:
-stop. Do not work around it. Report the block, the evidence, and the
-safest next step.
+If a security lock, permission denial, authentication boundary, or authorization
+boundary blocks the task, stop. Do not work around it. Report the block, the
+evidence, and the safest next step.
 
 ## Related Documentation
 
-Ordered by progressive disclosure.
+Read sources in this order: orientation, architecture and ownership, testing
+and contribution, source contracts, operations/tooling, then implementation
+details or planned work.
 
-| Doc | Knowledge class | Purpose |
-| --- | --------------- | ------- |
-| `README.md` | Orientation | Public entry point: mission, install, quickstart, API summary |
-| [`docs/index.md`](docs/index.md) | Orientation | Documentation portal and routes |
-| [`docs/user-guide/installation.md`](docs/user-guide/installation.md) | User guide | Install and setup |
-| [`docs/user-guide/quickstart.md`](docs/user-guide/quickstart.md) | User guide | First usage walkthrough |
-| [`docs/user-guide/cvm-docs.md`](docs/user-guide/cvm-docs.md) | User guide | CVM source usage |
-| [`docs/user-guide/b3-docs.md`](docs/user-guide/b3-docs.md) | User guide | B3 source usage |
-| [`docs/user-guide/examples.md`](docs/user-guide/examples.md) | User guide | Runnable usage examples |
-| [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | User guide | Frequently asked questions |
-| [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) | Architecture | Full architecture walkthrough: layers, patterns, ownership |
-| [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md) | Testing | How to write and run tests, fixtures, markers |
-| [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md) | Governance | Contribution workflow and standards |
-| [`docs/dev-guide/resource-monitoring.md`](docs/dev-guide/resource-monitoring.md) | Reference | CPU/RAM-aware concurrency documentation |
-| [`docs/dev-guide/retry-strategy.md`](docs/dev-guide/retry-strategy.md) | Reference | Exponential backoff policy documentation |
-| [`docs/dev-guide/logging-system.md`](docs/dev-guide/logging-system.md) | Reference | Structured logging configuration |
-| [`docs/dev-guide/advanced-usage.md`](docs/dev-guide/advanced-usage.md) | Reference | Advanced usage patterns and API surface |
-| [`docs/dev-guide/api-reference.md`](docs/dev-guide/api-reference.md) | Reference | Developer API reference |
-| [`docs/reference/cvm-api.md`](docs/reference/cvm-api.md) | Reference | CVM module API reference |
-| [`docs/reference/b3-api.md`](docs/reference/b3-api.md) | Reference | B3 module API reference |
-| [`docs/reference/exceptions.md`](docs/reference/exceptions.md) | Reference | Exception hierarchy reference |
-| `.agents/README.md` | Tooling | Agent framework: ownership, prompts, manifests, mirror policy |
-| `openspec/` | Planned | OpenSpec change lifecycle (changes/ and specs/) |
+| Doc                                                                                                                                                                                                                                                         | Knowledge class        | Purpose                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------- |
+| [`README.md`](README.md) · [`docs/index.md`](docs/index.md)                                                                                                                                                                                                 | Orientation            | Mission, supported sources, installation, quickstart, and documentation map           |
+| [`docs/user-guide/installation.md`](docs/user-guide/installation.md) · [`docs/user-guide/quickstart.md`](docs/user-guide/quickstart.md) · [`docs/user-guide/examples.md`](docs/user-guide/examples.md) · [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | User guide             | Consumer setup, first usage, runnable examples, and troubleshooting                   |
+| [`docs/user-guide/cvm-docs.md`](docs/user-guide/cvm-docs.md) · [`docs/user-guide/b3-docs.md`](docs/user-guide/b3-docs.md)                                                                                                                                   | User guide             | CVM and B3 inputs, outputs, modes, and examples                                       |
+| [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) · [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md) · [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md)                                                          | Development            | Ownership, test strategy, quality workflow, and contribution rules                    |
+| [`docs/dev-guide/api-reference.md`](docs/dev-guide/api-reference.md) · [`docs/reference/cvm-api.md`](docs/reference/cvm-api.md) · [`docs/reference/b3-api.md`](docs/reference/b3-api.md) · [`docs/reference/exceptions.md`](docs/reference/exceptions.md)   | Reference              | Public APIs, source contracts, and exception behavior                                 |
+| [`docs/dev-guide/logging-system.md`](docs/dev-guide/logging-system.md) · [`docs/dev-guide/resource-monitoring.md`](docs/dev-guide/resource-monitoring.md) · [`docs/dev-guide/retry-strategy.md`](docs/dev-guide/retry-strategy.md)                          | Operations             | Logging, resource-aware concurrency, and retry policy                                 |
+| [`pyproject.toml`](pyproject.toml) · [`uv.lock`](uv.lock) · [`pytest.ini`](pytest.ini) · [`.pre-commit-config.yaml`](.pre-commit-config.yaml)                                                                                                               | Repository facts       | Build, dependencies, tests, and local quality hooks                                   |
+| [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) · [`mkdocs.yml`](mkdocs.yml)                                                                                                                                                             | Tooling                | Current package CI gates and documentation build/navigation                           |
+| [`scripts/smoke_cvm.py`](scripts/smoke_cvm.py) · [`scripts/smoke_b3.py`](scripts/smoke_b3.py) · [`scripts/capture_api_surface.py`](scripts/capture_api_surface.py)                                                                                          | Operational checks     | Deterministic source-flow and public-API evidence                                     |
+| [`.agents/README.md`](.agents/README.md) · [`openspec/`](openspec/)                                                                                                                                                                                         | Agent/planning tooling | Agent framework and planning boundary; neither overrides implemented runtime behavior |

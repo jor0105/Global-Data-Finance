@@ -1,8 +1,7 @@
-"""ZIP → Parquet extractor for CVM data.
+"""ZIP → Parquet extractor for CVM regulatory document archives.
 
-Moved from `infra/adapters/extractors_docs_adapter/`. ABC inheritance dropped
-(`FileExtractorRepositoryCVM`) — the single-impl interface added no runtime
-value (per design.md R2 / tasks 3.2.x).
+Implements direct and robust extraction of downloaded ZIP files into structured
+Parquet datasets with automatic error handling and filesystem rollback support.
 """
 
 import zipfile

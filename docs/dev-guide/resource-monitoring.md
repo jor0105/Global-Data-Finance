@@ -1,4 +1,4 @@
-# Resource Monitoring
+# Monitoramento de Recursos
 
 Documentação do sistema de monitoramento de recursos do Global-Data-Finance.
 

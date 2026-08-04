@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jor0105/Global-Data-Finance/blob/develop/LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
 ---
@@ -17,11 +17,11 @@
 ✅ **Processamento otimizado**: Downloads assíncronos (`httpx[http2]`) com concorrência adaptativa por CPU/RAM
 ✅ **Formato eficiente**: Extração nativa para Parquet (Pandas/Polars ready)
 ✅ **Robustez integrada**: Retries com back-off, validação de integridade e rollback atômico
-✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados) — sem ABCs sem polimorfismo real
+✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados), garantindo simplicidade e legibilidade direto ao ponto.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Início Rápido
 
 ### Instalação
 
@@ -30,7 +30,7 @@
 pip install globaldatafinance
 
 # Para desenvolvimento local (uv é o gestor canônico do projeto)
-git clone https://github.com/jor0105/Global-Data-Finance.git
+git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
 uv sync
 ```
@@ -211,6 +211,9 @@ cvm.download(
 - **[Como Contribuir](dev-guide/contributing.md)** - Guia de contribuição
 - **[Testes](dev-guide/testing.md)** - Estratégias de teste e cobertura
 - **[Uso Avançado](dev-guide/advanced-usage.md)** - Técnicas avançadas e otimizações
+- **[Sistema de Logging](dev-guide/logging-system.md)** - Configurações e práticas de logs estruturados
+- **[Monitoramento de Recursos](dev-guide/resource-monitoring.md)** - Monitoramento adaptativo de CPU e memória
+- **[Estratégia de Retry](dev-guide/retry-strategy.md)** - Mecanismo de reexecução com backoff exponencial
 
 ### Referência Técnica
 
@@ -247,34 +250,27 @@ cvm.download(
 
 ## 📊 Arquitetura
 
-Duas camadas explícitas:
+1. **Facade público (`application/`)** — superfície semver-relevante para usuários da lib.
+2. **Implementação por fonte (`brazil/<país>/<fonte>/`)** — layout plano de módulos nomeados por papel.
 
-```
-┌─────────────────────────────────────────────────────┐
-│  FACADE (application/)                              │  ← FundamentalStocksDataCVM
-│  Superfície semver-relevante para usuários da lib   │    HistoricalQuotesB3
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│  IMPLEMENTAÇÃO POR FONTE                            │  ← brazil/<país>/<fonte>/
-│  Módulos por papel: client.py + dados puros +       │    CVM: core.py · client.py · http.py
-│  adapters HTTP/extract + errors.py + subpacotes     │         extract.py · errors.py
-│  pesados isolados (parsers, writers).               │    B3: client.py · models.py · years.py
-│                                                     │        assets.py · filesystem.py · …
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│  CROSS-CUTTING                                      │  ← core/ (logging, retry,
-│  Utilitários compartilhados, sem lógica de fonte    │    resource_monitor, config)
-│                                                     │    macro_infra/, macro_exceptions/
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User[Usuário / Script] --> Facade
+
+    subgraph "globaldatafinance"
+        Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
+        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>módulos planos por papel<br/>(client.py, models.py, errors.py...)"]
+        Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
+    end
+
+    Source --> External[Web / File System / Parquet]
 ```
 
 **Benefícios:**
 
-- **Leitura direta**: Poucos arquivos por fonte, nomes claros — sem caçar a classe em 4 camadas.
-- **Sem ABC de implementação única**: Adapters concretos importados e construídos direto. Quando aparecer uma segunda implementação real, extrair um `typing.Protocol` é trivial.
-- **Extensibilidade orientada a fontes**: Adicionar uma fonte = adicionar uma pasta com o mesmo conjunto plano. O ponto de extensão real é a fonte, não o "tipo de objeto".
+- **Leitura direta**: Poucos arquivos por fonte com nomes claros por responsabilidade, tornando o fluxo do código intuitivo.
+- **Adapters concretos**: Adapters são importados e instanciados diretamente para manter a base de código simples e de fácil navegação.
+- **Extensibilidade orientada a fontes**: Adicionar uma fonte significa adicionar uma nova pasta com o mesmo conjunto plano de papéis.
 - **Defesa de path-traversal como contrato**: `VerifyPathsUseCasesCVM` e `validate_directory_path` (B3) levantam `SecurityError` antes de qualquer `mkdir`.
 
 [Saiba mais sobre a arquitetura →](dev-guide/architecture.md)
@@ -385,9 +381,9 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 ## 📞 Suporte
 
 - 📧 **Email**: estraliotojordan@gmail.com
-- 🐛 **Bugs**: [GitHub Issues](https://github.com/jor0105/Global-Data-Finance/issues)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/jor0105/Global-Data-Finance/discussions)
-- 📖 **Documentação**: [https://jor0105.github.io/Global-Data-Finance/](https://jor0105.github.io/Global-Data-Finance/)
+- 🐛 **Bugs**: [GitHub Issues](https://github.com/jordanestralioto/Global-Data-Finance/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/jordanestralioto/Global-Data-Finance/discussions)
+- 📖 **Documentação**: [https://jordanestralioto.github.io/Global-Data-Finance/](https://jordanestralioto.github.io/Global-Data-Finance/)
 
 ---
 
@@ -395,7 +391,7 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 
 Apache 2.0 - Use livremente em seus projetos comerciais e pessoais.
 
-Consulte o arquivo [LICENSE](https://github.com/jor0105/Global-Data-Finance/blob/develop/LICENSE) para mais detalhes.
+Consulte o arquivo [LICENSE](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE) para mais detalhes.
 
 ---
 
@@ -403,7 +399,7 @@ Consulte o arquivo [LICENSE](https://github.com/jor0105/Global-Data-Finance/blob
 
 **Jordan Estralioto**
 
-- GitHub: [@jor0105](https://github.com/jor0105)
+- GitHub: [@jordanestralioto](https://github.com/jordanestralioto)
 - Email: estraliotojordan@gmail.com
 - PyPI: [globaldatafinance](https://pypi.org/project/globaldatafinance/)
 
@@ -412,5 +408,5 @@ Consulte o arquivo [LICENSE](https://github.com/jor0105/Global-Data-Finance/blob
 **Status:** 🚀 Projeto em produção! Aberto para contribuições e sugestões.
 
 <div align="center">
-    <sub>Copyright © 2025 Jordan Estralioto • Licensed under Apache 2.0</sub>
+    <sub>Copyright © 2026 Jordan Estralioto • Licensed under Apache 2.0</sub>
 </div>

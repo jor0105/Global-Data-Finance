@@ -211,14 +211,10 @@ class VerifyPathsUseCasesCVM:
 class DownloadDocumentsUseCaseCVM:
     """Orchestrator use case for downloading CVM documents.
 
-    Kept as a stateful class (D3) — caches the download repository and
-    the sub-use-case helpers across calls. Tests inspect the private
-    mangled attributes (`_DownloadDocumentsUseCaseCVM__repository` etc.),
-    so the constructor must keep the same name-mangling layout.
-
-    `isinstance(repository, ABC)` check from the pre-refactor version is
-    intentionally removed (task 3.2.4) — Python duck-typing is enough,
-    and the single-impl ABC offered no real safety.
+    Maintains collaborator references across executions. Tests inspect the
+    private mangled attributes (`_DownloadDocumentsUseCaseCVM__repository`
+    etc.), so the constructor preserves this attribute structure. Collaborators
+    interact directly via duck typing and static type checking.
     """
 
     def __init__(self, repository: AsyncDownloadAdapterCVM) -> None:

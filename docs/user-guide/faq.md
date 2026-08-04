@@ -348,7 +348,7 @@ Veja o [guia de contribuição](../dev-guide/contributing.md) para detalhes comp
 ### Como reportar bugs?
 
 Abra uma issue no GitHub:
-🔗 [https://github.com/jor0105/Global-Data-Finance/issues](https://github.com/jor0105/Global-Data-Finance/issues)
+🔗 [https://github.com/jordanestralioto/Global-Data-Finance/issues](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 
 ### Como sugerir novas funcionalidades?
 
@@ -380,7 +380,7 @@ Os dados são públicos e fornecidos pela CVM e B3. Consulte os termos de uso de
 ### Onde obter ajuda?
 
 1. **Documentação**: Leia a [documentação completa](../index.md)
-2. **GitHub Issues**: [Abra uma issue](https://github.com/jor0105/Global-Data-Finance/issues)
+2. **GitHub Issues**: [Abra uma issue](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 3. **Email**: estraliotojordan@gmail.com
 
 ### Como reportar problemas de segurança?

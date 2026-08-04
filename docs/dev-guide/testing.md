@@ -89,9 +89,9 @@ class TestAvailableDocs:
 
 > Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em `brazil.cvm.fundamental_stocks_data.core` e `brazil.cvm.fundamental_stocks_data.errors`; para B3 a divisão é mais granular — entidades em `models.py`, value objects em `years.py`/`processing.py`, validators de filesystem em `filesystem.py`, asset services em `assets.py`, exceções em `errors.py`.
 
-### Mocking sem ABC
+### Estratégias de Mocking
 
-Como os adapters não são mais ABCs, tests substituem dependências via stub duck-typed ou `monkeypatch.setattr`:
+Para desacoplar chamadas de I/O de rede ou sistema de arquivos, os testes substituem as dependências via stubs com duck typing ou `monkeypatch.setattr`:
 
 ```python
 class MockRepository:

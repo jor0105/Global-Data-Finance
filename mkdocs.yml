@@ -4,14 +4,14 @@ site_name: Global-Data-Finance
 site_author: Jordan Estralioto
 site_description: >-
   Biblioteca Python para extração e processamento de dados financeiros globais
-site_url: https://jor0105.github.io/Global-Data-Finance/
+site_url: https://jordanestralioto.github.io/Global-Data-Finance/
 # Repository
-repo_name: jor0105/Global-Data-Finance
-repo_url: https://github.com/jor0105/Global-Data-Finance
+repo_name: jordanestralioto/Global-Data-Finance
+repo_url: https://github.com/jordanestralioto/Global-Data-Finance
 edit_uri: edit/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2025 Jordan Estralioto
+copyright: Copyright &copy; 2026 Jordan Estralioto
 
 # Configuration
 theme:
@@ -56,13 +56,13 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jor0105/Global-Data-Finance
+      link: https://github.com/jordanestralioto/Global-Data-Finance
       name: Código-fonte
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/globaldatafinance/
       name: PyPI
     - icon: material/email
-      link: mailto:contato@exemplo.com
+      link: mailto:estraliotojordan@gmail.com
       name: Contato
 
 extra_css:
@@ -115,7 +115,7 @@ nav:
       - Instalação: user-guide/installation.md
       - Início Rápido: user-guide/quickstart.md
       - Documentos CVM: user-guide/cvm-docs.md
-      - Cotações B3: user-guide/b3-docs.md
+      - Cotações Históricas B3: user-guide/b3-docs.md
       - Exemplos Práticos: user-guide/examples.md
       - FAQ: user-guide/faq.md
   - Guia do Desenvolvedor:
@@ -125,8 +125,8 @@ nav:
       - Testes: dev-guide/testing.md
       - Uso Avançado: dev-guide/advanced-usage.md
       - Sistema de Logging: dev-guide/logging-system.md
-      - Resource Monitoring: dev-guide/resource-monitoring.md
-      - Retry Strategy: dev-guide/retry-strategy.md
+      - Monitoramento de Recursos: dev-guide/resource-monitoring.md
+      - Estratégia de Retry: dev-guide/retry-strategy.md
   - Referência Técnica:
       - API CVM: reference/cvm-api.md
       - API B3: reference/b3-api.md

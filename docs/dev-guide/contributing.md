@@ -10,7 +10,7 @@ Guia para contribuir com o projeto Global-Data-Finance.
 
 ```bash
 # Fork no GitHub, depois:
-git clone https://github.com/jor0105/Global-Data-Finance.git
+git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
 ```
 
@@ -159,5 +159,5 @@ git commit -m "fix bug"
 
 ## Contato
 
-- GitHub Issues: [Abrir issue](https://github.com/jor0105/Global-Data-Finance/issues)
+- GitHub Issues: [Abrir issue](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 - Email: estraliotojordan@gmail.com
