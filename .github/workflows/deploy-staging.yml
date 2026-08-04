@@ -47,7 +47,7 @@ jobs:
         run: uv build
 
       - name: Check package metadata with Twine
-        run: uv run twine check dist/*
+        run: uvx twine check dist/*
 
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v7
