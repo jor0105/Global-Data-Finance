@@ -199,3 +199,7 @@ CLAUDE.md
 kilo.jsonc
 docs/ideias/
 openspec/
+dados_cvm/
+dados_b3/
+cotahist_b3/
+.benchmarks/

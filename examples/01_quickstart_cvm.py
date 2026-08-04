@@ -1,30 +1,32 @@
-"""Exemplo 01: Início Rápido com CVM (Demonstrações Financeiras DFP).
+"""Example 01: Quickstart with CVM (DFP Financial Statements).
 
-Este exemplo demonstra como baixar e extrair demonstrações financeiras
-padronizadas (DFP) de empresas abertas brasileiras diretamente para Parquet.
+This example demonstrates how to download and extract standardized financial
+statements (DFP) for Brazilian public companies directly into Parquet format.
 """
 
 from globaldatafinance import FundamentalStocksDataCVM
 
 
 def main() -> None:
-    # 1. Inicializar a fachada pública da CVM
+    # 1. Initialize the CVM public facade
     cvm = FundamentalStocksDataCVM()
 
-    # 2. Executar o download com conversão automática para Parquet
-    print('Iniciando download e extração de dados DFP da CVM...')
+    output_dir = './dados_cvm'
+
+    # 2. Execute download with automatic conversion to Parquet
+    print('Starting CVM DFP data download and extraction...')
     resultado = cvm.download(
-        destination_path='./dados_cvm',
+        destination_path=output_dir,
         list_docs=['DFP'],
         initial_year=2023,
         last_year=2023,
         automatic_extractor=True,
     )
 
-    # 3. Exibir o resultado final
-    print('✓ Download concluído com sucesso!')
-    print(f'  Diretório dos arquivos Parquet: {resultado.destination_path}')
-    print(f'  Arquivos baixados: {len(resultado.success_downloads)}')
+    # 3. Display final result
+    print('✓ Download completed successfully!')
+    print(f'  Parquet files directory: {output_dir}')
+    print(f'  Downloaded files count: {resultado.success_count_downloads}')
 
 
 if __name__ == '__main__':

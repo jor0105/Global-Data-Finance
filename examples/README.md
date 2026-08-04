@@ -33,11 +33,11 @@ uv run python examples/02_quickstart_b3.py
 
 ---
 
-### 3. Extração Avançada da B3 (`03_opcoes_avancadas_b3.py`)
+### 3. Extração Avançada da B3 (`03_advanced_options_b3.py`)
 Demonstra a extração de múltiplos ativos simultâneos (**Ações, ETFs e FIIs**) a partir dos arquivos COTAHIST locais de 2022 e 2023, utilizando o **modo de alto desempenho (`processing_mode="fast"`)**.
 
 ```bash
-uv run python examples/03_opcoes_avancadas_b3.py
+uv run python examples/03_advanced_options_b3.py
 ```
 
 ---
@@ -48,16 +48,6 @@ Por padrão, os exemplos salvam os dados em formato **Parquet** (ideal para inte
 
 - `./dados_cvm/`: Contém os arquivos `.parquet` por tipo de relatório da CVM.
 - `./dados_b3/`: Contém os arquivos Parquet consolidados com o nome especificado em `output_filename`.
-
----
-
-## 🔍 Scripts de Validação Interna e Superfície de API
-
-Além dos tutoriais acima, a pasta também contém scripts utilitários de validação interna:
-
-- `smoke_cvm.py`: Teste de fumaça síncrono/assíncrono da CVM.
-- `smoke_b3.py`: Teste de fumaça dos motores de extração `fast` e `slow` da B3 (usando fixtures/amostras locais).
-- `capture_api_surface.py`: Captura determinística da superfície pública exportada pela biblioteca.
 
 ---
 

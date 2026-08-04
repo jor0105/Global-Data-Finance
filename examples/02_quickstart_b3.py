@@ -1,21 +1,21 @@
-"""Exemplo 02: Início Rápido com B3 (Cotações Históricas de Ações).
+"""Example 02: Quickstart with B3 (Historical Stock Quotes).
 
-Este exemplo demonstra como ler e extrair cotações históricas de Ações
-a partir de arquivos COTAHIST locais (ex: COTAHIST_A2023.ZIP ou .TXT)
-previamente salvos na pasta 'path_of_docs' e gerar um arquivo Parquet consolidado.
+This example demonstrates how to read and extract historical stock quotes
+from local COTAHIST files (e.g. COTAHIST_A2023.ZIP or .TXT) saved in
+'path_of_docs' and generate a consolidated Parquet file.
 """
 
 from globaldatafinance import HistoricalQuotesB3
 
 
 def main() -> None:
-    # 1. Inicializar a fachada pública da B3
+    # 1. Initialize the B3 public facade
     b3 = HistoricalQuotesB3()
 
-    # 2. Extrair cotações de ações a partir de arquivos COTAHIST locais
-    print('Iniciando extração de cotações de Ações da B3...')
+    # 2. Extract stock quotes from local COTAHIST files
+    print('Starting B3 stock quotes extraction...')
     resultado = b3.extract(
-        path_of_docs='./cotahist_b3',  # Pasta contendo os arquivos COTAHIST locais
+        path_of_docs='./cotahist_b3',  # Folder containing local COTAHIST files
         assets_list=['ações'],
         initial_year=2023,
         last_year=2023,
@@ -23,12 +23,10 @@ def main() -> None:
         output_filename='cotacoes_acoes_2023',
     )
 
-    # 3. Exibir o resultado final
-    print('✓ Extração concluída com sucesso!')
-    print(f'  Arquivo Parquet gerado em: {resultado["output_path"]}')
-    print(
-        f'  Total de arquivos processados: {len(resultado["files_processed"])}'
-    )
+    # 3. Display final result
+    print('✓ Extraction completed successfully!')
+    print(f'  Generated Parquet file at: {resultado["output_file"]}')
+    print(f'  Total processed files: {resultado["total_files"]}')
 
 
 if __name__ == '__main__':
