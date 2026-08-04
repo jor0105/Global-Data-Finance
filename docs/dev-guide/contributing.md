@@ -62,7 +62,7 @@ def download_docs(
         Objeto DownloadResultCVM com resultados do download.
 
     Raises:
-        InvalidDocName: Se tipo de documento for inválido.
+        InvalidDocumentName: Se tipo de documento for inválido.
         NetworkError: Se houver erro de rede.
     """
     pass

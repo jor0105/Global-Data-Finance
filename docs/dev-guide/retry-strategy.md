@@ -84,13 +84,15 @@ for retry_count in range(3):
     print(f"Tentativa {retry_count + 1}: esperar {backoff}s")
 ```
 
-**Saída (initial=1.0, multiplier=2.0)**:
+**Exemplo de Saída Estimada (initial=1.0, multiplier=2.0 com Jitter [0.5, 1.5])**:
 
+```text
+Tentativa 1: esperar ~1.0s (ex.: 0.92s)
+Tentativa 2: esperar ~2.0s (ex.: 2.15s)
+Tentativa 3: esperar ~4.0s (ex.: 3.80s)
 ```
-Tentativa 1: esperar 1.0s
-Tentativa 2: esperar 2.0s
-Tentativa 3: esperar 4.0s
-```
+
+> Nota: O método `calculate_backoff` aplica *Full Jitter* aleatório (`[0.5, 1.5]`) sobre o valor exponencial determinístico para evitar colisões simultâneas de retries (*thundering herd problem*).
 
 ---
 

@@ -3,7 +3,7 @@
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import PurePosixPath, PureWindowsPath
 
 from .errors import InvalidOutputFilename, InvalidProcessingMode
@@ -17,7 +17,7 @@ class _ProcessingModeConfig:
     memory_threshold_mb: int
 
 
-class ProcessingModeEnumB3(str, Enum):
+class ProcessingModeEnumB3(StrEnum):
     FAST = 'fast'
     SLOW = 'slow'
 

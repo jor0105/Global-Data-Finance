@@ -67,7 +67,7 @@ class ResourceMonitor:
     _instance: Optional['ResourceMonitor'] = None
     _lock = threading.Lock()
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *_args, **_kwargs):
         """Singleton pattern to ensure only one monitor instance."""
         if cls._instance is None:
             with cls._lock:

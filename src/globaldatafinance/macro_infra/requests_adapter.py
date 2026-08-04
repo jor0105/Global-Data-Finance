@@ -1,4 +1,5 @@
 import contextlib
+from pathlib import Path
 
 import httpx
 
@@ -89,6 +90,7 @@ class RequestsAdapter:
             httpx.RequestError: If network error occurs
             OSError: If disk write fails
         """
+        target_path = Path(output_path)
         try:
             async with (
                 httpx.AsyncClient(
@@ -102,7 +104,7 @@ class RequestsAdapter:
             ):
                 response.raise_for_status()
 
-                with open(output_path, 'wb') as file_handle:
+                with target_path.open('wb') as file_handle:
                     async for chunk in response.aiter_bytes(
                         chunk_size=chunk_size
                     ):
@@ -118,9 +120,6 @@ class RequestsAdapter:
         except Exception:
             # Clean up partial file on any error, then re-raise.
             with contextlib.suppress(Exception):
-                import os
-
-                if os.path.exists(output_path):
-                    os.remove(output_path)
+                target_path.unlink(missing_ok=True)
 
             raise

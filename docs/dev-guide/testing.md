@@ -71,19 +71,21 @@ uv run pytest -m "integration and not slow"
 ```python
 import pytest
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import AvailableDocsCVM
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import InvalidDocName
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
+    InvalidDocumentName,
+)
 
 @pytest.mark.unit
 class TestAvailableDocs:
     def test_validate_valid_doc(self):
-        """Testa validação de documento válido."""
+        """Verifica validação de documento válido."""
         docs = AvailableDocsCVM()
-        docs.validate_docs_name("DFP")  # Não deve lançar exceção
+        docs.validate_docs_name("DFP")  # Passa sem exceção
 
     def test_validate_invalid_doc(self):
-        """Testa validação de documento inválido."""
+        """Verifica se InvalidDocumentName é lançada para documento inválido."""
         docs = AvailableDocsCVM()
-        with pytest.raises(InvalidDocName):
+        with pytest.raises(InvalidDocumentName):
             docs.validate_docs_name("INVALID")
 ```
 

@@ -300,7 +300,7 @@ A API pode lançar as seguintes exceções:
 
 | Exceção                       | Quando ocorre                           | Como tratar                                |
 | ----------------------------- | --------------------------------------- | ------------------------------------------ |
-| `InvalidDocName`              | Tipo de documento inválido              | Verificar lista com `get_available_docs()` |
+| `InvalidDocumentName`          | Tipo de documento inválido              | Verificar lista com `get_available_docs()` |
 | `InvalidFirstYear`            | Ano inicial fora do intervalo           | Verificar anos com `get_available_years()` |
 | `InvalidLastYear`             | Ano final inválido ou menor que inicial | Validar intervalo de anos                  |
 | `NetworkError`                | Erro de conexão                         | Verificar internet e tentar novamente      |

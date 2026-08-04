@@ -73,5 +73,5 @@ class RetryStrategy:
         """
         deterministic = self.initial_backoff * (self.multiplier**retry_count)
         # Jitter is non-cryptographic timing perturbation; weak RNG is fine.
-        jittered = deterministic * random.uniform(0.5, 1.5)  # nosec B311
+        jittered = deterministic * random.uniform(0.5, 1.5)  # nosec B311 # noqa: S311
         return min(jittered, self.max_backoff)

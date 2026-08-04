@@ -211,7 +211,10 @@ class ExtractorAdapter:
             DiskFullError: If insufficient disk space
         """
         logger.debug(
-            f'Processing {csv_filename} with chunk size {self.CHUNK_SIZE_PARQUET}'
+            'Processing %s -> %s with chunk size %s',
+            csv_filename,
+            parquet_filename,
+            self.CHUNK_SIZE_PARQUET,
         )
 
         try:

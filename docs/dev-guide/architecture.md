@@ -137,7 +137,7 @@ class AvailableDocsCVM:
 
     def validate_docs_name(self, doc_name: str) -> None:
         if doc_name not in self.DOCS_MAPPING:
-            raise InvalidDocName(f'Invalid document: {doc_name}')
+            raise InvalidDocumentName(f'Invalid document: {doc_name}')
 ```
 
 ```python

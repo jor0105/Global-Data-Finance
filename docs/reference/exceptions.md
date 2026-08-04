@@ -83,10 +83,10 @@ class SecurityError(Exception):
 
 ## Exceções CVM
 
-### `InvalidDocName`
+### `InvalidDocumentName`
 
 ```python
-class InvalidDocName(Exception):
+class InvalidDocumentName(Exception):
     """Tipo de documento inválido."""
 ```
 
@@ -97,7 +97,7 @@ class InvalidDocName(Exception):
 ```python
 try:
     cvm.download(list_docs=["INVALID"])
-except InvalidDocName:
+except InvalidDocumentName:
     docs = cvm.get_available_docs()
     print(f"Documentos válidos: {list(docs.keys())}")
 ```
@@ -172,7 +172,7 @@ Exception
 ├── ExtractionError
 │   └── CorruptedZipError
 ├── SecurityError
-├── InvalidDocName
+├── InvalidDocumentName
 ├── InvalidFirstYear
 ├── InvalidLastYear
 ├── InvalidAssetsName
@@ -194,7 +194,7 @@ OSError
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
-    InvalidDocName,
+    InvalidDocumentName,
     InvalidFirstYear,
     InvalidLastYear,
 )
@@ -212,7 +212,7 @@ try:
         list_docs=["DFP"],
         initial_year=2022
     )
-except InvalidDocName as e:
+except InvalidDocumentName as e:
     print(f"Documento inválido: {e}")
 except InvalidFirstYear as e:
     print(f"Ano inválido: {e}")

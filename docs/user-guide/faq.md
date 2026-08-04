@@ -257,7 +257,7 @@ pip install globaldatafinance
 
 **Solução**: Atualize para Python 3.12+.
 
-### "InvalidDocName"
+### "InvalidDocumentName"
 
 **Causa**: Tipo de documento inválido.
 

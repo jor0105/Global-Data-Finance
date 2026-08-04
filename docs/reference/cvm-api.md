@@ -42,7 +42,7 @@ def download(
 
 **Exceções**:
 
-- `InvalidDocName`: Tipo de documento inválido
+- `InvalidDocumentName`: Tipo de documento inválido
 - `InvalidFirstYear`: Ano inicial inválido
 - `InvalidLastYear`: Ano final inválido
 - `NetworkError`: Erro de rede

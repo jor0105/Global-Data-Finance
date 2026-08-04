@@ -26,7 +26,6 @@ import contextlib
 import hashlib
 import io
 import json
-import os
 import shutil
 import sys
 import tempfile
@@ -170,14 +169,9 @@ def run() -> dict[str, Any]:
             p for p in out_dir.iterdir() if p.suffix == '.parquet'
         )
         return {
-            'artifacts': [os.path.basename(p) for p in artifacts],
-            'sha256': {
-                os.path.basename(p): _canonical_content_hash(p)
-                for p in artifacts
-            },
-            'schema': {
-                os.path.basename(p): _capture_schema(p) for p in artifacts
-            },
+            'artifacts': [p.name for p in artifacts],
+            'sha256': {p.name: _canonical_content_hash(p) for p in artifacts},
+            'schema': {p.name: _capture_schema(p) for p in artifacts},
         }
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)

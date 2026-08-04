@@ -14,7 +14,7 @@ repos:
 
       - id: standardization-build
         name: standardization-build
-        entry: uv run python scripts/build_standardization_specs.py
+        entry: uv run python examples/build_standardization_specs.py
         language: system
         files: ^src/domain/change_datas/.*\.json$
         pass_filenames: false

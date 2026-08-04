@@ -38,8 +38,6 @@ theme:
     - content.code.copy
     - content.tabs.link
     - header.autohide
-    - navigation.instant
-    - navigation.instant.progress
     - navigation.sections
     - navigation.tabs
     - navigation.top
@@ -54,6 +52,13 @@ theme:
     repo: fontawesome/brands/github
 
 extra:
+  alternate:
+    - name: Português
+      link: ./
+      lang: pt
+    - name: English
+      link: ./en/
+      lang: en
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/jordanestralioto/Global-Data-Finance
@@ -75,6 +80,41 @@ extra_javascript:
 plugins:
   - search:
       lang: pt
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: pt
+          name: Português
+          default: true
+          build: true
+        - locale: en
+          name: English
+          default: false
+          build: true
+          nav_translations:
+            Início: Home
+            Guia do Usuário: User Guide
+            Guia do Desenvolvedor: Developer Guide
+            Referência Técnica: Technical Reference
+            Instalação: Installation
+            Início Rápido: Quickstart
+            Documentos CVM: CVM Documents
+            Cotações Históricas B3: B3 Historical Quotes
+            Exemplos Práticos: Practical Examples
+            Arquitetura: Architecture
+            Referência da API: API Reference
+            Como Contribuir: Contributing
+            Testes: Testing
+            Uso Avançado: Advanced Usage
+            Sistema de Logging: Logging System
+            Monitoramento de Recursos: Resource Monitoring
+            Estratégia de Retry: Retry Strategy
+            API CVM: CVM API
+            API B3: B3 API
+            Exceções: Exceptions
 
 # Extensions
 markdown_extensions:

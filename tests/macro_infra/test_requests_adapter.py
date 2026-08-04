@@ -79,7 +79,7 @@ class TestRequestsAdapterAsyncMethods:
 class TestRequestsAdapterDownload:
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
-    @patch('builtins.open', new_callable=MagicMock)
+    @patch('pathlib.Path.open', new_callable=MagicMock)
     async def test_async_download_file_success(
         self, mock_open, mock_client_class
     ):
@@ -116,7 +116,7 @@ class TestRequestsAdapterDownload:
 
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
-    @patch('builtins.open', new_callable=MagicMock)
+    @patch('pathlib.Path.open', new_callable=MagicMock)
     async def test_async_download_file_with_custom_chunk_size(
         self, mock_open, mock_client_class
     ):
@@ -150,14 +150,10 @@ class TestRequestsAdapterDownload:
 
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
-    @patch(
-        'globaldatafinance.macro_infra.requests_adapter.open',
-        new_callable=MagicMock,
-    )
-    @patch('os.path.exists')
-    @patch('os.remove')
+    @patch('pathlib.Path.open', new_callable=MagicMock)
+    @patch('pathlib.Path.unlink')
     async def test_async_download_file_handles_http_error(
-        self, mock_remove, mock_exists, mock_open, mock_client_class
+        self, mock_unlink, mock_open, mock_client_class
     ):
         async def chunk_generator():
             if False:
@@ -180,23 +176,20 @@ class TestRequestsAdapterDownload:
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        mock_exists.return_value = True
-
         adapter = RequestsAdapter()
         with pytest.raises(Exception, match='HTTP Error'):
             await adapter.async_download_file(
                 'https://example.com/file.zip', 'dummy_file.zip'
             )
 
-        mock_remove.assert_called_once_with('dummy_file.zip')
+        mock_unlink.assert_called_once_with(missing_ok=True)
 
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
-    @patch('builtins.open', new_callable=MagicMock)
-    @patch('os.path.exists')
-    @patch('os.remove')
+    @patch('pathlib.Path.open', new_callable=MagicMock)
+    @patch('pathlib.Path.unlink')
     async def test_async_download_file_handles_disk_write_error(
-        self, mock_remove, mock_exists, mock_open, mock_client_class
+        self, mock_unlink, mock_open, mock_client_class
     ):
         async def chunk_generator():
             yield b'chunk1'
@@ -219,12 +212,10 @@ class TestRequestsAdapterDownload:
         mock_file.write.side_effect = OSError('Disk full')
         mock_open.return_value.__enter__.return_value = mock_file
 
-        mock_exists.return_value = True
-
         adapter = RequestsAdapter()
         with pytest.raises(OSError, match='Failed to write chunk'):
             await adapter.async_download_file(
                 'https://example.com/file.zip', 'dummy_file.zip'
             )
 
-        mock_remove.assert_called_once_with('dummy_file.zip')
+        mock_unlink.assert_called_once_with(missing_ok=True)
