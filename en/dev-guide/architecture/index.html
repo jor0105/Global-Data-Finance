@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="pt" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -12,7 +12,7 @@
         <meta name="author" content="Jordan Estralioto">
       
       
-        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/architecture/">
+        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/architecture/">
       
       
         <link rel="prev" href="../../user-guide/faq/">
@@ -22,25 +22,25 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="pt">
+          <link rel="alternate" href="../../../dev-guide/architecture/" hreflang="pt">
         
-          <link rel="alternate" href="../../en/dev-guide/architecture/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Arquitetura - Global-Data-Finance</title>
+        <title>Architecture - Global-Data-Finance</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -61,9 +61,9 @@
     
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     
-      <link rel="stylesheet" href="../../assets/stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -88,8 +88,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#arquitetura" class="md-skip">
-          Ir para o conteúdo
+        <a href="#architecture" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -101,8 +101,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
-    <a href="../.." title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Arquitetura
+              Architecture
             
           </span>
         </div>
@@ -162,20 +162,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Selecione o idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="pt" class="md-select__link">
+            <a href="../../../dev-guide/architecture/" hreflang="pt" class="md-select__link">
               Português
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/dev-guide/architecture/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -196,21 +196,21 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Pesquisar">
+      <nav class="md-search__options" aria-label="Search">
         
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartilhar" aria-label="Compartilhar" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
             
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
           </a>
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -223,7 +223,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando a pesquisa
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +235,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -256,7 +256,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -266,13 +266,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Início
+  Home
 
       </a>
     </li>
@@ -291,7 +291,7 @@
           
   
   
-  Guia do Usuário
+  User Guide
 
         </a>
       </li>
@@ -313,7 +313,7 @@
           
   
   
-  Guia do Desenvolvedor
+  Developer Guide
 
         </a>
       </li>
@@ -333,7 +333,7 @@
           
   
   
-  Referência Técnica
+  Technical Reference
 
         </a>
       </li>
@@ -363,9 +363,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegação" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+    <a href="../../" title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -375,7 +375,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -395,14 +395,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Início
+    Home
   
 
     
@@ -445,7 +445,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Usuário
+    User Guide
   
 
     
@@ -461,7 +461,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Usuário
+    User Guide
   
 
           </label>
@@ -481,7 +481,7 @@
   <span class="md-ellipsis">
     
   
-    Instalação
+    Installation
   
 
     
@@ -509,7 +509,7 @@
   <span class="md-ellipsis">
     
   
-    Início Rápido
+    Quickstart
   
 
     
@@ -537,7 +537,7 @@
   <span class="md-ellipsis">
     
   
-    Documentos CVM
+    CVM Documents
   
 
     
@@ -565,7 +565,7 @@
   <span class="md-ellipsis">
     
   
-    Cotações Históricas B3
+    B3 Historical Quotes
   
 
     
@@ -593,7 +593,7 @@
   <span class="md-ellipsis">
     
   
-    Exemplos Práticos
+    Practical Examples
   
 
     
@@ -677,7 +677,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
     
@@ -693,7 +693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
           </label>
@@ -722,7 +722,7 @@
   <span class="md-ellipsis">
     
   
-    Arquitetura
+    Architecture
   
 
     
@@ -740,7 +740,7 @@
   <span class="md-ellipsis">
     
   
-    Arquitetura
+    Architecture
   
 
     
@@ -752,7 +752,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Índice">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -761,15 +761,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Índice
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#visao-geral" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Visão Geral
+        Overview
       
     </span>
   </a>
@@ -777,10 +777,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#estrutura-do-projeto" class="md-nav__link">
+  <a href="#repository-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Estrutura do Projeto
+        Repository Structure
       
     </span>
   </a>
@@ -788,10 +788,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#padrao-de-modulos-por-fonte" class="md-nav__link">
+  <a href="#source-module-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Padrão de módulos por fonte
+        Source Module Patterns
       
     </span>
   </a>
@@ -799,22 +799,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#camadas-observaveis" class="md-nav__link">
+  <a href="#observable-architectural-layers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Camadas observáveis
+        Observable Architectural Layers
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Camadas observáveis">
+    <nav class="md-nav" aria-label="Observable Architectural Layers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-facade-publico-application" class="md-nav__link">
+  <a href="#1-public-facade-layer-application" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Facade público (application/)
+        1. Public Facade Layer (application/)
       
     </span>
   </a>
@@ -822,10 +822,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-implementacao-por-fonte-brazilpaisfonte" class="md-nav__link">
+  <a href="#2-source-implementation-layer-brazilcountrysource" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Implementação por fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)
+        2. Source Implementation Layer (brazil/&lt;country&gt;/&lt;source&gt;/)
       
     </span>
   </a>
@@ -838,22 +838,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#padroes-de-design" class="md-nav__link">
+  <a href="#foundational-design-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Padrões de design
+        Foundational Design Patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Padrões de design">
+    <nav class="md-nav" aria-label="Foundational Design Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#funcao-ou-classe-leve-por-operacao-em-clientpy" class="md-nav__link">
+  <a href="#functions-or-lightweight-classes-per-operation-in-clientpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Função (ou classe leve) por operação em client.py
+        Functions (or Lightweight Classes) per Operation in client.py
       
     </span>
   </a>
@@ -861,10 +861,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#adapters-concretos-e-diretos" class="md-nav__link">
+  <a href="#direct-and-concrete-adapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adapters concretos e diretos
+        Direct and Concrete Adapters
       
     </span>
   </a>
@@ -872,10 +872,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#result-objects" class="md-nav__link">
+  <a href="#explicit-result-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Result objects
+        Explicit Result Objects
       
     </span>
   </a>
@@ -883,10 +883,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#value-objects" class="md-nav__link">
+  <a href="#immutable-value-objects" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Value objects
+        Immutable Value Objects
       
     </span>
   </a>
@@ -894,10 +894,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#separacao-de-apresentacao" class="md-nav__link">
+  <a href="#separation-of-console-presentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Separação de apresentação
+        Separation of Console Presentation
       
     </span>
   </a>
@@ -905,10 +905,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#defesa-de-path-traversal-preservada-como-contrato" class="md-nav__link">
+  <a href="#preserved-path-traversal-defense-contracts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Defesa de path-traversal preservada como contrato
+        Preserved Path-Traversal Defense Contracts
       
     </span>
   </a>
@@ -921,22 +921,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fluxo-de-dados" class="md-nav__link">
+  <a href="#runtime-data-flows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fluxo de dados
+        Runtime Data Flows
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Fluxo de dados">
+    <nav class="md-nav" aria-label="Runtime Data Flows">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#download-de-documentos-cvm" class="md-nav__link">
+  <a href="#cvm-document-download-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Download de documentos CVM
+        CVM Document Download Pipeline
       
     </span>
   </a>
@@ -944,10 +944,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#extracao-de-cotacoes-b3" class="md-nav__link">
+  <a href="#b3-historical-quote-extraction-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Extração de cotações B3
+        B3 Historical Quote Extraction Pipeline
       
     </span>
   </a>
@@ -960,10 +960,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#como-adicionar-uma-nova-fonte" class="md-nav__link">
+  <a href="#adding-a-new-data-source" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Como adicionar uma nova fonte
+        Adding a New Data Source
       
     </span>
   </a>
@@ -971,22 +971,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#testes" class="md-nav__link">
+  <a href="#testing-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Testes
+        Testing Patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Testes">
+    <nav class="md-nav" aria-label="Testing Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#estrategias-de-mock-e-stub" class="md-nav__link">
+  <a href="#mock-and-stub-strategies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Estratégias de Mock e Stub
+        Mock and Stub Strategies
       
     </span>
   </a>
@@ -999,10 +999,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#proximos-passos" class="md-nav__link">
+  <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Próximos Passos
+        Next Steps
       
     </span>
   </a>
@@ -1032,7 +1032,7 @@
   <span class="md-ellipsis">
     
   
-    Referência da API
+    API Reference
   
 
     
@@ -1060,7 +1060,7 @@
   <span class="md-ellipsis">
     
   
-    Como Contribuir
+    Contributing
   
 
     
@@ -1088,7 +1088,7 @@
   <span class="md-ellipsis">
     
   
-    Testes
+    Testing
   
 
     
@@ -1116,7 +1116,7 @@
   <span class="md-ellipsis">
     
   
-    Uso Avançado
+    Advanced Usage
   
 
     
@@ -1144,7 +1144,7 @@
   <span class="md-ellipsis">
     
   
-    Sistema de Logging
+    Logging System
   
 
     
@@ -1172,7 +1172,7 @@
   <span class="md-ellipsis">
     
   
-    Monitoramento de Recursos
+    Resource Monitoring
   
 
     
@@ -1200,7 +1200,7 @@
   <span class="md-ellipsis">
     
   
-    Estratégia de Retry
+    Retry Strategy
   
 
     
@@ -1251,7 +1251,7 @@
   <span class="md-ellipsis">
     
   
-    Referência Técnica
+    Technical Reference
   
 
     
@@ -1267,7 +1267,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referência Técnica
+    Technical Reference
   
 
           </label>
@@ -1287,7 +1287,7 @@
   <span class="md-ellipsis">
     
   
-    API CVM
+    CVM API
   
 
     
@@ -1315,7 +1315,7 @@
   <span class="md-ellipsis">
     
   
-    API B3
+    B3 API
   
 
     
@@ -1343,7 +1343,7 @@
   <span class="md-ellipsis">
     
   
-    Exceções
+    Exceptions
   
 
     
@@ -1384,24 +1384,24 @@
   
 
 
-<h1 id="arquitetura">Arquitetura<a class="headerlink" href="#arquitetura" title="Link para esta seção">&para;</a></h1>
-<p>Documentação completa da arquitetura do Global-Data-Finance, padrões de design e estrutura do projeto.</p>
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Link para esta seção">&para;</a></h1>
+<p>Comprehensive documentation detailing the structural architecture of Global-Data-Finance, foundational design patterns, and internal module organization.</p>
 <hr />
-<h2 id="visao-geral">Visão Geral<a class="headerlink" href="#visao-geral" title="Link para esta seção">&para;</a></h2>
-<p>Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — exportando na raiz as classes <code>FundamentalStocksDataCVM</code> e <code>HistoricalQuotesB3</code>, além do contrato <code>ExtractionResultB3</code>. Internamente, cada fonte de dados é implementada em um diretório próprio com <strong>layout plano de módulos nomeados por papel</strong>.</p>
-<p>Esta abordagem privilegia:</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Link para esta seção">&para;</a></h2>
+<p>Global-Data-Finance is a Python distribution library published via PyPI whose public API boundary is deliberately narrow — exposing at the package root level the core classes <code>FundamentalStocksDataCVM</code> and <code>HistoricalQuotesB3</code>, alongside the typed dictionary contract <code>ExtractionResultB3</code>. Internamente, each supported data source is implemented within its own dedicated directory utilizing a <strong>flat layout of role-named modules</strong>.</p>
+<p>This architectural paradigm prioritizes:</p>
 <ul>
-<li>✅ <strong>Leitura</strong>: poucos arquivos com nomes claros (CVM: <code>core.py</code>, <code>client.py</code>, <code>http.py</code>, <code>extract.py</code>, <code>errors.py</code>; B3: módulos por papel — <code>client.py</code>, <code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>, <code>errors.py</code>, mais subpacotes pesados)</li>
-<li>✅ <strong>Manutenibilidade</strong>: estrutura limpa, concisa e orientada de forma pragmática às funcionalidades dos módulos</li>
-<li>✅ <strong>Extensibilidade</strong>: adicionar nova fonte = adicionar nova pasta-irmã com o mesmo conjunto plano de módulos</li>
-<li>✅ <strong>Testabilidade</strong>: uso de duck typing direto e injeção de dependência para isolar e testar componentes de forma simples</li>
+<li>✅ <strong>Readability</strong>: concise module files with explicit operational roles (CVM: <code>core.py</code>, <code>client.py</code>, <code>http.py</code>, <code>extract.py</code>, <code>errors.py</code>; B3: role-named modules — <code>client.py</code>, <code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>, <code>errors.py</code>, supplemented by domain subpackages)</li>
+<li>✅ <strong>Maintainability</strong>: a clean, concise structure pragmatically aligned with module capabilities and functional boundaries</li>
+<li>✅ <strong>Extensibility</strong>: integrating a new regulatory source = adding a sibling source folder implementing the identical flat role set</li>
+<li>✅ <strong>Testability</strong>: straightforward dependency injection and duck typing to isolate and test components cleanly without ceremony</li>
 </ul>
 <hr />
-<h2 id="estrutura-do-projeto">Estrutura do Projeto<a class="headerlink" href="#estrutura-do-projeto" title="Link para esta seção">&para;</a></h2>
+<h2 id="repository-structure">Repository Structure<a class="headerlink" href="#repository-structure" title="Link para esta seção">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>globaldatafinance/
 ├── src/globaldatafinance/
-│   ├── __init__.py                  # re-exporta a API pública
-│   ├── application/                 # FACADE PÚBLICO (top-level)
+│   ├── __init__.py                  # public top-level re-exports
+│   ├── application/                 # PUBLIC FACADE LAYER (top-level)
 │   │   ├── b3_docs/
 │   │   │   ├── historical_quotes.py            # HistoricalQuotesB3
 │   │   │   ├── extraction_result_formatter.py
@@ -1409,99 +1409,99 @@
 │   │   └── cvm_docs/
 │   │       ├── fundamental_stocks_data.py      # FundamentalStocksDataCVM
 │   │       └── download_result_formatter.py
-│   ├── brazil/                      # IMPLEMENTAÇÕES POR FONTE
+│   ├── brazil/                      # SOURCE FEATURE IMPLEMENTATIONS
 │   │   ├── b3_data/
-│   │   │   └── historical_quotes/   # módulos por papel + subpacotes pesados
-│   │   │       ├── client.py                  # ExtractHistoricalQuotesUseCaseB3 + funções de orquestração
-│   │   │       ├── assets.py                  # AvailableAssetsServiceB3 (validação + TPMERC mapping)
+│   │   │   └── historical_quotes/   # role-named modules + domain subpackages
+│   │   │       ├── client.py                  # ExtractHistoricalQuotesUseCaseB3 + orchestration routines
+│   │   │       ├── assets.py                  # AvailableAssetsServiceB3 (validation + TPMERC mapping)
 │   │   │       ├── models.py                  # DocsToExtractorB3 (dataclass)
-│   │   │       ├── years.py                   # YearRangeB3 (value object + validators)
+│   │   │       ├── years.py                   # YearRangeB3 (value object + boundary validators)
 │   │   │       ├── processing.py              # ProcessingModeEnumB3, _ProcessingModeConfig
 │   │   │       ├── filesystem.py              # FileSystemServiceB3.validate_directory_path
-│   │   │       ├── errors.py                  # exceções específicas da fonte
-│   │   │       ├── zip_reader.py              # leitura de COTAHIST ZIP
-│   │   │       ├── cotahist_parser.py         # parser posicional (preservado isolado)
-│   │   │       ├── parquet_writer/            # subpacote: writer Parquet
-│   │   │       └── extraction_service/        # subpacote: orquestração streaming/threadpool
+│   │   │       ├── errors.py                  # source-specific exception definitions
+│   │   │       ├── zip_reader.py              # COTAHIST ZIP discovery and decompression
+│   │   │       ├── cotahist_parser.py         # fixed-width positional parser (isolated domain module)
+│   │   │       ├── parquet_writer/            # subpackage: Parquet compiler and writer
+│   │   │       └── extraction_service/        # subpackage: thread-pool streaming orchestration
 │   │   └── cvm/
-│   │       └── fundamental_stocks_data/   # layout achatado (5 + 2 helpers)
+│   │       └── fundamental_stocks_data/   # flat module layout (5 core modules + 2 helpers)
 │   │           ├── core.py                    # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM
 │   │           ├── client.py                  # DownloadDocumentsUseCaseCVM, GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM
-│   │           ├── http.py                    # AsyncDownloadAdapterCVM (httpx async + retry + integrity)
+│   │           ├── http.py                    # AsyncDownloadAdapterCVM (async httpx + retry + integrity check)
 │   │           ├── extract.py                 # ParquetExtractorAdapterCVM
 │   │           ├── download_validation.py     # validate_downloaded_file, validate_parquet_files, find_parquet_files
-│   │           ├── download_extraction.py     # extract_downloaded_file (orquestra adapter + validation)
-│   │           └── errors.py                  # exceções específicas da fonte
-│   ├── core/                        # utilidades de infraestrutura
-│   ├── macro_infra/                 # adapters genéricos compartilhados
-│   └── macro_exceptions/            # exceções de base do projeto
-├── tests/                           # pytest, mirror por fonte
-├── docs/                            # MkDocs
+│   │           ├── download_extraction.py     # extract_downloaded_file (orchestrates extraction + validation)
+│   │           └── errors.py                  # source-specific exception definitions
+│   ├── core/                        # cross-cutting infrastructure utilities
+│   ├── macro_infra/                 # shared generic HTTP and filesystem adapters
+│   └── macro_exceptions/            # root project exception hierarchy
+├── tests/                           # pytest suites mirroring src structure
+├── docs/                            # MkDocs documentation corpus
 └── pyproject.toml
 </code></pre></div>
 <hr />
-<h2 id="padrao-de-modulos-por-fonte">Padrão de módulos por fonte<a class="headerlink" href="#padrao-de-modulos-por-fonte" title="Link para esta seção">&para;</a></h2>
-<p>Cada <code>brazil/&lt;país&gt;/&lt;fonte&gt;/</code> segue o mesmo conjunto de <strong>papéis</strong>. O mapeamento papel ↔ arquivo é fixo na CVM (um arquivo por papel) e mais granular na B3 (papéis &ldquo;dados puros&rdquo; e &ldquo;validação&rdquo; foram quebrados em módulos por tópico para evitar um único <code>core.py</code> gigante). Adicionar uma nova fonte pode seguir qualquer dos dois caminhos — o critério é legibilidade.</p>
+<h2 id="source-module-patterns">Source Module Patterns<a class="headerlink" href="#source-module-patterns" title="Link para esta seção">&para;</a></h2>
+<p>Every folder under <code>brazil/&lt;country&gt;/&lt;source&gt;/</code> implements the identical set of <strong>system roles</strong>. The role-to-file mapping is unified in CVM (one designated file per role) and decomposed granularly in B3 (where pure data constructs and domain validation routines are broken into topical modules to prevent an oversized <code>core.py</code>). Introducing a new data source can adopt either pattern — the guiding principle is long-term code legibility.</p>
 <table>
 <thead>
 <tr>
-<th>Papel</th>
+<th>Architectural Role</th>
 <th>CVM</th>
 <th>B3</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Dados puros (types, enums)</td>
+<td>Pure data constructs</td>
 <td><code>core.py</code></td>
 <td><code>models.py</code> + <code>years.py</code> + <code>processing.py</code></td>
 </tr>
 <tr>
-<td>Validação / domain services</td>
+<td>Validation / domain services</td>
 <td><code>core.py</code> (<code>AvailableDocsCVM.validate_*</code>)</td>
 <td><code>assets.py</code> (<code>AvailableAssetsServiceB3</code>) + <code>filesystem.py</code> (<code>validate_directory_path</code>)</td>
 </tr>
 <tr>
-<td>Orquestração / use cases</td>
+<td>Orchestration / use cases</td>
 <td><code>client.py</code></td>
 <td><code>client.py</code></td>
 </tr>
 <tr>
-<td>HTTP / download</td>
+<td>HTTP network adaptation</td>
 <td><code>http.py</code> (<code>AsyncDownloadAdapterCVM</code>)</td>
-<td>(no <code>zip_reader.py</code> + <code>extraction_service/</code>; não há download HTTP)</td>
+<td>(N/A — COTAHIST ingestion operates on localized ZIP/TXT files via <code>zip_reader.py</code>)</td>
 </tr>
 <tr>
-<td>Extração / escrita Parquet</td>
+<td>Extraction / Parquet writer</td>
 <td><code>extract.py</code> (<code>ParquetExtractorAdapterCVM</code>)</td>
-<td><code>parquet_writer/</code> (subpacote)</td>
+<td><code>parquet_writer/</code> (subpackage)</td>
 </tr>
 <tr>
-<td>Parser de formato</td>
+<td>Format schema parser</td>
 <td>—</td>
 <td><code>cotahist_parser.py</code></td>
 </tr>
 <tr>
-<td>Helpers de validação</td>
+<td>Validation helpers</td>
 <td><code>download_validation.py</code>, <code>download_extraction.py</code></td>
-<td>embutidos em <code>filesystem.py</code> / <code>client.py</code></td>
+<td>Embedded inside <code>filesystem.py</code> / <code>client.py</code></td>
 </tr>
 <tr>
-<td>Exceções</td>
+<td>Exception definitions</td>
 <td><code>errors.py</code></td>
 <td><code>errors.py</code></td>
 </tr>
 </tbody>
 </table>
-<p>Funções/classes auxiliares são internas ao módulo a menos que sejam usadas em outro arquivo — o ponto de extensibilidade real é a fonte, não o &ldquo;tipo de objeto&rdquo;.</p>
+<p>Auxiliary utility classes or helper functions remain internal to their module unless explicitly consumed across boundaries — the true unit of extensibility in the codebase is the <em>source implementation</em>, not abstract object hierarchies.</p>
 <blockquote>
-<p><strong>Por que B3 não tem <code>core.py</code> consolidado.</strong> O conteúdo de B3 vive em módulos por tópico (<code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>) em vez de um único <code>core.py</code> porque cada um já tem massa crítica (~100–300 linhas) e diferentes consumidores. Consolidar trocaria 5 arquivos médios por 1 arquivo enorme.</p>
+<p><strong>Why B3 avoids a consolidated <code>core.py</code>.</strong> The operational domain of B3 resides across topical modules (<code>assets.py</code>, <code>models.py</code>, <code>years.py</code>, <code>processing.py</code>, <code>filesystem.py</code>) rather than a single <code>core.py</code> because each topic possesses substantial critical mass (~100–300 lines of logic) and serves divergent internal callers. Consolidating them would sacrifice 5 clean, focused files in favor of an unwieldy monolith.</p>
 </blockquote>
 <hr />
-<h2 id="camadas-observaveis">Camadas observáveis<a class="headerlink" href="#camadas-observaveis" title="Link para esta seção">&para;</a></h2>
-<p>A arquitetura do projeto é estruturada ao redor de <strong>duas camadas explícitas</strong> e bem delineadas:</p>
-<h3 id="1-facade-publico-application">1. Facade público (<code>application/</code>)<a class="headerlink" href="#1-facade-publico-application" title="Link para esta seção">&para;</a></h3>
-<p><strong>Responsabilidade</strong>: superfície semver-relevante para usuários da biblioteca.</p>
+<h2 id="observable-architectural-layers">Observable Architectural Layers<a class="headerlink" href="#observable-architectural-layers" title="Link para esta seção">&para;</a></h2>
+<p>The repository is organized around <strong>two well-delineated operational layers</strong>:</p>
+<h3 id="1-public-facade-layer-application">1. Public Facade Layer (<code>application/</code>)<a class="headerlink" href="#1-public-facade-layer-application" title="Link para esta seção">&para;</a></h3>
+<p><strong>Responsibility</strong>: Maintains the semantic versioning contract exposed to external library consumers.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/application/cvm_docs/fundamental_stocks_data.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...brazil.cvm.fundamental_stocks_data</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AsyncDownloadAdapterCVM</span><span class="p">,</span>
@@ -1526,9 +1526,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__result_formatter</span><span class="o">.</span><span class="n">print_result</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 </code></pre></div>
-<p>O facade importa <strong>diretamente</strong> dos módulos planos da fonte (sem passar por re-exports intermediários em <code>brazil/__init__.py</code>).</p>
-<h3 id="2-implementacao-por-fonte-brazilpaisfonte">2. Implementação por fonte (<code>brazil/&lt;país&gt;/&lt;fonte&gt;/</code>)<a class="headerlink" href="#2-implementacao-por-fonte-brazilpaisfonte" title="Link para esta seção">&para;</a></h3>
-<p>Cada fonte é autocontida em ~5–8 arquivos. Exemplo CVM:</p>
+<p>The public facade imports <strong>directly</strong> from the source flat modules without traversing obscure re-exports in intermediate <code>brazil/__init__.py</code> bridges.</p>
+<h3 id="2-source-implementation-layer-brazilcountrysource">2. Source Implementation Layer (<code>brazil/&lt;country&gt;/&lt;source&gt;/</code>)<a class="headerlink" href="#2-source-implementation-layer-brazilcountrysource" title="Link para esta seção">&para;</a></h3>
+<p>Each financial feed is self-contained across ~5–8 functional modules. CVM implementation example:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AvailableDocsCVM</span><span class="p">:</span>
     <span class="n">DOCS_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
@@ -1549,7 +1549,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination_path</span><span class="p">,</span> <span class="n">list_docs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_year</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="c1"># ... orquestração ...</span>
+        <span class="c1"># ... orchestration tasks ...</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repository</span><span class="o">.</span><span class="n">download_docs</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
         <span class="n">result</span><span class="o">.</span><span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
         <span class="k">return</span> <span class="n">result</span>
@@ -1557,29 +1557,29 @@
 <div class="highlight"><pre><span></span><code><span class="c1"># src/globaldatafinance/brazil/cvm/fundamental_stocks_data/http.py</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AsyncDownloadAdapterCVM</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DownloadResultCVM</span><span class="p">:</span>
-        <span class="c1"># implementação concreta com httpx async, retry, integrity check</span>
+        <span class="c1"># Concrete implementation utilizing async httpx pools, retry policies, and MD5 integrity verification</span>
         <span class="o">...</span>
 </code></pre></div>
-<p>O orquestrador interage com <code>AsyncDownloadAdapterCVM</code> através do seu contrato observável de métodos, permitindo que os testes utilizem stubs de duck typing simples sem complexidade adicional (ver &ldquo;Testes&rdquo; mais abaixo).</p>
+<p>The orchestration use case interacts with <code>AsyncDownloadAdapterCVM</code> via its observable method signature, allowing unit test suites to substitute lightweight duck-typed stubs without unnecessary mock framework overhead (see &ldquo;Testing Patterns&rdquo; below).</p>
 <hr />
-<h2 id="padroes-de-design">Padrões de design<a class="headerlink" href="#padroes-de-design" title="Link para esta seção">&para;</a></h2>
-<h3 id="funcao-ou-classe-leve-por-operacao-em-clientpy">Função (ou classe leve) por operação em <code>client.py</code><a class="headerlink" href="#funcao-ou-classe-leve-por-operacao-em-clientpy" title="Link para esta seção">&para;</a></h3>
-<p>A maioria das operações é modelada como função de módulo ou classe objetiva focada na sua responsabilidade específica, acionada diretamente pelo facade. Classes são utilizadas principalmente quando há <strong>estado real reutilizável</strong>: por exemplo, <code>ExtractHistoricalQuotesUseCaseB3</code> segura <code>zip_reader + parser + writer + processing_mode</code> entre chamadas e por isso permanece como classe.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Função simples em client.py</span>
+<h2 id="foundational-design-patterns">Foundational Design Patterns<a class="headerlink" href="#foundational-design-patterns" title="Link para esta seção">&para;</a></h2>
+<h3 id="functions-or-lightweight-classes-per-operation-in-clientpy">Functions (or Lightweight Classes) per Operation in <code>client.py</code><a class="headerlink" href="#functions-or-lightweight-classes-per-operation-in-clientpy" title="Link para esta seção">&para;</a></h3>
+<p>Most operations are modeled as clean module-level functions or concise classes focused strictly on their specialized operational responsibility, invoked directly by the application facade. Classes are utilized primarily when <strong>reusable execution state exists</strong>: for instance, <code>ExtractHistoricalQuotesUseCaseB3</code> preserves references to <code>zip_reader + parser + writer + processing_mode</code> across invocations and therefore remains structured as a class.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pure operational helper in client.py</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_range_years</span><span class="p">(</span><span class="n">initial_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">last_year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
     <span class="o">...</span>
 
-<span class="c1"># Classe com estado real</span>
+<span class="c1"># Stateful orchestration use case</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExtractHistoricalQuotesUseCaseB3</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zip_reader</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">processing_mode</span><span class="p">):</span>
         <span class="o">...</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths_of_docs</span><span class="p">,</span> <span class="n">docs_to_extract</span><span class="p">):</span>
         <span class="o">...</span>
 </code></pre></div>
-<h3 id="adapters-concretos-e-diretos">Adapters concretos e diretos<a class="headerlink" href="#adapters-concretos-e-diretos" title="Link para esta seção">&para;</a></h3>
-<p>Os adapters responsáveis por I/O, como <code>AsyncDownloadAdapterCVM</code> e <code>ParquetExtractorAdapterCVM</code>, são importados e instanciados diretamente nos fluxos principais, garantindo rastreabilidade e simplicidade na navegação da base de código.</p>
-<h3 id="result-objects">Result objects<a class="headerlink" href="#result-objects" title="Link para esta seção">&para;</a></h3>
-<p>Operações que podem falhar parcialmente retornam um dataclass de resultado com sucessos e erros explícitos, em vez de <code>raise</code> em falhas parciais.</p>
+<h3 id="direct-and-concrete-adapters">Direct and Concrete Adapters<a class="headerlink" href="#direct-and-concrete-adapters" title="Link para esta seção">&para;</a></h3>
+<p>Adapters governing network and filesystem I/O—such as <code>AsyncDownloadAdapterCVM</code> and <code>ParquetExtractorAdapterCVM</code>—are imported and instantiated directly within core runtime paths, ensuring maximum traceability and simplified navigation across the codebase.</p>
+<h3 id="explicit-result-objects">Explicit Result Objects<a class="headerlink" href="#explicit-result-objects" title="Link para esta seção">&para;</a></h3>
+<p>Operations capable of partial runtime failures return structured result dataclasses containing explicit success metrics and failure details, rather than executing disruptive <code>raise</code> exceptions upon encountering partial interruptions.</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DownloadResultCVM</span><span class="p">:</span>
     <span class="n">success_count_downloads</span><span class="p">:</span> <span class="nb">int</span>
@@ -1591,54 +1591,54 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">has_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_count_downloads</span> <span class="o">&gt;</span> <span class="mi">0</span>
 </code></pre></div>
-<h3 id="value-objects">Value objects<a class="headerlink" href="#value-objects" title="Link para esta seção">&para;</a></h3>
-<p>Tipos imutáveis em <code>core.py</code> que encapsulam validação e construção (<code>DictZipsToDownloadCVM</code>, <code>DocsToExtractorB3</code>, etc.).</p>
-<h3 id="separacao-de-apresentacao">Separação de apresentação<a class="headerlink" href="#separacao-de-apresentacao" title="Link para esta seção">&para;</a></h3>
-<p>Saída de console/log de apresentação fica em módulos <code>*_formatter.py</code> dentro de <code>application/</code>. Código de <code>client.py</code> permanece I/O-free (exceto pelas chamadas a adapters concretos).</p>
-<h3 id="defesa-de-path-traversal-preservada-como-contrato">Defesa de path-traversal preservada como contrato<a class="headerlink" href="#defesa-de-path-traversal-preservada-como-contrato" title="Link para esta seção">&para;</a></h3>
-<p><code>VerifyPathsUseCasesCVM</code> (CVM, em <code>client.py</code>) e o helper <code>FileSystemServiceB3</code> (B3, em <code>filesystem.py</code>) levantam <code>SecurityError</code> antes de qualquer <code>mkdir</code>, bloqueando escrita em <code>/etc /sys /proc /dev /boot /root</code>. Esses helpers fazem parte do contrato observável de <code>FundamentalStocksDataCVM.download(destination_path=...)</code> e <code>HistoricalQuotesB3.extract(path_of_docs=...)</code> — devem permanecer bit-idênticos em qualquer refactor que mova o código.</p>
+<h3 id="immutable-value-objects">Immutable Value Objects<a class="headerlink" href="#immutable-value-objects" title="Link para esta seção">&para;</a></h3>
+<p>Immutable domain constructs in <code>core.py</code> encapsulate data validation and initialization bounds (<code>DictZipsToDownloadCVM</code>, <code>DocsToExtractorB3</code>, etc.).</p>
+<h3 id="separation-of-console-presentation">Separation of Console Presentation<a class="headerlink" href="#separation-of-console-presentation" title="Link para esta seção">&para;</a></h3>
+<p>All CLI presentation output and console diagnostic reporting reside exclusively inside <code>*_formatter.py</code> modules within <code>application/</code>. Core business logic in <code>client.py</code> and domain modules remains completely free of direct formatting calls or interactive I/O.</p>
+<h3 id="preserved-path-traversal-defense-contracts">Preserved Path-Traversal Defense Contracts<a class="headerlink" href="#preserved-path-traversal-defense-contracts" title="Link para esta seção">&para;</a></h3>
+<p><code>VerifyPathsUseCasesCVM</code> (CVM, inside <code>client.py</code>) and helper <code>FileSystemServiceB3</code> (B3, inside <code>filesystem.py</code>) evaluate directory structures and explicitly raise a <code>SecurityError</code> prior to any filesystem <code>mkdir</code> or file write, proactively blocking unauthorized execution inside restricted POSIX paths such as <code>/etc /sys /proc /dev /boot /root</code>. These defense boundaries form an invariant observable contract for <code>FundamentalStocksDataCVM.download(destination_path=...)</code> and <code>HistoricalQuotesB3.extract(path_of_docs=...)</code>—they must remain bit-identical across any future refactoring initiatives.</p>
 <hr />
-<h2 id="fluxo-de-dados">Fluxo de dados<a class="headerlink" href="#fluxo-de-dados" title="Link para esta seção">&para;</a></h2>
-<h3 id="download-de-documentos-cvm">Download de documentos CVM<a class="headerlink" href="#download-de-documentos-cvm" title="Link para esta seção">&para;</a></h3>
+<h2 id="runtime-data-flows">Runtime Data Flows<a class="headerlink" href="#runtime-data-flows" title="Link para esta seção">&para;</a></h2>
+<h3 id="cvm-document-download-pipeline">CVM Document Download Pipeline<a class="headerlink" href="#cvm-document-download-pipeline" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>graph TD
-    A[FundamentalStocksDataCVM] --&gt;|1. chamar download| B[DownloadDocumentsUseCaseCVM]
-    B --&gt;|2. validar inputs| C[AvailableDocsCVM / AvailableYearsCVM em core.py]
-    B --&gt;|3. gerar URLs| D[GenerateUrlsUseCaseCVM em client.py]
-    B --&gt;|4. verificar paths| E[VerifyPathsUseCasesCVM&lt;br/&gt;raise SecurityError em /etc, /sys, ...]
-    B --&gt;|5. executar download| F[AsyncDownloadAdapterCVM em http.py]
-    F --&gt;|6. HTTP requests| G[Servidor CVM]
-    F --&gt;|7. integrity check + salvar| H[Sistema de arquivos]
-    F --&gt;|8. retornar resultado| B
-    B --&gt;|9. retornar resultado| A
-    A --&gt;|10. formatar saída| I[DownloadResultFormatter]
+    A[FundamentalStocksDataCVM] --&gt;|1. invoke download| B[DownloadDocumentsUseCaseCVM]
+    B --&gt;|2. validate input boundaries| C[AvailableDocsCVM / AvailableYearsCVM in core.py]
+    B --&gt;|3. compile URL targets| D[GenerateUrlsUseCaseCVM in client.py]
+    B --&gt;|4. path safety evaluation| E[VerifyPathsUseCasesCVM&lt;br/&gt;raise SecurityError on /etc, /sys, ...]
+    B --&gt;|5. trigger async worker pool| F[AsyncDownloadAdapterCVM in http.py]
+    F --&gt;|6. HTTP down-streaming| G[Remote CVM Servers]
+    F --&gt;|7. integrity check &amp; write| H[Local Filesystem Storage]
+    F --&gt;|8. return operational statistics| B
+    B --&gt;|9. return DownloadResultCVM| A
+    A --&gt;|10. render console tracking| I[DownloadResultFormatter]
 </code></pre></div>
-<h3 id="extracao-de-cotacoes-b3">Extração de cotações B3<a class="headerlink" href="#extracao-de-cotacoes-b3" title="Link para esta seção">&para;</a></h3>
+<h3 id="b3-historical-quote-extraction-pipeline">B3 Historical Quote Extraction Pipeline<a class="headerlink" href="#b3-historical-quote-extraction-pipeline" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>graph TD
-    A[HistoricalQuotesB3] --&gt;|1. chamar extract| B[ExtractHistoricalQuotesUseCaseB3]
-    B --&gt;|2. validar inputs| C[validators em core.py]
-    B --&gt;|3. validar destino| D[validate_directory_path&lt;br/&gt;raise SecurityError em /etc, /sys, ...]
-    B --&gt;|4. listar arquivos| E[zip_reader.py]
-    E --&gt;|5. iterar ZIP entries| F[cotahist_parser.py]
-    F --&gt;|6. dataframes parciais| G[extraction_service/]
-    G --&gt;|7. orquestrar threadpool/flush| H[parquet_writer/]
-    H --&gt;|8. escrever Parquet| I[Sistema de arquivos]
-    B --&gt;|9. retornar resultado| A
-    A --&gt;|10. formatar saída| J[ExtractionResultFormatter]
+    A[HistoricalQuotesB3] --&gt;|1. invoke extract| B[ExtractHistoricalQuotesUseCaseB3]
+    B --&gt;|2. validate asset arguments| C[Domain validators in assets.py / years.py]
+    B --&gt;|3. evaluate target directory| D[validate_directory_path&lt;br/&gt;raise SecurityError on /etc, /sys, ...]
+    B --&gt;|4. discover archive targets| E[zip_reader.py]
+    E --&gt;|5. stream ZIP ascii entries| F[cotahist_parser.py]
+    F --&gt;|6. emit intermediate dataframes| G[extraction_service/]
+    G --&gt;|7. manage threadpool &amp; memory flush| H[parquet_writer/]
+    H --&gt;|8. persist consolidated Parquet| I[Local Filesystem Storage]
+    B --&gt;|9. return ExtractionResultB3| A
+    A --&gt;|10. render execution outcome| J[ExtractionResultFormatter]
 </code></pre></div>
 <hr />
-<h2 id="como-adicionar-uma-nova-fonte">Como adicionar uma nova fonte<a class="headerlink" href="#como-adicionar-uma-nova-fonte" title="Link para esta seção">&para;</a></h2>
-<p>Para uma nova fonte (ex.: SEC dos EUA), crie uma nova pasta-irmã com módulos nomeados por papel. Para fontes pequenas, o conjunto mínimo da CVM funciona bem; para fontes maiores, espelhe a granularidade de B3 e separe os tópicos antes que o <code>core.py</code> cresça demais.</p>
+<h2 id="adding-a-new-data-source">Adding a New Data Source<a class="headerlink" href="#adding-a-new-data-source" title="Link para esta seção">&para;</a></h2>
+<p>To integrate a novel regulatory or exchange feed (e.g., US SEC filings), establish a new sibling directory implementing role-named operational modules. For compact data feeds, the streamlined 5-module CVM pattern provides an ideal baseline; for complex feeds, mirror the granular composition of B3 to segment topical logic before <code>core.py</code> exceeds manageable complexity thresholds.</p>
 <div class="highlight"><pre><span></span><code>src/globaldatafinance/usa/sec/fundamental_data/
-├── core.py        # entidades, value objects, validadores  (consolide se ≤ ~300 linhas)
-├── client.py      # use cases / orquestradores
-├── http.py        # adapter HTTP concreto
-├── extract.py     # adapter de extração concreto (se aplicável)
-└── errors.py      # exceções específicas
+├── core.py        # entities, value objects, domain validators (consolidate if ≤ ~300 lines)
+├── client.py      # orchestration routines / use cases
+├── http.py        # concrete asynchronous HTTP download adapter
+├── extract.py     # concrete extraction adapter (when applicable)
+└── errors.py      # source-specific exception hierarchy
 </code></pre></div>
-<p>Em seguida:</p>
+<p>Subsequent integration steps:</p>
 <ol>
-<li><strong>Re-export interno</strong>: adicione <code>__init__.py</code> na pasta da fonte (ou deixe vazio se não houver consumidores internos).</li>
-<li><strong>Facade público</strong>: crie <code>src/globaldatafinance/application/sec_docs/fundamental_data.py</code> com uma classe <code>FundamentalDataSEC</code> que importa diretamente dos módulos planos:</li>
+<li><strong>Internal Namespace</strong>: Add an <code>__init__.py</code> file inside the source folder (or leave blank if no internal re-export aggregation is required).</li>
+<li><strong>Public Application Facade</strong>: Create <code>src/globaldatafinance/application/sec_docs/fundamental_data.py</code> containing a public facade class <code>FundamentalDataSEC</code> importing directly from your flat source modules:</li>
 </ol>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">...usa.sec.fundamental_data</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DownloadAdapterSEC</span><span class="p">,</span>
@@ -1647,36 +1647,36 @@
 <span class="p">)</span>
 </code></pre></div>
 <ol start="3">
-<li><strong>API pública</strong>: re-exporte a nova classe em <code>src/globaldatafinance/__init__.py</code> e <code>src/globaldatafinance/application/__init__.py</code>. Trate como adição <strong>semver-relevante</strong>.</li>
-<li><strong>Testes</strong>: crie <code>tests/usa/sec/fundamental_data/</code> espelhando módulos por tópico (não por camada). Tests devem importar dos módulos planos.</li>
-<li><strong>Docs</strong>: atualize <code>AGENTS.md</code> (Repository Map / Architecture Map) e este arquivo. Adicione referência em <code>docs/reference/</code>.</li>
+<li><strong>Package Boundary Export</strong>: Re-export the new symbol inside <code>src/globaldatafinance/__init__.py</code> and <code>src/globaldatafinance/application/__init__.py</code>. Treat this as a <strong>semver-sensitive feature expansion</strong>.</li>
+<li><strong>Test Suite Mirroring</strong>: Establish <code>tests/usa/sec/fundamental_data/</code> grouped cleanly by functional topic. Test fixtures must import symbols directly from flat source modules.</li>
+<li><strong>Documentation Alignment</strong>: Register the new architecture map within <code>AGENTS.md</code> and this architecture guide, and author reference manuals inside <code>docs/reference/</code>.</li>
 </ol>
 <hr />
-<h2 id="testes">Testes<a class="headerlink" href="#testes" title="Link para esta seção">&para;</a></h2>
-<p>A árvore de testes espelha as fontes:</p>
+<h2 id="testing-patterns">Testing Patterns<a class="headerlink" href="#testing-patterns" title="Link para esta seção">&para;</a></h2>
+<p>The repository test tree precisely mirrors source implementations:</p>
 <div class="highlight"><pre><span></span><code>tests/
 ├── brazil/
 │   ├── cvm/fundamental_stocks_data/
-│   │   ├── application/use_cases/    # tests por tópico (organizacional, não camada)
-│   │   ├── domain/                   # tests de value objects, validators (core.py)
-│   │   ├── infra/adapters/           # tests de adapters concretos (http.py, extract.py)
-│   │   ├── exceptions/               # tests das exceções (errors.py)
-│   │   └── integration/              # tests integration-marker
-│   └── b3_data/historical_quotes/    # layout plano: 21 test_*.py diretamente na pasta
+│   │   ├── application/use_cases/    # topical test grouping (organizational, not architectural)
+│   │   ├── domain/                   # tests covering value objects and validators (core.py)
+│   │   ├── infra/adapters/           # unit tests for concrete I/O adapters (http.py, extract.py)
+│   │   ├── exceptions/               # test suites verifying custom exception triggers (errors.py)
+│   │   └── integration/              # integration test markers
+│   └── b3_data/historical_quotes/    # flat test layout: 21 test_*.py scripts within folder
 └── application/
-    ├── cvm_docs/   # tests do facade público
+    ├── cvm_docs/   # unit tests covering public facades
     └── b3_docs/
         └── result_formatters/
 </code></pre></div>
-<p>Os subdiretórios dentro da fonte CVM são <strong>organizacionais</strong> (agrupam por tópico para legibilidade), não arquiteturais — qualquer test importa dos módulos via <code>from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...</code>.</p>
-<h3 id="estrategias-de-mock-e-stub">Estratégias de Mock e Stub<a class="headerlink" href="#estrategias-de-mock-e-stub" title="Link para esta seção">&para;</a></h3>
-<p>Para testar orquestradores e adapters de forma limpa e isolada, os testes substituem as dependências através de:</p>
+<p>Subdirectories inside the CVM testing hierarchy are strictly <strong>organizational</strong> (grouping files by topic to maximize scannability) rather than strict architectural assertions—test routines import directly from source modules via <code>from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...</code>.</p>
+<h3 id="mock-and-stub-strategies">Mock and Stub Strategies<a class="headerlink" href="#mock-and-stub-strategies" title="Link para esta seção">&para;</a></h3>
+<p>To verify orchestrators and adapters cleanly in isolated environments without triggering real network or IO calls, tests employ simple dependency substitution:</p>
 <ul>
-<li><strong>Stub duck-typed</strong>: classes simples focadas nos métodos consumidos no teste, mantendo alta flexibilidade.</li>
-<li><strong><code>monkeypatch.setattr</code></strong>: patcheia o método do adapter real.</li>
-<li><strong><code>httpx.MockTransport</code></strong>: para tests do adapter HTTP que precisam respostas determinísticas sem rede.</li>
+<li><strong>Duck-typed Stubs</strong>: Lightweight test classes implementing exclusively the target methods invoked by the orchestrator.</li>
+<li><strong><code>monkeypatch.setattr</code></strong>: Patches targeted instance methods or attributes on concrete adapters during runtime execution.</li>
+<li><strong><code>httpx.MockTransport</code></strong>: Supplies deterministic HTTP payload responses and simulated status codes for network adapter suites without requiring live server bindings.</li>
 </ul>
-<p>Exemplo (duck typing):</p>
+<p>Duck-typed stub example:</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MockRepository</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DownloadResultCVM</span><span class="p">(</span>
@@ -1690,14 +1690,14 @@
 <span class="n">result</span> <span class="o">=</span> <span class="n">use_case</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">destination_path</span><span class="o">=</span><span class="s1">&#39;/tmp/cvm&#39;</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">success_count_downloads</span> <span class="o">==</span> <span class="mi">2</span>
 </code></pre></div>
-<p>Coverage é validado por capability: <code>tests/brazil/&lt;source&gt;/</code> + <code>tests/application/&lt;facade&gt;/</code> cobrem cada fonte como unidade isolada.</p>
+<p>Test coverage gates are enforced per functional capability: <code>tests/brazil/&lt;source&gt;/</code> combined with <code>tests/application/&lt;facade&gt;/</code> thoroughly validates each data source as an autonomous subsystem.</p>
 <hr />
-<h2 id="proximos-passos">Próximos Passos<a class="headerlink" href="#proximos-passos" title="Link para esta seção">&para;</a></h2>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Link para esta seção">&para;</a></h2>
 <ul>
-<li>📖 <strong><a href="../api-reference/">Referência da API</a></strong> — Documentação completa da API</li>
-<li>🤝 <strong><a href="../contributing/">Como Contribuir</a></strong> — Guia para contribuidores</li>
-<li>🧪 <strong><a href="../testing/">Testes</a></strong> — Como escrever e executar testes</li>
-<li>🔧 <strong><a href="../advanced-usage/">Uso Avançado</a></strong> — Customização e extensões</li>
+<li>📖 <strong><a href="../api-reference/">API Reference</a></strong> — Comprehensive surface signatures and interface descriptions</li>
+<li>🤝 <strong><a href="../contributing/">Contributing Guide</a></strong> — Rules and quality workflow for contributors</li>
+<li>🧪 <strong><a href="../testing/">Testing Strategy</a></strong> — Instructions on writing and running automated suites</li>
+<li>🔧 <strong><a href="../advanced-usage/">Advanced Usage</a></strong> — Deep performance tuning and customized execution profiles</li>
 </ul>
 
 
@@ -1724,7 +1724,7 @@
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Voltar ao topo
+  Back to top
 </button>
         
       </main>
@@ -1789,12 +1789,12 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="../../assets/javascripts/wide-toggle.js"></script>
+        <script src="../../../assets/javascripts/wide-toggle.js"></script>
       
     
   </body>

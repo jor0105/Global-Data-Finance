@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="pt" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -12,7 +12,7 @@
         <meta name="author" content="Jordan Estralioto">
       
       
-        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/logging-system/">
+        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/logging-system/">
       
       
         <link rel="prev" href="../advanced-usage/">
@@ -22,25 +22,25 @@
       
       
         
-          <link rel="alternate" href="./" hreflang="pt">
+          <link rel="alternate" href="../../../dev-guide/logging-system/" hreflang="pt">
         
-          <link rel="alternate" href="../../en/dev-guide/logging-system/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Sistema de Logging - Global-Data-Finance</title>
+        <title>Logging System - Global-Data-Finance</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -61,9 +61,9 @@
     
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     
-      <link rel="stylesheet" href="../../assets/stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -88,8 +88,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#sistema-de-logging" class="md-skip">
-          Ir para o conteúdo
+        <a href="#logging-system" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -101,8 +101,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
-    <a href="../.." title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Sistema de Logging
+              Logging System
             
           </span>
         </div>
@@ -162,20 +162,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Selecione o idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="pt" class="md-select__link">
+            <a href="../../../dev-guide/logging-system/" hreflang="pt" class="md-select__link">
               Português
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/dev-guide/logging-system/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -196,21 +196,21 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Pesquisar">
+      <nav class="md-search__options" aria-label="Search">
         
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartilhar" aria-label="Compartilhar" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
             
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
           </a>
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -223,7 +223,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando a pesquisa
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +235,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -256,7 +256,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -266,13 +266,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Início
+  Home
 
       </a>
     </li>
@@ -291,7 +291,7 @@
           
   
   
-  Guia do Usuário
+  User Guide
 
         </a>
       </li>
@@ -313,7 +313,7 @@
           
   
   
-  Guia do Desenvolvedor
+  Developer Guide
 
         </a>
       </li>
@@ -333,7 +333,7 @@
           
   
   
-  Referência Técnica
+  Technical Reference
 
         </a>
       </li>
@@ -363,9 +363,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegação" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+    <a href="../../" title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -375,7 +375,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -395,14 +395,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Início
+    Home
   
 
     
@@ -445,7 +445,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Usuário
+    User Guide
   
 
     
@@ -461,7 +461,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Usuário
+    User Guide
   
 
           </label>
@@ -481,7 +481,7 @@
   <span class="md-ellipsis">
     
   
-    Instalação
+    Installation
   
 
     
@@ -509,7 +509,7 @@
   <span class="md-ellipsis">
     
   
-    Início Rápido
+    Quickstart
   
 
     
@@ -537,7 +537,7 @@
   <span class="md-ellipsis">
     
   
-    Documentos CVM
+    CVM Documents
   
 
     
@@ -565,7 +565,7 @@
   <span class="md-ellipsis">
     
   
-    Cotações Históricas B3
+    B3 Historical Quotes
   
 
     
@@ -593,7 +593,7 @@
   <span class="md-ellipsis">
     
   
-    Exemplos Práticos
+    Practical Examples
   
 
     
@@ -677,7 +677,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
     
@@ -693,7 +693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
           </label>
@@ -713,7 +713,7 @@
   <span class="md-ellipsis">
     
   
-    Arquitetura
+    Architecture
   
 
     
@@ -741,7 +741,7 @@
   <span class="md-ellipsis">
     
   
-    Referência da API
+    API Reference
   
 
     
@@ -769,7 +769,7 @@
   <span class="md-ellipsis">
     
   
-    Como Contribuir
+    Contributing
   
 
     
@@ -797,7 +797,7 @@
   <span class="md-ellipsis">
     
   
-    Testes
+    Testing
   
 
     
@@ -825,7 +825,7 @@
   <span class="md-ellipsis">
     
   
-    Uso Avançado
+    Advanced Usage
   
 
     
@@ -862,7 +862,7 @@
   <span class="md-ellipsis">
     
   
-    Sistema de Logging
+    Logging System
   
 
     
@@ -880,7 +880,7 @@
   <span class="md-ellipsis">
     
   
-    Sistema de Logging
+    Logging System
   
 
     
@@ -892,7 +892,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Índice">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -901,15 +901,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Índice
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#visao-geral" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Visão Geral
+        Overview
       
     </span>
   </a>
@@ -917,22 +917,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#arquitetura" class="md-nav__link">
+  <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Arquitetura
+        Architecture
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Arquitetura">
+    <nav class="md-nav" aria-label="Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#componentes-principais" class="md-nav__link">
+  <a href="#primary-subsystem-components" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Componentes Principais
+        Primary Subsystem Components
       
     </span>
   </a>
@@ -945,22 +945,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#uso-basico" class="md-nav__link">
+  <a href="#basic-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Uso Básico
+        Basic Usage
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Uso Básico">
+    <nav class="md-nav" aria-label="Basic Usage">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-habilitar-logging" class="md-nav__link">
+  <a href="#1-enable-library-logging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Habilitar Logging
+        1. Enable Library Logging
       
     </span>
   </a>
@@ -968,10 +968,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-obter-logger-em-um-modulo" class="md-nav__link">
+  <a href="#2-retrieve-a-module-logger-instance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Obter Logger em um Módulo
+        2. Retrieve a Module Logger Instance
       
     </span>
   </a>
@@ -979,10 +979,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-logging-estruturado" class="md-nav__link">
+  <a href="#3-structured-context-logging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Logging Estruturado
+        3. Structured Context Logging
       
     </span>
   </a>
@@ -995,22 +995,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuracao" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração
+        Configuration
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuração">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#niveis-de-log" class="md-nav__link">
+  <a href="#severity-level-thresholds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Níveis de Log
+        Severity Level Thresholds
       
     </span>
   </a>
@@ -1018,10 +1018,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuracao-via-codigo" class="md-nav__link">
+  <a href="#programmatic-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração via Código
+        Programmatic Configuration
       
     </span>
   </a>
@@ -1029,10 +1029,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuracao-via-variaveis-de-ambiente" class="md-nav__link">
+  <a href="#environment-variable-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração via Variáveis de Ambiente
+        Environment Variable Configuration
       
     </span>
   </a>
@@ -1045,22 +1045,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#recursos-avancados" class="md-nav__link">
+  <a href="#advanced-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Recursos Avançados
+        Advanced Capabilities
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Recursos Avançados">
+    <nav class="md-nav" aria-label="Advanced Capabilities">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#performance-timing" class="md-nav__link">
+  <a href="#performance-timing-latency-profiling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Performance Timing
+        Performance Timing &amp; Latency Profiling
       
     </span>
   </a>
@@ -1068,10 +1068,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#logging-com-contexto" class="md-nav__link">
+  <a href="#contextual-event-reporting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Logging com Contexto
+        Contextual Event Reporting
       
     </span>
   </a>
@@ -1079,10 +1079,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#verificar-se-logging-esta-configurado" class="md-nav__link">
+  <a href="#confirming-active-configuration-state" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Verificar se Logging está Configurado
+        Confirming Active Configuration State
       
     </span>
   </a>
@@ -1090,10 +1090,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#obter-configuracoes-atuais" class="md-nav__link">
+  <a href="#accessing-active-settings-metrics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Obter Configurações Atuais
+        Accessing Active Settings Metrics
       
     </span>
   </a>
@@ -1106,22 +1106,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exemplos-praticos" class="md-nav__link">
+  <a href="#practical-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemplos Práticos
+        Practical Examples
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Exemplos Práticos">
+    <nav class="md-nav" aria-label="Practical Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#exemplo-1-logging-em-aplicacao" class="md-nav__link">
+  <a href="#example-1-standard-application-logging-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemplo 1: Logging em Aplicação
+        Example 1: Standard Application Logging Integration
       
     </span>
   </a>
@@ -1129,10 +1129,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#exemplo-2-debug-de-problemas" class="md-nav__link">
+  <a href="#example-2-diagnostic-debugging-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemplo 2: Debug de Problemas
+        Example 2: Diagnostic Debugging Configuration
       
     </span>
   </a>
@@ -1140,10 +1140,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#exemplo-3-logging-customizado-em-modulo-proprio" class="md-nav__link">
+  <a href="#example-3-dedicated-module-logger-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exemplo 3: Logging Customizado em Módulo Próprio
+        Example 3: Dedicated Module Logger Patterns
       
     </span>
   </a>
@@ -1156,22 +1156,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#formatos-de-log" class="md-nav__link">
+  <a href="#log-layout-specifications" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Formatos de Log
+        Log Layout specifications
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Formatos de Log">
+    <nav class="md-nav" aria-label="Log Layout specifications">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#formato-padrao" class="md-nav__link">
+  <a href="#default-syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Formato Padrão
+        Default Syntax
       
     </span>
   </a>
@@ -1179,10 +1179,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#formato-detalhado" class="md-nav__link">
+  <a href="#detailed-syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Formato Detalhado
+        Detailed Syntax
       
     </span>
   </a>
@@ -1190,10 +1190,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#formato-com-dados-contextuais" class="md-nav__link">
+  <a href="#context-enriched-syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Formato com Dados Contextuais
+        Context-Enriched Syntax
       
     </span>
   </a>
@@ -1206,22 +1206,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#boas-praticas" class="md-nav__link">
+  <a href="#best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Boas Práticas
+        Best Practices
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Boas Práticas">
+    <nav class="md-nav" aria-label="Best Practices">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-sempre-use-get_logger__name__" class="md-nav__link">
+  <a href="#1-consistently-register-module-hierarchies-via-get_logger__name__" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Sempre use get_logger(__name__)
+        1. Consistently Register Module Hierarchies via get_logger(__name__)
       
     </span>
   </a>
@@ -1229,10 +1229,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-use-niveis-apropriados" class="md-nav__link">
+  <a href="#2-match-severity-levels-accurately-to-impact" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Use Níveis Apropriados
+        2. Match Severity Levels Accurately to Impact
       
     </span>
   </a>
@@ -1240,10 +1240,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-use-structured-logging" class="md-nav__link">
+  <a href="#3-rely-on-structured-metadata-dictionaries" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Use Structured Logging
+        3. Rely on Structured Metadata Dictionaries
       
     </span>
   </a>
@@ -1251,10 +1251,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-use-context-manager-para-timing" class="md-nav__link">
+  <a href="#4-harness-context-managers-for-latency-profiling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Use Context Manager para Timing
+        4. Harness Context Managers for Latency Profiling
       
     </span>
   </a>
@@ -1279,10 +1279,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#nao-vejo-nenhum-log" class="md-nav__link">
+  <a href="#log-outputs-are-not-displayed-in-the-console" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Não vejo nenhum log
+        Log outputs are not displayed in the console
       
     </span>
   </a>
@@ -1290,10 +1290,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#logs-duplicados" class="md-nav__link">
+  <a href="#duplicate-log-statements-emitting-simultaneously" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Logs duplicados
+        Duplicate log statements emitting simultaneously
       
     </span>
   </a>
@@ -1301,10 +1301,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#logging-em-arquivo-nao-funciona" class="md-nav__link">
+  <a href="#filesystem-log-generation-fails-with-permissions-exceptions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Logging em arquivo não funciona
+        Filesystem log generation fails with permissions exceptions
       
     </span>
   </a>
@@ -1317,10 +1317,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#referencias" class="md-nav__link">
+  <a href="#related-documentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Referências
+        Related Documentation
       
     </span>
   </a>
@@ -1350,7 +1350,7 @@
   <span class="md-ellipsis">
     
   
-    Monitoramento de Recursos
+    Resource Monitoring
   
 
     
@@ -1378,7 +1378,7 @@
   <span class="md-ellipsis">
     
   
-    Estratégia de Retry
+    Retry Strategy
   
 
     
@@ -1429,7 +1429,7 @@
   <span class="md-ellipsis">
     
   
-    Referência Técnica
+    Technical Reference
   
 
     
@@ -1445,7 +1445,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referência Técnica
+    Technical Reference
   
 
           </label>
@@ -1465,7 +1465,7 @@
   <span class="md-ellipsis">
     
   
-    API CVM
+    CVM API
   
 
     
@@ -1493,7 +1493,7 @@
   <span class="md-ellipsis">
     
   
-    API B3
+    B3 API
   
 
     
@@ -1521,7 +1521,7 @@
   <span class="md-ellipsis">
     
   
-    Exceções
+    Exceptions
   
 
     
@@ -1562,156 +1562,157 @@
   
 
 
-<h1 id="sistema-de-logging">Sistema de Logging<a class="headerlink" href="#sistema-de-logging" title="Link para esta seção">&para;</a></h1>
-<p>Documentação completa do sistema de logging avançado do Global-Data-Finance.</p>
+<h1 id="logging-system">Logging System<a class="headerlink" href="#logging-system" title="Link para esta seção">&para;</a></h1>
+<p>Complete technical reference covering the advanced centralized logging infrastructure implemented across Global-Data-Finance.</p>
 <hr />
-<h2 id="visao-geral">Visão Geral<a class="headerlink" href="#visao-geral" title="Link para esta seção">&para;</a></h2>
-<p>O Global-Data-Finance possui um sistema de logging centralizado e profissional que oferece:</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Link para esta seção">&para;</a></h2>
+<p>Global-Data-Finance incorporates a professional centralized logging subsystem designed specifically for high-throughput library distribution:</p>
 <ul>
-<li>✅ <strong>Lazy initialization</strong> - Logging desabilitado por padrão (biblioteca-friendly)</li>
-<li>✅ <strong>Console e arquivo</strong> - Handlers configuráveis</li>
-<li>✅ <strong>Níveis customizáveis</strong> - DEBUG, INFO, WARNING, ERROR, CRITICAL</li>
-<li>✅ <strong>Performance timing</strong> - Context managers para medir tempo de execução</li>
-<li>✅ <strong>Structured logging</strong> - Logs com dados contextuais</li>
-<li>✅ <strong>Variáveis de ambiente</strong> - Configuração via environment variables</li>
+<li>✅ <strong>Lazy Initialization</strong>: Logging remains silently disabled by default (respecting standard Python library citizenship practices)</li>
+<li>✅ <strong>Multi-Target Handlers</strong>: Configurable simultaneous routing to console outputs and rotating filesystem files</li>
+<li>✅ <strong>Granular Level Filtering</strong>: Full support for standard severity thresholds (<code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, <code>ERROR</code>, <code>CRITICAL</code>)</li>
+<li>✅ <strong>Performance Benchmarking</strong>: Integrated timing context managers designed to capture operation latencies automatically</li>
+<li>✅ <strong>Structured Metadata Binding</strong>: Context-aware log emission supporting structured parameter propagation</li>
+<li>✅ <strong>Environment Override Compatibility</strong>: Real-time runtime overrides via confirmed OS environment variables</li>
 </ul>
 <hr />
-<h2 id="arquitetura">Arquitetura<a class="headerlink" href="#arquitetura" title="Link para esta seção">&para;</a></h2>
-<h3 id="componentes-principais">Componentes Principais<a class="headerlink" href="#componentes-principais" title="Link para esta seção">&para;</a></h3>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Link para esta seção">&para;</a></h2>
+<h3 id="primary-subsystem-components">Primary Subsystem Components<a class="headerlink" href="#primary-subsystem-components" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>src/core/logging_config.py
-├── setup_logging()           # Inicialização do logging
-├── get_logger()              # Obter logger por módulo
-├── log_execution_time()      # Context manager para timing
-├── log_with_context()        # Logging estruturado
-├── LoggingSettings           # Configurações
-├── StructuredFormatter       # Formatter customizado
-└── ContextFilter             # Filtro de contexto
+├── setup_logging()           # Subsystem configuration entrypoint
+├── get_logger()              # Module logger registry retrieval
+├── log_execution_time()      # Latency tracking performance context manager
+├── log_with_context()        # Structured key-value event logger
+├── LoggingSettings           # Pydantic configuration container
+├── StructuredFormatter       # Custom formatting layout engine
+└── ContextFilter             # Metadata enrichment logging filter
 </code></pre></div>
 <hr />
-<h2 id="uso-basico">Uso Básico<a class="headerlink" href="#uso-basico" title="Link para esta seção">&para;</a></h2>
-<h3 id="1-habilitar-logging">1. Habilitar Logging<a class="headerlink" href="#1-habilitar-logging" title="Link para esta seção">&para;</a></h3>
-<p>Por padrão, o logging está <strong>desabilitado</strong>. Para habilitar:</p>
+<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Link para esta seção">&para;</a></h2>
+<h3 id="1-enable-library-logging">1. Enable Library Logging<a class="headerlink" href="#1-enable-library-logging" title="Link para esta seção">&para;</a></h3>
+<p>In accordance with Python best practices for dependency distributions, logging is <strong>disabled by default</strong>. To activate event reporting:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 
-<span class="c1"># Habilitar logging com nível INFO</span>
+<span class="c1"># Activate logging across the library hierarchy at severity INFO</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="2-obter-logger-em-um-modulo">2. Obter Logger em um Módulo<a class="headerlink" href="#2-obter-logger-em-um-modulo" title="Link para esta seção">&para;</a></h3>
+<h3 id="2-retrieve-a-module-logger-instance">2. Retrieve a Module Logger Instance<a class="headerlink" href="#2-retrieve-a-module-logger-instance" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processamento iniciado&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Detalhes de debug&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Aviso importante&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Erro ocorreu&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing job started&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Detailed debug tracing&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Potential configuration warning&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Exception encountered during operational step&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="3-logging-estruturado">3. Logging Estruturado<a class="headerlink" href="#3-logging-estruturado" title="Link para esta seção">&para;</a></h3>
+<h3 id="3-structured-context-logging">3. Structured Context Logging<a class="headerlink" href="#3-structured-context-logging" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-    <span class="s2">&quot;Arquivo processado&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Dataset normalization completed&quot;</span><span class="p">,</span>
     <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;data.csv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;dfp_cia_aberta_2023.csv&quot;</span><span class="p">,</span>
         <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="s2">&quot;elapsed_ms&quot;</span><span class="p">:</span> <span class="mi">250</span>
     <span class="p">}</span>
 <span class="p">)</span>
 </code></pre></div>
-<p><strong>Saída</strong>:</p>
-<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | meu_modulo | Arquivo processado | filename=data.csv | records=1000 | elapsed_ms=250
+<p><strong>Console Output</strong>:</p>
+<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | my_pipeline_module | Dataset normalization completed | filename=dfp_cia_aberta_2023.csv | records=1000 | elapsed_ms=250
 </code></pre></div>
 <hr />
-<h2 id="configuracao">Configuração<a class="headerlink" href="#configuracao" title="Link para esta seção">&para;</a></h2>
-<h3 id="niveis-de-log">Níveis de Log<a class="headerlink" href="#niveis-de-log" title="Link para esta seção">&para;</a></h3>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Link para esta seção">&para;</a></h2>
+<h3 id="severity-level-thresholds">Severity Level Thresholds<a class="headerlink" href="#severity-level-thresholds" title="Link para esta seção">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Nível</th>
-<th>Uso</th>
-<th>Exemplo</th>
+<th>Severity Level</th>
+<th>Operational Scope</th>
+<th>Typical Example Event</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>DEBUG</strong></td>
-<td>Informações detalhadas para debugging</td>
-<td>Valores de variáveis, fluxo de execução</td>
+<td>Deep diagnostic execution traces</td>
+<td>Variable parameter inspections, worker loop steps</td>
 </tr>
 <tr>
 <td><strong>INFO</strong></td>
-<td>Confirmação de funcionamento normal</td>
-<td>&ldquo;Download iniciado&rdquo;, &ldquo;Arquivo salvo&rdquo;</td>
+<td>Standard operational lifecycle metrics</td>
+<td>&ldquo;Download initiated&rdquo;, &ldquo;Parquet file persisted&rdquo;</td>
 </tr>
 <tr>
 <td><strong>WARNING</strong></td>
-<td>Alerta de situação inesperada</td>
-<td>&ldquo;Arquivo já existe&rdquo;, &ldquo;Timeout, tentando novamente&rdquo;</td>
+<td>Recoverable anomalies or degradations</td>
+<td>&ldquo;Target archive exists, skipping&rdquo;, &ldquo;Timeout retry&rdquo;</td>
 </tr>
 <tr>
 <td><strong>ERROR</strong></td>
-<td>Erro que não impede execução</td>
-<td>&ldquo;Falha ao baixar arquivo X&rdquo;</td>
+<td>Non-fatal operation exceptions</td>
+<td>&ldquo;Failed downloading individual DFP table slice&rdquo;</td>
 </tr>
 <tr>
 <td><strong>CRITICAL</strong></td>
-<td>Erro grave que pode parar aplicação</td>
-<td>&ldquo;Disco cheio&rdquo;, &ldquo;Sem memória&rdquo;</td>
+<td>Severe failures impacting overall runtime</td>
+<td>&ldquo;Storage exhaustion detected&rdquo;, &ldquo;Out of memory&rdquo;</td>
 </tr>
 </tbody>
 </table>
-<h3 id="configuracao-via-codigo">Configuração via Código<a class="headerlink" href="#configuracao-via-codigo" title="Link para esta seção">&para;</a></h3>
+<h3 id="programmatic-configuration">Programmatic Configuration<a class="headerlink" href="#programmatic-configuration" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 
-<span class="c1"># Configuração básica</span>
+<span class="c1"># Standard activation</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 
-<span class="c1"># Com arquivo de log</span>
+<span class="c1"># Route logging outputs directly to a filesystem log destination</span>
 <span class="n">setup_logging</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
-    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/var/log/datafin.log&quot;</span>
+    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/var/log/datafinance/execution.log&quot;</span>
 <span class="p">)</span>
 
-<span class="c1"># Formato detalhado (com linhas e funções)</span>
+<span class="c1"># Enable detailed formatting (includes precise line numbers and symbol signatures)</span>
 <span class="n">setup_logging</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
     <span class="n">use_detailed_format</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </code></pre></div>
-<h3 id="configuracao-via-variaveis-de-ambiente">Configuração via Variáveis de Ambiente<a class="headerlink" href="#configuracao-via-variaveis-de-ambiente" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Nível de log</span>
+<h3 id="environment-variable-configuration">Environment Variable Configuration<a class="headerlink" href="#environment-variable-configuration" title="Link para esta seção">&para;</a></h3>
+<p>Confirmed environment configuration parameter names:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Define threshold level</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">DATAFIN_LOG_LEVEL</span><span class="o">=</span>DEBUG
 
-<span class="c1"># Arquivo de log</span>
+<span class="c1"># Direct logging output to file destination</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">DATAFIN_LOG_FILE</span><span class="o">=</span>/var/log/datafin.log
 
-<span class="c1"># Formato detalhado</span>
+<span class="c1"># Enable detailed structural reporting</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">DATAFIN_LOG_DETAILED_FORMAT</span><span class="o">=</span><span class="nb">true</span>
 
-<span class="c1"># Structured logging (JSON - futuro)</span>
+<span class="c1"># Toggle structured formatting</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">DATAFIN_LOG_STRUCTURED</span><span class="o">=</span><span class="nb">true</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 
-<span class="c1"># Usa configurações das variáveis de ambiente</span>
+<span class="c1"># Ingest settings directly from environment declarations</span>
 <span class="n">setup_logging</span><span class="p">()</span>
 </code></pre></div>
 <hr />
-<h2 id="recursos-avancados">Recursos Avançados<a class="headerlink" href="#recursos-avancados" title="Link para esta seção">&para;</a></h2>
-<h3 id="performance-timing">Performance Timing<a class="headerlink" href="#performance-timing" title="Link para esta seção">&para;</a></h3>
-<p>Use o context manager <code>log_execution_time()</code> para medir tempo de operações:</p>
+<h2 id="advanced-capabilities">Advanced Capabilities<a class="headerlink" href="#advanced-capabilities" title="Link para esta seção">&para;</a></h2>
+<h3 id="performance-timing-latency-profiling">Performance Timing &amp; Latency Profiling<a class="headerlink" href="#performance-timing-latency-profiling" title="Link para esta seção">&para;</a></h3>
+<p>Leverage the automated <code>log_execution_time()</code> context manager to track operational durations:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_execution_time</span><span class="p">,</span> <span class="n">get_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;Parse ZIP file&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;data.zip&quot;</span><span class="p">):</span>
-    <span class="n">parse_file</span><span class="p">(</span><span class="s2">&quot;data.zip&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;Parse COTAHIST ZIP archive&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;COTAHIST_A2023.ZIP&quot;</span><span class="p">):</span>
+    <span class="n">parse_file</span><span class="p">(</span><span class="s2">&quot;COTAHIST_A2023.ZIP&quot;</span><span class="p">)</span>
 </code></pre></div>
-<p><strong>Saída</strong>:</p>
-<div class="highlight"><pre><span></span><code>Starting: Parse ZIP file | operation=Parse ZIP file | filename=data.zip
-Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | filename=data.zip
+<p><strong>Console Output</strong>:</p>
+<div class="highlight"><pre><span></span><code>Starting: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | filename=COTAHIST_A2023.ZIP
+Completed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=2.45 | filename=COTAHIST_A2023.ZIP
 </code></pre></div>
-<p>Se ocorrer erro:</p>
-<div class="highlight"><pre><span></span><code>Failed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=1.23 | error=File not found | filename=data.zip
+<p>Upon encountering runtime failures:</p>
+<div class="highlight"><pre><span></span><code>Failed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=1.23 | error=File not found | filename=COTAHIST_A2023.ZIP
 </code></pre></div>
-<h3 id="logging-com-contexto">Logging com Contexto<a class="headerlink" href="#logging-com-contexto" title="Link para esta seção">&para;</a></h3>
+<h3 id="contextual-event-reporting">Contextual Event Reporting<a class="headerlink" href="#contextual-event-reporting" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_with_context</span><span class="p">,</span> <span class="n">get_logger</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -1719,39 +1720,39 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
 <span class="n">log_with_context</span><span class="p">(</span>
     <span class="n">logger</span><span class="p">,</span>
     <span class="s2">&quot;info&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Download concluído&quot;</span><span class="p">,</span>
-    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/file.zip&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Parallel download batch completed&quot;</span><span class="p">,</span>
+    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/bundle.zip&quot;</span><span class="p">,</span>
     <span class="n">size_mb</span><span class="o">=</span><span class="mf">125.5</span><span class="p">,</span>
     <span class="n">duration_seconds</span><span class="o">=</span><span class="mi">45</span>
 <span class="p">)</span>
 </code></pre></div>
-<h3 id="verificar-se-logging-esta-configurado">Verificar se Logging está Configurado<a class="headerlink" href="#verificar-se-logging-esta-configurado" title="Link para esta seção">&para;</a></h3>
+<h3 id="confirming-active-configuration-state">Confirming Active Configuration State<a class="headerlink" href="#confirming-active-configuration-state" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_logging_configured</span><span class="p">,</span> <span class="n">setup_logging</span>
 
 <span class="k">if</span> <span class="ow">not</span> <span class="n">is_logging_configured</span><span class="p">():</span>
     <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="obter-configuracoes-atuais">Obter Configurações Atuais<a class="headerlink" href="#obter-configuracoes-atuais" title="Link para esta seção">&para;</a></h3>
+<h3 id="accessing-active-settings-metrics">Accessing Active Settings Metrics<a class="headerlink" href="#accessing-active-settings-metrics" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logging_settings</span>
 
 <span class="n">settings</span> <span class="o">=</span> <span class="n">get_logging_settings</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nível atual: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arquivo de log: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">log_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Formato detalhado: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">detailed_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Active threshold level: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registered file sink: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">log_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detailed syntax enabled: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">detailed_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
-<h2 id="exemplos-praticos">Exemplos Práticos<a class="headerlink" href="#exemplos-praticos" title="Link para esta seção">&para;</a></h2>
-<h3 id="exemplo-1-logging-em-aplicacao">Exemplo 1: Logging em Aplicação<a class="headerlink" href="#exemplo-1-logging-em-aplicacao" title="Link para esta seção">&para;</a></h3>
+<h2 id="practical-examples">Practical Examples<a class="headerlink" href="#practical-examples" title="Link para esta seção">&para;</a></h2>
+<h3 id="example-1-standard-application-logging-integration">Example 1: Standard Application Logging Integration<a class="headerlink" href="#example-1-standard-application-logging-integration" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance</span><span class="w"> </span><span class="kn">import</span> <span class="n">FundamentalStocksDataCVM</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_logger</span>
 
-<span class="c1"># Habilitar logging</span>
-<span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;app.log&quot;</span><span class="p">)</span>
+<span class="c1"># Activate operational logging</span>
+<span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;pipeline.log&quot;</span><span class="p">)</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Aplicação iniciada&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application execution commenced&quot;</span><span class="p">)</span>
 
-<span class="c1"># Usar a biblioteca</span>
+<span class="c1"># Execute library operations</span>
 <span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
 <span class="n">cvm</span><span class="o">.</span><span class="n">download</span><span class="p">(</span>
     <span class="n">destination_path</span><span class="o">=</span><span class="s2">&quot;/data/cvm&quot;</span><span class="p">,</span>
@@ -1759,17 +1760,17 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
     <span class="n">initial_year</span><span class="o">=</span><span class="mi">2023</span>
 <span class="p">)</span>
 
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Aplicação finalizada&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application execution finished successfully&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="exemplo-2-debug-de-problemas">Exemplo 2: Debug de Problemas<a class="headerlink" href="#exemplo-2-debug-de-problemas" title="Link para esta seção">&para;</a></h3>
+<h3 id="example-2-diagnostic-debugging-configuration">Example 2: Diagnostic Debugging Configuration<a class="headerlink" href="#example-2-diagnostic-debugging-configuration" title="Link para esta seção">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance</span><span class="w"> </span><span class="kn">import</span> <span class="n">HistoricalQuotesB3</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 
-<span class="c1"># Nível DEBUG para troubleshooting</span>
+<span class="c1"># Enable DEBUG intensity alongside detailed function line signatures</span>
 <span class="n">setup_logging</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
-    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/tmp/debug.log&quot;</span><span class="p">,</span>
-    <span class="n">use_detailed_format</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Inclui linhas e funções</span>
+    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/tmp/datafinance_debug.log&quot;</span><span class="p">,</span>
+    <span class="n">use_detailed_format</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 
 <span class="n">b3</span> <span class="o">=</span> <span class="n">HistoricalQuotesB3</span><span class="p">()</span>
@@ -1779,8 +1780,8 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
     <span class="n">initial_year</span><span class="o">=</span><span class="mi">2023</span>
 <span class="p">)</span>
 </code></pre></div>
-<h3 id="exemplo-3-logging-customizado-em-modulo-proprio">Exemplo 3: Logging Customizado em Módulo Próprio<a class="headerlink" href="#exemplo-3-logging-customizado-em-modulo-proprio" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># meu_script.py</span>
+<h3 id="example-3-dedicated-module-logger-patterns">Example 3: Dedicated Module Logger Patterns<a class="headerlink" href="#example-3-dedicated-module-logger-patterns" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># my_processing_pipeline.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance</span><span class="w"> </span><span class="kn">import</span> <span class="n">FundamentalStocksDataCVM</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">setup_logging</span><span class="p">,</span>
@@ -1788,16 +1789,13 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
     <span class="n">log_execution_time</span>
 <span class="p">)</span>
 
-<span class="c1"># Configurar logging</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
-
-<span class="c1"># Criar logger para este módulo</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">processar_dados</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Iniciando processamento&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_financial_filings</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting filing processing workflow&quot;</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;Download CVM&quot;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;CVM Document Extraction&quot;</span><span class="p">):</span>
         <span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
         <span class="n">cvm</span><span class="o">.</span><span class="n">download</span><span class="p">(</span>
             <span class="n">destination_path</span><span class="o">=</span><span class="s2">&quot;/data/cvm&quot;</span><span class="p">,</span>
@@ -1805,94 +1803,87 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
             <span class="n">initial_year</span><span class="o">=</span><span class="mi">2023</span>
         <span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processamento concluído&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Workflow execution completed cleanly&quot;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">processar_dados</span><span class="p">()</span>
+    <span class="n">process_financial_filings</span><span class="p">()</span>
 </code></pre></div>
 <hr />
-<h2 id="formatos-de-log">Formatos de Log<a class="headerlink" href="#formatos-de-log" title="Link para esta seção">&para;</a></h2>
-<h3 id="formato-padrao">Formato Padrão<a class="headerlink" href="#formato-padrao" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | módulo.nome | Mensagem de log
+<h2 id="log-layout-specifications">Log Layout specifications<a class="headerlink" href="#log-layout-specifications" title="Link para esta seção">&para;</a></h2>
+<h3 id="default-syntax">Default Syntax<a class="headerlink" href="#default-syntax" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | module.name | Log text content
 </code></pre></div>
-<h3 id="formato-detalhado">Formato Detalhado<a class="headerlink" href="#formato-detalhado" title="Link para esta seção">&para;</a></h3>
-<p>Inclui número de linha e nome da função:</p>
-<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | módulo.nome:123 | função_nome | Mensagem de log
+<h3 id="detailed-syntax">Detailed Syntax<a class="headerlink" href="#detailed-syntax" title="Link para esta seção">&para;</a></h3>
+<p>Appends exact module line numbering and caller function terminology:</p>
+<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | module.name:123 | caller_function_name | Log text content
 </code></pre></div>
-<h3 id="formato-com-dados-contextuais">Formato com Dados Contextuais<a class="headerlink" href="#formato-com-dados-contextuais" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | módulo | Mensagem | campo1=valor1 | campo2=valor2
+<h3 id="context-enriched-syntax">Context-Enriched Syntax<a class="headerlink" href="#context-enriched-syntax" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>2025-11-25 17:30:00 | INFO     | module.name | Message | key1=value1 | key2=value2
 </code></pre></div>
 <hr />
-<h2 id="boas-praticas">Boas Práticas<a class="headerlink" href="#boas-praticas" title="Link para esta seção">&para;</a></h2>
-<h3 id="1-sempre-use-get_logger__name__">1. Sempre use <code>get_logger(__name__)</code><a class="headerlink" href="#1-sempre-use-get_logger__name__" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correto - hierarquia de nomes</span>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Link para esta seção">&para;</a></h2>
+<h3 id="1-consistently-register-module-hierarchies-via-get_logger__name__">1. Consistently Register Module Hierarchies via <code>get_logger(__name__)</code><a class="headerlink" href="#1-consistently-register-module-hierarchies-via-get_logger__name__" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correct - preserve clean namespace nesting</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># ❌ Evite - nome hardcoded</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;meu_logger&quot;</span><span class="p">)</span>
+<span class="c1"># ❌ Discouraged - using isolated literal identifier names</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;my_logger&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="2-use-niveis-apropriados">2. Use Níveis Apropriados<a class="headerlink" href="#2-use-niveis-apropriados" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correto</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Valor da variável x: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Download iniciado&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Arquivo já existe, pulando&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Falha ao processar arquivo&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<h3 id="2-match-severity-levels-accurately-to-impact">2. Match Severity Levels Accurately to Impact<a class="headerlink" href="#2-match-severity-levels-accurately-to-impact" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correct usage</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Inspected iteration state variable: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extraction loop commenced&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Archive verification checksum bypassed&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed decompressing archive file&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="c1"># ❌ Evite - nível errado</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Valor de debug: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>  <span class="c1"># Use DEBUG</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Arquivo processado&quot;</span><span class="p">)</span>     <span class="c1"># Use INFO</span>
+<span class="c1"># ❌ Discouraged usage</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loop index variable: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>  <span class="c1"># Should utilize DEBUG</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Completed extraction step&quot;</span><span class="p">)</span>      <span class="c1"># Should utilize INFO</span>
 </code></pre></div>
-<h3 id="3-use-structured-logging">3. Use Structured Logging<a class="headerlink" href="#3-use-structured-logging" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correto - dados estruturados</span>
+<h3 id="3-rely-on-structured-metadata-dictionaries">3. Rely on Structured Metadata Dictionaries<a class="headerlink" href="#3-rely-on-structured-metadata-dictionaries" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correct - explicit structured field assignment</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-    <span class="s2">&quot;Arquivo processado&quot;</span><span class="p">,</span>
-    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;data.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;size_mb&quot;</span><span class="p">:</span> <span class="mf">10.5</span><span class="p">}</span>
+    <span class="s2">&quot;Dataframe normalized&quot;</span><span class="p">,</span>
+    <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;cotahist.parquet&quot;</span><span class="p">,</span> <span class="s2">&quot;size_mb&quot;</span><span class="p">:</span> <span class="mf">10.5</span><span class="p">}</span>
 <span class="p">)</span>
 
-<span class="c1"># ❌ Evite - string interpolation</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Arquivo data.csv processado, tamanho: 10.5 MB&quot;</span><span class="p">)</span>
+<span class="c1"># ❌ Discouraged - mixing unparseable values within string interpolation</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File cotahist.parquet processed with size: 10.5 MB&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="4-use-context-manager-para-timing">4. Use Context Manager para Timing<a class="headerlink" href="#4-use-context-manager-para-timing" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correto - medição automática</span>
-<span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;Download&quot;</span><span class="p">):</span>
+<h3 id="4-harness-context-managers-for-latency-profiling">4. Harness Context Managers for Latency Profiling<a class="headerlink" href="#4-harness-context-managers-for-latency-profiling" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># ✅ Correct - automated exception tracking and duration timing</span>
+<span class="k">with</span> <span class="n">log_execution_time</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="s2">&quot;Download Workflow&quot;</span><span class="p">):</span>
     <span class="n">download_files</span><span class="p">()</span>
 
-<span class="c1"># ❌ Evite - medição manual</span>
+<span class="c1"># ❌ Discouraged - manual timer bookkeeping</span>
 <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 <span class="n">download_files</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Levou </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Execution took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link para esta seção">&para;</a></h2>
-<h3 id="nao-vejo-nenhum-log">Não vejo nenhum log<a class="headerlink" href="#nao-vejo-nenhum-log" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Certifique-se de chamar setup_logging()</span>
+<h3 id="log-outputs-are-not-displayed-in-the-console">Log outputs are not displayed in the console<a class="headerlink" href="#log-outputs-are-not-displayed-in-the-console" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Confirm explicit initialization was performed</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="logs-duplicados">Logs duplicados<a class="headerlink" href="#logs-duplicados" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Não chame setup_logging() múltiplas vezes</span>
-<span class="c1"># Se precisar reconfigurar, é seguro chamar novamente</span>
-<span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>  <span class="c1"># Reconfigura</span>
+<h3 id="duplicate-log-statements-emitting-simultaneously">Duplicate log statements emitting simultaneously<a class="headerlink" href="#duplicate-log-statements-emitting-simultaneously" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ensure setup_logging() is not instantiated within internal functional loops;</span>
+<span class="c1"># Re-invoking setup_logging() dynamically reconfigures existing root handlers cleanly.</span>
+<span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="logging-em-arquivo-nao-funciona">Logging em arquivo não funciona<a class="headerlink" href="#logging-em-arquivo-nao-funciona" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Verifique permissões do diretório</span>
+<h3 id="filesystem-log-generation-fails-with-permissions-exceptions">Filesystem log generation fails with permissions exceptions<a class="headerlink" href="#filesystem-log-generation-fails-with-permissions-exceptions" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Ensure appropriate directory read/write capability exists for target destinations</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/var/log/app.log&quot;</span><span class="p">)</span>
 
-<span class="c1"># Se não tiver permissão, use /tmp ou diretório home</span>
+<span class="c1"># On unprivileged user workstations, direct sinks toward /tmp or user profile folders</span>
 <span class="n">setup_logging</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/tmp/app.log&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
-<h2 id="referencias">Referências<a class="headerlink" href="#referencias" title="Link para esta seção">&para;</a></h2>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Link para esta seção">&para;</a></h2>
 <ul>
-<li><a href="https://docs.python.org/3/library/logging.html">Documentação Oficial Python Logging</a></li>
-<li><a href="https://docs.python.org/3/howto/logging.html">Logging Best Practices</a></li>
-<li><a href="https://www.structlog.org/">Structured Logging</a></li>
-</ul>
-<hr />
-<p>Veja também:</p>
-<ul>
-<li><a href="../advanced-usage/#configuracao-global">Configuração</a> - Configurações globais</li>
-<li><a href="../advanced-usage/">Advanced Usage</a> - Uso avançado do sistema</li>
+<li><a href="../advanced-usage/#global-configuration-tuning">Global Configuration</a> - Settings &amp; environment variables</li>
+<li><a href="../advanced-usage/">Advanced Usage</a> - Deep optimization patterns and integration recipes</li>
 </ul>
 
 
@@ -1919,7 +1910,7 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Voltar ao topo
+  Back to top
 </button>
         
       </main>
@@ -1984,12 +1975,12 @@ Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | fi
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="../../assets/javascripts/wide-toggle.js"></script>
+        <script src="../../../assets/javascripts/wide-toggle.js"></script>
       
     
   </body>

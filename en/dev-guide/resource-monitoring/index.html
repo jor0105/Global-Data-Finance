@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="pt" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -12,35 +12,35 @@
         <meta name="author" content="Jordan Estralioto">
       
       
-        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/testing/">
+        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/resource-monitoring/">
       
       
-        <link rel="prev" href="../contributing/">
+        <link rel="prev" href="../logging-system/">
       
       
-        <link rel="next" href="../advanced-usage/">
+        <link rel="next" href="../retry-strategy/">
       
       
         
-          <link rel="alternate" href="./" hreflang="pt">
+          <link rel="alternate" href="../../../dev-guide/resource-monitoring/" hreflang="pt">
         
-          <link rel="alternate" href="../../en/dev-guide/testing/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Testes - Global-Data-Finance</title>
+        <title>Resource Monitoring - Global-Data-Finance</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -61,9 +61,9 @@
     
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     
-      <link rel="stylesheet" href="../../assets/stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -88,8 +88,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#testes" class="md-skip">
-          Ir para o conteúdo
+        <a href="#resource-monitoring" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -101,8 +101,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
-    <a href="../.." title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Testes
+              Resource Monitoring
             
           </span>
         </div>
@@ -162,20 +162,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Selecione o idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="pt" class="md-select__link">
+            <a href="../../../dev-guide/resource-monitoring/" hreflang="pt" class="md-select__link">
               Português
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/dev-guide/testing/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -196,21 +196,21 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Pesquisar">
+      <nav class="md-search__options" aria-label="Search">
         
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartilhar" aria-label="Compartilhar" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
             
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
           </a>
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -223,7 +223,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando a pesquisa
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +235,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -256,7 +256,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -266,13 +266,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Início
+  Home
 
       </a>
     </li>
@@ -291,7 +291,7 @@
           
   
   
-  Guia do Usuário
+  User Guide
 
         </a>
       </li>
@@ -313,7 +313,7 @@
           
   
   
-  Guia do Desenvolvedor
+  Developer Guide
 
         </a>
       </li>
@@ -333,7 +333,7 @@
           
   
   
-  Referência Técnica
+  Technical Reference
 
         </a>
       </li>
@@ -363,9 +363,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegação" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+    <a href="../../" title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -375,7 +375,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -395,14 +395,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Início
+    Home
   
 
     
@@ -445,7 +445,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Usuário
+    User Guide
   
 
     
@@ -461,7 +461,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Usuário
+    User Guide
   
 
           </label>
@@ -481,7 +481,7 @@
   <span class="md-ellipsis">
     
   
-    Instalação
+    Installation
   
 
     
@@ -509,7 +509,7 @@
   <span class="md-ellipsis">
     
   
-    Início Rápido
+    Quickstart
   
 
     
@@ -537,7 +537,7 @@
   <span class="md-ellipsis">
     
   
-    Documentos CVM
+    CVM Documents
   
 
     
@@ -565,7 +565,7 @@
   <span class="md-ellipsis">
     
   
-    Cotações Históricas B3
+    B3 Historical Quotes
   
 
     
@@ -593,7 +593,7 @@
   <span class="md-ellipsis">
     
   
-    Exemplos Práticos
+    Practical Examples
   
 
     
@@ -677,7 +677,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
     
@@ -693,7 +693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
           </label>
@@ -713,7 +713,7 @@
   <span class="md-ellipsis">
     
   
-    Arquitetura
+    Architecture
   
 
     
@@ -741,7 +741,7 @@
   <span class="md-ellipsis">
     
   
-    Referência da API
+    API Reference
   
 
     
@@ -769,7 +769,91 @@
   <span class="md-ellipsis">
     
   
-    Como Contribuir
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging System
   
 
     
@@ -806,7 +890,7 @@
   <span class="md-ellipsis">
     
   
-    Testes
+    Resource Monitoring
   
 
     
@@ -824,7 +908,7 @@
   <span class="md-ellipsis">
     
   
-    Testes
+    Resource Monitoring
   
 
     
@@ -836,7 +920,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Índice">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -845,15 +929,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Índice
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#estrutura-de-testes" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Estrutura de Testes
+        Overview
       
     </span>
   </a>
@@ -861,44 +945,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executando-testes" class="md-nav__link">
+  <a href="#resource-saturation-states" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Executando Testes
+        Resource Saturation States
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Executando Testes">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#todos-os-testes" class="md-nav__link">
+  <a href="#configuring-resourcelimits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Todos os Testes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#com-cobertura" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Com Cobertura
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#marcadores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Marcadores
+        Configuring ResourceLimits
       
     </span>
   </a>
@@ -911,22 +984,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#escrevendo-testes" class="md-nav__link">
+  <a href="#public-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Escrevendo Testes
+        Public API
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Escrevendo Testes">
+    <nav class="md-nav" aria-label="Public API">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#teste-unitario" class="md-nav__link">
+  <a href="#instantiate-singleton-monitor" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Teste Unitário
+        Instantiate Singleton Monitor
       
     </span>
   </a>
@@ -934,10 +1007,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#estrategias-de-mocking" class="md-nav__link">
+  <a href="#inspect-current-resource-state" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Estratégias de Mocking
+        Inspect Current Resource State
       
     </span>
   </a>
@@ -945,10 +1018,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#teste-de-integracao" class="md-nav__link">
+  <a href="#calculate-safe-worker-concurrency" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Teste de Integração
+        Calculate Safe Worker Concurrency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculate-safe-batch-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculate Safe Batch Size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pause-until-resources-free-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pause Until Resources Free Up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-current-process-ram-footprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Current Process RAM Footprint
       
     </span>
   </a>
@@ -961,10 +1067,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fixtures" class="md-nav__link">
+  <a href="#automated-adapter-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fixtures
+        Automated Adapter Integration
       
     </span>
   </a>
@@ -972,10 +1078,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cobertura" class="md-nav__link">
+  <a href="#practical-standalone-scripting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cobertura
+        Practical Standalone Scripting
       
     </span>
   </a>
@@ -983,10 +1089,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cicd" class="md-nav__link">
+  <a href="#external-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CI/CD
+        External Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
       
     </span>
   </a>
@@ -1009,90 +1126,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced-usage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Uso Avançado
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../logging-system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Sistema de Logging
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource-monitoring/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Monitoramento de Recursos
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../retry-strategy/" class="md-nav__link">
         
   
@@ -1100,7 +1133,7 @@
   <span class="md-ellipsis">
     
   
-    Estratégia de Retry
+    Retry Strategy
   
 
     
@@ -1151,7 +1184,7 @@
   <span class="md-ellipsis">
     
   
-    Referência Técnica
+    Technical Reference
   
 
     
@@ -1167,7 +1200,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referência Técnica
+    Technical Reference
   
 
           </label>
@@ -1187,7 +1220,7 @@
   <span class="md-ellipsis">
     
   
-    API CVM
+    CVM API
   
 
     
@@ -1215,7 +1248,7 @@
   <span class="md-ellipsis">
     
   
-    API B3
+    B3 API
   
 
     
@@ -1243,7 +1276,7 @@
   <span class="md-ellipsis">
     
   
-    Exceções
+    Exceptions
   
 
     
@@ -1284,149 +1317,157 @@
   
 
 
-<h1 id="testes">Testes<a class="headerlink" href="#testes" title="Link para esta seção">&para;</a></h1>
-<p>Guia completo sobre testes no Global-Data-Finance.</p>
+<h1 id="resource-monitoring">Resource Monitoring<a class="headerlink" href="#resource-monitoring" title="Link para esta seção">&para;</a></h1>
+<p>Comprehensive documentation detailing the telemetry and resource monitoring subsystem built into Global-Data-Finance.</p>
 <hr />
-<h2 id="estrutura-de-testes">Estrutura de Testes<a class="headerlink" href="#estrutura-de-testes" title="Link para esta seção">&para;</a></h2>
-<p>A árvore de testes espelha cada fonte. Os subdiretórios dentro de cada feature são <strong>organizacionais</strong> (agrupam por tópico para legibilidade), não arquiteturais — qualquer teste importa diretamente dos módulos da fonte (<code>from globaldatafinance.brazil.&lt;país&gt;.&lt;fonte&gt;.&lt;módulo&gt; import ...</code>).</p>
-<div class="highlight"><pre><span></span><code>tests/
-├── application/                       # tests do facade público
-│   ├── cvm_docs/
-│   └── b3_docs/
-│       └── result_formatters/
-├── brazil/
-│   ├── b3_data/
-│   │   └── historical_quotes/         # layout plano: 21 test_*.py diretamente na pasta
-│   └── cvm/
-│       └── fundamental_stocks_data/
-│           ├── application/use_cases/ # tests de orquestração (client.py)
-│           ├── domain/                # tests de value objects e validators (core.py)
-│           ├── infra/adapters/        # tests dos adapters concretos (http.py, extract.py)
-│           ├── exceptions/            # tests das exceções (errors.py)
-│           └── integration/           # tests integration-marker
-├── core/
-├── macro_infra/
-└── macro_exceptions/
-</code></pre></div>
-<hr />
-<h2 id="executando-testes">Executando Testes<a class="headerlink" href="#executando-testes" title="Link para esta seção">&para;</a></h2>
-<h3 id="todos-os-testes">Todos os Testes<a class="headerlink" href="#todos-os-testes" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest
-</code></pre></div>
-<h3 id="com-cobertura">Com Cobertura<a class="headerlink" href="#com-cobertura" title="Link para esta seção">&para;</a></h3>
-<p><code>pytest.ini</code> já força <code>fail_under = 70</code> na cobertura agregada.</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>html
-</code></pre></div>
-<h3 id="marcadores">Marcadores<a class="headerlink" href="#marcadores" title="Link para esta seção">&para;</a></h3>
-<p>Os markers registrados em <code>pytest.ini</code> são: <code>unit</code>, <code>integration</code>, <code>slow</code>, <code>asyncio</code> (com <code>--strict-markers</code>, então qualquer marker não declarado falha).</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Apenas testes unitários</span>
-uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>unit
-
-<span class="c1"># Apenas testes de integração</span>
-uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>integration
-
-<span class="c1"># Combinar markers</span>
-uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;integration and not slow&quot;</span>
-</code></pre></div>
-<hr />
-<h2 id="escrevendo-testes">Escrevendo Testes<a class="headerlink" href="#escrevendo-testes" title="Link para esta seção">&para;</a></h2>
-<h3 id="teste-unitario">Teste Unitário<a class="headerlink" href="#teste-unitario" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.brazil.cvm.fundamental_stocks_data.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AvailableDocsCVM</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.brazil.cvm.fundamental_stocks_data.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">InvalidDocumentName</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">unit</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">TestAvailableDocs</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">test_validate_valid_doc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verifica validação de documento válido.&quot;&quot;&quot;</span>
-        <span class="n">docs</span> <span class="o">=</span> <span class="n">AvailableDocsCVM</span><span class="p">()</span>
-        <span class="n">docs</span><span class="o">.</span><span class="n">validate_docs_name</span><span class="p">(</span><span class="s2">&quot;DFP&quot;</span><span class="p">)</span>  <span class="c1"># Passa sem exceção</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">test_validate_invalid_doc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verifica se InvalidDocumentName é lançada para documento inválido.&quot;&quot;&quot;</span>
-        <span class="n">docs</span> <span class="o">=</span> <span class="n">AvailableDocsCVM</span><span class="p">()</span>
-        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">InvalidDocumentName</span><span class="p">):</span>
-            <span class="n">docs</span><span class="o">.</span><span class="n">validate_docs_name</span><span class="p">(</span><span class="s2">&quot;INVALID&quot;</span><span class="p">)</span>
-</code></pre></div>
-<blockquote>
-<p>Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em <code>brazil.cvm.fundamental_stocks_data.core</code> e <code>brazil.cvm.fundamental_stocks_data.errors</code>; para B3 a divisão é mais granular — entidades em <code>models.py</code>, value objects em <code>years.py</code>/<code>processing.py</code>, validators de filesystem em <code>filesystem.py</code>, asset services em <code>assets.py</code>, exceções em <code>errors.py</code>.</p>
-</blockquote>
-<h3 id="estrategias-de-mocking">Estratégias de Mocking<a class="headerlink" href="#estrategias-de-mocking" title="Link para esta seção">&para;</a></h3>
-<p>Para desacoplar chamadas de I/O de rede ou sistema de arquivos, os testes substituem as dependências via stubs com duck typing ou <code>monkeypatch.setattr</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MockRepository</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">DownloadResultCVM</span><span class="p">(</span>
-            <span class="n">success_count_downloads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="n">error_count_downloads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">successful_downloads</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DFP_2023&quot;</span><span class="p">,</span> <span class="s2">&quot;ITR_2023&quot;</span><span class="p">],</span>
-            <span class="n">failed_downloads</span><span class="o">=</span><span class="p">{},</span>
-        <span class="p">)</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.brazil.cvm.fundamental_stocks_data.client</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">use_case</span> <span class="o">=</span> <span class="n">DownloadDocumentsUseCaseCVM</span><span class="p">(</span><span class="n">MockRepository</span><span class="p">())</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">use_case</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">destination_path</span><span class="o">=</span><span class="s2">&quot;/tmp/cvm&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">success_count_downloads</span> <span class="o">==</span> <span class="mi">2</span>
-</code></pre></div>
-<h3 id="teste-de-integracao">Teste de Integração<a class="headerlink" href="#teste-de-integracao" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance</span><span class="w"> </span><span class="kn">import</span> <span class="n">FundamentalStocksDataCVM</span>
-
-<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">TestFundamentalStocksDataIntegration</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">test_get_available_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Testa obtenção de documentos disponíveis.&quot;&quot;&quot;</span>
-        <span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
-        <span class="n">docs</span> <span class="o">=</span> <span class="n">cvm</span><span class="o">.</span><span class="n">get_available_docs</span><span class="p">()</span>
-
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="k">assert</span> <span class="s2">&quot;DFP&quot;</span> <span class="ow">in</span> <span class="n">docs</span>
-</code></pre></div>
-<hr />
-<h2 id="fixtures">Fixtures<a class="headerlink" href="#fixtures" title="Link para esta seção">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">temp_dir</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cria diretório temporário para testes.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">tmp_path</span>
-
-<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">sample_zip_file</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cria arquivo ZIP de exemplo.&quot;&quot;&quot;</span>
-    <span class="n">zip_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;test.zip&quot;</span>
-    <span class="c1"># Criar ZIP...</span>
-    <span class="k">return</span> <span class="n">zip_path</span>
-</code></pre></div>
-<hr />
-<h2 id="cobertura">Cobertura<a class="headerlink" href="#cobertura" title="Link para esta seção">&para;</a></h2>
-<p>Objetivo: <strong>&gt;= 70% de cobertura agregada</strong> (enforced via <code>fail_under = 70</code> em <code>pytest.ini</code>). O alvo prático é <code>&gt;= 80%</code> em módulos novos.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Gerar relatório</span>
-uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
-
-<span class="c1"># Relatório HTML</span>
-uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>html
-open<span class="w"> </span>htmlcov/index.html
-</code></pre></div>
-<hr />
-<h2 id="cicd">CI/CD<a class="headerlink" href="#cicd" title="Link para esta seção">&para;</a></h2>
-<p>Testes são executados automaticamente em:</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Link para esta seção">&para;</a></h2>
+<p>The <code>ResourceMonitor</code> class represents an advanced, dynamic CPU and RAM telemetry engine offering:</p>
 <ul>
-<li>Push para <code>main</code> ou <code>develop</code></li>
-<li>Pull Requests</li>
-<li>Releases</li>
+<li>✅ <strong>Singleton Architecture</strong>: Guaranteed singular telemetry instance across application lifecycles</li>
+<li>✅ <strong>Automated Throttling</strong>: Automatically adjusts concurrent worker limits and batch dimensions according to real-time resources</li>
+<li>✅ <strong>Circuit Breaker Integration</strong>: Temporarily pauses I/O processing operations whenever hardware saturation reaches critical thresholds</li>
+<li>✅ <strong>Automated Garbage Collection</strong>: Explicitly invokes memory garbage collection cycles during memory pressure spikes</li>
 </ul>
 <hr />
-<p>Veja também:</p>
+<h2 id="resource-saturation-states">Resource Saturation States<a class="headerlink" href="#resource-saturation-states" title="Link para esta seção">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>State Definition</th>
+<th>Operational Description</th>
+<th>Triggered Response Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HEALTHY</strong></td>
+<td>Normal execution resource footprint</td>
+<td>No throttling or remediation required</td>
+</tr>
+<tr>
+<td><strong>WARNING</strong></td>
+<td>Resource consumption exceeds 70-80%</td>
+<td>Evaluates and registers GC execution</td>
+</tr>
+<tr>
+<td><strong>CRITICAL</strong></td>
+<td>Consumption exceeds 85-90%</td>
+<td>Downscales workers/batches, forces GC</td>
+</tr>
+<tr>
+<td><strong>EXHAUSTED</strong></td>
+<td>System usage surpasses 95% threshold</td>
+<td>Activates execution circuit breaker</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Link para esta seção">&para;</a></h2>
+<h3 id="configuring-resourcelimits">Configuring <code>ResourceLimits</code><a class="headerlink" href="#configuring-resourcelimits" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.resource_monitor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResourceLimits</span>
+
+<span class="n">limits</span> <span class="o">=</span> <span class="n">ResourceLimits</span><span class="p">(</span>
+    <span class="n">memory_warning_threshold</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span>      <span class="c1"># RAM % threshold triggering WARNING state</span>
+    <span class="n">memory_critical_threshold</span><span class="o">=</span><span class="mf">85.0</span><span class="p">,</span>     <span class="c1"># RAM % threshold triggering CRITICAL state</span>
+    <span class="n">memory_exhausted_threshold</span><span class="o">=</span><span class="mf">95.0</span><span class="p">,</span>    <span class="c1"># RAM % threshold triggering EXHAUSTED state</span>
+    <span class="n">cpu_warning_threshold</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>         <span class="c1"># CPU % threshold triggering WARNING state</span>
+    <span class="n">cpu_critical_threshold</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span>        <span class="c1"># CPU % threshold triggering CRITICAL state</span>
+    <span class="n">min_free_memory_mb</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>             <span class="c1"># Absolute minimum available RAM allowance (MB)</span>
+    <span class="n">auto_gc_on_warning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>            <span class="c1"># Automatically fire garbage collector on WARNING</span>
+    <span class="n">circuit_breaker_cooldown_seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="c1"># Mandatory rest timeout during breaker trips</span>
+    <span class="n">circuit_breaker_enabled</span><span class="o">=</span><span class="kc">True</span>        <span class="c1"># Enable hardware circuit breaker protection</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Link para esta seção">&para;</a></h2>
+<h3 id="instantiate-singleton-monitor">Instantiate Singleton Monitor<a class="headerlink" href="#instantiate-singleton-monitor" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.resource_monitor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResourceMonitor</span>
+
+<span class="c1"># Request default global singleton instance</span>
+<span class="n">monitor</span> <span class="o">=</span> <span class="n">ResourceMonitor</span><span class="p">()</span>
+
+<span class="c1"># Or register custom limit profiles on initial startup</span>
+<span class="n">limits</span> <span class="o">=</span> <span class="n">ResourceLimits</span><span class="p">(</span><span class="n">memory_warning_threshold</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
+<span class="n">monitor</span> <span class="o">=</span> <span class="n">ResourceMonitor</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="inspect-current-resource-state">Inspect Current Resource State<a class="headerlink" href="#inspect-current-resource-state" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">state</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">check_resources</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current telemetry assessment: </span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Returns HEALTHY, WARNING, CRITICAL, or EXHAUSTED</span>
+</code></pre></div>
+<h3 id="calculate-safe-worker-concurrency">Calculate Safe Worker Concurrency<a class="headerlink" href="#calculate-safe-worker-concurrency" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Derive permissible concurrent worker allocation matching available memory and cpu room</span>
+<span class="n">safe_workers</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">get_safe_worker_count</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Allocating </span><span class="si">{</span><span class="n">safe_workers</span><span class="si">}</span><span class="s2"> worker threads&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="calculate-safe-batch-size">Calculate Safe Batch Size<a class="headerlink" href="#calculate-safe-batch-size" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dynamically scale data ingestion batch chunking limits</span>
+<span class="n">safe_batch</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">get_safe_batch_size</span><span class="p">(</span><span class="n">desired_batch_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal adjusted batch size: </span><span class="si">{</span><span class="n">safe_batch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="pause-until-resources-free-up">Pause Until Resources Free Up<a class="headerlink" href="#pause-until-resources-free-up" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.resource_monitor</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResourceState</span>
+
+<span class="c1"># Pause execution thread until resource availability returns below designated thresholds</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">wait_for_resources</span><span class="p">(</span>
+    <span class="n">required_state</span><span class="o">=</span><span class="n">ResourceState</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+    <span class="n">timeout_seconds</span><span class="o">=</span><span class="mi">60</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Resource availability restored within operating boundaries&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;⚠️ Timeout exceeded awaiting resource release&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="query-current-process-ram-footprint">Query Current Process RAM Footprint<a class="headerlink" href="#query-current-process-ram-footprint" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">memory_mb</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">get_process_memory_mb</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Active process consuming: </span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="automated-adapter-integration">Automated Adapter Integration<a class="headerlink" href="#automated-adapter-integration" title="Link para esta seção">&para;</a></h2>
+<p>The <code>ResourceMonitor</code> telemetry engine is deployed automatically inside concrete download and extraction adapters:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># AsyncDownloadAdapterCVM incorporates ResourceMonitor internally to:</span>
+<span class="c1"># - Dynamically scale active HTTP down-stream worker queues</span>
+<span class="c1"># - Compress dataframe batch sizes during periods of RAM exhaustion</span>
+<span class="c1"># - Suspend worker queues temporarily when system resources become CRITICAL</span>
+
+<span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
+<span class="n">cvm</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Resource monitoring triggers transparently inside library routines</span>
+</code></pre></div>
+<hr />
+<h2 id="practical-standalone-scripting">Practical Standalone Scripting<a class="headerlink" href="#practical-standalone-scripting" title="Link para esta seção">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.resource_monitor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ResourceMonitor</span><span class="p">,</span>
+    <span class="n">ResourceState</span>
+<span class="p">)</span>
+
+<span class="n">monitor</span> <span class="o">=</span> <span class="n">ResourceMonitor</span><span class="p">()</span>
+
+<span class="c1"># Verify operational headroom prior to running intensive data operations</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">check_resources</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">ResourceState</span><span class="o">.</span><span class="n">EXHAUSTED</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;System entering EXHAUSTED capacity state! Awaiting cooldown...&quot;</span><span class="p">)</span>
+    <span class="n">monitor</span><span class="o">.</span><span class="n">wait_for_resources</span><span class="p">(</span><span class="n">timeout_seconds</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+
+<span class="c1"># Retrieve safe concurrent worker threshold</span>
+<span class="n">workers</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">get_safe_worker_count</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">process_data</span><span class="p">(</span><span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+
+<span class="c1"># Track memory footprint</span>
+<span class="n">memory</span> <span class="o">=</span> <span class="n">monitor</span><span class="o">.</span><span class="n">get_process_memory_mb</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final runtime consumption: </span><span class="si">{</span><span class="n">memory</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="external-dependencies">External Dependencies<a class="headerlink" href="#external-dependencies" title="Link para esta seção">&para;</a></h2>
+<p>The monitoring module requires <code>psutil</code> to query OS-level process stats:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>psutil
+</code></pre></div>
+<p>If <code>psutil</code> is absent or unreadable, the monitoring engine operates silently in a fallback degraded mode (consistently returning <code>ResourceState.HEALTHY</code>).</p>
+<hr />
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Link para esta seção">&para;</a></h2>
 <ul>
-<li><a href="../contributing/">Como Contribuir</a></li>
-<li><a href="../architecture/">Arquitetura</a></li>
+<li><a href="../retry-strategy/">Retry Strategy Guide</a> - Exponential retry loop configuration</li>
+<li><a href="../advanced-usage/">Advanced Usage Guide</a> - Optimization techniques and workflow integration</li>
 </ul>
 
 
@@ -1453,7 +1494,7 @@ open<span class="w"> </span>htmlcov/index.html
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Voltar ao topo
+  Back to top
 </button>
         
       </main>
@@ -1518,12 +1559,12 @@ open<span class="w"> </span>htmlcov/index.html
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="../../assets/javascripts/wide-toggle.js"></script>
+        <script src="../../../assets/javascripts/wide-toggle.js"></script>
       
     
   </body>
