@@ -5,6 +5,12 @@ from local COTAHIST files (e.g. COTAHIST_A2023.ZIP or .TXT) saved in
 'path_of_docs' and generate a consolidated Parquet file.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure examples import active repository code (src/) rather than installed package
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
+
 from globaldatafinance import HistoricalQuotesB3
 
 

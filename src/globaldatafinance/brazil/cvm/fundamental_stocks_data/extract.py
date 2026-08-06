@@ -46,7 +46,10 @@ class ParquetExtractorAdapterCVM:
 
         except Exception as e:
             logger.error(
-                'Unexpected error during extraction of %s: %s', source_path, e
+                'Unexpected error during extraction of %s: %s',
+                source_path,
+                e,
+                exc_info=True,
             )
             raise ExtractionError(
                 source_path,
@@ -90,7 +93,10 @@ class ParquetExtractorAdapterCVM:
                         raise
                     except Exception as e:
                         logger.error(
-                            'Failed to extract %s: %s', csv_filename, e
+                            'Failed to extract %s: %s',
+                            csv_filename,
+                            e,
+                            exc_info=True,
                         )
                         failed_files.append((csv_filename, str(e)))
                         continue
@@ -180,6 +186,11 @@ class ParquetExtractorAdapterCVM:
             except Exception as err:
                 error_msg = f'{file_path.name}: {err}'
                 cleanup_errors.append(error_msg)
-                logger.error('Failed to cleanup %s: %s', file_path.name, err)
+                logger.error(
+                    'Failed to cleanup %s: %s',
+                    file_path.name,
+                    err,
+                    exc_info=True,
+                )
 
         return cleanup_count, cleanup_errors

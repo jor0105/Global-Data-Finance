@@ -15,6 +15,7 @@ from ....core import get_logger
 from ....core.utils import assert_path_not_sensitive
 from ....macro_exceptions import (
     InvalidDestinationPathError,
+    PathCreationError,
     PathIsNotDirectoryError,
     PathPermissionError,
 )
@@ -198,9 +199,7 @@ class VerifyPathsUseCasesCVM:
             except PermissionError as e:
                 raise PathPermissionError(str(normalized_path)) from e
             except OSError as e:
-                raise OSError(
-                    f'Failed to create directory {normalized_path}: {e}'
-                ) from e
+                raise PathCreationError(str(normalized_path), str(e)) from e
 
         logger.debug(
             'Destination path validated and ready: %s', normalized_path

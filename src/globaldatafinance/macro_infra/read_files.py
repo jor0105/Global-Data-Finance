@@ -27,6 +27,7 @@ class ReadFilesAdapter:
             ExtractionError: If no encoding works
         """
         encoding_csv = ['latin-1', 'utf-8', 'iso-8859-1', 'cp1252']
+        last_error: Exception | None = None
         for encoding in encoding_csv:
             try:
                 with zip_file.open(csv_filename) as csv_file:
@@ -41,16 +42,18 @@ class ReadFilesAdapter:
                         f'Validated {csv_filename} with encoding {encoding}'
                     )
                     return encoding
-            except (UnicodeDecodeError, LookupError):
+            except (UnicodeDecodeError, LookupError) as err:
+                last_error = err
                 continue
             except Exception as e:
+                last_error = e
                 logger.debug(f'Test read failed for {csv_filename}: {e}')
                 continue
         raise ExtractionError(
             csv_filename,
             f'Could not read {csv_filename} with any encoding '
             f'(tried {", ".join(encoding_csv)})',
-        )
+        ) from last_error
 
     @staticmethod
     def read_csv_chunk_size(text_wrapper, chunk_size) -> pd.DataFrame:

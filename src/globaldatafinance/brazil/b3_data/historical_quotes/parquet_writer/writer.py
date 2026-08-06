@@ -9,7 +9,7 @@ except ImportError:
     pl = None  # type: ignore[assignment]
 
 from .....core import ResourceMonitor, ResourceState, get_logger
-from .....macro_exceptions import DiskFullError
+from .....macro_exceptions import DiskFullError, ParquetWriteError
 from .constants import (
     CHUNK_RECORD_COUNT,
     MEMORY_SPLIT_RECORD_THRESHOLD,
@@ -152,7 +152,7 @@ class ParquetWriterB3:
                 },
                 exc_info=True,
             )
-            raise OSError(f'Failed to write Parquet file: {exc}') from exc
+            raise ParquetWriteError(str(output_path), str(exc)) from exc
         except MemoryError:
             raise
         except Exception as exc:

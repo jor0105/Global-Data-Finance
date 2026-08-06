@@ -4,6 +4,12 @@ This example demonstrates how to filter multiple asset types (Stocks, ETFs, and 
 from local COTAHIST files, select a range of years, and use high-performance 'fast' mode.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure examples import active repository code (src/) rather than installed package
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
+
 from globaldatafinance import HistoricalQuotesB3
 
 

@@ -5,8 +5,11 @@ from globaldatafinance.macro_exceptions import (
     DiskFullError,
     EmptyDirectoryError,
     ExtractionError,
+    FileWriteError,
     InvalidDestinationPathError,
     NetworkError,
+    ParquetWriteError,
+    PathCreationError,
     PathIsNotDirectoryError,
     PathPermissionError,
     SecurityError,
@@ -636,3 +639,21 @@ class TestExceptionIntegration:
             caught = False
 
         assert caught
+
+
+class TestNewOSErrorSubclasses:
+    def test_path_creation_error(self):
+        err = PathCreationError('/path', 'Permission denied')
+        assert isinstance(err, OSError)
+        assert 'Failed to create directory' in str(err)
+        assert '/path' in str(err)
+
+    def test_file_write_error(self):
+        err = FileWriteError('/file.csv', 'Disk error')
+        assert isinstance(err, OSError)
+        assert 'Failed to write chunk' in str(err)
+
+    def test_parquet_write_error(self):
+        err = ParquetWriteError('/out.parquet', 'Corrupt schema')
+        assert isinstance(err, OSError)
+        assert 'Failed to write Parquet file' in str(err)

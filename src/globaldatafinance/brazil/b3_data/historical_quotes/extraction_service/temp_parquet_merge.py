@@ -5,6 +5,7 @@ from pathlib import Path
 import pyarrow.parquet as pq  # type: ignore
 
 from .....core import get_logger
+from .....macro_exceptions import ExtractionError, ParquetWriteError
 
 logger = get_logger(__name__)
 
@@ -107,7 +108,9 @@ async def merge_temp_files_streaming(
                 with contextlib.suppress(Exception):
                     temp_file.unlink()
 
-        raise OSError(f'Merge operation failed: {e}') from e
+        raise ParquetWriteError(
+            str(final_output), f'Merge operation failed: {e}'
+        ) from e
 
 
 def count_parquet_rows(path: Path) -> int:
@@ -117,5 +120,7 @@ def count_parquet_rows(path: Path) -> int:
         result: int = parquet_file.metadata.num_rows
         return result
     except Exception as e:
-        logger.error(f'Error counting rows in {path}: {e}')
-        return 0
+        logger.error(f'Error counting rows in {path}: {e}', exc_info=True)
+        raise ExtractionError(
+            str(path), f'Failed to read rows count: {e}'
+        ) from e

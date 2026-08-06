@@ -32,7 +32,9 @@ def validate_downloaded_file(
         return _has_valid_zip_contents(filepath)
 
     except Exception as e:
-        logger.error('Error validating file %s: %s', filepath, e)
+        logger.error(
+            'Error validating file %s: %s', filepath, e, exc_info=True
+        )
         return False
 
 
@@ -91,6 +93,7 @@ def validate_parquet_files(
                     year,
                     type(e).__name__,
                     e,
+                    exc_info=True,
                 )
                 return False
 
@@ -103,7 +106,9 @@ def validate_parquet_files(
         return True
 
     except Exception as e:
-        logger.error('Unexpected error validating parquets: %s', e)
+        logger.error(
+            'Unexpected error validating parquets: %s', e, exc_info=True
+        )
         return False
 
 

@@ -58,3 +58,27 @@ class SecurityError(Exception):
             super().__init__(f"Security violation: {message} (path: '{path}')")
         else:
             super().__init__(f'Security violation: {message}')
+
+
+class PathCreationError(OSError):
+    def __init__(self, path: str, reason: str | None = None):
+        msg = f"Failed to create directory '{path}'"
+        if reason:
+            msg += f': {reason}'
+        super().__init__(msg)
+
+
+class FileWriteError(OSError):
+    def __init__(self, path: str, reason: str | None = None):
+        msg = f"Failed to write chunk to '{path}'"
+        if reason:
+            msg += f': {reason}'
+        super().__init__(msg)
+
+
+class ParquetWriteError(OSError):
+    def __init__(self, path: str, reason: str | None = None):
+        msg = f"Failed to write Parquet file '{path}'"
+        if reason:
+            msg += f': {reason}'
+        super().__init__(msg)

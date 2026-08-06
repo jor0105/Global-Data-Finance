@@ -3,6 +3,12 @@ from pathlib import Path
 
 import httpx
 
+from ..macro_exceptions import (
+    DiskFullError,
+    FileWriteError,
+    PathPermissionError,
+)
+
 
 class RequestsAdapter:
     """
@@ -14,7 +20,7 @@ class RequestsAdapter:
 
     def __init__(
         self,
-        timeout: float = 30.0,
+        timeout: float = 60.0,
         max_redirects: int = 5,
         verify: bool = True,
         http2: bool = False,
@@ -113,8 +119,24 @@ class RequestsAdapter:
                                 file_handle.write(chunk)
                             except OSError as write_err:
                                 # Critical: disk full, permission error, etc
-                                raise OSError(
-                                    f'Failed to write chunk to {output_path}: {write_err}'
+                                err_msg = str(write_err).lower()
+                                if (
+                                    'enospc' in err_msg
+                                    or 'no space left' in err_msg
+                                    or 'disk full' in err_msg
+                                ):
+                                    raise DiskFullError(
+                                        output_path
+                                    ) from write_err
+                                if (
+                                    'permission denied' in err_msg
+                                    or 'eacces' in err_msg
+                                ):
+                                    raise PathPermissionError(
+                                        output_path
+                                    ) from write_err
+                                raise FileWriteError(
+                                    output_path, str(write_err)
                                 ) from write_err
 
         except Exception:

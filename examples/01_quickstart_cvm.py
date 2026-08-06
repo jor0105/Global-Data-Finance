@@ -4,6 +4,12 @@ This example demonstrates how to download and extract standardized financial
 statements (DFP) for Brazilian public companies directly into Parquet format.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure examples import active repository code (src/) rather than installed package
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
+
 from globaldatafinance import FundamentalStocksDataCVM
 
 

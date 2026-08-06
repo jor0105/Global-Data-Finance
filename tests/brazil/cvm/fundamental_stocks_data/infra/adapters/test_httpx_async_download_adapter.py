@@ -1,6 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
@@ -25,9 +26,10 @@ class TestHttpxAsyncDownloadAdapterInitialization:
 
         assert adapter.max_concurrent == 10
         assert adapter.chunk_size == 8192
-        assert adapter.max_retries == 3
+        assert adapter.max_retries == 5
         assert adapter.automatic_extractor is False
         assert adapter.file_extractor_repository is mock_extractor
+        assert adapter.requests_adapter.timeout == 180.0
 
     def test_init_with_custom_values(self):
         mock_extractor = MagicMock()
@@ -35,10 +37,10 @@ class TestHttpxAsyncDownloadAdapterInitialization:
             file_extractor_repository=mock_extractor,
             max_concurrent=20,
             chunk_size=16384,
-            timeout=120.0,
-            max_retries=5,
+            timeout=240.0,
+            max_retries=7,
             initial_backoff=2.0,
-            max_backoff=120.0,
+            max_backoff=180.0,
             backoff_multiplier=3.0,
             http2=False,
             automatic_extractor=True,
@@ -46,10 +48,11 @@ class TestHttpxAsyncDownloadAdapterInitialization:
 
         assert adapter.max_concurrent == 20
         assert adapter.chunk_size == 16384
-        assert adapter.max_retries == 5
+        assert adapter.max_retries == 7
         assert adapter.automatic_extractor is True
+        assert adapter.requests_adapter.timeout == 240.0
         assert adapter.retry_strategy.initial_backoff == 2.0
-        assert adapter.retry_strategy.max_backoff == 120.0
+        assert adapter.retry_strategy.max_backoff == 180.0
         assert adapter.retry_strategy.multiplier == 3.0
 
     def test_init_creates_requests_adapter(self):
@@ -266,6 +269,40 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
         )
 
         assert mock_sleep.call_count >= 1
+
+    @patch(
+        'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.asyncio.sleep'
+    )
+    async def test_download_with_retry_translates_httpx_timeout_and_retries(
+        self, mock_sleep
+    ):
+        mock_extractor = MagicMock()
+        adapter = AsyncDownloadAdapterCVM(
+            file_extractor_repository=mock_extractor,
+            max_retries=2,
+        )
+
+        call_count = 0
+
+        async def mock_stream_download(url, filepath):
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                raise httpx.ReadTimeout('')
+
+        adapter._stream_download = mock_stream_download
+
+        success, err = await adapter._download_with_retry(
+            'https://example.com/file.zip',
+            '/tmp/file.zip',
+            'DFP',
+            '2012',
+        )
+
+        assert success is True
+        assert err is None
+        assert call_count == 2
+        assert mock_sleep.call_count == 1
 
 
 @pytest.mark.asyncio

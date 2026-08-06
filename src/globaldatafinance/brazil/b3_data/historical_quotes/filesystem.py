@@ -9,6 +9,7 @@ from ....core.utils import assert_path_not_sensitive
 from ....macro_exceptions import (
     EmptyDirectoryError,
     InvalidDestinationPathError,
+    PathCreationError,
     PathIsNotDirectoryError,
     PathPermissionError,
 )
@@ -92,9 +93,7 @@ class FileSystemServiceB3:
         except PermissionError as exc:
             raise PathPermissionError(str(normalized_path)) from exc
         except OSError as exc:
-            raise OSError(
-                f'Failed to create directory {normalized_path}: {exc}'
-            ) from exc
+            raise PathCreationError(str(normalized_path), str(exc)) from exc
 
         return normalized_path
 

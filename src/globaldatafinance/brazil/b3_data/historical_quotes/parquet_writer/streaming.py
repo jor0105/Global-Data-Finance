@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from .....core import get_logger
+from .....macro_exceptions import ParquetWriteError
 from .constants import (
     APPEND_TEMP_SUFFIX,
     PARQUET_COMPRESSION,
@@ -66,21 +67,28 @@ def cast_table_to_schema(table: Any, schema: Any) -> Any:
 
     try:
         return table.cast(schema)
-    except Exception as cast_error:
+    except (pa.ArrowException, TypeError, ValueError) as cast_error:
         logger.warning(
             'Schema cast failed, attempting column-by-column cast: %s',
             cast_error,
+            exc_info=True,
         )
         arrays = []
         for index, field in enumerate(schema):
             try:
                 arrays.append(table.column(index).cast(field.type))
-            except Exception:
-                logger.warning(
-                    'Could not cast column %s, keeping original',
+            except (pa.ArrowException, TypeError, ValueError) as col_err:
+                logger.error(
+                    'Could not cast column %s to %s: %s',
                     field.name,
+                    field.type,
+                    col_err,
+                    exc_info=True,
                 )
-                arrays.append(table.column(index))
+                raise ParquetWriteError(
+                    'schema_cast',
+                    f"Could not cast column '{field.name}' to '{field.type}': {col_err}",
+                ) from col_err
         return pa.table(arrays, schema=schema)
 
 
@@ -137,7 +145,9 @@ async def append_with_streaming(
             extra={'output_path': str(output_path)},
             exc_info=True,
         )
-        raise OSError(f'Streaming append failed: {exc}') from exc
+        raise ParquetWriteError(
+            str(output_path), f'Streaming append failed: {exc}'
+        ) from exc
     finally:
         if writer is not None:
             with contextlib.suppress(Exception):
@@ -191,7 +201,9 @@ async def merge_parquet_files_streaming(
             extra={'output_path': str(output_path)},
             exc_info=True,
         )
-        raise OSError(f'Streaming merge failed: {exc}') from exc
+        raise ParquetWriteError(
+            str(output_path), f'Streaming merge failed: {exc}'
+        ) from exc
     finally:
         if writer is not None:
             with contextlib.suppress(Exception):

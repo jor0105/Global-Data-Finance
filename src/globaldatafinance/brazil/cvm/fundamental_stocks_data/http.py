@@ -3,20 +3,20 @@
 import asyncio
 from pathlib import Path
 
+import httpx
+
 from ....core import (
     RetryStrategy,
     SimpleProgressBar,
     get_logger,
     remove_file,
 )
+from ....macro_exceptions import NetworkError
+from ....macro_exceptions import TimeoutError as MacroTimeoutError
 from ....macro_infra import RequestsAdapter
 from .core import DownloadResultCVM
 from .download_extraction import extract_downloaded_file
-from .download_validation import (
-    find_parquet_files,
-    validate_downloaded_file,
-    validate_parquet_files,
-)
+from .download_validation import validate_downloaded_file
 from .extract import ParquetExtractorAdapterCVM
 
 logger = get_logger(__name__)
@@ -33,10 +33,10 @@ class AsyncDownloadAdapterCVM:
         file_extractor_repository: ParquetExtractorAdapterCVM,
         max_concurrent: int = 10,
         chunk_size: int = 8192,
-        timeout: float = 60.0,
-        max_retries: int = 3,
+        timeout: float = 180.0,
+        max_retries: int = 5,
         initial_backoff: float = 1.0,
-        max_backoff: float = 60.0,
+        max_backoff: float = 120.0,
         backoff_multiplier: float = 2.0,
         http2: bool = True,
         automatic_extractor: bool = False,
@@ -301,25 +301,38 @@ class AsyncDownloadAdapterCVM:
                 return True, None
 
             except Exception as e:
+                timeouts = (
+                    httpx.TimeoutException,
+                    TimeoutError,
+                    asyncio.TimeoutError,
+                )
+                net_errs = (
+                    httpx.RequestError,
+                    httpx.HTTPStatusError,
+                    ConnectionError,
+                )
+                key = f'{doc_name}_{year}'
+                if isinstance(e, timeouts):
+                    e = MacroTimeoutError(key, self.requests_adapter.timeout)
+                elif isinstance(e, net_errs):
+                    e = NetworkError(key, f'{type(e).__name__}: {e}')
+
                 last_exception = e
 
-                if (
-                    not self.retry_strategy.is_retryable(e)
-                    or attempt >= self.max_retries
-                ):
+                retryable = self.retry_strategy.is_retryable(e)
+                if not retryable or attempt >= self.max_retries:
                     logger.error(
-                        'Download failed for %s_%s: %s: %s',
-                        doc_name,
-                        year,
+                        'Download failed for %s: %s: %s',
+                        key,
                         type(e).__name__,
                         e,
+                        exc_info=True,
                     )
                     break
 
                 logger.warning(
-                    'Download error for %s_%s (attempt %d/%d): %s',
-                    doc_name,
-                    year,
+                    'Download error for %s (attempt %d/%d): %s',
+                    key,
                     attempt + 1,
                     self.max_retries + 1,
                     e,
@@ -342,9 +355,9 @@ class AsyncDownloadAdapterCVM:
                 output_path=filepath,
                 chunk_size=self.chunk_size,
             )
-        except Exception as e:
+        except Exception:
             remove_file(filepath, log_on_error=False)
-            raise e
+            raise
 
     async def _get_content_length(self, url: str) -> int | None:
         """Get Content-Length from HTTP headers before downloading."""
@@ -373,26 +386,13 @@ class AsyncDownloadAdapterCVM:
     ) -> bool:
         return validate_downloaded_file(filepath, expected_size)
 
-    def _validate_parquet_files(
-        self, parquet_files: list[Path], doc_name: str, year: str
-    ) -> bool:
-        return validate_parquet_files(parquet_files, doc_name, year)
-
-    def _find_parquet_files(self, dest_path: str) -> list[Path]:
-        return find_parquet_files(dest_path)
-
-    def _add_download_success(
-        self, result: DownloadResultCVM, document_key: str
-    ) -> None:
-        result.add_success_downloads(document_key)
+    def _add_download_success(self, res: DownloadResultCVM, key: str) -> None:
+        res.add_success_downloads(key)
 
     def _add_download_error(
-        self,
-        result: DownloadResultCVM,
-        document_key: str,
-        error_message: str,
+        self, res: DownloadResultCVM, key: str, msg: str
     ) -> None:
-        result.add_error_downloads(document_key, error_message)
+        res.add_error_downloads(key, msg)
 
     def _document_key(self, doc_name: str, year: str) -> str:
         return f'{doc_name}_{year}'

@@ -317,7 +317,9 @@ class ExtractorAdapter:
                 try:
                     writer.close()
                 except Exception as close_err:
-                    logger.error(f'Failed to close writer: {close_err}')
+                    logger.error(
+                        f'Failed to close writer: {close_err}', exc_info=True
+                    )
             raise
         finally:
             gc.collect()

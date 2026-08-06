@@ -242,7 +242,7 @@ class CotahistParserB3:
             if start < 0 or end > len(line) or start >= end:
                 return ''
             return line[start:end]
-        except Exception:
+        except TypeError:
             return ''
 
     def _parse_date_optional(self, date_str: str) -> date | None:

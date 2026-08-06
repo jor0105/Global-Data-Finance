@@ -8,16 +8,16 @@ from globaldatafinance.macro_infra import RequestsAdapter
 class TestRequestsAdapterInitialization:
     def test_initialization_with_defaults(self):
         adapter = RequestsAdapter()
-        assert adapter.timeout == 30.0
+        assert adapter.timeout == 60.0
         assert adapter.max_redirects == 5
         assert adapter.verify is True
         assert adapter.http2 is False
 
     def test_initialization_with_custom_params(self):
         adapter = RequestsAdapter(
-            timeout=60.0, max_redirects=10, verify=False, http2=True
+            timeout=120.0, max_redirects=10, verify=False, http2=True
         )
-        assert adapter.timeout == 60.0
+        assert adapter.timeout == 120.0
         assert adapter.max_redirects == 10
         assert adapter.verify is False
         assert adapter.http2 is True
@@ -209,11 +209,47 @@ class TestRequestsAdapterDownload:
         mock_client_class.return_value = mock_client
 
         mock_file = MagicMock()
-        mock_file.write.side_effect = OSError('Disk full')
+        mock_file.write.side_effect = OSError('I/O error')
         mock_open.return_value.__enter__.return_value = mock_file
 
         adapter = RequestsAdapter()
         with pytest.raises(OSError, match='Failed to write chunk'):
+            await adapter.async_download_file(
+                'https://example.com/file.zip', 'dummy_file.zip'
+            )
+
+        mock_unlink.assert_called_once_with(missing_ok=True)
+
+    @pytest.mark.asyncio
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    @patch('pathlib.Path.open', new_callable=MagicMock)
+    @patch('pathlib.Path.unlink')
+    async def test_async_download_file_handles_disk_full_error(
+        self, mock_unlink, mock_open, mock_client_class
+    ):
+        async def chunk_generator():
+            yield b'chunk1'
+
+        mock_response = AsyncMock()
+        mock_response.raise_for_status = Mock()
+        mock_response.aiter_bytes = MagicMock(return_value=chunk_generator())
+
+        mock_stream = AsyncMock()
+        mock_stream.__aenter__ = AsyncMock(return_value=mock_response)
+        mock_stream.__aexit__ = AsyncMock(return_value=None)
+
+        mock_client = AsyncMock()
+        mock_client.stream = MagicMock(return_value=mock_stream)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+        mock_client_class.return_value = mock_client
+
+        mock_file = MagicMock()
+        mock_file.write.side_effect = OSError('No space left on device')
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        adapter = RequestsAdapter()
+        with pytest.raises(OSError, match='Insufficient disk space'):
             await adapter.async_download_file(
                 'https://example.com/file.zip', 'dummy_file.zip'
             )
