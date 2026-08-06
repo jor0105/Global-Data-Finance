@@ -163,6 +163,7 @@ nav:
       - Referência da API: dev-guide/api-reference.md
       - Como Contribuir: dev-guide/contributing.md
       - Testes: dev-guide/testing.md
+      - Benchmarks: dev-guide/benchmarks.md
       - Uso Avançado: dev-guide/advanced-usage.md
       - Sistema de Logging: dev-guide/logging-system.md
       - Monitoramento de Recursos: dev-guide/resource-monitoring.md

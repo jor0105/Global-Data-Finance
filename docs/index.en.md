@@ -210,6 +210,7 @@ cvm.download(
 - **[API Reference](dev-guide/api-reference.md)** - Full structural reference of public boundaries
 - **[Contributing](dev-guide/contributing.md)** - Contribution guidelines and validation practices
 - **[Testing](dev-guide/testing.md)** - Test suites, markers, and coverage gate strategy
+- **[Benchmarks](dev-guide/benchmarks.md)** - Reproducible time, memory, and volume measurements
 - **[Advanced Usage](dev-guide/advanced-usage.md)** - Optimization patterns and programmatic customization
 - **[Logging System](dev-guide/logging-system.md)** - Structured log formatting and diagnostic setup
 - **[Resource Monitoring](dev-guide/resource-monitoring.md)** - Adaptive memory and CPU resource throttling

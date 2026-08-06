@@ -459,7 +459,13 @@ O `FundamentalStocksDataCVM` usa `AsyncDownloadAdapterCVM` por padrão, que ofer
 
 ### Benchmarks
 
-Tempo aproximado para download de DFP (1 ano):
+**Fluxo completo: download + extração CSV→Parquet (2026-08-06):**
+
+| Docs                | Período   | ZIPs | Parquets | Linhas     | Saída     | Tempo    | Pico RSS  | Erros |
+| ------------------- | --------- | ---: | -------: | ---------: | --------: | -------: | --------: | ----: |
+| DFP, ITR, FRE, etc. | 2010-2024 |   88 |    1.392 | 63.300.208 | 337,93 MB | 505,04 s | 459,18 MB |     0 |
+
+**Tempo aproximado para download de DFP (1 ano):**
 
 | Método                  | Tempo | Velocidade         |
 | ----------------------- | ----- | ------------------ |

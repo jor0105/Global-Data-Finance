@@ -210,6 +210,7 @@ cvm.download(
 - **[Referência da API](dev-guide/api-reference.md)** - Documentação completa da API
 - **[Como Contribuir](dev-guide/contributing.md)** - Guia de contribuição
 - **[Testes](dev-guide/testing.md)** - Estratégias de teste e cobertura
+- **[Benchmarks](dev-guide/benchmarks.md)** - Métricas reproduzíveis de tempo, memória e volume
 - **[Uso Avançado](dev-guide/advanced-usage.md)** - Técnicas avançadas e otimizações
 - **[Sistema de Logging](dev-guide/logging-system.md)** - Configurações e práticas de logs estruturados
 - **[Monitoramento de Recursos](dev-guide/resource-monitoring.md)** - Monitoramento adaptativo de CPU e memória

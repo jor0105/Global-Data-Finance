@@ -453,6 +453,12 @@ The CVM implementation utilizes `AsyncDownloadAdapterCVM` by default, delivering
 
 ### Benchmark Comparisons
 
+**Full pipeline: download + CSV→Parquet extraction (2026-08-06):**
+
+| Docs                | Period    | ZIPs | Parquets | Extracted Rows | Output    | Time     | Peak RSS  | Errors |
+| ------------------- | --------- | ---: | -------: | -------------: | --------: | -------: | --------: | -----: |
+| DFP, ITR, FRE, etc. | 2010-2024 |   88 |    1,392 |     63,300,208 | 337.93 MB | 505.04 s | 459.18 MB |      0 |
+
 Estimated duration required to fetch 1 complete annual DFP archive bundle:
 
 | Ingestion Method        | Execution Duration | Relative Throughput |

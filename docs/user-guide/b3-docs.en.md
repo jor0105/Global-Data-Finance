@@ -278,10 +278,10 @@ result = b3.extract(
 
 ### Performance Benchmark Comparison
 
-| Processing Profile | Duration (100k Records) | CPU Impact | RAM Footprint | Guidance                      |
-| ------------------ | ----------------------- | ---------- | ------------- | ----------------------------- |
-| **fast**           | ~5s                     | High       | ~2GB          | ✅ Recommended Default        |
-| **slow**           | ~15s                    | Low        | ~500MB        | Memory-Constrained Servers    |
+| Processing Profile | Measured Throughput | CPU Impact | Peak RAM    | Guidance                      |
+| ------------------ | ------------------- | ---------- | ----------- | ----------------------------- |
+| **fast**           | ~12,317 rows/s      | High       | ~4,260 MB   | ✅ Recommended Default        |
+| **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB   | Memory-Constrained Servers    |
 
 ---
 

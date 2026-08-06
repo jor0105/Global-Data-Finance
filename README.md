@@ -54,6 +54,29 @@ The public API is deliberately narrow (re-exporting `FundamentalStocksDataCVM` a
 
 ---
 
+## 📊 Measured Performance Baseline
+
+Real-scale measurement on **2026-08-06** (Python 3.13.7, 8 CPUs, 7.55 GB RAM,
+no network calls), processing 17 official COTAHIST ZIPs (2008-2024), all asset
+types:
+
+| Mode | Written rows | Peak RSS | Time |
+| :--- | ---: | ---: | ---: |
+| **B3 `fast`** | 15,059,876 | 4,259.35 MB | 20m22s |
+| **B3 `slow`** | 15,059,876 | 1,570.54 MB | 29m19s |
+| **CVM (All Docs, 2010-2024)** (download + Parquet) | 63,300,208 rows (1,392 files) | 459.18 MB | 8m25s |
+
+Reproducible synthetic baseline (250,000 records, 3 runs each, same machine):
+
+| Mode | API time (median) | Peak RSS | Throughput (median) |
+| :--- | ---: | ---: | ---: |
+| `fast` | 11.15 s | 1,111.72 MB | 22,427 records/s |
+| `slow` | 18.05 s | 1,103.01 MB | 13,847 records/s |
+
+See the full [benchmark methodology and reproduction guide](docs/dev-guide/benchmarks.md).
+
+---
+
 ## 🚀 Installation
 
 Requires **Python 3.12+**.

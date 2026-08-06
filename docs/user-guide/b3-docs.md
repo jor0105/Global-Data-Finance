@@ -284,10 +284,10 @@ result = b3.extract(
 
 ### Comparação de Performance
 
-| Modo     | Tempo (100k registros) | CPU   | RAM    | Recomendado        |
-| -------- | ---------------------- | ----- | ------ | ------------------ |
-| **fast** | ~5s                    | Alto  | ~2GB   | ✅ Sim (padrão)    |
-| **slow** | ~15s                   | Baixo | ~500MB | Recursos limitados |
+| Modo     | Throughput medido      | CPU   | Pico de RAM | Recomendado        |
+| -------- | ---------------------- | ----- | ----------- | ------------------ |
+| **fast** | ~12.317 reg/s          | Alto  | ~4.260 MB   | ✅ Sim (padrão)    |
+| **slow** | ~8.557 reg/s           | Baixo | ~1.571 MB   | Recursos limitados |
 
 ---
 
