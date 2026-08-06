@@ -1,6 +1,6 @@
 [project]
 name = "globaldatafinance"
-version = "0.1.3"
+version = "0.1.4"
 description = "Library for extracting, normalizing and processing global financial and economic data — including market data from exchanges worldwide, regulatory filings, company fundamentals and historical quotes; optimized for high-performance storage and analysis (e.g., Parquet)."
 readme = "README.md"
 license = "Apache-2.0"
