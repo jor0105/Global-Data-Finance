@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="pt" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -12,35 +12,35 @@
         <meta name="author" content="Jordan Estralioto">
       
       
-        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/retry-strategy/">
+        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/benchmarks/">
       
       
-        <link rel="prev" href="../resource-monitoring/">
+        <link rel="prev" href="../testing/">
       
       
-        <link rel="next" href="../../reference/cvm-api/">
+        <link rel="next" href="../advanced-usage/">
       
       
         
-          <link rel="alternate" href="./" hreflang="pt">
+          <link rel="alternate" href="../../../dev-guide/benchmarks/" hreflang="pt">
         
-          <link rel="alternate" href="../../en/dev-guide/retry-strategy/" hreflang="en">
+          <link rel="alternate" href="./" hreflang="en">
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Estratégia de Retry - Global-Data-Finance</title>
+        <title>Benchmarks - Global-Data-Finance</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -61,9 +61,9 @@
     
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     
-      <link rel="stylesheet" href="../../assets/stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -88,8 +88,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#estrategia-de-retry" class="md-skip">
-          Ir para o conteúdo
+        <a href="#performance-benchmarks" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -101,8 +101,8 @@
       
 
 <header class="md-header" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
-    <a href="../.." title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Global-Data-Finance" class="md-header__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Estratégia de Retry
+              Benchmarks
             
           </span>
         </div>
@@ -162,20 +162,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Selecione o idioma">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="pt" class="md-select__link">
+            <a href="../../../dev-guide/benchmarks/" hreflang="pt" class="md-select__link">
               Português
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/dev-guide/retry-strategy/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -196,21 +196,21 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Pesquisar">
+      <nav class="md-search__options" aria-label="Search">
         
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartilhar" aria-label="Compartilhar" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
             
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
           </a>
         
-        <button type="reset" class="md-search__icon md-icon" title="Limpar" aria-label="Limpar" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -223,7 +223,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Inicializando a pesquisa
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -235,7 +235,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+        <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -256,7 +256,7 @@
         
           
             
-<nav class="md-tabs" aria-label="Abas" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -266,13 +266,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Início
+  Home
 
       </a>
     </li>
@@ -291,7 +291,7 @@
           
   
   
-  Guia do Usuário
+  User Guide
 
         </a>
       </li>
@@ -313,7 +313,7 @@
           
   
   
-  Guia do Desenvolvedor
+  Developer Guide
 
         </a>
       </li>
@@ -333,7 +333,7 @@
           
   
   
-  Referência Técnica
+  Technical Reference
 
         </a>
       </li>
@@ -363,9 +363,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegação" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
+    <a href="../../" title="Global-Data-Finance" class="md-nav__button md-logo" aria-label="Global-Data-Finance" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -375,7 +375,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Ir ao repositório" class="md-source" data-md-component="source">
+      <a href="https://github.com/jordanestralioto/Global-Data-Finance" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -395,14 +395,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Início
+    Home
   
 
     
@@ -445,7 +445,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Usuário
+    User Guide
   
 
     
@@ -461,7 +461,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Usuário
+    User Guide
   
 
           </label>
@@ -481,7 +481,7 @@
   <span class="md-ellipsis">
     
   
-    Instalação
+    Installation
   
 
     
@@ -509,7 +509,7 @@
   <span class="md-ellipsis">
     
   
-    Início Rápido
+    Quickstart
   
 
     
@@ -537,7 +537,7 @@
   <span class="md-ellipsis">
     
   
-    Documentos CVM
+    CVM Documents
   
 
     
@@ -565,7 +565,7 @@
   <span class="md-ellipsis">
     
   
-    Cotações Históricas B3
+    B3 Historical Quotes
   
 
     
@@ -593,7 +593,7 @@
   <span class="md-ellipsis">
     
   
-    Exemplos Práticos
+    Practical Examples
   
 
     
@@ -677,7 +677,7 @@
   <span class="md-ellipsis">
     
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
     
@@ -693,7 +693,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Guia do Desenvolvedor
+    Developer Guide
   
 
           </label>
@@ -713,7 +713,7 @@
   <span class="md-ellipsis">
     
   
-    Arquitetura
+    Architecture
   
 
     
@@ -741,7 +741,7 @@
   <span class="md-ellipsis">
     
   
-    Referência da API
+    API Reference
   
 
     
@@ -769,7 +769,7 @@
   <span class="md-ellipsis">
     
   
-    Como Contribuir
+    Contributing
   
 
     
@@ -797,119 +797,7 @@
   <span class="md-ellipsis">
     
   
-    Testes
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../benchmarks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Benchmarks
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../advanced-usage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Uso Avançado
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../logging-system/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Sistema de Logging
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource-monitoring/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Monitoramento de Recursos
+    Testing
   
 
     
@@ -946,7 +834,7 @@
   <span class="md-ellipsis">
     
   
-    Estratégia de Retry
+    Benchmarks
   
 
     
@@ -964,7 +852,7 @@
   <span class="md-ellipsis">
     
   
-    Estratégia de Retry
+    Benchmarks
   
 
     
@@ -976,7 +864,7 @@
       
         
 
-<nav class="md-nav md-nav--secondary" aria-label="Índice">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -985,15 +873,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Índice
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#visao-geral" class="md-nav__link">
+  <a href="#1-real-scale-baseline-b3-2026-08-06" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Visão Geral
+        1. Real-Scale Baseline — B3 (2026-08-06)
       
     </span>
   </a>
@@ -1001,55 +889,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caracteristicas" class="md-nav__link">
+  <a href="#2-reproducible-synthetic-baseline-b3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Características
+        2. Reproducible Synthetic Baseline — B3
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#excecoes-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exceções Retryable
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exceções Retryable">
+    <nav class="md-nav" aria-label="2. Reproducible Synthetic Baseline — B3">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sempre-retryable" class="md-nav__link">
+  <a href="#reproduction" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sempre Retryable
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#baseado-em-mensagem" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Baseado em Mensagem
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nunca-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nunca Retryable
+        Reproduction
       
     </span>
   </a>
@@ -1062,88 +917,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#api" class="md-nav__link">
+  <a href="#3-cvm-baseline-download-extraction-2026-08-06" class="md-nav__link">
     <span class="md-ellipsis">
       
-        API
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#criar-instancia" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Criar Instância
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verificar-se-excecao-e-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verificar se Exceção é Retryable
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#calcular-backoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Calcular Backoff
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplo-de-uso" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplo de Uso
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exemplo de Uso">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#retry-manual-com-backoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Retry Manual com Backoff
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#uso-automatico-nos-adapters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Uso Automático nos Adapters
+        3. CVM Baseline — Download + Extraction (2026-08-06)
       
     </span>
   </a>
@@ -1151,21 +928,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuracao-de-retry" class="md-nav__link">
+  <a href="#4-limitations-and-contracts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração de Retry
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#excecoes-do-projeto" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exceções do Projeto
+        4. Limitations and Contracts
       
     </span>
   </a>
@@ -1176,6 +942,118 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resource-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../retry-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retry Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1218,7 +1096,7 @@
   <span class="md-ellipsis">
     
   
-    Referência Técnica
+    Technical Reference
   
 
     
@@ -1234,7 +1112,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Referência Técnica
+    Technical Reference
   
 
           </label>
@@ -1254,7 +1132,7 @@
   <span class="md-ellipsis">
     
   
-    API CVM
+    CVM API
   
 
     
@@ -1282,7 +1160,7 @@
   <span class="md-ellipsis">
     
   
-    API B3
+    B3 API
   
 
     
@@ -1310,7 +1188,7 @@
   <span class="md-ellipsis">
     
   
-    Exceções
+    Exceptions
   
 
     
@@ -1351,150 +1229,170 @@
   
 
 
-<h1 id="estrategia-de-retry">Estratégia de Retry<a class="headerlink" href="#estrategia-de-retry" title="Link para esta seção">&para;</a></h1>
-<p>Documentação da estratégia de retry do Global-Data-Finance.</p>
-<hr />
-<h2 id="visao-geral">Visão Geral<a class="headerlink" href="#visao-geral" title="Link para esta seção">&para;</a></h2>
-<p>A classe <code>RetryStrategy</code> determina quais exceções garantem retry e calcula o tempo de backoff exponencial.</p>
-<hr />
-<h2 id="caracteristicas">Características<a class="headerlink" href="#caracteristicas" title="Link para esta seção">&para;</a></h2>
+<h1 id="performance-benchmarks">Performance Benchmarks<a class="headerlink" href="#performance-benchmarks" title="Link para esta seção">&para;</a></h1>
+<p>This document records reproducible baselines for extraction and processing<br />
+across the B3 and CVM modules. The numbers are evidence from a reference<br />
+scenario and serve as a regression metric, not a fixed-time promise for every<br />
+machine or dataset.</p>
+<h2 id="1-real-scale-baseline-b3-2026-08-06">1. Real-Scale Baseline — B3 (2026-08-06)<a class="headerlink" href="#1-real-scale-baseline-b3-2026-08-06" title="Link para esta seção">&para;</a></h2>
+<p><strong>Environment:</strong> Python 3.13.7 · Linux x86_64 (kernel 6.8) · 8 CPUs · 7.55 GB<br />
+total memory. No network calls; local extraction of official ZIPs only.</p>
 <ul>
-<li>✅ <strong>Inteligente</strong>: Apenas retries em erros transientes</li>
-<li>✅ <strong>Backoff Exponencial</strong>: Aumenta tempo de espera progressivamente</li>
-<li>✅ <strong>Configurável</strong>: Backoff inicial, máximo e multiplicador customizáveis</li>
-<li>✅ <strong>Type-safe</strong>: Usa hierarquia de exceções do projeto</li>
+<li><strong>Dataset:</strong> 17 official ZIP files (2008–2024), 503.77 MB compressed.</li>
+<li><strong>Selected assets:</strong> ações, etf, opções, termo, exercicio_opcoes, forward, leilao.</li>
+<li><strong>Errors:</strong> 0 (all 17 files processed successfully).</li>
+<li><strong>Consolidated Parquet output:</strong> 311.55 MB per mode.</li>
 </ul>
-<hr />
-<h2 id="excecoes-retryable">Exceções Retryable<a class="headerlink" href="#excecoes-retryable" title="Link para esta seção">&para;</a></h2>
-<h3 id="sempre-retryable">Sempre Retryable<a class="headerlink" href="#sempre-retryable" title="Link para esta seção">&para;</a></h3>
-<ul>
-<li><code>NetworkError</code> - Erros de rede</li>
-<li><code>TimeoutError</code> - Timeout de requisições</li>
-</ul>
-<h3 id="baseado-em-mensagem">Baseado em Mensagem<a class="headerlink" href="#baseado-em-mensagem" title="Link para esta seção">&para;</a></h3>
-<p>Erros com keywords retryáveis na mensagem:</p>
-<ul>
-<li><code>"timeout"</code></li>
-<li><code>"connection refused"</code></li>
-<li><code>"connection reset"</code></li>
-<li><code>"connection aborted"</code></li>
-<li><code>"temporarily"</code></li>
-<li><code>"unavailable"</code></li>
-<li><code>"try again"</code></li>
-</ul>
-<h3 id="nunca-retryable">Nunca Retryable<a class="headerlink" href="#nunca-retryable" title="Link para esta seção">&para;</a></h3>
-<ul>
-<li><code>PathPermissionError</code> - Sem permissão</li>
-<li><code>DiskFullError</code> - Disco cheio</li>
-<li><code>ValueError</code> - Erro de validação</li>
-</ul>
-<hr />
-<h2 id="api">API<a class="headerlink" href="#api" title="Link para esta seção">&para;</a></h2>
-<h3 id="criar-instancia">Criar Instância<a class="headerlink" href="#criar-instancia" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.retry_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryStrategy</span>
-
-<span class="n">strategy</span> <span class="o">=</span> <span class="n">RetryStrategy</span><span class="p">(</span>
-    <span class="n">initial_backoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>    <span class="c1"># Backoff inicial (segundos)</span>
-    <span class="n">max_backoff</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>       <span class="c1"># Backoff máximo (segundos)</span>
-    <span class="n">multiplier</span><span class="o">=</span><span class="mf">2.0</span>          <span class="c1"># Multiplicador exponencial</span>
-<span class="p">)</span>
-</code></pre></div>
-<h3 id="verificar-se-excecao-e-retryable">Verificar se Exceção é Retryable<a class="headerlink" href="#verificar-se-excecao-e-retryable" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetworkError</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">download_file</span><span class="p">()</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">strategy</span><span class="o">.</span><span class="n">is_retryable</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Erro retryable, tentando novamente&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Erro não-retryable, parando&quot;</span><span class="p">)</span>
-        <span class="k">raise</span>
-</code></pre></div>
-<h3 id="calcular-backoff">Calcular Backoff<a class="headerlink" href="#calcular-backoff" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Calcula tempo de espera para cada tentativa</span>
-<span class="k">for</span> <span class="n">retry_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">backoff</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">calculate_backoff</span><span class="p">(</span><span class="n">retry_count</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tentativa </span><span class="si">{</span><span class="n">retry_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: esperar </span><span class="si">{</span><span class="n">backoff</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Exemplo de Saída Estimada (initial=1.0, multiplier=2.0 com Jitter [0.5, 1.5])</strong>:</p>
-<div class="highlight"><pre><span></span><code>Tentativa 1: esperar ~1.0s (ex.: 0.92s)
-Tentativa 2: esperar ~2.0s (ex.: 2.15s)
-Tentativa 3: esperar ~4.0s (ex.: 3.80s)
-</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">Written rows</th>
+<th style="text-align: right;">API time</th>
+<th style="text-align: right;">End-to-end</th>
+<th style="text-align: right;">Peak RSS</th>
+<th style="text-align: right;">Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fast</code></td>
+<td style="text-align: right;">15,059,876</td>
+<td style="text-align: right;">1,222.61 s</td>
+<td style="text-align: right;">1,224.64 s</td>
+<td style="text-align: right;">4,259.35 MB</td>
+<td style="text-align: right;">12,317 rows/s</td>
+</tr>
+<tr>
+<td><code>slow</code></td>
+<td style="text-align: right;">15,059,876</td>
+<td style="text-align: right;">1,759.90 s</td>
+<td style="text-align: right;">1,761.91 s</td>
+<td style="text-align: right;">1,570.54 MB</td>
+<td style="text-align: right;">8,557 rows/s</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
-<p>Nota: O método <code>calculate_backoff</code> aplica <em>Full Jitter</em> aleatório (<code>[0.5, 1.5]</code>) sobre o valor exponencial determinístico para evitar colisões simultâneas de retries (<em>thundering herd problem</em>).</p>
+<p><strong>Bottleneck identified:</strong> B3 Parquet parser and merge; <code>fast</code> mode peaks at<br />
+~4.2 GiB RSS. <code>slow</code> uses under 1.6 GiB with ~28% lower throughput.</p>
 </blockquote>
 <hr />
-<h2 id="exemplo-de-uso">Exemplo de Uso<a class="headerlink" href="#exemplo-de-uso" title="Link para esta seção">&para;</a></h2>
-<h3 id="retry-manual-com-backoff">Retry Manual com Backoff<a class="headerlink" href="#retry-manual-com-backoff" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.retry_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryStrategy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetworkError</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<h2 id="2-reproducible-synthetic-baseline-b3">2. Reproducible Synthetic Baseline — B3<a class="headerlink" href="#2-reproducible-synthetic-baseline-b3" title="Link para esta seção">&para;</a></h2>
+<p>For CI/CD and fast regressions, a smaller synthetic dataset is maintained.<br />
+Measured on <strong>2026-08-06</strong>, revision <code>7ee1843</code>, with three independent runs per<br />
+mode:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th style="text-align: right;">Records</th>
+<th style="text-align: right;">ZIP input</th>
+<th style="text-align: right;">Parquet output</th>
+<th style="text-align: right;">API time (median)</th>
+<th style="text-align: right;">End-to-end time (median)</th>
+<th style="text-align: right;">Peak RSS</th>
+<th style="text-align: right;">Records/s (median)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fast</code></td>
+<td style="text-align: right;">250,000</td>
+<td style="text-align: right;">8.46 MB</td>
+<td style="text-align: right;">4.05 MB</td>
+<td style="text-align: right;">11.15 s</td>
+<td style="text-align: right;">12.27 s</td>
+<td style="text-align: right;">1,111.72 MB</td>
+<td style="text-align: right;">22,427</td>
+</tr>
+<tr>
+<td><code>slow</code></td>
+<td style="text-align: right;">250,000</td>
+<td style="text-align: right;">8.46 MB</td>
+<td style="text-align: right;">4.05 MB</td>
+<td style="text-align: right;">18.05 s</td>
+<td style="text-align: right;">19.04 s</td>
+<td style="text-align: right;">1,103.01 MB</td>
+<td style="text-align: right;">13,847</td>
+</tr>
+</tbody>
+</table>
+<p>The scenario processed a synthetic 61.5 MB uncompressed COTAHIST file with<br />
+250,000 records filtered to <code>ações</code>. All runs completed without errors. Peak RSS<br />
+includes the interpreter, dependencies, parser, and Parquet writer.</p>
+<blockquote>
+<p><strong>Note:</strong> At synthetic scale, <code>fast</code> and <code>slow</code> show similar peak RSS (~1.1 GB).<br />
+The significant memory difference (~4.2 GB vs ~1.6 GB) only becomes apparent at<br />
+real scale, as shown in Section 1.</p>
+</blockquote>
+<h3 id="reproduction">Reproduction<a class="headerlink" href="#reproduction" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Synthetic dataset (CI / fast regression)</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_b3.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--records<span class="w"> </span><span class="m">250000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mode<span class="w"> </span>both<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>/tmp/globaldatafinance-b3-benchmark.json
 
-<span class="n">strategy</span> <span class="o">=</span> <span class="n">RetryStrategy</span><span class="p">(</span>
-    <span class="n">initial_backoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">max_backoff</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
-    <span class="n">multiplier</span><span class="o">=</span><span class="mf">2.0</span>
-<span class="p">)</span>
-
-<span class="n">max_retries</span> <span class="o">=</span> <span class="mi">3</span>
-
-<span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">download_file</span><span class="p">()</span>
-        <span class="k">break</span>  <span class="c1"># Sucesso</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">strategy</span><span class="o">.</span><span class="n">is_retryable</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="k">raise</span>  <span class="c1"># Erro não-retryable</span>
-
-        <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">backoff</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">calculate_backoff</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tentativa </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> falhou. Aguardando </span><span class="si">{</span><span class="n">backoff</span><span class="si">}</span><span class="s2">s...&quot;</span><span class="p">)</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">backoff</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span>  <span class="c1"># Esgotou tentativas</span>
+<span class="c1"># Official local files</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_b3.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-dir<span class="w"> </span>/path/to/cotahist<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--initial-year<span class="w"> </span><span class="m">2008</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--last-year<span class="w"> </span><span class="m">2024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--assets<span class="w"> </span>ações<span class="w"> </span>etf<span class="w"> </span>opções<span class="w"> </span>termo<span class="w"> </span>exercicio_opcoes<span class="w"> </span>forward<span class="w"> </span>leilao<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mode<span class="w"> </span>both<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--timeout-seconds<span class="w"> </span><span class="m">7200</span>
 </code></pre></div>
+<p>The synthetic archive used for the baseline has SHA-256<br />
+<code>4ba04707468088975125a536b07f5a9cd361676e8ac68866554241ceb58b7e86</code>.</p>
 <hr />
-<h2 id="uso-automatico-nos-adapters">Uso Automático nos Adapters<a class="headerlink" href="#uso-automatico-nos-adapters" title="Link para esta seção">&para;</a></h2>
-<p>Os adapters de download usam <code>RetryStrategy</code> automaticamente:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># AsyncDownloadAdapterCVM já implementa retry com backoff</span>
-<span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
-<span class="n">cvm</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Retry automático em erros de rede</span>
-</code></pre></div>
-<p>O adapter faz:</p>
-<ol>
-<li>Tenta download</li>
-<li>Se falhar, verifica se é retryable</li>
-<li>Calcula backoff</li>
-<li>Aguarda e tenta novamente</li>
-<li>Repete até max_retries ou sucesso</li>
-</ol>
-<hr />
-<h2 id="configuracao-de-retry">Configuração de Retry<a class="headerlink" href="#configuracao-de-retry" title="Link para esta seção">&para;</a></h2>
-<p>Via configuração global:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Máximo de retries</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DATAFINANCE_NETWORK_MAX_RETRIES</span><span class="o">=</span><span class="m">5</span>
-
-<span class="c1"># Multiplicador de backoff</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DATAFINANCE_NETWORK_RETRY_BACKOFF</span><span class="o">=</span><span class="m">2</span>.0
-</code></pre></div>
-<hr />
-<h2 id="excecoes-do-projeto">Exceções do Projeto<a class="headerlink" href="#excecoes-do-projeto" title="Link para esta seção">&para;</a></h2>
-<p>O <code>RetryStrategy</code> usa as exceções definidas em <code>macro_exceptions</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">NetworkError</span><span class="p">,</span>          <span class="c1"># Erro de rede</span>
-    <span class="ne">TimeoutError</span><span class="p">,</span>          <span class="c1"># Timeout</span>
-    <span class="n">PathPermissionError</span><span class="p">,</span>   <span class="c1"># Sem permissão</span>
-    <span class="n">DiskFullError</span>          <span class="c1"># Disco cheio</span>
-<span class="p">)</span>
-</code></pre></div>
-<hr />
-<p>Veja também:</p>
+<h2 id="3-cvm-baseline-download-extraction-2026-08-06">3. CVM Baseline — Download + Extraction (2026-08-06)<a class="headerlink" href="#3-cvm-baseline-download-extraction-2026-08-06" title="Link para esta seção">&para;</a></h2>
+<p>Full-pipeline measurement of <code>FundamentalStocksDataCVM</code> with<br />
+<code>automatic_extractor=True</code>: raw ZIP downloads from CVM, CSV extraction, and<br />
+primary Parquet generation. Run on the same machine as the B3 benchmarks.</p>
 <ul>
-<li><a href="../../reference/exceptions/">Exceções</a></li>
-<li><a href="../advanced-usage/#configuracao-global">Configuration</a></li>
-<li><a href="../advanced-usage/">Advanced Usage</a></li>
+<li><strong>Docs:</strong> DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (all available types)</li>
+<li><strong>Period:</strong> 2010–2024</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">ZIPs downloaded</th>
+<th style="text-align: right;">Parquets generated</th>
+<th style="text-align: right;">Extracted rows</th>
+<th style="text-align: right;">Total output</th>
+<th style="text-align: right;">Total time</th>
+<th style="text-align: right;">Peak RSS</th>
+<th style="text-align: right;">Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">1,392</td>
+<td style="text-align: right;">63,300,208</td>
+<td style="text-align: right;">337.93 MB</td>
+<td style="text-align: right;">505.04 s</td>
+<td style="text-align: right;">459.18 MB</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Includes: CVM server connection, downloading all ZIPs, validation, CSV<br />
+  extraction, and Parquet conversion.</li>
+<li>Network time varies with external conditions; the CSV→Parquet extraction<br />
+  step is the stable and reproducible portion of the measurement.</li>
+</ul>
+<hr />
+<h2 id="4-limitations-and-contracts">4. Limitations and Contracts<a class="headerlink" href="#4-limitations-and-contracts" title="Link para esta seção">&para;</a></h2>
+<ul>
+<li>The synthetic B3 fixture validates the complete parsing, filtering, and<br />
+  Parquet-writing path, but does not represent the cardinality, compression, or<br />
+  asset mix of a real B3 year.</li>
+<li>When updating reproducible numbers, preserve: dataset, checksum, hardware,<br />
+  Python version, code revision, repetition count, and metric definitions.</li>
 </ul>
 
 
@@ -1521,7 +1419,7 @@ Tentativa 3: esperar ~4.0s (ex.: 3.80s)
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Voltar ao topo
+  Back to top
 </button>
         
       </main>
@@ -1586,12 +1484,12 @@ Tentativa 3: esperar ~4.0s (ex.: 3.80s)
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version": "Selecione a vers\u00e3o"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.annotate", "content.code.copy", "content.tabs.link", "header.autohide", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="../../assets/javascripts/wide-toggle.js"></script>
+        <script src="../../../assets/javascripts/wide-toggle.js"></script>
       
     
   </body>

@@ -29,6 +29,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/architecture/"/>
     </url>
     <url>
+        <loc>https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/benchmarks/</loc>
+        <lastmod>2026-08-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/benchmarks/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/benchmarks/"/>
+    </url>
+    <url>
         <loc>https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/contributing/</loc>
         <lastmod>2026-08-06</lastmod>
         <changefreq>daily</changefreq>
@@ -153,6 +160,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/architecture/"/>
         <xhtml:link rel="alternate" hreflang="pt" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/benchmarks/</loc>
+        <lastmod>2026-08-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/benchmarks/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/benchmarks/"/>
     </url>
     <url>
         <loc>https://jordanestralioto.github.io/Global-Data-Finance/en/dev-guide/contributing/</loc>

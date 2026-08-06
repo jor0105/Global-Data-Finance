@@ -12,19 +12,19 @@
         <meta name="author" content="Jordan Estralioto">
       
       
-        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/retry-strategy/">
+        <link rel="canonical" href="https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/benchmarks/">
       
       
-        <link rel="prev" href="../resource-monitoring/">
+        <link rel="prev" href="../testing/">
       
       
-        <link rel="next" href="../../reference/cvm-api/">
+        <link rel="next" href="../advanced-usage/">
       
       
         
           <link rel="alternate" href="./" hreflang="pt">
         
-          <link rel="alternate" href="../../en/dev-guide/retry-strategy/" hreflang="en">
+          <link rel="alternate" href="../../en/dev-guide/benchmarks/" hreflang="en">
         
       
       
@@ -33,7 +33,7 @@
     
     
       
-        <title>Estratégia de Retry - Global-Data-Finance</title>
+        <title>Benchmarks - Global-Data-Finance</title>
       
     
     
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#estrategia-de-retry" class="md-skip">
+        <a href="#benchmarks-de-performance" class="md-skip">
           Ir para o conteúdo
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Estratégia de Retry
+              Benchmarks
             
           </span>
         </div>
@@ -175,7 +175,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/dev-guide/retry-strategy/" hreflang="en" class="md-select__link">
+            <a href="../../en/dev-guide/benchmarks/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -815,10 +815,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../benchmarks/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -834,6 +861,87 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-linha-de-base-em-escala-real-b3-2026-08-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Linha de Base em Escala Real — B3 (2026-08-06)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-linha-de-base-sintetica-reproduzivel-b3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Linha de Base Sintética Reproduzível — B3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Linha de Base Sintética Reproduzível — B3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#como-reproduzir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Como reproduzir
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-linha-de-base-cvm-download-extracao-2026-08-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Linha de Base CVM — Download + Extração (2026-08-06)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-limitacoes-e-contratos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Limitações e Contratos
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -927,37 +1035,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Estratégia de Retry
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../retry-strategy/" class="md-nav__link">
         
   
   
@@ -973,209 +1054,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Índice">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Índice
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#visao-geral" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Visão Geral
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caracteristicas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Características
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#excecoes-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exceções Retryable
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exceções Retryable">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sempre-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sempre Retryable
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#baseado-em-mensagem" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Baseado em Mensagem
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nunca-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nunca Retryable
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#api" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        API
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#criar-instancia" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Criar Instância
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verificar-se-excecao-e-retryable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verificar se Exceção é Retryable
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#calcular-backoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Calcular Backoff
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplo-de-uso" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplo de Uso
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exemplo de Uso">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#retry-manual-com-backoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Retry Manual com Backoff
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#uso-automatico-nos-adapters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Uso Automático nos Adapters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuracao-de-retry" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuração de Retry
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#excecoes-do-projeto" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exceções do Projeto
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1351,150 +1229,172 @@
   
 
 
-<h1 id="estrategia-de-retry">Estratégia de Retry<a class="headerlink" href="#estrategia-de-retry" title="Link para esta seção">&para;</a></h1>
-<p>Documentação da estratégia de retry do Global-Data-Finance.</p>
-<hr />
-<h2 id="visao-geral">Visão Geral<a class="headerlink" href="#visao-geral" title="Link para esta seção">&para;</a></h2>
-<p>A classe <code>RetryStrategy</code> determina quais exceções garantem retry e calcula o tempo de backoff exponencial.</p>
-<hr />
-<h2 id="caracteristicas">Características<a class="headerlink" href="#caracteristicas" title="Link para esta seção">&para;</a></h2>
+<h1 id="benchmarks-de-performance">Benchmarks de Performance<a class="headerlink" href="#benchmarks-de-performance" title="Link para esta seção">&para;</a></h1>
+<p>Este documento registra as linhas de base de extração e processamento para os<br />
+módulos da B3 e da CVM. Os números são evidência de um cenário de referência e<br />
+servem como métrica para regressão de performance, não uma promessa de tempo<br />
+fixo para qualquer hardware.</p>
+<h2 id="1-linha-de-base-em-escala-real-b3-2026-08-06">1. Linha de Base em Escala Real — B3 (2026-08-06)<a class="headerlink" href="#1-linha-de-base-em-escala-real-b3-2026-08-06" title="Link para esta seção">&para;</a></h2>
+<p><strong>Ambiente:</strong> Python 3.13.7 · Linux x86_64 (kernel 6.8) · 8 CPUs · 7,55 GB de<br />
+memória total. Sem chamadas de rede; apenas extração local dos ZIPs oficiais.</p>
 <ul>
-<li>✅ <strong>Inteligente</strong>: Apenas retries em erros transientes</li>
-<li>✅ <strong>Backoff Exponencial</strong>: Aumenta tempo de espera progressivamente</li>
-<li>✅ <strong>Configurável</strong>: Backoff inicial, máximo e multiplicador customizáveis</li>
-<li>✅ <strong>Type-safe</strong>: Usa hierarquia de exceções do projeto</li>
+<li><strong>Dataset:</strong> 17 arquivos ZIP oficiais (2008–2024), 503,77 MB comprimido.</li>
+<li><strong>Assets selecionados:</strong> ações, etf, opções, termo, exercicio_opcoes, forward, leilao.</li>
+<li><strong>Erros:</strong> 0 (todos os 17 arquivos processados com sucesso).</li>
+<li><strong>Saída Parquet consolidada:</strong> 311,55 MB por modo.</li>
 </ul>
-<hr />
-<h2 id="excecoes-retryable">Exceções Retryable<a class="headerlink" href="#excecoes-retryable" title="Link para esta seção">&para;</a></h2>
-<h3 id="sempre-retryable">Sempre Retryable<a class="headerlink" href="#sempre-retryable" title="Link para esta seção">&para;</a></h3>
-<ul>
-<li><code>NetworkError</code> - Erros de rede</li>
-<li><code>TimeoutError</code> - Timeout de requisições</li>
-</ul>
-<h3 id="baseado-em-mensagem">Baseado em Mensagem<a class="headerlink" href="#baseado-em-mensagem" title="Link para esta seção">&para;</a></h3>
-<p>Erros com keywords retryáveis na mensagem:</p>
-<ul>
-<li><code>"timeout"</code></li>
-<li><code>"connection refused"</code></li>
-<li><code>"connection reset"</code></li>
-<li><code>"connection aborted"</code></li>
-<li><code>"temporarily"</code></li>
-<li><code>"unavailable"</code></li>
-<li><code>"try again"</code></li>
-</ul>
-<h3 id="nunca-retryable">Nunca Retryable<a class="headerlink" href="#nunca-retryable" title="Link para esta seção">&para;</a></h3>
-<ul>
-<li><code>PathPermissionError</code> - Sem permissão</li>
-<li><code>DiskFullError</code> - Disco cheio</li>
-<li><code>ValueError</code> - Erro de validação</li>
-</ul>
-<hr />
-<h2 id="api">API<a class="headerlink" href="#api" title="Link para esta seção">&para;</a></h2>
-<h3 id="criar-instancia">Criar Instância<a class="headerlink" href="#criar-instancia" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.retry_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryStrategy</span>
-
-<span class="n">strategy</span> <span class="o">=</span> <span class="n">RetryStrategy</span><span class="p">(</span>
-    <span class="n">initial_backoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>    <span class="c1"># Backoff inicial (segundos)</span>
-    <span class="n">max_backoff</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>       <span class="c1"># Backoff máximo (segundos)</span>
-    <span class="n">multiplier</span><span class="o">=</span><span class="mf">2.0</span>          <span class="c1"># Multiplicador exponencial</span>
-<span class="p">)</span>
-</code></pre></div>
-<h3 id="verificar-se-excecao-e-retryable">Verificar se Exceção é Retryable<a class="headerlink" href="#verificar-se-excecao-e-retryable" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetworkError</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">download_file</span><span class="p">()</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">strategy</span><span class="o">.</span><span class="n">is_retryable</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Erro retryable, tentando novamente&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Erro não-retryable, parando&quot;</span><span class="p">)</span>
-        <span class="k">raise</span>
-</code></pre></div>
-<h3 id="calcular-backoff">Calcular Backoff<a class="headerlink" href="#calcular-backoff" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Calcula tempo de espera para cada tentativa</span>
-<span class="k">for</span> <span class="n">retry_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">backoff</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">calculate_backoff</span><span class="p">(</span><span class="n">retry_count</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tentativa </span><span class="si">{</span><span class="n">retry_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: esperar </span><span class="si">{</span><span class="n">backoff</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Exemplo de Saída Estimada (initial=1.0, multiplier=2.0 com Jitter [0.5, 1.5])</strong>:</p>
-<div class="highlight"><pre><span></span><code>Tentativa 1: esperar ~1.0s (ex.: 0.92s)
-Tentativa 2: esperar ~2.0s (ex.: 2.15s)
-Tentativa 3: esperar ~4.0s (ex.: 3.80s)
-</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th style="text-align: right;">Linhas gravadas</th>
+<th style="text-align: right;">Tempo da API</th>
+<th style="text-align: right;">Tempo ponta a ponta</th>
+<th style="text-align: right;">Pico RSS</th>
+<th style="text-align: right;">Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fast</code></td>
+<td style="text-align: right;">15.059.876</td>
+<td style="text-align: right;">1.222,61 s</td>
+<td style="text-align: right;">1.224,64 s</td>
+<td style="text-align: right;">4.259,35 MB</td>
+<td style="text-align: right;">12.317 reg/s</td>
+</tr>
+<tr>
+<td><code>slow</code></td>
+<td style="text-align: right;">15.059.876</td>
+<td style="text-align: right;">1.759,90 s</td>
+<td style="text-align: right;">1.761,91 s</td>
+<td style="text-align: right;">1.570,54 MB</td>
+<td style="text-align: right;">8.557 reg/s</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
-<p>Nota: O método <code>calculate_backoff</code> aplica <em>Full Jitter</em> aleatório (<code>[0.5, 1.5]</code>) sobre o valor exponencial determinístico para evitar colisões simultâneas de retries (<em>thundering herd problem</em>).</p>
+<p><strong>Gargalo identificado:</strong> Parser e merge Parquet da B3; o modo <code>fast</code> consome<br />
+~4,2 GiB de pico RSS. O modo <code>slow</code> usa menos de 1,6 GiB com throughput ~28%<br />
+menor.</p>
 </blockquote>
 <hr />
-<h2 id="exemplo-de-uso">Exemplo de Uso<a class="headerlink" href="#exemplo-de-uso" title="Link para esta seção">&para;</a></h2>
-<h3 id="retry-manual-com-backoff">Retry Manual com Backoff<a class="headerlink" href="#retry-manual-com-backoff" title="Link para esta seção">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.core.utils.retry_strategy</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetryStrategy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetworkError</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<h2 id="2-linha-de-base-sintetica-reproduzivel-b3">2. Linha de Base Sintética Reproduzível — B3<a class="headerlink" href="#2-linha-de-base-sintetica-reproduzivel-b3" title="Link para esta seção">&para;</a></h2>
+<p>Para CI/CD e regressões rápidas, mantemos um dataset sintético menor. Medição<br />
+realizada em <strong>2026-08-06</strong>, revisão <code>7ee1843</code>, com três execuções independentes<br />
+por modo:</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th style="text-align: right;">Registros</th>
+<th style="text-align: right;">Entrada ZIP</th>
+<th style="text-align: right;">Saída Parquet</th>
+<th style="text-align: right;">Tempo da API (mediana)</th>
+<th style="text-align: right;">Tempo ponta a ponta (mediana)</th>
+<th style="text-align: right;">Pico RSS</th>
+<th style="text-align: right;">Registros/s (mediana)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fast</code></td>
+<td style="text-align: right;">250.000</td>
+<td style="text-align: right;">8,46 MB</td>
+<td style="text-align: right;">4,05 MB</td>
+<td style="text-align: right;">11,15 s</td>
+<td style="text-align: right;">12,27 s</td>
+<td style="text-align: right;">1.111,72 MB</td>
+<td style="text-align: right;">22.427</td>
+</tr>
+<tr>
+<td><code>slow</code></td>
+<td style="text-align: right;">250.000</td>
+<td style="text-align: right;">8,46 MB</td>
+<td style="text-align: right;">4,05 MB</td>
+<td style="text-align: right;">18,05 s</td>
+<td style="text-align: right;">19,04 s</td>
+<td style="text-align: right;">1.103,01 MB</td>
+<td style="text-align: right;">13.847</td>
+</tr>
+</tbody>
+</table>
+<p>O cenário processou um arquivo sintético COTAHIST de 61,5 MB descompactado, com<br />
+250.000 registros filtrados para <code>ações</code>. Todas as execuções terminaram sem<br />
+erros. O pico RSS inclui interpretador, dependências, parser e escritor Parquet.</p>
+<blockquote>
+<p><strong>Observação:</strong> Em datasets sintéticos pequenos, <code>fast</code> e <code>slow</code> apresentam<br />
+picos RSS próximos (~1,1 GB). A diferença significativa de memória (~4,2 GB<br />
+vs ~1,6 GB) só fica evidente em escala real, conforme métricas da Seção 1.</p>
+</blockquote>
+<h3 id="como-reproduzir">Como reproduzir<a class="headerlink" href="#como-reproduzir" title="Link para esta seção">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Dataset sintético (CI/regressão rápida)</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_b3.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--records<span class="w"> </span><span class="m">250000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mode<span class="w"> </span>both<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>/tmp/globaldatafinance-b3-benchmark.json
 
-<span class="n">strategy</span> <span class="o">=</span> <span class="n">RetryStrategy</span><span class="p">(</span>
-    <span class="n">initial_backoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">max_backoff</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
-    <span class="n">multiplier</span><span class="o">=</span><span class="mf">2.0</span>
-<span class="p">)</span>
-
-<span class="n">max_retries</span> <span class="o">=</span> <span class="mi">3</span>
-
-<span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">download_file</span><span class="p">()</span>
-        <span class="k">break</span>  <span class="c1"># Sucesso</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">strategy</span><span class="o">.</span><span class="n">is_retryable</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
-            <span class="k">raise</span>  <span class="c1"># Erro não-retryable</span>
-
-        <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">backoff</span> <span class="o">=</span> <span class="n">strategy</span><span class="o">.</span><span class="n">calculate_backoff</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tentativa </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> falhou. Aguardando </span><span class="si">{</span><span class="n">backoff</span><span class="si">}</span><span class="s2">s...&quot;</span><span class="p">)</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">backoff</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span>  <span class="c1"># Esgotou tentativas</span>
+<span class="c1"># Arquivos oficiais locais</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_b3.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-dir<span class="w"> </span>/caminho/para/cotahist<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--initial-year<span class="w"> </span><span class="m">2008</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--last-year<span class="w"> </span><span class="m">2024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--assets<span class="w"> </span>ações<span class="w"> </span>etf<span class="w"> </span>opções<span class="w"> </span>termo<span class="w"> </span>exercicio_opcoes<span class="w"> </span>forward<span class="w"> </span>leilao<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mode<span class="w"> </span>both<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repetitions<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--timeout-seconds<span class="w"> </span><span class="m">7200</span>
 </code></pre></div>
+<p>O arquivo sintético da linha de base tem SHA-256<br />
+<code>4ba04707468088975125a536b07f5a9cd361676e8ac68866554241ceb58b7e86</code>.</p>
 <hr />
-<h2 id="uso-automatico-nos-adapters">Uso Automático nos Adapters<a class="headerlink" href="#uso-automatico-nos-adapters" title="Link para esta seção">&para;</a></h2>
-<p>Os adapters de download usam <code>RetryStrategy</code> automaticamente:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># AsyncDownloadAdapterCVM já implementa retry com backoff</span>
-<span class="n">cvm</span> <span class="o">=</span> <span class="n">FundamentalStocksDataCVM</span><span class="p">()</span>
-<span class="n">cvm</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Retry automático em erros de rede</span>
-</code></pre></div>
-<p>O adapter faz:</p>
-<ol>
-<li>Tenta download</li>
-<li>Se falhar, verifica se é retryable</li>
-<li>Calcula backoff</li>
-<li>Aguarda e tenta novamente</li>
-<li>Repete até max_retries ou sucesso</li>
-</ol>
-<hr />
-<h2 id="configuracao-de-retry">Configuração de Retry<a class="headerlink" href="#configuracao-de-retry" title="Link para esta seção">&para;</a></h2>
-<p>Via configuração global:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Máximo de retries</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DATAFINANCE_NETWORK_MAX_RETRIES</span><span class="o">=</span><span class="m">5</span>
-
-<span class="c1"># Multiplicador de backoff</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DATAFINANCE_NETWORK_RETRY_BACKOFF</span><span class="o">=</span><span class="m">2</span>.0
-</code></pre></div>
-<hr />
-<h2 id="excecoes-do-projeto">Exceções do Projeto<a class="headerlink" href="#excecoes-do-projeto" title="Link para esta seção">&para;</a></h2>
-<p>O <code>RetryStrategy</code> usa as exceções definidas em <code>macro_exceptions</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">globaldatafinance.macro_exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">NetworkError</span><span class="p">,</span>          <span class="c1"># Erro de rede</span>
-    <span class="ne">TimeoutError</span><span class="p">,</span>          <span class="c1"># Timeout</span>
-    <span class="n">PathPermissionError</span><span class="p">,</span>   <span class="c1"># Sem permissão</span>
-    <span class="n">DiskFullError</span>          <span class="c1"># Disco cheio</span>
-<span class="p">)</span>
-</code></pre></div>
-<hr />
-<p>Veja também:</p>
+<h2 id="3-linha-de-base-cvm-download-extracao-2026-08-06">3. Linha de Base CVM — Download + Extração (2026-08-06)<a class="headerlink" href="#3-linha-de-base-cvm-download-extracao-2026-08-06" title="Link para esta seção">&para;</a></h2>
+<p>Medição do fluxo completo de <code>FundamentalStocksDataCVM</code> com<br />
+<code>automatic_extractor=True</code>: download dos ZIPs brutos da CVM, extração CSV e<br />
+geração dos Parquets primários. Executado na mesma máquina dos benchmarks B3.</p>
 <ul>
-<li><a href="../../reference/exceptions/">Exceções</a></li>
-<li><a href="../advanced-usage/#configuracao-global">Configuration</a></li>
-<li><a href="../advanced-usage/">Advanced Usage</a></li>
+<li><strong>Docs:</strong> DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (todos os tipos disponíveis)</li>
+<li><strong>Período:</strong> 2010–2024</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">ZIPs baixados</th>
+<th style="text-align: right;">Parquets gerados</th>
+<th style="text-align: right;">Linhas extraídas</th>
+<th style="text-align: right;">Saída total</th>
+<th style="text-align: right;">Tempo total</th>
+<th style="text-align: right;">Pico RSS</th>
+<th style="text-align: right;">Erros</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">1.392</td>
+<td style="text-align: right;">63.300.208</td>
+<td style="text-align: right;">337,93 MB</td>
+<td style="text-align: right;">505,04 s</td>
+<td style="text-align: right;">459,18 MB</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Inclui: conexão com servidores CVM, download de todos os ZIPs, validação,<br />
+  extração CSV e conversão para Parquet.</li>
+<li>O tempo de rede varia com condições externas; o tempo de extração<br />
+  CSV→Parquet é a parcela estável e reprodutível da medida.</li>
+</ul>
+<hr />
+<h2 id="4-limitacoes-e-contratos">4. Limitações e Contratos<a class="headerlink" href="#4-limitacoes-e-contratos" title="Link para esta seção">&para;</a></h2>
+<ul>
+<li>O fixture sintético B3 valida o caminho completo de parsing, filtragem e<br />
+  escrita Parquet, mas não representa a cardinalidade, compressão ou distribuição<br />
+  de ativos de um ano real da B3.</li>
+<li>Ao atualizar os números reprodutíveis, preserve: dataset, checksum, hardware,<br />
+  versão do Python, revisão do código, número de repetições e definição de cada<br />
+  métrica.</li>
 </ul>
 
 

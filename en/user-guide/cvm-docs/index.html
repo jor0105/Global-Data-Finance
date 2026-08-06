@@ -1221,6 +1221,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../dev-guide/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../dev-guide/advanced-usage/" class="md-nav__link">
         
   
@@ -1973,6 +2001,35 @@ IPE: Informações Periódicas e Eventuais
 <li>🧵 <strong>Multi-threaded Worker Execution</strong> (defaulting to 8 concurrent worker queues)</li>
 </ul>
 <h3 id="benchmark-comparisons">Benchmark Comparisons<a class="headerlink" href="#benchmark-comparisons" title="Link para esta seção">&para;</a></h3>
+<p><strong>Full pipeline: download + CSV→Parquet extraction (2026-08-06):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Docs</th>
+<th>Period</th>
+<th style="text-align: right;">ZIPs</th>
+<th style="text-align: right;">Parquets</th>
+<th style="text-align: right;">Extracted Rows</th>
+<th style="text-align: right;">Output</th>
+<th style="text-align: right;">Time</th>
+<th style="text-align: right;">Peak RSS</th>
+<th style="text-align: right;">Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DFP, ITR, FRE, etc.</td>
+<td>2010-2024</td>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">1,392</td>
+<td style="text-align: right;">63,300,208</td>
+<td style="text-align: right;">337.93 MB</td>
+<td style="text-align: right;">505.04 s</td>
+<td style="text-align: right;">459.18 MB</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
 <p>Estimated duration required to fetch 1 complete annual DFP archive bundle:</p>
 <table>
 <thead>
