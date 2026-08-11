@@ -14,8 +14,16 @@ minimum_pre_commit_version: "3.2.0"
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
 # Without this, every hook that omits `stages` would also re-run on push.
 default_stages: [pre-commit]
-default_language_version:
-  python: python3.12
+
+# No `default_language_version` on purpose. Pinning `python3.12` here made
+# every hook env depend on that exact interpreter being on PATH -- which the
+# CI matrix (3.12/3.13/3.14) only satisfies by accident, because the current
+# ubuntu-latest image happens to ship 3.12 as its system Python. When that
+# image moves on, the pin would break every job at once. These hooks are
+# standalone tools (ruff, yamllint, codespell, mdformat); they are not the
+# code under test, and any interpreter meeting requires-python runs them
+# identically. The project's own Python is pinned where it matters, in
+# [project] requires-python and the CI matrix.
 
 # uv.lock is deliberately NOT excluded here: the upstream uv-lock hook matches
 # on `^(uv\.lock|pyproject\.toml|uv\.toml)$`, so a global exclude would stop it
@@ -224,13 +232,12 @@ repos:
         always_run: true
         stages: [pre-push]
 
-      # Same selection and coverage floor as the CI `quality` job, so a push
-      # that passes here is not rejected by CI for coverage.
+      # Same selection as the CI `quality` job. Bare `--cov` picks up source
+      # and the fail_under floor from [tool.coverage.*] in pyproject.toml,
+      # so the gate is defined in exactly one place.
       - id: pytest-unit
         name: pytest-unit
-        entry: >-
-          uv run pytest -q -m "not integration and not slow"
-          --cov=src --cov-fail-under=70
+        entry: uv run pytest -q -m "not integration and not slow" --cov
         language: system
         pass_filenames: false
         always_run: true

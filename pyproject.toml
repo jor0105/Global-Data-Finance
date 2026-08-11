@@ -90,6 +90,33 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
 
+# ---------------------------------------------------------------------------
+# Coverage
+# ---------------------------------------------------------------------------
+# These used to live as [coverage:*] sections in pytest.ini, where coverage.py
+# never read them -- it only looks at .coveragerc, setup.cfg, tox.ini and this
+# file. That is why every caller had to repeat `--cov=src --cov-fail-under=70`
+# on the command line.
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*",
+    "*/.venv/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+fail_under = 70
+
+[tool.coverage.html]
+directory = "htmlcov"
+
 [tool.ruff]
 # Blue style: 79 characters line length
 line-length = 79
