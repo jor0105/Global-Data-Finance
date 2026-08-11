@@ -1,5 +1,6 @@
 import contextlib
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -48,7 +49,7 @@ class RequestsAdapter:
         url: str,
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> httpx.Response:
         """
         Asynchronous HEAD request to get headers without downloading body.

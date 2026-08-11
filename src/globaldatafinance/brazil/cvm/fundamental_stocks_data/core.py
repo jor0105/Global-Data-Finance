@@ -170,7 +170,7 @@ class AvailableYearsCVM:
 class DictZipsToDownloadCVM:
     """Builds the per-doc ZIP-URL map for the requested year range."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._available_years = AvailableYearsCVM()
 
     def get_dict_zips_to_download(
@@ -203,7 +203,7 @@ class DownloadResultCVM:
     elapsed_time: float = 0.0
     _success_set: set[str] = field(default_factory=set, init=False, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self._success_set = set(self.successful_downloads)
 
     @property

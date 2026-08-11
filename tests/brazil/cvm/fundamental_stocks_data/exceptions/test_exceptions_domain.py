@@ -283,7 +283,7 @@ class TestDomainExceptionsIntegration:
             EmptyDocumentListError(),
         ]
         for exc in exceptions:
-            with pytest.raises(Exception):
+            with pytest.raises(type(exc)):
                 raise exc
 
     def test_specific_exception_catching(self):

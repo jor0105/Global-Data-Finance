@@ -46,8 +46,18 @@ class TestAsyncDownloadDocsAdapter:
         adapter._download_and_extract = fake_download_and_extract
 
         tasks = [
-            ('https://example.com/dfp_2020.zip', 'DFP', '2020', '/tmp/out'),
-            ('https://example.com/dfp_2021.zip', 'DFP', '2021', '/tmp/out'),
+            (
+                'https://example.com/dfp_2020.zip',
+                'DFP',
+                '2020',
+                'test-data/out',
+            ),
+            (
+                'https://example.com/dfp_2021.zip',
+                'DFP',
+                '2021',
+                'test-data/out',
+            ),
         ]
 
         result = await adapter.async_download_docs(tasks)
@@ -61,7 +71,7 @@ class TestAsyncDownloadDocsAdapter:
         assert adapter.automatic_extractor is False
 
         adapter._run_downloads = AsyncMock()
-        tasks = [('https://example.com/x.zip', 'DFP', '2020', '/tmp/out')]
+        tasks = [('https://example.com/x.zip', 'DFP', '2020', 'test-data/out')]
 
         await adapter.async_download_docs(tasks, automatic_extractor=True)
 
@@ -77,7 +87,7 @@ class TestAsyncDownloadDocsAdapter:
             automatic_extractor=True,
         )
         adapter._run_downloads = AsyncMock()
-        tasks = [('https://example.com/x.zip', 'DFP', '2020', '/tmp/out')]
+        tasks = [('https://example.com/x.zip', 'DFP', '2020', 'test-data/out')]
 
         await adapter.async_download_docs(tasks)
 

@@ -81,7 +81,7 @@ class ExtractionServiceB3:
             zip_processor.close()
         self._closed = True
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Fallback cleanup when callers forget to close the service."""
         self.close()
 

@@ -68,7 +68,7 @@ class HistoricalQuotesB3:
         ...     print(f"Extraction had errors: {result['message']}")
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the HistoricalQuotesB3 client.
 
         Sets up the extraction use case and result formatter with sensible defaults.

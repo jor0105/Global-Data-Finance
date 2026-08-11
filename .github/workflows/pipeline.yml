@@ -61,7 +61,7 @@ jobs:
 
       - name: Check for vulnerable dependencies
         run: |
-          uv run pip-audit --ignore-vuln PYSEC-2026-89
+          uv run pip-audit
           echo "✅ No vulnerable dependencies found"
 
       # --------------------------------------------------------------------------
@@ -79,7 +79,10 @@ jobs:
             --hook-stage pre-push --show-diff-on-failure
 
       - name: Type check with mypy
-        run: uv run mypy src --ignore-missing-imports --pretty
+        run: |
+          uv run mypy src --pretty
+          uv run mypy src tests examples .github/hooks \
+            --disable-error-code no-untyped-def --pretty
 
       # --------------------------------------------------------------------------
       # 4. Tests

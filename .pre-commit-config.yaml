@@ -3,9 +3,9 @@
 #
 # Hook stages
 # -----------
-#   pre-commit : fast checks only (lint, format, static file hygiene)
+#   pre-commit : local integrity, type, test and dependency checks
 #   commit-msg : Conventional Commits validation
-#   pre-push   : anything slow or network-bound (tests, dependency audit)
+#   pre-push   : repeat the full local gate before publishing a branch
 #
 # Install every stage with:  uv run pre-commit install --install-hooks
 ---
@@ -25,17 +25,9 @@ default_stages: [pre-commit]
 # identically. The project's own Python is pinned where it matters, in
 # [project] requires-python and the CI matrix.
 
-# uv.lock is deliberately NOT excluded here: the upstream uv-lock hook matches
-# on `^(uv\.lock|pyproject\.toml|uv\.toml)$`, so a global exclude would stop it
-# from firing when the lock file is the only thing that changed. Hooks that
-# should skip it carry their own `exclude`.
-exclude: |
-  (?x)^(
-    \.secrets\.baseline|
-    site/|
-    dist/|
-    \.benchmarks/
-  )
+# Keep exclusions hook-local. A global filter would make generated or artifact
+# paths invisible to every scanner, including security hooks. A hook that
+# cannot process a specific generated input must declare its own `exclude`.
 
 repos:
   # --------------------------------------------------------------------------
@@ -117,7 +109,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
-        exclude: ^(package\.lock|\.benchmarks/)
+        exclude: ^(package\.lock|\.secrets\.baseline)
 
   # Secret Detection: gitleaks (provider-specific token patterns)
   - repo: https://github.com/gitleaks/gitleaks
@@ -214,13 +206,18 @@ repos:
         name: mypy
         entry: uv run mypy src
         language: system
-        # The entry hardcodes `src`, so editing a test-only file should not
-        # trigger a run that cannot see the change.
         files: ^src/.*\.py$
         pass_filenames: false
 
+      - id: mypy-supporting
+        name: mypy-supporting
+        entry: uv run mypy src tests examples .github/hooks --disable-error-code no-untyped-def
+        language: system
+        files: ^(tests|examples|\.github/hooks)/.*\.py$
+        pass_filenames: false
+
   # --------------------------------------------------------------------------
-  # 6. Slow / Network-bound checks (pre-push only)
+  # 6. Full local checks (pre-commit and pre-push)
   # --------------------------------------------------------------------------
   - repo: local
     hooks:
@@ -230,7 +227,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push]
+        stages: [pre-commit, pre-push]
 
       # Same selection as the CI `quality` job. Bare `--cov` picks up source
       # and the fail_under floor from [tool.coverage.*] in pyproject.toml,
@@ -241,14 +238,14 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push]
+        stages: [pre-commit, pre-push]
 
       - id: pip-audit
         name: pip-audit
-        # PYSEC-2026-89 (markdown): vuln transitiva via mkdocs-material;
-        # dev/docs-only, nao embarca no wheel runtime.
-        entry: uv run pip-audit . --ignore-vuln PYSEC-2026-89
+        # Do not suppress dependency advisories. Documentation-only
+        # dependencies still execute in local build and CI environments.
+        entry: uv run pip-audit .
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push]
+        stages: [pre-commit, pre-push]

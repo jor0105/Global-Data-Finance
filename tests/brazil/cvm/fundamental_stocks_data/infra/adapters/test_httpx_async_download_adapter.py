@@ -1,4 +1,5 @@
 import asyncio
+import string
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -14,6 +15,25 @@ from globaldatafinance.macro_exceptions import (
     NetworkError,
     TimeoutError,
 )
+
+_TEST_DATA_ALPHABET = string.ascii_letters + string.digits
+
+
+def _large_test_data(size: int = 150_000) -> str:
+    """Return deterministic payload large enough for file validation tests."""
+    repeats = size // len(_TEST_DATA_ALPHABET) + 1
+    return (_TEST_DATA_ALPHABET * repeats)[:size]
+
+
+def _csv_test_data(rows: int = 200) -> str:
+    """Return deterministic CSV data for extraction tests."""
+    categories = ('A', 'B', 'C', 'D')
+    body = '\n'.join(
+        f'{index % 1000},{index / 100:.4f},'
+        f'{categories[index % len(categories)]},{100 + index % 900}'
+        for index in range(rows)
+    )
+    return f'col1,col2,col3,col4\n{body}'
 
 
 @pytest.mark.unit
@@ -111,7 +131,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, error_msg = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -132,7 +152,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, error_msg = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -159,7 +179,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, error_msg = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -185,7 +205,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, error_msg = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -207,7 +227,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, error_msg = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -231,13 +251,13 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
 
         mock_remove.assert_called_once_with(
-            '/tmp/file.zip', log_on_error=False
+            'test-data/file.zip', log_on_error=False
         )
 
     @patch(
@@ -263,7 +283,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DRE',
             '2023',
         )
@@ -294,7 +314,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         success, err = await adapter._download_with_retry(
             'https://example.com/file.zip',
-            '/tmp/file.zip',
+            'test-data/file.zip',
             'DFP',
             '2012',
         )
@@ -323,11 +343,11 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
 
         with pytest.raises(NetworkError):
             await adapter._stream_download(
-                'https://example.com/file.zip', '/tmp/file.zip'
+                'https://example.com/file.zip', 'test-data/file.zip'
             )
 
         mock_remove.assert_called_once_with(
-            '/tmp/file.zip', log_on_error=False
+            'test-data/file.zip', log_on_error=False
         )
 
     async def test_stream_download_calls_requests_adapter(self):
@@ -340,12 +360,12 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
         adapter.requests_adapter.async_download_file = AsyncMock()
 
         await adapter._stream_download(
-            'https://example.com/file.zip', '/tmp/file.zip'
+            'https://example.com/file.zip', 'test-data/file.zip'
         )
 
         adapter.requests_adapter.async_download_file.assert_called_once_with(
             url='https://example.com/file.zip',
-            output_path='/tmp/file.zip',
+            output_path='test-data/file.zip',
             chunk_size=8192,
         )
 
@@ -359,12 +379,12 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
         adapter.requests_adapter.async_download_file = AsyncMock()
 
         await adapter._stream_download(
-            'https://example.com/file.zip', '/tmp/file.zip'
+            'https://example.com/file.zip', 'test-data/file.zip'
         )
 
         adapter.requests_adapter.async_download_file.assert_called_once_with(
             url='https://example.com/file.zip',
-            output_path='/tmp/file.zip',
+            output_path='test-data/file.zip',
             chunk_size=16384,
         )
 
@@ -377,26 +397,15 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_without_automatic_extractor(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
         zip_path = output_dir / 'file.zip'
 
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
-        # Generate 150KB of random data to ensure it passes size validation
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
-        csv_data = 'col1,col2,col3,col4\n' + '\n'.join(
-            [
-                f'{random.randint(1, 1000)},{random.random():.4f},'
-                f'{random.choice(["A", "B", "C", "D"])},{random.randint(100, 999)}'
-                for _ in range(200)
-            ]
-        )
+        # Create a deterministic payload larger than the 100KB validation floor.
+        random_data = _large_test_data()
+        csv_data = _csv_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
@@ -439,8 +448,6 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_with_automatic_extractor(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         import polars as pl
@@ -449,9 +456,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
@@ -508,8 +513,6 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_ignores_old_parquets_when_extractor_creates_none(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         import polars as pl
@@ -518,9 +521,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        random_data = _large_test_data()
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('payload.txt', random_data)
             zf.writestr('data.csv', 'col1,col2\n1,2\n')
@@ -565,18 +566,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_no_parquet_files_keeps_zip(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        # Create a deterministic payload larger than the 100KB validation floor.
+        random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
@@ -624,18 +621,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_extraction_error(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        # Create a deterministic payload larger than the 100KB validation floor.
+        random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
@@ -643,7 +636,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         mock_extractor = MagicMock()
         mock_extractor.extract.side_effect = ExtractionError(
-            '/tmp/file.zip', 'Bad CSV'
+            'test-data/file.zip', 'Bad CSV'
         )
 
         adapter = AsyncDownloadAdapterCVM(
@@ -682,25 +675,21 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_disk_full_error(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        # Create a deterministic payload larger than the 100KB validation floor.
+        random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
             zf.writestr('data.csv', 'col1,col2\n1,2\n')
 
         mock_extractor = MagicMock()
-        mock_extractor.extract.side_effect = DiskFullError('/tmp/output')
+        mock_extractor.extract.side_effect = DiskFullError('test-data/output')
 
         adapter = AsyncDownloadAdapterCVM(
             file_extractor_repository=mock_extractor, automatic_extractor=True
@@ -738,18 +727,14 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
     async def test_download_and_extract_unexpected_extraction_error(
         self, mock_remove, tmp_path
     ):
-        import random
-        import string
         import zipfile
 
         output_dir = tmp_path / 'output'
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # CRITICAL FIX: Create larger file to pass validation (> 100KB)
-        random_data = ''.join(
-            random.choices(string.ascii_letters + string.digits, k=150_000)
-        )
+        # Create a deterministic payload larger than the 100KB validation floor.
+        random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
             zf.writestr('test.txt', random_data)
@@ -803,7 +788,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         await adapter._download_and_extract(
             'https://example.com/file.zip',
-            '/tmp/output',
+            'test-data/output',
             'DRE',
             '2023',
             result,
@@ -825,13 +810,15 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             return True, None
 
         adapter._download_with_retry = mock_download_with_retry
+        adapter._get_content_length = AsyncMock(return_value=None)
+        adapter._validate_downloaded_file = MagicMock(return_value=True)
 
         mock_progress = MagicMock()
         result = DownloadResultCVM()
 
         await adapter._download_and_extract(
             'https://example.com/file.zip',
-            '/tmp/output',
+            'test-data/output',
             'DRE',
             '2023',
             result,
@@ -868,7 +855,12 @@ class TestHttpxAsyncDownloadAdapterConcurrency:
         adapter._download_and_extract = mock_download_and_extract
 
         tasks = [
-            (f'https://example.com/file{i}.zip', 'DRE', '2023', '/tmp/output')
+            (
+                f'https://example.com/file{i}.zip',
+                'DRE',
+                '2023',
+                'test-data/output',
+            )
             for i in range(10)
         ]
 
@@ -910,7 +902,12 @@ class TestHttpxAsyncDownloadAdapterEdgeCases:
         mock_asyncio_run.return_value = expected
 
         tasks = [
-            ('https://example.com/file.zip', 'DRE', '2023', '/tmp/output')
+            (
+                'https://example.com/file.zip',
+                'DRE',
+                '2023',
+                'test-data/output',
+            )
         ]
 
         result = adapter.download_docs(tasks)

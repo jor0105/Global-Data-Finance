@@ -1,5 +1,5 @@
 class EmptyDirectoryError(Exception):
-    def __init__(self, path):
+    def __init__(self, path: str):
         super().__init__(f'Directory is empty: {path!r}')
 
 

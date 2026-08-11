@@ -8,7 +8,7 @@ top-level ``globaldatafinance`` package.
 """
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     """Lazy resolver for the public facade classes."""
     if name == 'FundamentalStocksDataCVM':
         from ..application.cvm_docs import FundamentalStocksDataCVM

@@ -172,7 +172,7 @@ class ExtractHistoricalQuotesUseCaseB3:
     D3 — this is the one use case kept as a class because it has real state.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.zip_reader = ZipFileReaderB3()
         self.parser = CotahistParserB3()
         self.data_writer = ParquetWriterB3()

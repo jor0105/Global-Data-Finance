@@ -591,7 +591,7 @@ class TestDownloadDocumentsUseCaseTaskPreparationGaps:
         with pytest.raises(MissingDownloadUrlError):
             prepare(
                 dict_zip_to_download={},
-                docs_paths={'DFP': {2020: '/tmp/dfp/2020'}},
+                docs_paths={'DFP': {2020: 'test-data/dfp/2020'}},
             )
 
     def test_no_url_match_for_year_logs_warning(self, caplog):
@@ -601,7 +601,7 @@ class TestDownloadDocumentsUseCaseTaskPreparationGaps:
         with caplog.at_level('WARNING'):
             tasks = prepare(
                 dict_zip_to_download={'DFP': ['http://x/dfp_1999.zip']},
-                docs_paths={'DFP': {2020: '/tmp/dfp/2020'}},
+                docs_paths={'DFP': {2020: 'test-data/dfp/2020'}},
             )
 
         assert tasks == []

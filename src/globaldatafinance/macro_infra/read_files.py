@@ -1,5 +1,6 @@
 import zipfile
 from io import BytesIO
+from typing import IO
 
 import pandas as pd  # type: ignore
 
@@ -56,7 +57,9 @@ class ReadFilesAdapter:
         ) from last_error
 
     @staticmethod
-    def read_csv_chunk_size(text_wrapper, chunk_size) -> pd.DataFrame:
+    def read_csv_chunk_size(
+        text_wrapper: IO[str], chunk_size: int
+    ) -> pd.DataFrame:
         return pd.read_csv(
             text_wrapper,
             sep=';',

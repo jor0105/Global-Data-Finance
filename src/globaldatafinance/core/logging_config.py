@@ -52,6 +52,7 @@ Design principles:
 import logging
 import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Literal
@@ -104,7 +105,7 @@ class LoggingSettings(BaseSettings):
 
     @field_validator('level', mode='before')
     @classmethod
-    def validate_level(cls, v):
+    def validate_level(cls, v: Any) -> Any:
         """Normalize logging level to uppercase."""
         if v is None:
             return v
@@ -259,7 +260,9 @@ def get_logger(name: str) -> logging.Logger:
 
 
 @contextmanager
-def log_execution_time(logger: logging.Logger, operation: str, **context: Any):
+def log_execution_time(
+    logger: logging.Logger, operation: str, **context: Any
+) -> Iterator[None]:
     """Context manager to log execution time of operations.
 
     Logs the start of the operation, measures execution time, and logs

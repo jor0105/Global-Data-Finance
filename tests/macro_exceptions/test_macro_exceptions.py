@@ -329,7 +329,7 @@ class TestExtractionError:
         assert f"Extraction error for '{path}': {message}" == error_msg
 
     def test_with_detailed_message(self):
-        path = '/tmp/data.zip'
+        path = 'test-data/data.zip'
         message = 'Unable to decompress: invalid header checksum'
         error = ExtractionError(path, message)
         assert 'decompress' in str(error)
@@ -546,7 +546,7 @@ class TestExceptionIntegration:
         with pytest.raises(NetworkError):
             raise NetworkError('doc', 'error')
 
-        with pytest.raises(Exception):
+        with pytest.raises(NetworkError):
             raise NetworkError('doc', 'error')
 
     def test_multiple_exception_handling_workflow(self):

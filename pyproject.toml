@@ -87,7 +87,11 @@ include = [
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false
+disallow_untyped_defs = true
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = ["pandas", "pyarrow", "pyarrow.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------------------
@@ -152,12 +156,10 @@ convention = "google"
 known-first-party = ["globaldatafinance"]
 
 [tool.ruff.lint.per-file-ignores]
-# Test suites legitimately use patterns the linter discourages in library
-# code: broad `pytest.raises(Exception)` (B017), throwaway loop/unpacked
-# vars in parametrized cases (B007/RUF059), nested `with` blocks that
-# read more clearly than a combined context (SIM117), test assertions and
-# non-cryptographic mock randomness (S101, S108, S110, S311), plus test fixture/mock signatures and path mocking (ARG, PTH).
-"tests/**/*.py" = ["B007", "B017", "RUF059", "SIM117", "S101", "S108", "S110", "S311", "ARG", "PTH", "D"]
+# Test suites legitimately use pytest assertions and a small set of fixture
+# conventions. Security-sensitive path, exception, cleanup and randomness
+# findings remain enabled and must be fixed at their individual call sites.
+"tests/**/*.py" = ["B007", "RUF059", "SIM117", "S101", "ARG", "PTH", "D"]
 
 [tool.ruff.format]
 # Blue style: Single quotes

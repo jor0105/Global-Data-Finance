@@ -77,7 +77,7 @@ class FundamentalStocksDataCVM:
         ...     print(f"Some downloads failed: {result.failed_downloads}")
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the FundamentalStocksDataCVM client.
 
         The automatic_extractor option can be passed per download call.

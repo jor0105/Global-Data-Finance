@@ -204,15 +204,11 @@ class TestExtractorReadTxtFromZipAsync:
             zf.writestr('data.TXT', content)
 
         lines = []
-        try:
-            async for line in extractor.extract_txt_from_zip_async(
-                str(zip_path)
-            ):
-                lines.append(line)
-        except Exception:
-            pass
+        async for line in extractor.extract_txt_from_zip_async(str(zip_path)):
+            lines.append(line)
 
-        assert len(lines) >= 0
+        assert lines[0] == 'Valid line'
+        assert lines[-1] == 'Another line'
 
     @pytest.mark.asyncio
     async def test_async_read_txt_partial_iteration(self, tmp_path):
