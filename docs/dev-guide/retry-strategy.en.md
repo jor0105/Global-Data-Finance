@@ -2,13 +2,13 @@
 
 Technical documentation outlining the error retry and back-off strategies enforced within Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Overview
 
 The `RetryStrategy` domain class evaluates execution exceptions to determine retry eligibility and computes optimized exponential back-off delays between attempts.
 
----
+______________________________________________________________________
 
 ## Highlights
 
@@ -17,7 +17,7 @@ The `RetryStrategy` domain class evaluates execution exceptions to determine ret
 - ✅ **Configurable Thresholds**: Full support for tailoring initial delays, max ceilings, and scaling multiplier coefficients
 - ✅ **Type-Safe Hierarchy**: Evaluates errors leveraging the repository's dedicated custom exception hierarchy
 
----
+______________________________________________________________________
 
 ## Retryable Exception Rules
 
@@ -44,7 +44,7 @@ Standard runtime exceptions triggered by underlying transports are marked retrya
 - `DiskFullError` - Local volume capacity exhaustion
 - `ValueError` / `InvalidDocumentName` - Invalid API parameters or unapproved inputs
 
----
+______________________________________________________________________
 
 ## Public API
 
@@ -94,7 +94,7 @@ Attempt 3 scheduling delay: ~4.0 seconds (e.g. 3.80s)
 
 > Note: The `calculate_backoff` method applies randomized *Full Jitter* (`[0.5, 1.5]`) on top of the base exponential calculation to prevent thundering-herd retry collisions when multiple concurrent downloads fail in lockstep.
 
----
+______________________________________________________________________
 
 ## Practical Implementation Examples
 
@@ -129,7 +129,7 @@ for attempt in range(max_retries):
             raise  # Exhausted maximum permitted attempts
 ```
 
----
+______________________________________________________________________
 
 ## Automated Library Adapter Behavior
 
@@ -149,7 +149,7 @@ The underlying adapter execution loop operates as follows:
 4. Yields worker threads for the duration of the computed back-off interval
 5. Repeats down-streaming steps until completion or maximum retry threshold exhaustion
 
----
+______________________________________________________________________
 
 ## Global Environment Retry Customization
 
@@ -163,7 +163,7 @@ export DATAFINANCE_NETWORK_MAX_RETRIES=5
 export DATAFINANCE_NETWORK_RETRY_BACKOFF=2.0
 ```
 
----
+______________________________________________________________________
 
 ## Project Exception Definitions
 
@@ -178,7 +178,7 @@ from globaldatafinance.macro_exceptions import (
 )
 ```
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

@@ -20,15 +20,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990  # v8.3.2
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -36,16 +38,13 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      # Ruff also owns docstring style (`D`, Google convention) and static
+      # security rules (`S`), configured in pyproject.toml.
       - name: Lint with Ruff
         run: uv run ruff check src
 
       - name: Type check with Mypy
         run: uv run mypy src --ignore-missing-imports --pretty
-
-      - name: Check docstrings with pydocstyle
-        run: |
-          uv run pydocstyle src --convention=google --match-dir=^src \
-            --add-ignore=D104,D100,D101,D102,D103,D105,D107,D205,D212,D417,D415
 
   security-gate:
     name: Security & Vulnerability Scan
@@ -53,17 +52,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990  # v8.3.2
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -74,8 +74,8 @@ jobs:
       - name: Validate uv lock file
         run: uv lock --check
 
-      - name: Run Bandit security analysis
-        run: uv run bandit -c pyproject.toml -r src -ll
+      - name: Static security analysis (Ruff flake8-bandit rules)
+        run: uv run ruff check --select S src
 
       - name: Audit dependency vulnerabilities
         run: uv run pip-audit --ignore-vuln PYSEC-2026-89
@@ -93,15 +93,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: "3.12"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990  # v8.3.2
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"

@@ -31,18 +31,17 @@ brazil/cvm/fundamental_stocks_data/
 
 ### Componentes Chave
 
-| Módulo       | Componente                    | Tipo                  | Responsabilidade                                                                     |
-| ------------ | ----------------------------- | --------------------- | ------------------------------------------------------------------------------------ |
-| `client.py`  | `DownloadDocumentsUseCaseCVM` | Orquestrador (classe) | Coordena geração de URLs, validação de paths e execução de download. Stateful.       |
-| `client.py`  | `GenerateUrlsUseCaseCVM`      | Use case              | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.                       |
-| `client.py`  | `VerifyPathsUseCasesCVM`      | Use case              | Cria estrutura de diretórios de destino. Raise `SecurityError` em paths sensíveis.   |
-| `core.py`    | `DownloadResultCVM`           | Result object         | Resultado agregado contendo sucessos, falhas e contadores (`elapsed_time` incluso).  |
-| `core.py`    | `DictZipsToDownloadCVM`       | Value object          | Mapeamento documento → URLs por ano.                                                  |
-| `http.py`                | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e delegação de extração.                     |
-| `extract.py`             | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).    |
-| `download_extraction.py` | `extract_downloaded_file`     | Helper / Use case     | Gerencia atomicidade da extração, rastreando parquets gerados para rollback.          |
-| `download_validation.py` | `validate_downloaded_file`    | Helper                | Valida integridade e completude de ZIPs e arquivos Parquet extraídos.                 |
-
+| Módulo                   | Componente                    | Tipo                  | Responsabilidade                                                                    |
+| ------------------------ | ----------------------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| `client.py`              | `DownloadDocumentsUseCaseCVM` | Orquestrador (classe) | Coordena geração de URLs, validação de paths e execução de download. Stateful.      |
+| `client.py`              | `GenerateUrlsUseCaseCVM`      | Use case              | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.                      |
+| `client.py`              | `VerifyPathsUseCasesCVM`      | Use case              | Cria estrutura de diretórios de destino. Raise `SecurityError` em paths sensíveis.  |
+| `core.py`                | `DownloadResultCVM`           | Result object         | Resultado agregado contendo sucessos, falhas e contadores (`elapsed_time` incluso). |
+| `core.py`                | `DictZipsToDownloadCVM`       | Value object          | Mapeamento documento → URLs por ano.                                                |
+| `http.py`                | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e delegação de extração.                   |
+| `extract.py`             | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).  |
+| `download_extraction.py` | `extract_downloaded_file`     | Helper / Use case     | Gerencia atomicidade da extração, rastreando parquets gerados para rollback.        |
+| `download_validation.py` | `validate_downloaded_file`    | Helper                | Valida integridade e completude de ZIPs e arquivos Parquet extraídos.               |
 
 ## 🚀 Guia de Uso
 
@@ -93,12 +92,12 @@ if __name__ == "__main__":
 
 ### `DownloadDocumentsUseCaseCVM.execute`
 
-| Parâmetro          | Tipo        | Obrigatório | Descrição                                                                                                          |
-| ------------------ | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `destination_path` | `str`       | Sim         | Caminho base onde as pastas por documento serão criadas.                                                           |
+| Parâmetro          | Tipo        | Obrigatório | Descrição                                                                                                                             |
+| ------------------ | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `destination_path` | `str`       | Sim         | Caminho base onde as pastas por documento serão criadas.                                                                              |
 | `list_docs`        | `list[str]` | Não         | Lista de códigos de documentos que serão baixados. Valores válidos: `DFP`, `ITR`, `FRE`, `FCA`, `CGVN`, `IPE`, `VLMO`. Padrão: todos. |
-| `initial_year`     | `int`       | Não         | Ano de início da coleta.                                                                                           |
-| `last_year`        | `int`       | Não         | Ano final da coleta.                                                                                               |
+| `initial_year`     | `int`       | Não         | Ano de início da coleta.                                                                                                              |
+| `last_year`        | `int`       | Não         | Ano final da coleta.                                                                                                                  |
 
 #### Tipos de Documentos Disponíveis
 
@@ -158,7 +157,7 @@ A extração é orquestrada pelo **`download_extraction.py`** e executada pelo *
    - `CorruptedZipError` – ZIP inválido ou corrompido.
    - `DiskFullError` – Falta de espaço em disco (propagado imediatamente).
    - `ExtractionError` – Qualquer erro durante a conversão, que dispara o rollback.
-6. **Limpeza e logging**
+7. **Limpeza e logging**
    - O método `__cleanup_files` centraliza a remoção de arquivos, registrando sucessos e erros. O logger fornece detalhes de cada etapa, facilitando a depuração.
 
 ### Por que essa abordagem?

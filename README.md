@@ -14,7 +14,7 @@
 
 </div>
 
----
+______________________________________________________________________
 
 ## 🎯 About
 
@@ -30,16 +30,16 @@ The public API is deliberately narrow (re-exporting `FundamentalStocksDataCVM` a
 - **🧩 Flat Layout per Source**: Adding a data source simply requires creating a dedicated directory with role-named modules (e.g., client, models, http, extract), resulting in intuitive, modular, and directly maintainable code.
 - **✨ Developer Experience**: Complete type hints, structured logging, strict test markers (`unit`, `integration`, `slow`, `asyncio`).
 
----
+______________________________________________________________________
 
 ## ✨ Features
 
 ### 📈 Supported Data Sources
 
-| Source  | Data Type           | Details                                   | Status      |
-| :------ | :------------------ | :---------------------------------------- | :---------- |
-| **CVM** | Regulatory Documents | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE       | ✅ Production |
-| **B3**  | Historical Quotes   | Stocks, ETFs, BDRs, Options, Forward, Futures | ✅ Production |
+| Source  | Data Type            | Details                                       | Status        |
+| :------ | :------------------- | :-------------------------------------------- | :------------ |
+| **CVM** | Regulatory Documents | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE           | ✅ Production |
+| **B3**  | Historical Quotes    | Stocks, ETFs, BDRs, Options, Forward, Futures | ✅ Production |
 
 ### ⚙️ Technical Highlights
 
@@ -52,7 +52,7 @@ The public API is deliberately narrow (re-exporting `FundamentalStocksDataCVM` a
   - Execution modes: `fast` (in-memory) and `slow` (low-memory).
   - Advanced filtering by asset type (Stocks, Options, etc.).
 
----
+______________________________________________________________________
 
 ## 📊 Measured Performance Baseline
 
@@ -60,22 +60,22 @@ Real-scale measurement on **2026-08-06** (Python 3.13.7, 8 CPUs, 7.55 GB RAM,
 no network calls), processing 17 official COTAHIST ZIPs (2008-2024), all asset
 types:
 
-| Mode | Written rows | Peak RSS | Time |
-| :--- | ---: | ---: | ---: |
-| **B3 `fast`** | 15,059,876 | 4,259.35 MB | 20m22s |
-| **B3 `slow`** | 15,059,876 | 1,570.54 MB | 29m19s |
-| **CVM (All Docs, 2010-2024)** (download + Parquet) | 63,300,208 rows (1,392 files) | 459.18 MB | 8m25s |
+| Mode                                               |                  Written rows |    Peak RSS |   Time |
+| :------------------------------------------------- | ----------------------------: | ----------: | -----: |
+| **B3 `fast`**                                      |                    15,059,876 | 4,259.35 MB | 20m22s |
+| **B3 `slow`**                                      |                    15,059,876 | 1,570.54 MB | 29m19s |
+| **CVM (All Docs, 2010-2024)** (download + Parquet) | 63,300,208 rows (1,392 files) |   459.18 MB |  8m25s |
 
 Reproducible synthetic baseline (250,000 records, 3 runs each, same machine):
 
-| Mode | API time (median) | Peak RSS | Throughput (median) |
-| :--- | ---: | ---: | ---: |
-| `fast` | 11.15 s | 1,111.72 MB | 22,427 records/s |
-| `slow` | 18.05 s | 1,103.01 MB | 13,847 records/s |
+| Mode   | API time (median) |    Peak RSS | Throughput (median) |
+| :----- | ----------------: | ----------: | ------------------: |
+| `fast` |           11.15 s | 1,111.72 MB |    22,427 records/s |
+| `slow` |           18.05 s | 1,103.01 MB |    13,847 records/s |
 
 See the full [benchmark methodology and reproduction guide](docs/dev-guide/benchmarks.md).
 
----
+______________________________________________________________________
 
 ## 🚀 Installation
 
@@ -99,7 +99,7 @@ uv run pytest                 # tests
 uv run pre-commit run --all-files  # lint + typecheck + bandit + etc.
 ```
 
----
+______________________________________________________________________
 
 ## 💡 Quick Start
 
@@ -166,7 +166,7 @@ print(df.head())
 print(df.groupby("cod_negociacao")["preco_fechamento"].mean())
 ```
 
----
+______________________________________________________________________
 
 ## 🏗️ Architecture
 
@@ -216,7 +216,7 @@ src/
 
 Details in [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) and [`AGENTS.md`](AGENTS.md).
 
----
+______________________________________________________________________
 
 ## 📊 API Reference
 
@@ -224,25 +224,25 @@ Details in [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) an
 
 Manager for downloading CVM documents.
 
-| Method                    | Signature                                                                                                                                  | Description                                                |
-| :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------- |
-| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Downloads and optionally extracts documents.               |
-| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Asynchronous variant of `download`.                        |
-| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                     | Returns list of available documents and their descriptions.|
-| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                              | Returns range of available years for download.             |
+| Method                    | Signature                                                                                                                                               | Description                                                 |
+| :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------- |
+| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Downloads and optionally extracts documents.                |
+| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Asynchronous variant of `download`.                         |
+| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                  | Returns list of available documents and their descriptions. |
+| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                           | Returns range of available years for download.              |
 
 ### `HistoricalQuotesB3`
 
 Extractor for B3 historical quotes.
 
-| Method                     | Signature                                                                                                                                                                                             | Description                                                     |
-| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| Method                     | Signature                                                                                                                                                                                                                                | Description                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
 | **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Processes B3 ZIP files and generates a consolidated Parquet file. |
-| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Asynchronous variant of `extract`.                              |
-| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                            | Returns supported asset types (e.g., 'ações', 'opções').        |
-| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                       | Returns range of available years for historical data.           |
+| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Asynchronous variant of `extract`.                                |
+| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                        | Returns supported asset types (e.g., 'ações', 'opções').          |
+| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                   | Returns range of available years for historical data.             |
 
----
+______________________________________________________________________
 
 ## 🤝 Contributing
 
@@ -252,21 +252,21 @@ Contributions are very welcome! If you wish to add new data sources, improve per
 2. Create a branch for your feature (`git checkout -b feature/new-feature`).
 3. Implement your changes.
 4. Run tests and linters:
-    ```bash
-    uv run pre-commit run --all-files
-    uv run pytest
-    ```
+   ```bash
+   uv run pre-commit run --all-files
+   uv run pytest
+   ```
 5. Open a **Pull Request**.
 
 See the [Contributing Guide](https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/contributing/) for more details.
 
----
+______________________________________________________________________
 
 ## 📄 License
 
 This project is distributed under the **Apache 2.0** license. See the [LICENSE](LICENSE) file for more information.
 
----
+______________________________________________________________________
 
 ## 📞 Support and Contact
 
@@ -275,7 +275,7 @@ This project is distributed under the **Apache 2.0** license. See the [LICENSE](
 - **Email**: estraliotojordan@gmail.com
 - **Issues**: [Report Bug](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 
----
+______________________________________________________________________
 
 <div align="center">
     <sub>Copyright © 2026 Jordan Estralioto • Licensed under Apache 2.0</sub>

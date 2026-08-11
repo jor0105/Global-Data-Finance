@@ -35,18 +35,18 @@ brazil/b3_data/historical_quotes/
 
 ### Componentes Chave
 
-| Módulo                  | Componente                         | Tipo                  | Responsabilidade                                                                       |
-| ----------------------- | ---------------------------------- | --------------------- | -------------------------------------------------------------------------------------- |
-| `client.py`             | `ExtractHistoricalQuotesUseCaseB3` | Orquestrador (classe) | Conecta parser, leitor e escritor. Mantém estado entre chamadas.                       |
-| `client.py`             | `CreateDocsToExtractUseCaseB3`     | Use case              | Constrói `DocsToExtractorB3` validado a partir dos parâmetros públicos do facade.      |
-| `models.py`             | `DocsToExtractorB3`                | Value object          | Encapsula e valida parâmetros de configuração da extração (anos, assets, paths).       |
-| `filesystem.py`         | `FileSystemServiceB3`              | Service               | Valida paths (`SecurityError`/`PathPermissionError` antes de I/O) e resolve regex de arquivos oficiais. |
-| `assets.py`             | `AvailableAssetsServiceB3`         | Service               | Fornece lista de ativos disponíveis e validação de nomes de ativos (tickers).          |
-| `processing.py`         | `ExtractionConfigServiceB3`        | Service               | Valida modo de processamento (`fast`, `slow`) e sanitiza/formata `output_filename`.    |
-| `years.py`              | `YearValidationServiceB3`          | Service               | Implementa validação e lógica de limite temporal para o `range_years`.                 |
-| `cotahist_parser.py`    | `CotahistParserB3`                 | Parser concreto       | Traduz linhas de texto posicional em dicionários Python estruturados.                  |
-| `parquet_writer/`       | `ParquetWriterB3`                  | Writer concreto       | Escrita Parquet com compressão (zstd) e statistics. Subpacote (`writer`, `schema`, `streaming`, `disk`, `constants`).  |
-| `extraction_service/`   | `ExtractionServiceB3`              | Service concreto      | Streaming/threadpool/flush por memória. Subpacote (`service`, `batch_parser`, `zip_processor`, `buffered_writer`, `resource_policy`, `temp_parquet_merge`, `types`). |
+| Módulo                | Componente                         | Tipo                  | Responsabilidade                                                                                                                                                     |
+| --------------------- | ---------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `client.py`           | `ExtractHistoricalQuotesUseCaseB3` | Orquestrador (classe) | Conecta parser, leitor e escritor. Mantém estado entre chamadas.                                                                                                     |
+| `client.py`           | `CreateDocsToExtractUseCaseB3`     | Use case              | Constrói `DocsToExtractorB3` validado a partir dos parâmetros públicos do facade.                                                                                    |
+| `models.py`           | `DocsToExtractorB3`                | Value object          | Encapsula e valida parâmetros de configuração da extração (anos, assets, paths).                                                                                     |
+| `filesystem.py`       | `FileSystemServiceB3`              | Service               | Valida paths (`SecurityError`/`PathPermissionError` antes de I/O) e resolve regex de arquivos oficiais.                                                              |
+| `assets.py`           | `AvailableAssetsServiceB3`         | Service               | Fornece lista de ativos disponíveis e validação de nomes de ativos (tickers).                                                                                        |
+| `processing.py`       | `ExtractionConfigServiceB3`        | Service               | Valida modo de processamento (`fast`, `slow`) e sanitiza/formata `output_filename`.                                                                                  |
+| `years.py`            | `YearValidationServiceB3`          | Service               | Implementa validação e lógica de limite temporal para o `range_years`.                                                                                               |
+| `cotahist_parser.py`  | `CotahistParserB3`                 | Parser concreto       | Traduz linhas de texto posicional em dicionários Python estruturados.                                                                                                |
+| `parquet_writer/`     | `ParquetWriterB3`                  | Writer concreto       | Escrita Parquet com compressão (zstd) e statistics. Subpacote (`writer`, `schema`, `streaming`, `disk`, `constants`).                                                |
+| `extraction_service/` | `ExtractionServiceB3`              | Service concreto      | Streaming/threadpool/flush por memória. Subpacote (`service`, `batch_parser`, `zip_processor`, `buffered_writer`, `resource_policy`, `temp_parquet_merge`, `types`). |
 
 ## 🚀 Guia de Uso
 
@@ -97,12 +97,12 @@ if __name__ == "__main__":
 
 ### `DocsToExtractorB3` (Configuração)
 
-| Campo                       | Tipo       | Descrição                                                                                                                                                                 |
-| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path_of_docs`              | `str`      | Caminho absoluto para o diretório contendo os arquivos ZIP.                                                                                                               |
-| `destination_path`          | `str`      | Caminho absoluto onde o arquivo Parquet será salvo.                                                                                                                       |
-| `range_years`               | `range`    | Intervalo de anos para validação (ex: `range(2020, 2024)`).                                                                                                               |
-| `set_assets`                | `set[str]` | Conjunto de tipos de ativos para filtrar (ex: `{"ações", "etf", "opções"}`). Valores válidos: `ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`. |
+| Campo                   | Tipo       | Descrição                                                                                                                                                                 |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path_of_docs`          | `str`      | Caminho absoluto para o diretório contendo os arquivos ZIP.                                                                                                               |
+| `destination_path`      | `str`      | Caminho absoluto onde o arquivo Parquet será salvo.                                                                                                                       |
+| `range_years`           | `range`    | Intervalo de anos para validação (ex: `range(2020, 2024)`).                                                                                                               |
+| `set_assets`            | `set[str]` | Conjunto de tipos de ativos para filtrar (ex: `{"ações", "etf", "opções"}`). Valores válidos: `ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`. |
 | `documents_to_download` | `set[str]` | Nomes exatos dos arquivos ZIP a serem processados.                                                                                                                        |
 
 ### Tratamento de Erros

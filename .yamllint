@@ -6,6 +6,8 @@ rules:
   truthy:
     check-keys: false
   line-length:
-    max: 88
+    # 120 rather than 88: workflow files carry SHA-pinned `uses:` refs and
+    # embedded shell/Python in `run:` blocks, neither of which can wrap.
+    max: 120
   indentation:
     spaces: 2

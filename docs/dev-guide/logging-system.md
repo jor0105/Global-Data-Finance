@@ -2,7 +2,7 @@
 
 Documentação completa do sistema de logging avançado do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
@@ -15,7 +15,7 @@ O Global-Data-Finance possui um sistema de logging centralizado e profissional q
 - ✅ **Structured logging** - Logs com dados contextuais
 - ✅ **Variáveis de ambiente** - Configuração via environment variables
 
----
+______________________________________________________________________
 
 ## Arquitetura
 
@@ -32,7 +32,7 @@ src/core/logging_config.py
 └── ContextFilter             # Filtro de contexto
 ```
 
----
+______________________________________________________________________
 
 ## Uso Básico
 
@@ -78,7 +78,7 @@ logger.info(
 2025-11-25 17:30:00 | INFO     | meu_modulo | Arquivo processado | filename=data.csv | records=1000 | elapsed_ms=250
 ```
 
----
+______________________________________________________________________
 
 ## Configuração
 
@@ -136,7 +136,7 @@ from globaldatafinance.core import setup_logging
 setup_logging()
 ```
 
----
+______________________________________________________________________
 
 ## Recursos Avançados
 
@@ -203,7 +203,7 @@ print(f"Arquivo de log: {settings.log_file}")
 print(f"Formato detalhado: {settings.detailed_format}")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplos Práticos
 
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     processar_dados()
 ```
 
----
+______________________________________________________________________
 
 ## Formatos de Log
 
@@ -309,7 +309,7 @@ Inclui número de linha e nome da função:
 2025-11-25 17:30:00 | INFO     | módulo | Mensagem | campo1=valor1 | campo2=valor2
 ```
 
----
+______________________________________________________________________
 
 ## Boas Práticas
 
@@ -363,7 +363,7 @@ download_files()
 logger.info(f"Levou {time.time() - start}s")
 ```
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
@@ -393,7 +393,7 @@ setup_logging(level="INFO", log_file="/var/log/app.log")
 setup_logging(level="INFO", log_file="/tmp/app.log")
 ```
 
----
+______________________________________________________________________
 
 ## Referências
 
@@ -401,7 +401,7 @@ setup_logging(level="INFO", log_file="/tmp/app.log")
 - [Logging Best Practices](https://docs.python.org/3/howto/logging.html)
 - [Structured Logging](https://www.structlog.org/)
 
----
+______________________________________________________________________
 
 Veja também:
 

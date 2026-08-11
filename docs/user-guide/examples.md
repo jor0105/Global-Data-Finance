@@ -2,7 +2,7 @@
 
 Esta página apresenta exemplos completos e práticos de uso do Global-Data-Finance em cenários reais.
 
----
+______________________________________________________________________
 
 ## Exemplo 1: Download Completo de DFP
 
@@ -26,7 +26,7 @@ cvm.download(
 print("✓ Download e extração concluídos!")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 2: Extração de Ações e ETFs
 
@@ -63,7 +63,7 @@ if result['success']:
     print(f"  Arquivo: {result['output_file']}")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 3: Pipeline Completo
 
@@ -118,7 +118,7 @@ print(f"✓ Dados CVM salvos em: {cvm_dir}")
 print(f"✓ Cotações B3 salvas em: {result['output_file']}")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 4: Análise com Pandas
 
@@ -160,7 +160,7 @@ print(f"\nEstatísticas de preço de fechamento:")
 print(df['preco_fechamento'].describe())
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 5: Processamento com Polars
 
@@ -203,7 +203,7 @@ print(f"  Preço mínimo: R$ {petr4['preco_minimo'].min():.2f}")
 print(f"  Preço máximo: R$ {petr4['preco_maximo'].max():.2f}")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 6: Automação com Script
 
@@ -284,7 +284,7 @@ python script.py --tipo b3 --destino /data --ano-inicial 2020 --ano-final 2023
 python script.py --tipo ambos --destino /data --verbose
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo 7: Integração com Jupyter Notebook
 
@@ -332,7 +332,7 @@ plt.tight_layout()
 plt.show()
 ```
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 

@@ -15,16 +15,16 @@ memória total. Sem chamadas de rede; apenas extração local dos ZIPs oficiais.
 - **Erros:** 0 (todos os 17 arquivos processados com sucesso).
 - **Saída Parquet consolidada:** 311,55 MB por modo.
 
-| Modo    | Linhas gravadas | Tempo da API  | Tempo ponta a ponta | Pico RSS    | Throughput     |
-| ------- | --------------: | ------------: | ------------------: | ----------: | -------------: |
-| `fast`  |      15.059.876 |    1.222,61 s |          1.224,64 s | 4.259,35 MB | 12.317 reg/s   |
-| `slow`  |      15.059.876 |    1.759,90 s |          1.761,91 s | 1.570,54 MB |  8.557 reg/s   |
+| Modo   | Linhas gravadas | Tempo da API | Tempo ponta a ponta |    Pico RSS |   Throughput |
+| ------ | --------------: | -----------: | ------------------: | ----------: | -----------: |
+| `fast` |      15.059.876 |   1.222,61 s |          1.224,64 s | 4.259,35 MB | 12.317 reg/s |
+| `slow` |      15.059.876 |   1.759,90 s |          1.761,91 s | 1.570,54 MB |  8.557 reg/s |
 
 > **Gargalo identificado:** Parser e merge Parquet da B3; o modo `fast` consome
 > ~4,2 GiB de pico RSS. O modo `slow` usa menos de 1,6 GiB com throughput ~28%
 > menor.
 
----
+______________________________________________________________________
 
 ## 2. Linha de Base Sintética Reproduzível — B3
 
@@ -69,7 +69,7 @@ uv run python scripts/benchmark_b3.py \
 O arquivo sintético da linha de base tem SHA-256
 `4ba04707468088975125a536b07f5a9cd361676e8ac68866554241ceb58b7e86`.
 
----
+______________________________________________________________________
 
 ## 3. Linha de Base CVM — Download + Extração (2026-08-06)
 
@@ -80,16 +80,16 @@ geração dos Parquets primários. Executado na mesma máquina dos benchmarks B3
 - **Docs:** DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (todos os tipos disponíveis)
 - **Período:** 2010–2024
 
-| ZIPs baixados | Parquets gerados | Linhas extraídas | Saída total | Tempo total | Pico RSS   | Erros |
-| ------------: | ---------------: | ---------------: | ----------: | ----------: | ---------: | ----: |
-|            88 |            1.392 |       63.300.208 |  337,93 MB  |  505,04 s   | 459,18 MB  |     0 |
+| ZIPs baixados | Parquets gerados | Linhas extraídas | Saída total | Tempo total |  Pico RSS | Erros |
+| ------------: | ---------------: | ---------------: | ----------: | ----------: | --------: | ----: |
+|            88 |            1.392 |       63.300.208 |   337,93 MB |    505,04 s | 459,18 MB |     0 |
 
 - Inclui: conexão com servidores CVM, download de todos os ZIPs, validação,
   extração CSV e conversão para Parquet.
 - O tempo de rede varia com condições externas; o tempo de extração
   CSV→Parquet é a parcela estável e reprodutível da medida.
 
----
+______________________________________________________________________
 
 ## 4. Limitações e Contratos
 

@@ -2,7 +2,7 @@
 
 Catálogo completo de exceções do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Exceções Globais (`macro_exceptions`)
 
@@ -79,7 +79,7 @@ class SecurityError(Exception):
 
 **Quando ocorre**: Tentativa de acesso não autorizado
 
----
+______________________________________________________________________
 
 ## Exceções CVM
 
@@ -129,7 +129,7 @@ class EmptyDocumentListError(Exception):
 
 **Quando ocorre**: `list_docs` é lista vazia
 
----
+______________________________________________________________________
 
 ## Exceções B3
 
@@ -161,7 +161,7 @@ class EmptyAssetListError(Exception):
 
 **Quando ocorre**: `assets_list` é lista vazia
 
----
+______________________________________________________________________
 
 ## Hierarquia de Exceções
 
@@ -187,7 +187,7 @@ OSError
 └── DiskFullError
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo de Tratamento Completo
 
@@ -228,7 +228,7 @@ except Exception as e:
 
 > Exceções específicas de cada fonte vivem em `errors.py` dentro da própria fonte (ex.: `brazil.cvm.fundamental_stocks_data.errors`, `brazil.b3_data.historical_quotes.errors`).
 
----
+______________________________________________________________________
 
 Veja também:
 

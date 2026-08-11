@@ -8,14 +8,41 @@ set -uo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT" || exit 1
 
+# .agents/ and every mirror it generates are gitignored, so a fresh clone --
+# CI, a new machine, a release runner -- has no harness to compare. Mirror
+# sync is a local-only guarantee by construction; skipping is the honest
+# outcome, not a silent pass, so say so and exit clean.
+if [ ! -d ".agents/scripts" ]; then
+  echo "  - harness sync skipped: .agents/ not present (untracked by design)" >&2
+  exit 0
+fi
+
 fail=0
 
 run_check() {
   local label="$1" script="$2"
-  if ! python3 "$script" --check >/dev/null 2>&1; then
-    echo "  x ${label}  ->  fix: python3 ${script}" >&2
+
+  if [ ! -f "$script" ]; then
+    echo "  x ${label}  ->  missing script: ${script}" >&2
     fail=1
+    return
   fi
+
+  local output status=0
+  output="$(python3 "$script" --check 2>&1)" || status=$?
+  [ "$status" -eq 0 ] && return
+
+  echo "  x ${label}  ->  fix: python3 ${script}" >&2
+  # Never swallow the reason. A crashing script and a genuinely drifted
+  # mirror both exit non-zero, and only this output tells them apart --
+  # discarding it turns "the harness is broken" into "regenerate the
+  # mirrors", which is the wrong fix and never converges.
+  if [ -n "$output" ]; then
+    printf '%s\n' "$output" | head -n 20 | while IFS= read -r line; do
+      echo "      | ${line}" >&2
+    done
+  fi
+  fail=1
 }
 
 echo "Checking harness mirror sync (.agents = source of truth)..." >&2

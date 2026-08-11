@@ -27,15 +27,17 @@ jobs:
       UV_VIRTUALENVS_IN_PROJECT: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.3.2
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990  # v8.3.2
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -52,9 +54,9 @@ jobs:
       # --------------------------------------------------------------------------
       # 2. Security Checks
       # --------------------------------------------------------------------------
-      - name: Security analysis with Bandit
+      - name: Static security analysis (Ruff flake8-bandit rules)
         run: |
-          uv run bandit -c pyproject.toml -r src -ll
+          uv run ruff check --select S src
           echo "✅ Security analysis passed"
 
       - name: Check for vulnerable dependencies
@@ -65,17 +67,19 @@ jobs:
       # --------------------------------------------------------------------------
       # 3. Code Quality & Formatting
       # --------------------------------------------------------------------------
-      - name: Run pre-commit (all hooks)
+      # Ruff (inside pre-commit) owns docstring style `D` and security `S`.
+      - name: Run pre-commit (pre-commit stage)
         run: uv run pre-commit run --all-files --show-diff-on-failure
+
+      # Hooks staged to pre-push locally still have to gate CI. pytest and
+      # pip-audit have dedicated steps below/above; this covers the rest.
+      - name: Run pre-commit (pre-push stage)
+        run: |
+          uv run pre-commit run max-lines-per-file --all-files \
+            --hook-stage pre-push --show-diff-on-failure
 
       - name: Type check with mypy
         run: uv run mypy src --ignore-missing-imports --pretty
-
-      - name: Docstring style check
-        run: |
-          uv run pydocstyle src --convention=google --match-dir=^src \
-            --add-ignore=D104,D100,D101,D102,D103,D105,D107,D205,D212,D417,D415
-          echo "✅ Docstring style check passed"
 
       # --------------------------------------------------------------------------
       # 4. Tests
@@ -89,7 +93,7 @@ jobs:
                  --cov-fail-under=70
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7
         with:
           files: ./coverage.xml
           flags: unittests
@@ -98,7 +102,7 @@ jobs:
           verbose: false
 
       - name: Upload coverage report (artifact)
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: coverage-report-py${{ matrix.python-version }}
           path: coverage.xml

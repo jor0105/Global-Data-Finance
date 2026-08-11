@@ -2,7 +2,7 @@
 
 Guia completo para usar a API `FundamentalStocksDataCVM` e baixar documentos fundamentalistas da Comissão de Valores Mobiliários (CVM).
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
@@ -17,7 +17,7 @@ A classe `FundamentalStocksDataCVM` fornece uma interface simples e poderosa par
 - ✅ Tratamento robusto de erros e retry automático
 - ✅ Logging detalhado do progresso
 
----
+______________________________________________________________________
 
 ## Tipos de Documentos Disponíveis
 
@@ -36,7 +36,7 @@ A CVM disponibiliza os seguintes tipos de documentos:
 !!! info "Dados Históricos"
 A maioria dos documentos está disponível desde 2010, exceto ITR (2011) e CGVN/VLMO (2018).
 
----
+______________________________________________________________________
 
 ## Uso Básico
 
@@ -64,7 +64,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Métodos Principais
 
@@ -140,7 +140,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_docs()`
 
@@ -178,7 +178,7 @@ VLMO: Valores Mobiliários
 IPE: Informações Periódicas e Eventuais
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_years()`
 
@@ -212,7 +212,7 @@ print(f"ITR disponível desde: {years['ITR Document Years']}")
 print(f"Ano atual: {years['Current Year']}")
 ```
 
----
+______________________________________________________________________
 
 ## Exemplos Avançados
 
@@ -290,7 +290,7 @@ else:
     )
 ```
 
----
+______________________________________________________________________
 
 ## Tratamento de Erros
 
@@ -300,14 +300,14 @@ A API pode lançar as seguintes exceções:
 
 | Exceção                       | Quando ocorre                           | Como tratar                                |
 | ----------------------------- | --------------------------------------- | ------------------------------------------ |
-| `InvalidDocumentName`          | Tipo de documento inválido              | Verificar lista com `get_available_docs()` |
+| `InvalidDocumentName`         | Tipo de documento inválido              | Verificar lista com `get_available_docs()` |
 | `InvalidFirstYear`            | Ano inicial fora do intervalo           | Verificar anos com `get_available_years()` |
 | `InvalidLastYear`             | Ano final inválido ou menor que inicial | Validar intervalo de anos                  |
 | `NetworkError`                | Erro de conexão                         | Verificar internet e tentar novamente      |
 | `TimeoutError`                | Timeout na requisição                   | Aumentar timeout ou tentar mais tarde      |
 | `InvalidDestinationPathError` | Caminho de destino inválido             | Verificar permissões e caminho             |
 
----
+______________________________________________________________________
 
 ## Estrutura dos Arquivos Baixados
 
@@ -393,7 +393,7 @@ destination_path/
 
 ```
 
----
+______________________________________________________________________
 
 ## Boas Práticas
 
@@ -415,7 +415,7 @@ cvm.download(
     initial_year=2020,  # 3-4 anos
     last_year=2023
 )
-````
+```
 
 ### 2. Verifique Espaço em Disco
 
@@ -444,7 +444,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Performance
 
@@ -461,7 +461,7 @@ O `FundamentalStocksDataCVM` usa `AsyncDownloadAdapterCVM` por padrão, que ofer
 
 **Fluxo completo: download + extração CSV→Parquet (2026-08-06):**
 
-| Docs                | Período   | ZIPs | Parquets | Linhas     | Saída     | Tempo    | Pico RSS  | Erros |
+| Docs                | Período   | ZIPs | Parquets |     Linhas |     Saída |    Tempo |  Pico RSS | Erros |
 | ------------------- | --------- | ---: | -------: | ---------: | --------: | -------: | --------: | ----: |
 | DFP, ITR, FRE, etc. | 2010-2024 |   88 |    1.392 | 63.300.208 | 337,93 MB | 505,04 s | 459,18 MB |     0 |
 
@@ -472,7 +472,7 @@ O `FundamentalStocksDataCVM` usa `AsyncDownloadAdapterCVM` por padrão, que ofer
 | Download sequencial     | ~60s  | 1x (baseline)      |
 | AsyncDownloadAdapterCVM | ~15s  | **4x mais rápido** |
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 
@@ -481,7 +481,7 @@ O `FundamentalStocksDataCVM` usa `AsyncDownloadAdapterCVM` por padrão, que ofer
 - 🔧 **[API Reference](../reference/cvm-api.md)** - Documentação técnica detalhada
 - ❓ **[FAQ](faq.md)** - Perguntas frequentes
 
----
+______________________________________________________________________
 
 !!! tip "Dica de Performance"
 Para análises de dados, sempre use `automatic_extractor=True`. O formato Parquet é muito mais eficiente que CSV para leitura e processamento.

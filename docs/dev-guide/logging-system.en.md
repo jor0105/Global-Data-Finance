@@ -2,7 +2,7 @@
 
 Complete technical reference covering the advanced centralized logging infrastructure implemented across Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -15,7 +15,7 @@ Global-Data-Finance incorporates a professional centralized logging subsystem de
 - ✅ **Structured Metadata Binding**: Context-aware log emission supporting structured parameter propagation
 - ✅ **Environment Override Compatibility**: Real-time runtime overrides via confirmed OS environment variables
 
----
+______________________________________________________________________
 
 ## Architecture
 
@@ -32,7 +32,7 @@ src/core/logging_config.py
 └── ContextFilter             # Metadata enrichment logging filter
 ```
 
----
+______________________________________________________________________
 
 ## Basic Usage
 
@@ -78,19 +78,19 @@ logger.info(
 2025-11-25 17:30:00 | INFO     | my_pipeline_module | Dataset normalization completed | filename=dfp_cia_aberta_2023.csv | records=1000 | elapsed_ms=250
 ```
 
----
+______________________________________________________________________
 
 ## Configuration
 
 ### Severity Level Thresholds
 
-| Severity Level | Operational Scope                       | Typical Example Event                              |
-| -------------- | --------------------------------------- | -------------------------------------------------- |
-| **DEBUG**      | Deep diagnostic execution traces         | Variable parameter inspections, worker loop steps  |
-| **INFO**       | Standard operational lifecycle metrics  | "Download initiated", "Parquet file persisted"     |
-| **WARNING**    | Recoverable anomalies or degradations    | "Target archive exists, skipping", "Timeout retry" |
-| **ERROR**      | Non-fatal operation exceptions          | "Failed downloading individual DFP table slice"    |
-| **CRITICAL**   | Severe failures impacting overall runtime | "Storage exhaustion detected", "Out of memory"   |
+| Severity Level | Operational Scope                         | Typical Example Event                              |
+| -------------- | ----------------------------------------- | -------------------------------------------------- |
+| **DEBUG**      | Deep diagnostic execution traces          | Variable parameter inspections, worker loop steps  |
+| **INFO**       | Standard operational lifecycle metrics    | "Download initiated", "Parquet file persisted"     |
+| **WARNING**    | Recoverable anomalies or degradations     | "Target archive exists, skipping", "Timeout retry" |
+| **ERROR**      | Non-fatal operation exceptions            | "Failed downloading individual DFP table slice"    |
+| **CRITICAL**   | Severe failures impacting overall runtime | "Storage exhaustion detected", "Out of memory"     |
 
 ### Programmatic Configuration
 
@@ -138,7 +138,7 @@ from globaldatafinance.core import setup_logging
 setup_logging()
 ```
 
----
+______________________________________________________________________
 
 ## Advanced Capabilities
 
@@ -205,7 +205,7 @@ print(f"Registered file sink: {settings.log_file}")
 print(f"Detailed syntax enabled: {settings.detailed_format}")
 ```
 
----
+______________________________________________________________________
 
 ## Practical Examples
 
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     process_financial_filings()
 ```
 
----
+______________________________________________________________________
 
 ## Log Layout specifications
 
@@ -308,7 +308,7 @@ Appends exact module line numbering and caller function terminology:
 2025-11-25 17:30:00 | INFO     | module.name | Message | key1=value1 | key2=value2
 ```
 
----
+______________________________________________________________________
 
 ## Best Practices
 
@@ -362,7 +362,7 @@ download_files()
 logger.info(f"Execution took {time.time() - start} seconds")
 ```
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
@@ -392,7 +392,7 @@ setup_logging(level="INFO", log_file="/var/log/app.log")
 setup_logging(level="INFO", log_file="/tmp/app.log")
 ```
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

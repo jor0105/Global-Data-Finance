@@ -36,11 +36,11 @@ Durable priorities and invariants are:
 
 ## Success Metrics
 
-| Metric        | Target                                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| Coverage gate | At least 70% when the CI coverage command runs (`pytest.ini` and `pipeline.yml`)                      |
-| Quality gate  | CI passes the uv lock check, security checks, pre-commit, mypy, pydocstyle, and coverage-backed tests |
-| Compatibility | No unapproved changes to public API contracts or persisted output schemas                             |
+| Metric        | Target                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| Coverage gate | At least 70% when the CI coverage command runs (`pytest.ini` and `pipeline.yml`)          |
+| Quality gate  | CI passes the uv lock check, security checks, pre-commit, mypy, and coverage-backed tests |
+| Compatibility | No unapproved changes to public API contracts or persisted output schemas                 |
 
 ## Pipeline Architecture
 
@@ -87,13 +87,13 @@ For a first safe change:
 
 1. Read [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md)
    for ownership and module boundaries.
-1. Open the owning facade and source modules: CVM starts at
+2. Open the owning facade and source modules: CVM starts at
    `application/cvm_docs/` and `brazil/cvm/`; B3 starts at
    `application/b3_docs/` and `brazil/b3_data/`.
-1. Read [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md), the matching
+3. Read [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md), the matching
    tests, and [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md)
    before changing behavior.
-1. Use the relevant smoke or API-surface script when deterministic runtime
+4. Use the relevant smoke or API-surface script when deterministic runtime
    evidence is needed.
 
 Implemented code, manifests, tests, and accepted decisions describe the
@@ -132,27 +132,27 @@ conflicts, not evidence of a second runtime or release contract.
 | Action                                     | Command                                                                                                                    |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | Sync development environment               | `uv sync`                                                                                                                  |
-| Install hooks                              | `uv run pre-commit install`                                                                                                |
+| Install hooks                              | `uv run pre-commit install --install-hooks`                                                                                |
 | Run full tests                             | `uv run pytest`                                                                                                            |
 | Run unit tests                             | `uv run pytest -m unit`                                                                                                    |
 | Run integration tests excluding slow cases | `uv run pytest -m "integration and not slow"`                                                                              |
 | Run CI coverage gate                       | `uv run pytest -m "not integration and not slow" --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=70` |
 | Run repository quality hooks               | `uv run pre-commit run --all-files --show-diff-on-failure`                                                                 |
 | Run type checking                          | `uv run mypy src --ignore-missing-imports --pretty`                                                                        |
-| Run security and docstring checks          | `uv run bandit -c pyproject.toml -r src -ll` and `uv run pydocstyle src --convention=google`                               |
+| Run security and docstring checks          | `uv run ruff check src` (rules `S` cover Bandit, `D` cover pydocstyle)                                                     |
 | Check lockfile                             | `uv lock --check`                                                                                                          |
 | Build documentation                        | `uv run mkdocs build --strict`                                                                                             |
 
 ## Technical Stack
 
-| Concern                | Current choice                                                                    |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| Runtime and build      | Python `>=3.12,<4.0`, `src/` layout, Hatchling, `uv`                              |
-| HTTP and concurrency   | `httpx[http2]`, `asyncio`, retries, and `psutil` resource monitoring              |
-| Data processing        | `polars`, `pandas`, `pyarrow`, and Parquet                                        |
-| Configuration and logs | `pydantic-settings` and the project logging configuration                         |
-| Quality and security   | pytest, Ruff, mypy, pydocstyle, Bandit, pip-audit, detect-secrets, and pre-commit |
-| Documentation          | MkDocs Material, configured for Portuguese (`pt`)                                 |
+| Concern                | Current choice                                                          |
+| ---------------------- | ----------------------------------------------------------------------- |
+| Runtime and build      | Python `>=3.12,<4.0`, `src/` layout, Hatchling, `uv`                    |
+| HTTP and concurrency   | `httpx[http2]`, `asyncio`, retries, and `psutil` resource monitoring    |
+| Data processing        | `polars`, `pandas`, `pyarrow`, and Parquet                              |
+| Configuration and logs | `pydantic-settings` and the project logging configuration               |
+| Quality and security   | pytest, Ruff, mypy, pip-audit, detect-secrets, gitleaks, and pre-commit |
+| Documentation          | MkDocs Material, configured for Portuguese (`pt`)                       |
 
 ## Mandatory Rules
 
@@ -188,7 +188,7 @@ conflicts, not evidence of a second runtime or release contract.
 - Write tests for every behavioral change: happy and error paths for new
   behavior, and a regression test for every bug fix. Keep tests under `tests/`.
 - Type-annotate public signatures and public-facing `client.py`/`core.py`
-  surfaces; write Google-style docstrings; keep mypy and pydocstyle green.
+  surfaces; write Google-style docstrings; keep mypy and Ruff's `D` rules green.
 - Never swallow exceptions silently. Re-raise, translate to a project
   exception with context, or log at WARNING or above with the original
   traceback. Do not raise raw `Exception`, `ValueError`, or `RuntimeError`
@@ -276,9 +276,9 @@ Before any destructive, publish, migration, deployment-like, or external-state
 operation:
 
 1. State exactly what will be affected.
-1. Inspect and validate the exact target and scope.
-1. Run a dry run when the command supports it.
-1. Break complex operations into readable steps; do not hide behavior in opaque
+2. Inspect and validate the exact target and scope.
+3. Run a dry run when the command supports it.
+4. Break complex operations into readable steps; do not hide behavior in opaque
    one-liners.
 
 Before running local scripts that call the operating system, inspect the
@@ -297,15 +297,15 @@ Read sources in this order: orientation, architecture and ownership, testing
 and contribution, source contracts, operations/tooling, then implementation
 details or planned work.
 
-| Doc                                                                                                                                                                                                                                                         | Knowledge class        | Purpose                                                                               |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------- |
-| [`README.md`](README.md) · [`docs/index.md`](docs/index.md)                                                                                                                                                                                                 | Orientation            | Mission, supported sources, installation, quickstart, and documentation map           |
-| [`docs/user-guide/installation.md`](docs/user-guide/installation.md) · [`docs/user-guide/quickstart.md`](docs/user-guide/quickstart.md) · [`docs/user-guide/examples.md`](docs/user-guide/examples.md) · [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | User guide             | Consumer setup, first usage, runnable examples, and troubleshooting                   |
-| [`docs/user-guide/cvm-docs.md`](docs/user-guide/cvm-docs.md) · [`docs/user-guide/b3-docs.md`](docs/user-guide/b3-docs.md)                                                                                                                                   | User guide             | CVM and B3 inputs, outputs, modes, and examples                                       |
-| [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) · [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md) · [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md)                                                          | Development            | Ownership, test strategy, quality workflow, and contribution rules                    |
-| [`docs/dev-guide/api-reference.md`](docs/dev-guide/api-reference.md) · [`docs/reference/cvm-api.md`](docs/reference/cvm-api.md) · [`docs/reference/b3-api.md`](docs/reference/b3-api.md) · [`docs/reference/exceptions.md`](docs/reference/exceptions.md)   | Reference              | Public APIs, source contracts, and exception behavior                                 |
-| [`docs/dev-guide/logging-system.md`](docs/dev-guide/logging-system.md) · [`docs/dev-guide/resource-monitoring.md`](docs/dev-guide/resource-monitoring.md) · [`docs/dev-guide/retry-strategy.md`](docs/dev-guide/retry-strategy.md)                          | Operations             | Logging, resource-aware concurrency, and retry policy                                 |
-| [`pyproject.toml`](pyproject.toml) · [`uv.lock`](uv.lock) · [`pytest.ini`](pytest.ini) · [`.pre-commit-config.yaml`](.pre-commit-config.yaml)                                                                                                               | Repository facts       | Build, dependencies, tests, and local quality hooks                                   |
-| [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) · [`mkdocs.yml`](mkdocs.yml)                                                                                                                                                             | Tooling                | Current package CI gates and documentation build/navigation                           |
-| [`examples/README.md`](examples/README.md) · [`examples/01_quickstart_cvm.py`](examples/01_quickstart_cvm.py) · [`examples/02_quickstart_b3.py`](examples/02_quickstart_b3.py) · [`examples/03_advanced_options_b3.py`](examples/03_advanced_options_b3.py) | Examples and operational checks | Runnable user onboarding scripts |
-| [`.agents/README.md`](.agents/README.md) · [`openspec/`](openspec/)                                                                                                                                                                                         | Agent/planning tooling | Agent framework and planning boundary; neither overrides implemented runtime behavior |
+| Doc                                                                                                                                                                                                                                                         | Knowledge class                 | Purpose                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| [`README.md`](README.md) · [`docs/index.md`](docs/index.md)                                                                                                                                                                                                 | Orientation                     | Mission, supported sources, installation, quickstart, and documentation map           |
+| [`docs/user-guide/installation.md`](docs/user-guide/installation.md) · [`docs/user-guide/quickstart.md`](docs/user-guide/quickstart.md) · [`docs/user-guide/examples.md`](docs/user-guide/examples.md) · [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | User guide                      | Consumer setup, first usage, runnable examples, and troubleshooting                   |
+| [`docs/user-guide/cvm-docs.md`](docs/user-guide/cvm-docs.md) · [`docs/user-guide/b3-docs.md`](docs/user-guide/b3-docs.md)                                                                                                                                   | User guide                      | CVM and B3 inputs, outputs, modes, and examples                                       |
+| [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) · [`docs/dev-guide/testing.md`](docs/dev-guide/testing.md) · [`docs/dev-guide/contributing.md`](docs/dev-guide/contributing.md)                                                          | Development                     | Ownership, test strategy, quality workflow, and contribution rules                    |
+| [`docs/dev-guide/api-reference.md`](docs/dev-guide/api-reference.md) · [`docs/reference/cvm-api.md`](docs/reference/cvm-api.md) · [`docs/reference/b3-api.md`](docs/reference/b3-api.md) · [`docs/reference/exceptions.md`](docs/reference/exceptions.md)   | Reference                       | Public APIs, source contracts, and exception behavior                                 |
+| [`docs/dev-guide/logging-system.md`](docs/dev-guide/logging-system.md) · [`docs/dev-guide/resource-monitoring.md`](docs/dev-guide/resource-monitoring.md) · [`docs/dev-guide/retry-strategy.md`](docs/dev-guide/retry-strategy.md)                          | Operations                      | Logging, resource-aware concurrency, and retry policy                                 |
+| [`pyproject.toml`](pyproject.toml) · [`uv.lock`](uv.lock) · [`pytest.ini`](pytest.ini) · [`.pre-commit-config.yaml`](.pre-commit-config.yaml)                                                                                                               | Repository facts                | Build, dependencies, tests, and local quality hooks                                   |
+| [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) · [`mkdocs.yml`](mkdocs.yml)                                                                                                                                                             | Tooling                         | Current package CI gates and documentation build/navigation                           |
+| [`examples/README.md`](examples/README.md) · [`examples/01_quickstart_cvm.py`](examples/01_quickstart_cvm.py) · [`examples/02_quickstart_b3.py`](examples/02_quickstart_b3.py) · [`examples/03_advanced_options_b3.py`](examples/03_advanced_options_b3.py) | Examples and operational checks | Runnable user onboarding scripts                                                      |
+| [`.agents/README.md`](.agents/README.md) · [`openspec/`](openspec/)                                                                                                                                                                                         | Agent/planning tooling          | Agent framework and planning boundary; neither overrides implemented runtime behavior |

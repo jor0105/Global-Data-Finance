@@ -2,7 +2,7 @@
 
 Detailed technical specification governing the CVM corporate disclosure API.
 
----
+______________________________________________________________________
 
 ## FundamentalStocksDataCVM
 
@@ -32,13 +32,13 @@ def download(
 
 **Parameters**:
 
-| Parameter             | Type                  | Required | Default | Description                              |
-| --------------------- | --------------------- | -------- | ------- | ---------------------------------------- |
-| `destination_path`    | `str`                 | Yes      | -       | Target local filesystem output folder    |
-| `list_docs`           | `Optional[List[str]]` | No       | `None`  | Targeted document codes (None = fetch all)|
-| `initial_year`        | `Optional[int]`       | No       | `None`  | Starting year (None = earliest available)|
-| `last_year`           | `Optional[int]`       | No       | `None`  | Ending fiscal year (None = current year) |
-| `automatic_extractor` | `bool`                | No       | `False` | Automatically convert to Parquet files   |
+| Parameter             | Type                  | Required | Default | Description                                |
+| --------------------- | --------------------- | -------- | ------- | ------------------------------------------ |
+| `destination_path`    | `str`                 | Yes      | -       | Target local filesystem output folder      |
+| `list_docs`           | `Optional[List[str]]` | No       | `None`  | Targeted document codes (None = fetch all) |
+| `initial_year`        | `Optional[int]`       | No       | `None`  | Starting year (None = earliest available)  |
+| `last_year`           | `Optional[int]`       | No       | `None`  | Ending fiscal year (None = current year)   |
+| `automatic_extractor` | `bool`                | No       | `False` | Automatically convert to Parquet files     |
 
 **Raised Exceptions**:
 
@@ -101,21 +101,21 @@ years = cvm.get_available_years()
 # Returns: {'General Document Years': 2010, 'ITR Document Years': 2011, ...}
 ```
 
----
+______________________________________________________________________
 
 ## Supported Document Classifications
 
-| Acronym Code | Complete Legal Title                  | Available Since |
-| ------------ | ------------------------------------- | --------------- |
-| DFP          | Demonstração Financeira Padronizada   | 2010            |
-| ITR          | Informação Trimestral                 | 2011            |
-| FRE          | Formulário de Referência              | 2010            |
-| FCA          | Formulário Cadastral                  | 2010            |
-| CGVN         | Código de Governança                  | 2018            |
-| VLMO         | Valores Mobiliários                   | 2018            |
-| IPE          | Informações Periódicas e Eventuais    | 2010            |
+| Acronym Code | Complete Legal Title                | Available Since |
+| ------------ | ----------------------------------- | --------------- |
+| DFP          | Demonstração Financeira Padronizada | 2010            |
+| ITR          | Informação Trimestral               | 2011            |
+| FRE          | Formulário de Referência            | 2010            |
+| FCA          | Formulário Cadastral                | 2010            |
+| CGVN         | Código de Governança                | 2018            |
+| VLMO         | Valores Mobiliários                 | 2018            |
+| IPE          | Informações Periódicas e Eventuais  | 2010            |
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

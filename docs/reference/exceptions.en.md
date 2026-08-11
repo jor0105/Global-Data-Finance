@@ -2,7 +2,7 @@
 
 Complete structural catalog of custom error boundaries and exception types defined in Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Root Infrastructure Exceptions (`macro_exceptions`)
 
@@ -79,7 +79,7 @@ class SecurityError(Exception):
 
 **Trigger Condition**: Attempted writing or directory creation aimed directly at system-level restricted POSIX routes (`/etc`, `/sys`, `/boot`, `/root`, etc.).
 
----
+______________________________________________________________________
 
 ## CVM Domain Exceptions
 
@@ -129,7 +129,7 @@ class EmptyDocumentListError(Exception):
 
 **Trigger Condition**: An empty array (`[]`) was passed into `list_docs`.
 
----
+______________________________________________________________________
 
 ## B3 Domain Exceptions
 
@@ -161,7 +161,7 @@ class EmptyAssetListError(Exception):
 
 **Trigger Condition**: An empty array (`[]`) was supplied into mandatory `assets_list` argument.
 
----
+______________________________________________________________________
 
 ## Exception Class Hierarchy
 
@@ -187,7 +187,7 @@ OSError
 └── DiskFullError
 ```
 
----
+______________________________________________________________________
 
 ## Comprehensive Exception Handling Pattern
 
@@ -228,7 +228,7 @@ except Exception as exc:
 
 > Source-specific exception definitions reside inside `errors.py` modules within their owning domain features (e.g., `brazil.cvm.fundamental_stocks_data.errors`, `brazil.b3_data.historical_quotes.errors`).
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

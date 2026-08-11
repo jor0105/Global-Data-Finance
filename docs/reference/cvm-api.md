@@ -2,7 +2,7 @@
 
 Documentação técnica detalhada da API CVM.
 
----
+______________________________________________________________________
 
 ## FundamentalStocksDataCVM
 
@@ -101,7 +101,7 @@ years = cvm.get_available_years()
 # {'General Document Years': 2010, 'ITR Document Years': 2011, ...}
 ```
 
----
+______________________________________________________________________
 
 ## Tipos de Documentos
 
@@ -115,7 +115,7 @@ years = cvm.get_available_years()
 | VLMO   | Valores Mobiliários                 | 2018  |
 | IPE    | Informações Periódicas e Eventuais  | 2010  |
 
----
+______________________________________________________________________
 
 Veja também:
 

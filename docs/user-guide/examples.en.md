@@ -2,7 +2,7 @@
 
 This page provides end-to-end operational code examples illustrating how to implement Global-Data-Finance in real-world data engineering scripts and analytical workflows.
 
----
+______________________________________________________________________
 
 ## Example 1: Full DFP Regulatory Ingestion
 
@@ -26,7 +26,7 @@ cvm.download(
 print("✓ Ingestion and extraction completed successfully!")
 ```
 
----
+______________________________________________________________________
 
 ## Example 2: High-Performance Equities and ETF Extraction
 
@@ -63,7 +63,7 @@ if result['success']:
     print(f"  Consolidated artifact: {result['output_file']}")
 ```
 
----
+______________________________________________________________________
 
 ## Example 3: Unified Automated Processing Pipeline
 
@@ -118,7 +118,7 @@ print(f"✓ Corporate CVM archives deposited at: {cvm_dir}")
 print(f"✓ Consolidated B3 market quotes persisted at: {result['output_file']}")
 ```
 
----
+______________________________________________________________________
 
 ## Example 4: Analytical Exploration with Pandas
 
@@ -160,7 +160,7 @@ print(f"\nStatistical metrics for closing quote executions:")
 print(df['preco_fechamento'].describe())
 ```
 
----
+______________________________________________________________________
 
 ## Example 5: High-Performance Analytics with Polars
 
@@ -203,7 +203,7 @@ print(f"  Minimum intraday price: R$ {petr4['preco_minimo'].min():.2f}")
 print(f"  Maximum intraday price: R$ {petr4['preco_maximo'].max():.2f}")
 ```
 
----
+______________________________________________________________________
 
 ## Example 6: Command-Line Automation Script
 
@@ -284,7 +284,7 @@ python harvester.py --source b3 --destination /data --start-year 2020 --end-year
 python harvester.py --source both --destination /data --verbose
 ```
 
----
+______________________________________________________________________
 
 ## Example 7: Jupyter Notebook Interactive Visualizations
 
@@ -332,7 +332,7 @@ plt.tight_layout()
 plt.show()
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 

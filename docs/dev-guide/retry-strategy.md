@@ -2,13 +2,13 @@
 
 Documentação da estratégia de retry do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
 A classe `RetryStrategy` determina quais exceções garantem retry e calcula o tempo de backoff exponencial.
 
----
+______________________________________________________________________
 
 ## Características
 
@@ -17,7 +17,7 @@ A classe `RetryStrategy` determina quais exceções garantem retry e calcula o t
 - ✅ **Configurável**: Backoff inicial, máximo e multiplicador customizáveis
 - ✅ **Type-safe**: Usa hierarquia de exceções do projeto
 
----
+______________________________________________________________________
 
 ## Exceções Retryable
 
@@ -44,7 +44,7 @@ Erros com keywords retryáveis na mensagem:
 - `DiskFullError` - Disco cheio
 - `ValueError` - Erro de validação
 
----
+______________________________________________________________________
 
 ## API
 
@@ -94,7 +94,7 @@ Tentativa 3: esperar ~4.0s (ex.: 3.80s)
 
 > Nota: O método `calculate_backoff` aplica *Full Jitter* aleatório (`[0.5, 1.5]`) sobre o valor exponencial determinístico para evitar colisões simultâneas de retries (*thundering herd problem*).
 
----
+______________________________________________________________________
 
 ## Exemplo de Uso
 
@@ -129,7 +129,7 @@ for attempt in range(max_retries):
             raise  # Esgotou tentativas
 ```
 
----
+______________________________________________________________________
 
 ## Uso Automático nos Adapters
 
@@ -149,7 +149,7 @@ O adapter faz:
 4. Aguarda e tenta novamente
 5. Repete até max_retries ou sucesso
 
----
+______________________________________________________________________
 
 ## Configuração de Retry
 
@@ -163,7 +163,7 @@ export DATAFINANCE_NETWORK_MAX_RETRIES=5
 export DATAFINANCE_NETWORK_RETRY_BACKOFF=2.0
 ```
 
----
+______________________________________________________________________
 
 ## Exceções do Projeto
 
@@ -178,7 +178,7 @@ from globaldatafinance.macro_exceptions import (
 )
 ```
 
----
+______________________________________________________________________
 
 Veja também:
 

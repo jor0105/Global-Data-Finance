@@ -2,7 +2,7 @@
 
 Complete user documentation guide for employing the `HistoricalQuotesB3` API to parse and process official historical market exchange COTAHIST archives from B3 (Brazilian Stock Exchange).
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -17,26 +17,26 @@ The `HistoricalQuotesB3` class provides a high-performance engine capable of ing
 - ✅ Granular asset filtering syntax to exclude unnecessary instrument types
 - ✅ Comprehensive execution tracking and diagnostic console outputs
 
----
+______________________________________________________________________
 
 ## Supported Asset Categories
 
 B3 archives historical financial transactions under the following standard categories:
 
-| Parameter Keyword    | Professional Classification | Included Sub-Market Classifications        |
-| -------------------- | --------------------------- | ------------------------------------------ |
-| **ações**            | Stocks & Equities           | Spot market (010) and fractional market (012)|
-| **etf**              | Exchange Traded Funds (ETFs)| Exchange Traded Fund instruments            |
-| **opções**           | Options Contracts           | Option Calls (070) and Option Puts (080)   |
-| **termo**            | Forward Term Contracts      | Term financial agreements                  |
-| **exercicio_opcoes** | Option Exercises            | Option execution transaction registers     |
-| **forward**          | Forward Contracts           | Over-the-counter and forward agreements    |
-| **leilao**           | Auction Market Records      | Extraordinary auction clearing executions  |
+| Parameter Keyword    | Professional Classification  | Included Sub-Market Classifications           |
+| -------------------- | ---------------------------- | --------------------------------------------- |
+| **ações**            | Stocks & Equities            | Spot market (010) and fractional market (012) |
+| **etf**              | Exchange Traded Funds (ETFs) | Exchange Traded Fund instruments              |
+| **opções**           | Options Contracts            | Option Calls (070) and Option Puts (080)      |
+| **termo**            | Forward Term Contracts       | Term financial agreements                     |
+| **exercicio_opcoes** | Option Exercises             | Option execution transaction registers        |
+| **forward**          | Forward Contracts            | Over-the-counter and forward agreements       |
+| **leilao**           | Auction Market Records       | Extraordinary auction clearing executions     |
 
 !!! info "Historical Depth"
-    B3 COTAHIST historical quote archives cover market transaction activity continuously from **1986** through the present day.
+B3 COTAHIST historical quote archives cover market transaction activity continuously from **1986** through the present day.
 
----
+______________________________________________________________________
 
 ## Basic Usage
 
@@ -65,7 +65,7 @@ result = b3.extract(
 print(f"✓ Successfully processed and consolidated {result['total_records']:,} transaction records")
 ```
 
----
+______________________________________________________________________
 
 ## Core Public Methods
 
@@ -90,30 +90,30 @@ def extract(
 
 #### Parameters
 
-| Parameter          | Type        | Mandatory | Description                                                |
-| ------------------ | ----------- | --------- | ---------------------------------------------------------- |
-| `path_of_docs`     | `str`       | ✅ Yes    | Filesystem path pointing to raw COTAHIST archives          |
-| `assets_list`      | `List[str]` | ✅ Yes    | Selected asset filtering category strings                  |
-| `initial_year`     | `int`       | ❌ No     | Starting historical year (default: 1986)                   |
-| `last_year`        | `int`       | ❌ No     | Ending historical year (default: current system year)      |
-| `destination_path` | `str`       | ❌ No     | Destination output directory (default: matches `path_of_docs`)|
-| `output_filename`  | `str`       | ❌ No     | Base filename of the target Parquet artifact (omit file extension)|
-| `processing_mode`  | `str`       | ❌ No     | Execution concurrency profile: `"fast"` or `"slow"`         |
+| Parameter          | Type        | Mandatory | Description                                                        |
+| ------------------ | ----------- | --------- | ------------------------------------------------------------------ |
+| `path_of_docs`     | `str`       | ✅ Yes    | Filesystem path pointing to raw COTAHIST archives                  |
+| `assets_list`      | `List[str]` | ✅ Yes    | Selected asset filtering category strings                          |
+| `initial_year`     | `int`       | ❌ No     | Starting historical year (default: 1986)                           |
+| `last_year`        | `int`       | ❌ No     | Ending historical year (default: current system year)              |
+| `destination_path` | `str`       | ❌ No     | Destination output directory (default: matches `path_of_docs`)     |
+| `output_filename`  | `str`       | ❌ No     | Base filename of the target Parquet artifact (omit file extension) |
+| `processing_mode`  | `str`       | ❌ No     | Execution concurrency profile: `"fast"` or `"slow"`                |
 
 #### Return Contract
 
 A typed diagnostic mapping dictionary (`ExtractionResultB3`) containing the following entries:
 
-| Dictionary Key  | Type        | Description                                       |
-| --------------- | ----------- | ------------------------------------------------- |
-| `success`       | `bool`      | `True` if extraction pipeline completed cleanly   |
-| `message`       | `str`       | Human-readable summary of the execution outcome    |
-| `total_files`   | `int`       | Total count of COTAHIST archives evaluated         |
-| `success_count` | `int`       | Number of archives successfully parsed and merged |
-| `error_count`   | `int`       | Number of archives encountering format exceptions |
+| Dictionary Key  | Type        | Description                                         |
+| --------------- | ----------- | --------------------------------------------------- |
+| `success`       | `bool`      | `True` if extraction pipeline completed cleanly     |
+| `message`       | `str`       | Human-readable summary of the execution outcome     |
+| `total_files`   | `int`       | Total count of COTAHIST archives evaluated          |
+| `success_count` | `int`       | Number of archives successfully parsed and merged   |
+| `error_count`   | `int`       | Number of archives encountering format exceptions   |
 | `total_records` | `int`       | Cumulative count of consolidated Parquet records    |
-| `output_file`   | `str`       | Absolute filesystem path of the produced `.parquet`|
-| `errors`        | `List[str]` | Detailed stack traces or validation failure notes |
+| `output_file`   | `str`       | Absolute filesystem path of the produced `.parquet` |
+| `errors`        | `List[str]` | Detailed stack traces or validation failure notes   |
 
 #### Usage Examples
 
@@ -170,7 +170,7 @@ result = b3.extract(
 # Resulting artifact persisted at: /data/processed_quotes/stocks_etf_2023.parquet
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_assets()`
 
@@ -210,7 +210,7 @@ Supported asset categories:
   • leilao
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_years()`
 
@@ -226,10 +226,10 @@ def get_available_years(self) -> Dict[str, int]
 
 A dictionary detailing:
 
-| Key              | Description                            |
-| ---------------- | -------------------------------------- |
-| `"minimal_year"` | Earliest supported fiscal year (1986)  |
-| `"current_year"` | Real-time system operational year      |
+| Key              | Description                           |
+| ---------------- | ------------------------------------- |
+| `"minimal_year"` | Earliest supported fiscal year (1986) |
+| `"current_year"` | Real-time system operational year     |
 
 #### Example Execution
 
@@ -240,7 +240,7 @@ years = b3.get_available_years()
 print(f"B3 market archives available from {years['minimal_year']} through {years['current_year']}")
 ```
 
----
+______________________________________________________________________
 
 ## Processing Execution Modes
 
@@ -278,12 +278,12 @@ result = b3.extract(
 
 ### Performance Benchmark Comparison
 
-| Processing Profile | Measured Throughput | CPU Impact | Peak RAM    | Guidance                      |
-| ------------------ | ------------------- | ---------- | ----------- | ----------------------------- |
-| **fast**           | ~12,317 rows/s      | High       | ~4,260 MB   | ✅ Recommended Default        |
-| **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB   | Memory-Constrained Servers    |
+| Processing Profile | Measured Throughput | CPU Impact | Peak RAM  | Guidance                   |
+| ------------------ | ------------------- | ---------- | --------- | -------------------------- |
+| **fast**           | ~12,317 rows/s      | High       | ~4,260 MB | ✅ Recommended Default     |
+| **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB | Memory-Constrained Servers |
 
----
+______________________________________________________________________
 
 ## Advanced Recipes & Implementations
 
@@ -377,22 +377,22 @@ result = b3.extract(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Error Handling & Exceptions
 
 ### Custom Exception Hierarchy
 
-| Exception Class       | Trigger Condition                        | Recommended Handling Pattern                 |
-| --------------------- | ---------------------------------------- | -------------------------------------------- |
-| `EmptyAssetListError` | Provided `assets_list` parameter is empty| Supply at least one recognized asset string  |
-| `InvalidAssetsName`   | An asset string falls outside whitelist  | Query valid terms via `get_available_assets()`|
-| `InvalidFirstYear`    | `initial_year` parameter below 1986 floor| Specify temporal lower bounds >= 1986        |
-| `InvalidLastYear`     | End year prior to start year             | Confirm monotonic temporal ordering          |
-| `EmptyDirectoryError` | Source folder lacks COTAHIST files       | Inspect folder contents prior to invocation  |
-| `ExtractionError`     | Corruption detected in positional layout | Verify ZIP MD5 hash integrity                |
+| Exception Class       | Trigger Condition                         | Recommended Handling Pattern                   |
+| --------------------- | ----------------------------------------- | ---------------------------------------------- |
+| `EmptyAssetListError` | Provided `assets_list` parameter is empty | Supply at least one recognized asset string    |
+| `InvalidAssetsName`   | An asset string falls outside whitelist   | Query valid terms via `get_available_assets()` |
+| `InvalidFirstYear`    | `initial_year` parameter below 1986 floor | Specify temporal lower bounds >= 1986          |
+| `InvalidLastYear`     | End year prior to start year              | Confirm monotonic temporal ordering            |
+| `EmptyDirectoryError` | Source folder lacks COTAHIST files        | Inspect folder contents prior to invocation    |
+| `ExtractionError`     | Corruption detected in positional layout  | Verify ZIP MD5 hash integrity                  |
 
----
+______________________________________________________________________
 
 ## Official COTAHIST File Formats
 
@@ -421,7 +421,7 @@ COTAHIST_A2023.ZIP
 └── COTAHIST_A2023.TXT  (Fixed-width positional historical transaction ledger)
 ```
 
----
+______________________________________________________________________
 
 ## Extracted Parquet Schema
 
@@ -429,28 +429,28 @@ COTAHIST_A2023.ZIP
 
 The resulting consolidated Parquet file surfaces the following structured schema:
 
-| Column Name            | Data Type | Description                                  |
-| ---------------------- | --------- | -------------------------------------------- |
-| `data_pregao`          | `date`    | Trading session calendar date                |
-| `codigo_bdi`           | `string`  | BDI market execution classification code      |
-| `ticker`               | `string`  | Instrument symbol / ticker (e.g., PETR4)     |
-| `tipo_mercado`         | `string`  | Market clearing segment code                 |
-| `nome_resumido`        | `string`  | Corporate issuer short name                  |
+| Column Name            | Data Type | Description                                    |
+| ---------------------- | --------- | ---------------------------------------------- |
+| `data_pregao`          | `date`    | Trading session calendar date                  |
+| `codigo_bdi`           | `string`  | BDI market execution classification code       |
+| `ticker`               | `string`  | Instrument symbol / ticker (e.g., PETR4)       |
+| `tipo_mercado`         | `string`  | Market clearing segment code                   |
+| `nome_resumido`        | `string`  | Corporate issuer short name                    |
 | `especificacao_papel`  | `string`  | Security equity specification (e.g., ON, PN)   |
-| `preco_abertura`       | `decimal` | Session open trading price                   |
-| `preco_maximo`         | `decimal` | Session intraday maximum price               |
-| `preco_minimo`         | `decimal` | Session intraday minimum price               |
-| `preco_medio`          | `decimal` | Volume-weighted intraday average price       |
-| `preco_fechamento`     | `decimal` | Session closing execution price              |
-| `melhor_oferta_compra` | `decimal` | Highest bid quotation at session close       |
-| `melhor_oferta_venda`  | `decimal` | Lowest ask quotation at session close        |
-| `numero_negocios`      | `int`     | Cumulative quantity of trade executions      |
-| `quantidade_total`     | `int`     | Cumulative quantity of traded contracts/shares|
-| `volume_total`         | `decimal` | Total monetary session trading turnover      |
-| `data_vencimento`      | `date`    | Contract expiration maturity date            |
-| `fator_cotacao`        | `int`     | Price quotation lot scaling factor           |
-| `codigo_isin`          | `string`  | International Securities Identification Number|
-| `numero_distribuicao`  | `int`     | Corporate action distribution sequence number|
+| `preco_abertura`       | `decimal` | Session open trading price                     |
+| `preco_maximo`         | `decimal` | Session intraday maximum price                 |
+| `preco_minimo`         | `decimal` | Session intraday minimum price                 |
+| `preco_medio`          | `decimal` | Volume-weighted intraday average price         |
+| `preco_fechamento`     | `decimal` | Session closing execution price                |
+| `melhor_oferta_compra` | `decimal` | Highest bid quotation at session close         |
+| `melhor_oferta_venda`  | `decimal` | Lowest ask quotation at session close          |
+| `numero_negocios`      | `int`     | Cumulative quantity of trade executions        |
+| `quantidade_total`     | `int`     | Cumulative quantity of traded contracts/shares |
+| `volume_total`         | `decimal` | Total monetary session trading turnover        |
+| `data_vencimento`      | `date`    | Contract expiration maturity date              |
+| `fator_cotacao`        | `int`     | Price quotation lot scaling factor             |
+| `codigo_isin`          | `string`  | International Securities Identification Number |
+| `numero_distribuicao`  | `int`     | Corporate action distribution sequence number  |
 
 ### Reading with Pandas
 
@@ -476,7 +476,7 @@ print(f"\nDataframe shape: {df.shape}")
 print(f"In-memory estimation: {df.estimated_size('mb'):.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Best Practices
 
@@ -528,7 +528,7 @@ else:
     pass
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -537,7 +537,7 @@ else:
 - 🔧 **[API Reference](../reference/b3-api.md)** - Review comprehensive structural API definitions
 - ❓ **[FAQ](faq.md)** - Answers to common installation and architectural inquiries
 
----
+______________________________________________________________________
 
 !!! tip "Analytical Best Practice"
-    Once historical quotes are compiled into Parquet files, consume them via `polars`. Its lazy evaluation engine and predicate pushdown capabilities significantly outperform pandas when processing multi-year tick ledgers.
+Once historical quotes are compiled into Parquet files, consume them via `polars`. Its lazy evaluation engine and predicate pushdown capabilities significantly outperform pandas when processing multi-year tick ledgers.

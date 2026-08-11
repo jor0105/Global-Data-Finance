@@ -2,7 +2,7 @@
 
 Documentação completa da arquitetura do Global-Data-Finance, padrões de design e estrutura do projeto.
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
@@ -15,7 +15,7 @@ Esta abordagem privilegia:
 - ✅ **Extensibilidade**: adicionar nova fonte = adicionar nova pasta-irmã com o mesmo conjunto plano de módulos
 - ✅ **Testabilidade**: uso de duck typing direto e injeção de dependência para isolar e testar componentes de forma simples
 
----
+______________________________________________________________________
 
 ## Estrutura do Projeto
 
@@ -62,29 +62,28 @@ globaldatafinance/
 └── pyproject.toml
 ```
 
-
----
+______________________________________________________________________
 
 ## Padrão de módulos por fonte
 
 Cada `brazil/<país>/<fonte>/` segue o mesmo conjunto de **papéis**. O mapeamento papel ↔ arquivo é fixo na CVM (um arquivo por papel) e mais granular na B3 (papéis "dados puros" e "validação" foram quebrados em módulos por tópico para evitar um único `core.py` gigante). Adicionar uma nova fonte pode seguir qualquer dos dois caminhos — o critério é legibilidade.
 
-| Papel                       | CVM                                            | B3                                                                                     |
-| --------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Dados puros (types, enums)  | `core.py`                                      | `models.py` + `years.py` + `processing.py`                                             |
-| Validação / domain services | `core.py` (`AvailableDocsCVM.validate_*`)      | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
-| Orquestração / use cases    | `client.py`                                    | `client.py`                                                                            |
-| HTTP / download             | `http.py` (`AsyncDownloadAdapterCVM`)          | (no `zip_reader.py` + `extraction_service/`; não há download HTTP)                     |
-| Extração / escrita Parquet  | `extract.py` (`ParquetExtractorAdapterCVM`)    | `parquet_writer/` (subpacote)                                                          |
-| Parser de formato           | —                                              | `cotahist_parser.py`                                                                   |
-| Helpers de validação        | `download_validation.py`, `download_extraction.py` | embutidos em `filesystem.py` / `client.py`                                         |
-| Exceções                    | `errors.py`                                    | `errors.py`                                                                            |
+| Papel                       | CVM                                                | B3                                                                                     |
+| --------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Dados puros (types, enums)  | `core.py`                                          | `models.py` + `years.py` + `processing.py`                                             |
+| Validação / domain services | `core.py` (`AvailableDocsCVM.validate_*`)          | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
+| Orquestração / use cases    | `client.py`                                        | `client.py`                                                                            |
+| HTTP / download             | `http.py` (`AsyncDownloadAdapterCVM`)              | (no `zip_reader.py` + `extraction_service/`; não há download HTTP)                     |
+| Extração / escrita Parquet  | `extract.py` (`ParquetExtractorAdapterCVM`)        | `parquet_writer/` (subpacote)                                                          |
+| Parser de formato           | —                                                  | `cotahist_parser.py`                                                                   |
+| Helpers de validação        | `download_validation.py`, `download_extraction.py` | embutidos em `filesystem.py` / `client.py`                                             |
+| Exceções                    | `errors.py`                                        | `errors.py`                                                                            |
 
 Funções/classes auxiliares são internas ao módulo a menos que sejam usadas em outro arquivo — o ponto de extensibilidade real é a fonte, não o "tipo de objeto".
 
 > **Por que B3 não tem `core.py` consolidado.** O conteúdo de B3 vive em módulos por tópico (`assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`) em vez de um único `core.py` porque cada um já tem massa crítica (~100–300 linhas) e diferentes consumidores. Consolidar trocaria 5 arquivos médios por 1 arquivo enorme.
 
----
+______________________________________________________________________
 
 ## Camadas observáveis
 
@@ -165,7 +164,7 @@ class AsyncDownloadAdapterCVM:
 
 O orquestrador interage com `AsyncDownloadAdapterCVM` através do seu contrato observável de métodos, permitindo que os testes utilizem stubs de duck typing simples sem complexidade adicional (ver "Testes" mais abaixo).
 
----
+______________________________________________________________________
 
 ## Padrões de design
 
@@ -219,7 +218,7 @@ Saída de console/log de apresentação fica em módulos `*_formatter.py` dentro
 
 `VerifyPathsUseCasesCVM` (CVM, em `client.py`) e o helper `FileSystemServiceB3` (B3, em `filesystem.py`) levantam `SecurityError` antes de qualquer `mkdir`, bloqueando escrita em `/etc /sys /proc /dev /boot /root`. Esses helpers fazem parte do contrato observável de `FundamentalStocksDataCVM.download(destination_path=...)` e `HistoricalQuotesB3.extract(path_of_docs=...)` — devem permanecer bit-idênticos em qualquer refactor que mova o código.
 
----
+______________________________________________________________________
 
 ## Fluxo de dados
 
@@ -255,7 +254,7 @@ graph TD
     A -->|10. formatar saída| J[ExtractionResultFormatter]
 ```
 
----
+______________________________________________________________________
 
 ## Como adicionar uma nova fonte
 
@@ -273,6 +272,7 @@ src/globaldatafinance/usa/sec/fundamental_data/
 Em seguida:
 
 1. **Re-export interno**: adicione `__init__.py` na pasta da fonte (ou deixe vazio se não houver consumidores internos).
+
 2. **Facade público**: crie `src/globaldatafinance/application/sec_docs/fundamental_data.py` com uma classe `FundamentalDataSEC` que importa diretamente dos módulos planos:
 
    ```python
@@ -284,10 +284,12 @@ Em seguida:
    ```
 
 3. **API pública**: re-exporte a nova classe em `src/globaldatafinance/__init__.py` e `src/globaldatafinance/application/__init__.py`. Trate como adição **semver-relevante**.
+
 4. **Testes**: crie `tests/usa/sec/fundamental_data/` espelhando módulos por tópico (não por camada). Tests devem importar dos módulos planos.
+
 5. **Docs**: atualize `AGENTS.md` (Repository Map / Architecture Map) e este arquivo. Adicione referência em `docs/reference/`.
 
----
+______________________________________________________________________
 
 ## Testes
 
@@ -338,7 +340,7 @@ assert result.success_count_downloads == 2
 
 Coverage é validado por capability: `tests/brazil/<source>/` + `tests/application/<facade>/` cobrem cada fonte como unidade isolada.
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 

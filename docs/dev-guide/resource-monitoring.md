@@ -2,7 +2,7 @@
 
 Documentação do sistema de monitoramento de recursos do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
@@ -13,7 +13,7 @@ O `ResourceMonitor` é um sistema avançado de monitoramento de CPU e memória q
 - ✅ **Circuit Breaker**: Para operações quando recursos estão críticos
 - ✅ **Garbage Collection**: GC automático quando memória está alta
 
----
+______________________________________________________________________
 
 ## Estados de Recursos
 
@@ -24,7 +24,7 @@ O `ResourceMonitor` é um sistema avançado de monitoramento de CPU e memória q
 | **CRITICAL**  | Recursos acima de 85-90% | Reduz workers/batch, força GC |
 | **EXHAUSTED** | Recursos acima de 95%    | Ativa circuit breaker         |
 
----
+______________________________________________________________________
 
 ## Configuração
 
@@ -46,7 +46,7 @@ limits = ResourceLimits(
 )
 ```
 
----
+______________________________________________________________________
 
 ## API
 
@@ -110,7 +110,7 @@ memory_mb = monitor.get_process_memory_mb()
 print(f"Processo usando {memory_mb:.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Uso Automático nos Adapters
 
@@ -126,7 +126,7 @@ cvm = FundamentalStocksDataCVM()
 cvm.download(...)  # Resource monitoring automático
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo Manual
 
@@ -154,7 +154,7 @@ memory = monitor.get_process_memory_mb()
 print(f"Processo usando {memory:.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Dependência
 
@@ -166,7 +166,7 @@ pip install psutil
 
 Se `psutil` não estiver disponível, o monitor funciona em modo degradado (sempre retorna HEALTHY).
 
----
+______________________________________________________________________
 
 Veja também:
 

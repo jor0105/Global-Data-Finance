@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from ...core import get_logger
+# Import the defining module, not the `core` package root: `core/__init__`
+# imports `.utils`, which imports this module, so going through the package
+# root would make the import graph cyclic.
+from ..logging_config import get_logger
 
 logger = get_logger(__name__)
 

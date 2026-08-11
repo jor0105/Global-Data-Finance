@@ -2,7 +2,7 @@
 
 Complete high-level architectural documentation reference covering the public surface of Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Module `globaldatafinance` (Public Root Exports)
 
@@ -61,7 +61,7 @@ def get_available_years(self) -> Dict[str, int]
 
 Returns a structural dictionary summarizing permissible temporal starting floors and current operating system year limits across distinct document categories.
 
----
+______________________________________________________________________
 
 ### `HistoricalQuotesB3`
 
@@ -105,6 +105,7 @@ Parses COTAHIST ZIP or TXT archives, extracts transaction registers correspondin
 - `processing_mode` (`str`): Computational execution mode: `"fast"` (multi-threaded in-memory processing) or `"slow"` (minimal RAM incremental stream processing).
 
 **Returns**:
+
 - `ExtractionResultB3` (`Dict[str, Any]`): A diagnostic mapping containing runtime confirmation metrics including `success`, `total_records`, `output_file`, `success_count`, and stack trace `errors`.
 
 **`get_available_assets()`**
@@ -123,7 +124,7 @@ def get_available_years(self) -> Dict[str, int]
 
 Returns dictionary defining available lower temporal boundaries (`minimal_year`: 1986) and upper bound operational limits (`current_year`).
 
----
+______________________________________________________________________
 
 ## Related References
 

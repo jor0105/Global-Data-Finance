@@ -2,7 +2,7 @@
 
 Comprehensive documentation guide for utilizing the `FundamentalStocksDataCVM` class to download corporate fundamental financial filings from CVM (Securities and Exchange Commission of Brazil).
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -17,26 +17,26 @@ The `FundamentalStocksDataCVM` class exposes a clean, highly extensible interfac
 - ✅ Resilient connection exception handling and automated retry policies
 - ✅ Transparent structured tracking and status console output
 
----
+______________________________________________________________________
 
 ## Available Document Types
 
 CVM publishes official disclosures under the following classifications:
 
-| Document Code | Complete Portuguese Title           | Description                              | Available Since |
-| ------------- | ----------------------------------- | ---------------------------------------- | --------------- |
-| **DFP**       | Demonstração Financeira Padronizada | Standardized Annual Financial Statements | 2010            |
-| **ITR**       | Informação Trimestral               | Quarterly Interim Financial Reports      | 2011            |
-| **FRE**       | Formulário de Referência            | Complete Reference Form Disclosures     | 2010            |
-| **FCA**       | Formulário Cadastral                | Corporate Cadastral Registration Forms   | 2010            |
-| **CGVN**      | Código de Governança                | Corporate Governance Practices Reports   | 2018            |
-| **VLMO**      | Valores Mobiliários                 | Securities Trading and Holding Declarations | 2018            |
+| Document Code | Complete Portuguese Title           | Description                                    | Available Since |
+| ------------- | ----------------------------------- | ---------------------------------------------- | --------------- |
+| **DFP**       | Demonstração Financeira Padronizada | Standardized Annual Financial Statements       | 2010            |
+| **ITR**       | Informação Trimestral               | Quarterly Interim Financial Reports            | 2011            |
+| **FRE**       | Formulário de Referência            | Complete Reference Form Disclosures            | 2010            |
+| **FCA**       | Formulário Cadastral                | Corporate Cadastral Registration Forms         | 2010            |
+| **CGVN**      | Código de Governança                | Corporate Governance Practices Reports         | 2018            |
+| **VLMO**      | Valores Mobiliários                 | Securities Trading and Holding Declarations    | 2018            |
 | **IPE**       | Informações Periódicas e Eventuais  | Periodic and Eventual Filings (Material Facts) | 2010            |
 
 !!! info "Historical Data Depth"
-    The major structural financial forms (`DFP`, `FRE`, `FCA`, `IPE`) span from fiscal year 2010 onward, while `ITR` disclosures start in 2011 and `CGVN`/`VLMO` commence in 2018.
+The major structural financial forms (`DFP`, `FRE`, `FCA`, `IPE`) span from fiscal year 2010 onward, while `ITR` disclosures start in 2011 and `CGVN`/`VLMO` commence in 2018.
 
----
+______________________________________________________________________
 
 ## Basic Usage
 
@@ -64,7 +64,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Core Public Methods
 
@@ -87,12 +87,12 @@ def download(
 
 #### Parameters
 
-| Parameter             | Type        | Mandatory | Description                                                   |
-| --------------------- | ----------- | --------- | ------------------------------------------------------------- |
-| `destination_path`    | `str`       | ✅ Yes    | Target filesystem directory where downloaded bundles are saved |
-| `list_docs`           | `List[str]` | ❌ No     | Specific document codes to fetch. Defaults to all codes when `None` |
-| `initial_year`        | `int`       | ❌ No     | Starting historical fiscal year (inclusive). Defaults to minimal supported year |
-| `last_year`           | `int`       | ❌ No     | Ending fiscal year (inclusive). Defaults to current operating year |
+| Parameter             | Type        | Mandatory | Description                                                                                |
+| --------------------- | ----------- | --------- | ------------------------------------------------------------------------------------------ |
+| `destination_path`    | `str`       | ✅ Yes    | Target filesystem directory where downloaded bundles are saved                             |
+| `list_docs`           | `List[str]` | ❌ No     | Specific document codes to fetch. Defaults to all codes when `None`                        |
+| `initial_year`        | `int`       | ❌ No     | Starting historical fiscal year (inclusive). Defaults to minimal supported year            |
+| `last_year`           | `int`       | ❌ No     | Ending fiscal year (inclusive). Defaults to current operating year                         |
 | `automatic_extractor` | `bool`      | ❌ No     | When set to `True`, automatically unpacks and normalizes ZIP bundles into Parquet datasets |
 
 #### Usage Examples
@@ -140,7 +140,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_docs()`
 
@@ -178,7 +178,7 @@ VLMO: Valores Mobiliários
 IPE: Informações Periódicas e Eventuais
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_years()`
 
@@ -194,12 +194,12 @@ def get_available_years(self) -> Dict[str, int]
 
 A structural dictionary describing historical floor boundaries:
 
-| Dictionary Key                   | Description                              |
-| -------------------------------- | ---------------------------------------- |
-| `"General Document Years"`       | Minimum historical starting year for general filings (2010) |
+| Dictionary Key                   | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| `"General Document Years"`       | Minimum historical starting year for general filings (2010)  |
 | `"ITR Document Years"`           | Minimum historical year for ITR quarterly disclosures (2011) |
-| `"CGVN and VMLO Document Years"` | Minimum historical year for governance disclosures (2018) |
-| `"Current Year"`                 | Real-time operational system year        |
+| `"CGVN and VMLO Document Years"` | Minimum historical year for governance disclosures (2018)    |
+| `"Current Year"`                 | Real-time operational system year                            |
 
 #### Example Execution
 
@@ -212,7 +212,7 @@ print(f"Interim statements (ITR) available since: {years['ITR Document Years']}"
 print(f"Active operating system year: {years['Current Year']}")
 ```
 
----
+______________________________________________________________________
 
 ## Advanced Implementations
 
@@ -290,7 +290,7 @@ else:
     )
 ```
 
----
+______________________________________________________________________
 
 ## Error Handling & Exceptions
 
@@ -298,16 +298,16 @@ else:
 
 The CVM module enforces fail-fast error behavior by raising specialized exception types:
 
-| Exception Class               | Trigger Condition                       | Recommended Handling Pattern               |
-| ----------------------------- | --------------------------------------- | ------------------------------------------ |
-| `InvalidDocumentName`          | Provided document string is unrecognized| Validate inputs via `get_available_docs()`  |
-| `InvalidFirstYear`            | Requested initial year below historical floor | Inspect boundaries with `get_available_years()`|
-| `InvalidLastYear`             | End year is prior to start year or invalid | Validate parameters prior to invocation    |
-| `NetworkError`                | Network connection or TLS handshake failure | Implement application-level fallback alarms|
-| `TimeoutError`                | Remote regulatory server request timeout| Re-execute during off-peak processing hours|
-| `InvalidDestinationPathError` | Target filesystem path fails safety check| Confirm folder write and creation access   |
+| Exception Class               | Trigger Condition                             | Recommended Handling Pattern                    |
+| ----------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| `InvalidDocumentName`         | Provided document string is unrecognized      | Validate inputs via `get_available_docs()`      |
+| `InvalidFirstYear`            | Requested initial year below historical floor | Inspect boundaries with `get_available_years()` |
+| `InvalidLastYear`             | End year is prior to start year or invalid    | Validate parameters prior to invocation         |
+| `NetworkError`                | Network connection or TLS handshake failure   | Implement application-level fallback alarms     |
+| `TimeoutError`                | Remote regulatory server request timeout      | Re-execute during off-peak processing hours     |
+| `InvalidDestinationPathError` | Target filesystem path fails safety check     | Confirm folder write and creation access        |
 
----
+______________________________________________________________________
 
 ## Directory & File Layout
 
@@ -387,7 +387,7 @@ destination_path/
 └── ...
 ```
 
----
+______________________________________________________________________
 
 ## Best Practices
 
@@ -438,7 +438,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Performance & Optimization
 
@@ -455,18 +455,18 @@ The CVM implementation utilizes `AsyncDownloadAdapterCVM` by default, delivering
 
 **Full pipeline: download + CSV→Parquet extraction (2026-08-06):**
 
-| Docs                | Period    | ZIPs | Parquets | Extracted Rows | Output    | Time     | Peak RSS  | Errors |
+| Docs                | Period    | ZIPs | Parquets | Extracted Rows |    Output |     Time |  Peak RSS | Errors |
 | ------------------- | --------- | ---: | -------: | -------------: | --------: | -------: | --------: | -----: |
 | DFP, ITR, FRE, etc. | 2010-2024 |   88 |    1,392 |     63,300,208 | 337.93 MB | 505.04 s | 459.18 MB |      0 |
 
 Estimated duration required to fetch 1 complete annual DFP archive bundle:
 
-| Ingestion Method        | Execution Duration | Relative Throughput |
-| ----------------------- | ------------------ | ------------------- |
-| Sequential standard HTTP| ~60s               | 1x (Baseline)       |
-| AsyncDownloadAdapterCVM | ~15s               | **4x Faster**       |
+| Ingestion Method         | Execution Duration | Relative Throughput |
+| ------------------------ | ------------------ | ------------------- |
+| Sequential standard HTTP | ~60s               | 1x (Baseline)       |
+| AsyncDownloadAdapterCVM  | ~15s               | **4x Faster**       |
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -475,7 +475,7 @@ Estimated duration required to fetch 1 complete annual DFP archive bundle:
 - 🔧 **[API Reference](../reference/cvm-api.md)** - Inspect technical signatures and contracts
 - ❓ **[FAQ](faq.md)** - Answers to common setup and troubleshooting questions
 
----
+______________________________________________________________________
 
 !!! tip "Performance Best Practice"
-    For analytical pipeline integrations, consistently specify `automatic_extractor=True`. Columnar Parquet data structures bypass repetitive textual CSV decoding overhead during dataframe initialization.
+For analytical pipeline integrations, consistently specify `automatic_extractor=True`. Columnar Parquet data structures bypass repetitive textual CSV decoding overhead during dataframe initialization.

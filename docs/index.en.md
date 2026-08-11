@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
----
+______________________________________________________________________
 
 ## 🎯 What Does This Library Offer?
 
@@ -19,7 +19,7 @@
 ✅ **Integrated robustness**: Retries with exponential back-off, data integrity validation, and atomic rollback.
 ✅ **Flat source layout**: Role-named modules (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, plus specialized subpackages), ensuring simplicity, direct readability, and straightforward maintainability.
 
----
+______________________________________________________________________
 
 ## 🚀 Quick Start
 
@@ -59,7 +59,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## ✨ Key Features
 
@@ -191,7 +191,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## 📚 Documentation
 
@@ -222,7 +222,7 @@ cvm.download(
 - **[B3 API](reference/b3-api.md)** - Precise classes and return contracts for B3 processing
 - **[Exceptions](reference/exceptions.md)** - Hierarchy of custom project exceptions and error handling
 
----
+______________________________________________________________________
 
 ## 🏗️ Why Use This Library?
 
@@ -238,7 +238,7 @@ cvm.download(
 - ✅ **Flat Source Layout**: Role-named modules (CVM: ~7 files; B3: ~10 files + specialized packages) make code intuitive to navigate, debug, and audit
 - ✅ **Extensible Design**: Adding a new global data source only requires creating a parallel sibling folder with matching role names
 - ✅ **Type Safety**: Thorough TypeDict contracts and type annotations checked with `mypy` and `pyright`
-- ✅ **Automated CI/CD**: Enforced GitHub Actions quality gates (`ruff`, `mypy`, `bandit`, and `pytest --cov=70%`)
+- ✅ **Automated CI/CD**: Enforced GitHub Actions quality gates (`ruff`, `mypy`, and `pytest --cov=70%`)
 
 ### For Analysts & Data Scientists
 
@@ -247,7 +247,7 @@ cvm.download(
 - ✅ **Normalized Data**: Automated parsing, normalization, and validation of positional files and ZIP bundles
 - ✅ **Rich Documentation**: Executable onboarding scripts, operational examples, and comprehensive tutorials
 
----
+______________________________________________________________________
 
 ## 📊 Architecture Overview
 
@@ -276,7 +276,7 @@ graph TD
 
 [Learn more about our design decisions in Architecture →](dev-guide/architecture.md)
 
----
+______________________________________________________________________
 
 ## 🚀 Common Use Cases
 
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     financial_data_pipeline()
 ```
 
----
+______________________________________________________________________
 
 ## 🤝 Contributing
 
@@ -377,7 +377,7 @@ We welcome contributions! Whether adding support for a new global data source, r
 
 [Read our Contribution Guide →](dev-guide/contributing.md)
 
----
+______________________________________________________________________
 
 ## 📞 Support & Community
 
@@ -386,7 +386,7 @@ We welcome contributions! Whether adding support for a new global data source, r
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/jordanestralioto/Global-Data-Finance/discussions)
 - 📖 **Documentation**: [https://jordanestralioto.github.io/Global-Data-Finance/](https://jordanestralioto.github.io/Global-Data-Finance/)
 
----
+______________________________________________________________________
 
 ## 📄 License
 
@@ -394,7 +394,7 @@ Licensed under the Apache License, Version 2.0. Feel free to incorporate into pe
 
 See the [LICENSE](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE) file for complete details.
 
----
+______________________________________________________________________
 
 ## 👨‍💻 Author
 
@@ -404,7 +404,7 @@ See the [LICENSE](https://github.com/jordanestralioto/Global-Data-Finance/blob/d
 - Email: estraliotojordan@gmail.com
 - PyPI Package: [globaldatafinance](https://pypi.org/project/globaldatafinance/)
 
----
+______________________________________________________________________
 
 **Status:** 🚀 In Production! Active maintenance, stable public API, and welcoming contributions.
 

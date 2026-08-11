@@ -15,15 +15,15 @@ total memory. No network calls; local extraction of official ZIPs only.
 - **Errors:** 0 (all 17 files processed successfully).
 - **Consolidated Parquet output:** 311.55 MB per mode.
 
-| Mode   | Written rows | API time    | End-to-end  | Peak RSS    | Throughput     |
-| ------ | -----------: | ----------: | ----------: | ----------: | -------------: |
-| `fast` |   15,059,876 |  1,222.61 s |  1,224.64 s | 4,259.35 MB | 12,317 rows/s  |
-| `slow` |   15,059,876 |  1,759.90 s |  1,761.91 s | 1,570.54 MB |  8,557 rows/s  |
+| Mode   | Written rows |   API time | End-to-end |    Peak RSS |    Throughput |
+| ------ | -----------: | ---------: | ---------: | ----------: | ------------: |
+| `fast` |   15,059,876 | 1,222.61 s | 1,224.64 s | 4,259.35 MB | 12,317 rows/s |
+| `slow` |   15,059,876 | 1,759.90 s | 1,761.91 s | 1,570.54 MB |  8,557 rows/s |
 
 > **Bottleneck identified:** B3 Parquet parser and merge; `fast` mode peaks at
 > ~4.2 GiB RSS. `slow` uses under 1.6 GiB with ~28% lower throughput.
 
----
+______________________________________________________________________
 
 ## 2. Reproducible Synthetic Baseline — B3
 
@@ -68,7 +68,7 @@ uv run python scripts/benchmark_b3.py \
 The synthetic archive used for the baseline has SHA-256
 `4ba04707468088975125a536b07f5a9cd361676e8ac68866554241ceb58b7e86`.
 
----
+______________________________________________________________________
 
 ## 3. CVM Baseline — Download + Extraction (2026-08-06)
 
@@ -79,7 +79,7 @@ primary Parquet generation. Run on the same machine as the B3 benchmarks.
 - **Docs:** DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (all available types)
 - **Period:** 2010–2024
 
-| ZIPs downloaded | Parquets generated | Extracted rows | Total output | Total time | Peak RSS  | Errors |
+| ZIPs downloaded | Parquets generated | Extracted rows | Total output | Total time |  Peak RSS | Errors |
 | --------------: | -----------------: | -------------: | -----------: | ---------: | --------: | -----: |
 |              88 |              1,392 |     63,300,208 |    337.93 MB |   505.04 s | 459.18 MB |      0 |
 
@@ -88,7 +88,7 @@ primary Parquet generation. Run on the same machine as the B3 benchmarks.
 - Network time varies with external conditions; the CSV→Parquet extraction
   step is the stable and reproducible portion of the measurement.
 
----
+______________________________________________________________________
 
 ## 4. Limitations and Contracts
 

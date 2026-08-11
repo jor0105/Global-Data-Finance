@@ -2,7 +2,7 @@
 
 Documentação técnica detalhada da API B3.
 
----
+______________________________________________________________________
 
 ## HistoricalQuotesB3
 
@@ -115,7 +115,7 @@ years = b3.get_available_years()
 # {'minimal_year': 1986, 'current_year': ano atual}
 ```
 
----
+______________________________________________________________________
 
 ## Classes de Ativos
 
@@ -129,7 +129,7 @@ years = b3.get_available_years()
 | forward          | Mercado Forward     | Contratos forward                |
 | leilao           | Leilão              | Mercado de leilão                |
 
----
+______________________________________________________________________
 
 ## Modos de Processamento
 
@@ -138,7 +138,7 @@ years = b3.get_available_years()
 | fast | Alta        | Alto  | ~2GB   | Padrão, máquinas com bons recursos |
 | slow | Moderada    | Baixo | ~500MB | Recursos limitados                 |
 
----
+______________________________________________________________________
 
 Veja também:
 

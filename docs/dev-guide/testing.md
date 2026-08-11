@@ -2,7 +2,7 @@
 
 Guia completo sobre testes no Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Estrutura de Testes
 
@@ -29,7 +29,7 @@ tests/
 └── macro_exceptions/
 ```
 
----
+______________________________________________________________________
 
 ## Executando Testes
 
@@ -62,7 +62,7 @@ uv run pytest -m integration
 uv run pytest -m "integration and not slow"
 ```
 
----
+______________________________________________________________________
 
 ## Escrevendo Testes
 
@@ -132,7 +132,7 @@ class TestFundamentalStocksDataIntegration:
         assert "DFP" in docs
 ```
 
----
+______________________________________________________________________
 
 ## Fixtures
 
@@ -153,7 +153,7 @@ def sample_zip_file(tmp_path):
     return zip_path
 ```
 
----
+______________________________________________________________________
 
 ## Cobertura
 
@@ -168,7 +168,7 @@ uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html
 ```
 
----
+______________________________________________________________________
 
 ## CI/CD
 
@@ -178,7 +178,7 @@ Testes são executados automaticamente em:
 - Pull Requests
 - Releases
 
----
+______________________________________________________________________
 
 Veja também:
 

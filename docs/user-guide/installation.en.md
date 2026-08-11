@@ -2,7 +2,7 @@
 
 This guide provides detailed instructions to install and configure the **Global-Data-Finance** library across different runtime environments.
 
----
+______________________________________________________________________
 
 ## System Requirements
 
@@ -24,9 +24,9 @@ python3 --version
 ```
 
 !!! warning "Python Version"
-    Global-Data-Finance strictly requires Python 3.12 or newer. If your system runs an older version, you must upgrade Python before attempting installation.
+Global-Data-Finance strictly requires Python 3.12 or newer. If your system runs an older version, you must upgrade Python before attempting installation.
 
----
+______________________________________________________________________
 
 ## Installing via pip (Recommended for Consumers)
 
@@ -61,7 +61,7 @@ pip install globaldatafinance
 pip install --upgrade globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Installing via uv (Alternative to pip)
 
@@ -75,7 +75,7 @@ uv add globaldatafinance
 uv add --dev globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Development Installation
 
@@ -117,7 +117,7 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
----
+______________________________________________________________________
 
 ## Runtime Dependencies
 
@@ -125,30 +125,30 @@ Global-Data-Finance builds upon an optimized selection of high-performance libra
 
 ### Mandatory Dependencies
 
-| Library             | Version | Purpose                                    |
-| ------------------- | ------- | ------------------------------------------ |
-| `httpx`             | ≥0.28.1 | Asynchronous HTTP client with HTTP/2 support |
-| `pandas`            | ≥2.3.3  | Data structures and numerical analytics    |
-| `polars`            | ≥1.0.0  | High-performance columnar dataframe processing |
-| `pyarrow`           | ≥22.0.0 | Native support for Apache Parquet storage  |
-| `pydantic-settings` | ≥2.11.0 | Typed runtime configuration and environment validation |
+| Library             | Version | Purpose                                                  |
+| ------------------- | ------- | -------------------------------------------------------- |
+| `httpx`             | ≥0.28.1 | Asynchronous HTTP client with HTTP/2 support             |
+| `pandas`            | ≥2.3.3  | Data structures and numerical analytics                  |
+| `polars`            | ≥1.0.0  | High-performance columnar dataframe processing           |
+| `pyarrow`           | ≥22.0.0 | Native support for Apache Parquet storage                |
+| `pydantic-settings` | ≥2.11.0 | Typed runtime configuration and environment validation   |
 | `psutil`            | ≥5.9.0  | Real-time CPU and RAM monitoring for adaptive throttling |
 
 ### Development Dependencies (Optional)
 
 Installed automatically only when bootstrapping development mode:
 
-| Library           | Purpose                        |
-| ----------------- | ------------------------------ |
-| `pytest`          | Core test execution framework  |
-| `pytest-cov`      | Code coverage reporting and threshold gates |
-| `pytest-asyncio`  | Asynchronous test fixture support |
-| `mypy`            | Static structural type checking |
+| Library           | Purpose                                          |
+| ----------------- | ------------------------------------------------ |
+| `pytest`          | Core test execution framework                    |
+| `pytest-cov`      | Code coverage reporting and threshold gates      |
+| `pytest-asyncio`  | Asynchronous test fixture support                |
+| `mypy`            | Static structural type checking                  |
 | `pre-commit`      | Automated code formatting and pre-commit linting |
-| `mkdocs`          | Documentation rendering engine |
-| `mkdocs-material` | Material design visual theme for MkDocs |
+| `mkdocs`          | Documentation rendering engine                   |
+| `mkdocs-material` | Material design visual theme for MkDocs          |
 
----
+______________________________________________________________________
 
 ## Verifying Your Installation
 
@@ -192,7 +192,7 @@ print(f"✓ Available data spanning from {years['General Document Years']} to {y
 
 If all evaluations above execute cleanly without exceptions, your installation is fully verified! ✅
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
@@ -266,7 +266,7 @@ export HTTPS_PROXY="http://proxy.enterprise.com:8080"
 pip install globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Uninstallation
 
@@ -276,7 +276,7 @@ To remove Global-Data-Finance from your current Python environment:
 pip uninstall globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -287,7 +287,7 @@ With your runtime configured and verified, dive into practical implementations:
 - 📈 **[B3 Quotes](b3-docs.md)** - Complete reference for historical market quote extraction
 - 💻 **[Practical Examples](examples.md)** - Production data workflows and pipelines
 
----
+______________________________________________________________________
 
 !!! tip "Contributor Tip"
-    If you plan to submit improvements or architectural enhancements to the repository, read the [Contribution Guide](../dev-guide/contributing.md) to initialize local git pre-commit verification hooks.
+If you plan to submit improvements or architectural enhancements to the repository, read the [Contribution Guide](../dev-guide/contributing.md) to initialize local git pre-commit verification hooks.

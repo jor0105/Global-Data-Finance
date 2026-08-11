@@ -2,7 +2,7 @@
 
 Respostas para as perguntas mais comuns sobre o Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Instalação e Configuração
 
@@ -28,7 +28,7 @@ source venv/bin/activate  # Linux/macOS
 pip install globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Uso Geral
 
@@ -57,7 +57,7 @@ assets = b3.get_available_assets()
 years = b3.get_available_years()
 ```
 
----
+______________________________________________________________________
 
 ## Documentos CVM
 
@@ -99,7 +99,7 @@ cvm.download(
 
 A biblioteca possui retry automático. Para maior robustez, implemente sua própria lógica de retry (veja [estratégia de retry](../dev-guide/retry-strategy.md#exemplo-de-uso)).
 
----
+______________________________________________________________________
 
 ## Cotações B3
 
@@ -157,7 +157,7 @@ result = b3.extract(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Performance
 
@@ -196,7 +196,7 @@ with ProcessPoolExecutor(max_workers=4) as executor:
     results = list(executor.map(extract_year, range(2020, 2024)))
 ```
 
----
+______________________________________________________________________
 
 ## Análise de Dados
 
@@ -237,7 +237,7 @@ df = pd.read_parquet("cotahist_extracted.parquet")
 petr4 = df[df['codigo_negociacao'] == 'PETR4']
 ```
 
----
+______________________________________________________________________
 
 ## Erros Comuns
 
@@ -284,7 +284,7 @@ print(list(docs.keys()))
 2. Tente novamente mais tarde
 3. Implemente retry logic (veja [estratégia de retry](../dev-guide/retry-strategy.md#exemplo-de-uso))
 
----
+______________________________________________________________________
 
 ## Produção e Deploy
 
@@ -337,7 +337,7 @@ with DAG('cvm_download', ...) as dag:
     )
 ```
 
----
+______________________________________________________________________
 
 ## Contribuição
 
@@ -354,7 +354,7 @@ Abra uma issue no GitHub:
 
 Abra uma issue com a tag `enhancement` no GitHub.
 
----
+______________________________________________________________________
 
 ## Licença e Uso
 
@@ -373,7 +373,7 @@ Os dados são públicos e fornecidos pela CVM e B3. Consulte os termos de uso de
 - **CVM**: [http://www.cvm.gov.br/](http://www.cvm.gov.br/)
 - **B3**: [https://www.b3.com.br/](https://www.b3.com.br/)
 
----
+______________________________________________________________________
 
 ## Suporte
 
@@ -387,7 +387,7 @@ Os dados são públicos e fornecidos pela CVM e B3. Consulte os termos de uso de
 
 Envie um email para: estraliotojordan@gmail.com
 
----
+______________________________________________________________________
 
 !!! tip "Não encontrou sua pergunta?"
 Abra uma issue no GitHub ou consulte a [documentação completa](../index.md).

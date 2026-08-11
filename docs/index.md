@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
----
+______________________________________________________________________
 
 ## 🎯 O que este sistema oferece?
 
@@ -19,7 +19,7 @@
 ✅ **Robustez integrada**: Retries com back-off, validação de integridade e rollback atômico
 ✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados), garantindo simplicidade e legibilidade direto ao ponto.
 
----
+______________________________________________________________________
 
 ## 🚀 Início Rápido
 
@@ -59,7 +59,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## ✨ Funcionalidades Principais
 
@@ -191,7 +191,7 @@ cvm.download(
 )
 ```
 
----
+______________________________________________________________________
 
 ## 📚 Documentação
 
@@ -222,7 +222,7 @@ cvm.download(
 - **[API B3](reference/b3-api.md)** - Referência completa da API B3
 - **[Exceções](reference/exceptions.md)** - Tratamento de erros e exceções
 
----
+______________________________________________________________________
 
 ## 🏗️ Por Que Usar Esta Biblioteca?
 
@@ -238,7 +238,7 @@ cvm.download(
 - ✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: ~7 arquivos; B3: ~10 arquivos + subpacotes pesados) — código fácil de ler e estender
 - ✅ **Extensível**: Adicionar uma nova fonte = criar uma pasta-irmã com o mesmo padrão de papéis (granularidade ajustável por tamanho)
 - ✅ **Type hints**: Suporte completo para IDEs e type checkers (mypy, pyright)
-- ✅ **CI/CD**: Quality checks automáticos com GitHub Actions (`ruff`, `mypy`, `bandit`, `pytest --cov`)
+- ✅ **CI/CD**: Quality checks automáticos com GitHub Actions (`ruff`, `mypy`, `pytest --cov`)
 
 ### Para Analistas e Cientistas de Dados
 
@@ -247,7 +247,7 @@ cvm.download(
 - ✅ **Dados Limpos**: Processamento e validação automática
 - ✅ **Documentação Completa**: Exemplos práticos e casos de uso reais
 
----
+______________________________________________________________________
 
 ## 📊 Arquitetura
 
@@ -276,7 +276,7 @@ graph TD
 
 [Saiba mais sobre a arquitetura →](dev-guide/architecture.md)
 
----
+______________________________________________________________________
 
 ## 🚀 Casos de Uso
 
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     pipeline_dados_financeiros()
 ```
 
----
+______________________________________________________________________
 
 ## 🤝 Contribuindo
 
@@ -377,7 +377,7 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 
 [Guia completo de contribuição →](dev-guide/contributing.md)
 
----
+______________________________________________________________________
 
 ## 📞 Suporte
 
@@ -386,7 +386,7 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 - 💬 **Discussões**: [GitHub Discussions](https://github.com/jordanestralioto/Global-Data-Finance/discussions)
 - 📖 **Documentação**: [https://jordanestralioto.github.io/Global-Data-Finance/](https://jordanestralioto.github.io/Global-Data-Finance/)
 
----
+______________________________________________________________________
 
 ## 📄 Licença
 
@@ -394,7 +394,7 @@ Apache 2.0 - Use livremente em seus projetos comerciais e pessoais.
 
 Consulte o arquivo [LICENSE](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE) para mais detalhes.
 
----
+______________________________________________________________________
 
 ## 👨‍💻 Autor
 
@@ -404,7 +404,7 @@ Consulte o arquivo [LICENSE](https://github.com/jordanestralioto/Global-Data-Fin
 - Email: estraliotojordan@gmail.com
 - PyPI: [globaldatafinance](https://pypi.org/project/globaldatafinance/)
 
----
+______________________________________________________________________
 
 **Status:** 🚀 Projeto em produção! Aberto para contribuições e sugestões.
 

@@ -2,7 +2,7 @@
 
 Técnicas avançadas e customização do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Core Utilities
 
@@ -115,7 +115,7 @@ for attempt in range(max_retries):
 
 [Ver documentação completa →](retry-strategy.md)
 
----
+______________________________________________________________________
 
 ## Customização de Adapters
 
@@ -161,7 +161,7 @@ result = use_case.execute(
 
 > O sistema foi desenhado visando clareza e extensibilidade: o orquestrador interage com adaptadores através do seu contrato público de métodos (duck typing), permitindo que customizações sejam injetadas sem burocracia ou herança complexa. Veja `docs/dev-guide/architecture.md` para detalhes.
 
----
+______________________________________________________________________
 
 ## Logging Avançado
 
@@ -187,7 +187,7 @@ logger.addHandler(file_handler)
 logger.info("Iniciando processamento...")
 ```
 
----
+______________________________________________________________________
 
 ## Processamento Paralelo
 
@@ -215,7 +215,7 @@ for year, result in zip(years, results):
     print(f"{year}: {result['total_records']:,} registros")
 ```
 
----
+______________________________________________________________________
 
 ## Integração com Frameworks
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     financial_data_pipeline()
 ```
 
----
+______________________________________________________________________
 
 ## Otimizações de Performance
 
@@ -317,7 +317,7 @@ for chunk in pd.read_parquet(
     process_chunk(chunk)
 ```
 
----
+______________________________________________________________________
 
 ## Monitoramento e Métricas
 
@@ -339,7 +339,7 @@ for year in tqdm(years, desc="Extraindo anos"):
     )
 ```
 
----
+______________________________________________________________________
 
 Veja também:
 

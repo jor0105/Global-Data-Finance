@@ -2,7 +2,7 @@
 
 Guia completo para usar a API `HistoricalQuotesB3` e extrair cotações históricas da B3 (Brasil, Bolsa, Balcão) a partir de arquivos COTAHIST.
 
----
+______________________________________________________________________
 
 ## Visão Geral
 
@@ -17,7 +17,7 @@ A classe `HistoricalQuotesB3` fornece uma interface poderosa para processar arqu
 - ✅ Filtragem inteligente por tipo de ativo
 - ✅ Progress tracking detalhado
 
----
+______________________________________________________________________
 
 ## Classes de Ativos Disponíveis
 
@@ -36,7 +36,7 @@ A B3 disponibiliza cotações históricas para as seguintes classes de ativos:
 !!! info "Dados Históricos"
 Cotações históricas da B3 estão disponíveis desde **1986** até o ano atual.
 
----
+______________________________________________________________________
 
 ## Uso Básico
 
@@ -65,7 +65,7 @@ result = b3.extract(
 print(f"✓ Extraídos {result['total_records']:,} registros")
 ```
 
----
+______________________________________________________________________
 
 ## Métodos Principais
 
@@ -170,7 +170,7 @@ result = b3.extract(
 # Arquivo salvo em: /data/cotacoes_extraidas/acoes_etf_2023.parquet
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_assets()`
 
@@ -210,7 +210,7 @@ Classes de ativos disponíveis:
   • leilao
 ```
 
----
+______________________________________________________________________
 
 ### `get_available_years()`
 
@@ -246,7 +246,7 @@ print(f"Dados disponíveis de {years['minimal_year']} até {years['current_year'
 Dados disponíveis de 1986 até ano atual
 ```
 
----
+______________________________________________________________________
 
 ## Modos de Processamento
 
@@ -284,12 +284,12 @@ result = b3.extract(
 
 ### Comparação de Performance
 
-| Modo     | Throughput medido      | CPU   | Pico de RAM | Recomendado        |
-| -------- | ---------------------- | ----- | ----------- | ------------------ |
-| **fast** | ~12.317 reg/s          | Alto  | ~4.260 MB   | ✅ Sim (padrão)    |
-| **slow** | ~8.557 reg/s           | Baixo | ~1.571 MB   | Recursos limitados |
+| Modo     | Throughput medido | CPU   | Pico de RAM | Recomendado        |
+| -------- | ----------------- | ----- | ----------- | ------------------ |
+| **fast** | ~12.317 reg/s     | Alto  | ~4.260 MB   | ✅ Sim (padrão)    |
+| **slow** | ~8.557 reg/s      | Baixo | ~1.571 MB   | Recursos limitados |
 
----
+______________________________________________________________________
 
 ## Exemplos Avançados
 
@@ -384,7 +384,7 @@ result = b3.extract(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Tratamento de Erros
 
@@ -399,7 +399,7 @@ result = b3.extract(
 | `EmptyDirectoryError` | Diretório sem arquivos COTAHIST  | Verificar caminho e arquivos           |
 | `ExtractionError`     | Erro ao processar ZIP            | Verificar integridade dos arquivos     |
 
----
+______________________________________________________________________
 
 ## Formato dos Arquivos COTAHIST
 
@@ -430,7 +430,7 @@ COTAHIST_A2023.ZIP
 
 O Global-Data-Finance processa automaticamente este formato e converte para Parquet.
 
----
+______________________________________________________________________
 
 ## Estrutura do Arquivo Parquet Gerado
 
@@ -485,7 +485,7 @@ print(f"\nShape: {df.shape}")
 print(f"Memória: {df.estimated_size('mb'):.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Boas Práticas
 
@@ -538,7 +538,7 @@ else:
     pass
 ```
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 
@@ -547,7 +547,7 @@ else:
 - 🔧 **[API Reference](../reference/b3-api.md)** - Documentação técnica detalhada
 - ❓ **[FAQ](faq.md)** - Perguntas frequentes
 
----
+______________________________________________________________________
 
 !!! tip "Dica de Análise"
 Após extrair para Parquet, use Polars para análises de alto desempenho. É significativamente mais rápido que Pandas para grandes volumes de dados.

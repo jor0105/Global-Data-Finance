@@ -42,8 +42,6 @@ dev = [
     "pytest>=8.4.2",
     "pytest-cov>=5.0.0",
     "mypy>=1.11.0",
-    "bandit>=1.7.9",
-    "pydocstyle>=6.3.0",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.22",
     "mkdocs-static-i18n>=1.2.0",
@@ -54,6 +52,14 @@ dev = [
     "mdformat-gfm>=0.3.5",
     "requests>=2.32.5",
     "pytest-benchmark>=4.0.0",
+    "import-linter>=2.0",
+    # Also needed as CLIs: the workflows call `uv run ruff` and
+    # `uv run detect-secrets-hook` directly, and pre-commit's isolated hook
+    # venvs do not put anything on the project environment. Keep these ranges
+    # matching the `rev:` pins in .pre-commit-config.yaml so the CLI and the
+    # hook never disagree about what is a violation.
+    "ruff>=0.16.2,<0.17",
+    "detect-secrets>=1.5.0,<2",
 ]
 
 [build-system]
@@ -77,22 +83,12 @@ include = [
     "pyproject.toml",
 ]
 
-[tool.pydocstyle]
-convention = "google"
-match = "(?!test_).*\\.py"
-
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-
-[tool.bandit]
-exclude_dirs = [".venv"]
-
-[tool.bandit.per_file_ignores]
-"tests/*" = ["B101", "B108"]
 
 [tool.ruff]
 # Blue style: 79 characters line length
@@ -102,18 +98,28 @@ line-length = 79
 # Curated rule set for a distribution-shaped library. Beyond the default
 # E/F (pycodestyle errors + pyflakes) we enable import sorting (I), modern
 # syntax (UP), likely-bug detection (B), comprehension (C4) and simplify
-# (SIM) hygiene, plus Ruff's own rules (RUF). pydocstyle (D) stays delegated
-# to the dedicated pre-commit pydocstyle hook with its Google-convention
-# ignores.
+# (SIM) hygiene, plus Ruff's own rules (RUF). Ruff also owns what used to be
+# two extra hooks: `S` replaces Bandit and `D` replaces pydocstyle (archived
+# upstream), keeping the same Google convention and ignore list.
 select = [
   "E", "W", "F", "I", "UP", "B", "C4", "SIM", "RUF",
   "S",      # Security (flake8-bandit)
   "PTH",    # Use pathlib (flake8-use-pathlib)
   "ARG",    # Unused arguments (flake8-unused-arguments)
   "LOG",    # Logging best practices (flake8-logging)
+  "D",      # Docstrings (pydocstyle, Google convention)
 ]
 # E501 (line-too-long) is owned by `ruff-format`.
-ignore = ["E501"]
+ignore = [
+  "E501",
+  # Google-convention docstring rules intentionally relaxed (previously
+  # carried by the standalone pydocstyle hook, now retired upstream).
+  "D100", "D101", "D102", "D103", "D104", "D105", "D107",
+  "D205", "D212", "D415", "D417",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.isort]
 known-first-party = ["globaldatafinance"]
@@ -124,7 +130,7 @@ known-first-party = ["globaldatafinance"]
 # vars in parametrized cases (B007/RUF059), nested `with` blocks that
 # read more clearly than a combined context (SIM117), test assertions and
 # non-cryptographic mock randomness (S101, S108, S110, S311), plus test fixture/mock signatures and path mocking (ARG, PTH).
-"tests/**/*.py" = ["B007", "B017", "RUF059", "SIM117", "S101", "S108", "S110", "S311", "ARG", "PTH"]
+"tests/**/*.py" = ["B007", "B017", "RUF059", "SIM117", "S101", "S108", "S110", "S311", "ARG", "PTH", "D"]
 
 [tool.ruff.format]
 # Blue style: Single quotes
@@ -135,3 +141,26 @@ line-ending = "auto"
 
 [tool.uv.sources]
 globaldatafinance = { workspace = true }
+
+# ---------------------------------------------------------------------------
+# Import-time architecture contracts (import-linter)
+# ---------------------------------------------------------------------------
+# Ruff and mypy validate code inside a module; these contracts validate the
+# shape of the import graph between modules -- circular imports and layering
+# violations that no linter here would otherwise catch.
+[tool.importlinter]
+root_package = "globaldatafinance"
+
+[[tool.importlinter.contracts]]
+name = "Layered architecture"
+type = "layers"
+layers = [
+    "globaldatafinance.application : globaldatafinance.brazil",
+    "globaldatafinance.macro_infra",
+    "globaldatafinance.core",
+    "globaldatafinance.macro_exceptions",
+]
+
+# NOTE: cycle detection is NOT expressible as an import-linter contract -- a
+# layers contract cannot see a submodule importing its own package root. That
+# check lives in .github/hooks/check-import-cycles.py.

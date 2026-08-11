@@ -2,7 +2,7 @@
 
 Advanced computational techniques, customization strategies, and optimization patterns for Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Core Utilities
 
@@ -115,7 +115,7 @@ for attempt in range(max_retries):
 
 [View retry strategy documentation →](retry-strategy.md)
 
----
+______________________________________________________________________
 
 ## Custom Adapter Substitution & Duck Typing
 
@@ -161,7 +161,7 @@ result = use_case.execute(
 
 > The library architecture values clarity and extensible composition: orchestrators interact with operational adapters purely through public method signatures (duck typing), enabling custom implementations to be injected seamlessly without burdensome abstract base class inheritance. Review `docs/dev-guide/architecture.md` for complete architectural details.
 
----
+______________________________________________________________________
 
 ## Advanced Logging Customization
 
@@ -187,7 +187,7 @@ logger.addHandler(file_handler)
 logger.info("Custom pipeline execution starting...")
 ```
 
----
+______________________________________________________________________
 
 ## Parallel Multi-Process Execution
 
@@ -215,7 +215,7 @@ for year, result in zip(years, results):
     print(f"Fiscal Year {year}: Normalized {result['total_records']:,} trading records")
 ```
 
----
+______________________________________________________________________
 
 ## Pipeline Orchestration Integration
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     financial_data_pipeline()
 ```
 
----
+______________________________________________________________________
 
 ## Memory Optimization Patterns
 
@@ -316,7 +316,7 @@ for chunk in pd.read_parquet(
     process_chunk(chunk)
 ```
 
----
+______________________________________________________________________
 
 ## Monitoring & Visual Tracking
 
@@ -338,7 +338,7 @@ for year in tqdm(years, desc="Normalizing historical annual epochs"):
     )
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 

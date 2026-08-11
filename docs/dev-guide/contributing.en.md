@@ -2,7 +2,7 @@
 
 Complete instructions and developer expectations for contributing code and feature enhancements to Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Configuring Your Development Environment
 
@@ -30,10 +30,10 @@ uv run mypy src
 ### 3. Install Pre-commit Quality Hooks
 
 ```bash
-uv run pre-commit install
+uv run pre-commit install --install-hooks
 ```
 
----
+______________________________________________________________________
 
 ## Code Style & Standards
 
@@ -68,7 +68,7 @@ def download_docs(
     pass
 ```
 
----
+______________________________________________________________________
 
 ## Automated Testing
 
@@ -110,7 +110,7 @@ class TestFundamentalStocksData:
         assert len(docs) > 0
 ```
 
----
+______________________________________________________________________
 
 ## Git Workflow
 
@@ -143,7 +143,7 @@ git commit -m "fix bug"
 4. Update canonical documentation files and inline docstrings
 5. Submit your Pull Request targeting `develop`
 
----
+______________________________________________________________________
 
 ## Pull Request Checklist
 
@@ -155,7 +155,7 @@ git commit -m "fix bug"
 - [ ] Repository documentation artifacts updated accordingly
 - [ ] Pre-commit repository verification hooks run clean without warnings
 
----
+______________________________________________________________________
 
 ## Support Contact
 

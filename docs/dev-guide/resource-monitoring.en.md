@@ -2,7 +2,7 @@
 
 Comprehensive documentation detailing the telemetry and resource monitoring subsystem built into Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -13,18 +13,18 @@ The `ResourceMonitor` class represents an advanced, dynamic CPU and RAM telemetr
 - ✅ **Circuit Breaker Integration**: Temporarily pauses I/O processing operations whenever hardware saturation reaches critical thresholds
 - ✅ **Automated Garbage Collection**: Explicitly invokes memory garbage collection cycles during memory pressure spikes
 
----
+______________________________________________________________________
 
 ## Resource Saturation States
 
-| State Definition | Operational Description          | Triggered Response Action               |
-| ---------------- | -------------------------------- | --------------------------------------- |
-| **HEALTHY**      | Normal execution resource footprint| No throttling or remediation required   |
-| **WARNING**      | Resource consumption exceeds 70-80%| Evaluates and registers GC execution    |
-| **CRITICAL**     | Consumption exceeds 85-90%       | Downscales workers/batches, forces GC   |
-| **EXHAUSTED**    | System usage surpasses 95% threshold| Activates execution circuit breaker   |
+| State Definition | Operational Description              | Triggered Response Action             |
+| ---------------- | ------------------------------------ | ------------------------------------- |
+| **HEALTHY**      | Normal execution resource footprint  | No throttling or remediation required |
+| **WARNING**      | Resource consumption exceeds 70-80%  | Evaluates and registers GC execution  |
+| **CRITICAL**     | Consumption exceeds 85-90%           | Downscales workers/batches, forces GC |
+| **EXHAUSTED**    | System usage surpasses 95% threshold | Activates execution circuit breaker   |
 
----
+______________________________________________________________________
 
 ## Configuration
 
@@ -46,7 +46,7 @@ limits = ResourceLimits(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Public API
 
@@ -110,7 +110,7 @@ memory_mb = monitor.get_process_memory_mb()
 print(f"Active process consuming: {memory_mb:.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Automated Adapter Integration
 
@@ -126,7 +126,7 @@ cvm = FundamentalStocksDataCVM()
 cvm.download(...)  # Resource monitoring triggers transparently inside library routines
 ```
 
----
+______________________________________________________________________
 
 ## Practical Standalone Scripting
 
@@ -154,7 +154,7 @@ memory = monitor.get_process_memory_mb()
 print(f"Final runtime consumption: {memory:.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## External Dependencies
 
@@ -166,7 +166,7 @@ pip install psutil
 
 If `psutil` is absent or unreadable, the monitoring engine operates silently in a fallback degraded mode (consistently returning `ResourceState.HEALTHY`).
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

@@ -2,7 +2,7 @@
 
 Comprehensive documentation detailing the structural architecture of Global-Data-Finance, foundational design patterns, and internal module organization.
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -15,7 +15,7 @@ This architectural paradigm prioritizes:
 - ✅ **Extensibility**: integrating a new regulatory source = adding a sibling source folder implementing the identical flat role set
 - ✅ **Testability**: straightforward dependency injection and duck typing to isolate and test components cleanly without ceremony
 
----
+______________________________________________________________________
 
 ## Repository Structure
 
@@ -62,29 +62,28 @@ globaldatafinance/
 └── pyproject.toml
 ```
 
-
----
+______________________________________________________________________
 
 ## Source Module Patterns
 
 Every folder under `brazil/<country>/<source>/` implements the identical set of **system roles**. The role-to-file mapping is unified in CVM (one designated file per role) and decomposed granularly in B3 (where pure data constructs and domain validation routines are broken into topical modules to prevent an oversized `core.py`). Introducing a new data source can adopt either pattern — the guiding principle is long-term code legibility.
 
-| Architectural Role          | CVM                                            | B3                                                                                     |
-| --------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Pure data constructs        | `core.py`                                      | `models.py` + `years.py` + `processing.py`                                             |
-| Validation / domain services| `core.py` (`AvailableDocsCVM.validate_*`)      | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
-| Orchestration / use cases   | `client.py`                                    | `client.py`                                                                            |
-| HTTP network adaptation     | `http.py` (`AsyncDownloadAdapterCVM`)          | (N/A — COTAHIST ingestion operates on localized ZIP/TXT files via `zip_reader.py`)   |
-| Extraction / Parquet writer | `extract.py` (`ParquetExtractorAdapterCVM`)    | `parquet_writer/` (subpackage)                                                          |
-| Format schema parser        | —                                              | `cotahist_parser.py`                                                                   |
-| Validation helpers          | `download_validation.py`, `download_extraction.py` | Embedded inside `filesystem.py` / `client.py`                                       |
-| Exception definitions       | `errors.py`                                    | `errors.py`                                                                            |
+| Architectural Role           | CVM                                                | B3                                                                                     |
+| ---------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Pure data constructs         | `core.py`                                          | `models.py` + `years.py` + `processing.py`                                             |
+| Validation / domain services | `core.py` (`AvailableDocsCVM.validate_*`)          | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
+| Orchestration / use cases    | `client.py`                                        | `client.py`                                                                            |
+| HTTP network adaptation      | `http.py` (`AsyncDownloadAdapterCVM`)              | (N/A — COTAHIST ingestion operates on localized ZIP/TXT files via `zip_reader.py`)     |
+| Extraction / Parquet writer  | `extract.py` (`ParquetExtractorAdapterCVM`)        | `parquet_writer/` (subpackage)                                                         |
+| Format schema parser         | —                                                  | `cotahist_parser.py`                                                                   |
+| Validation helpers           | `download_validation.py`, `download_extraction.py` | Embedded inside `filesystem.py` / `client.py`                                          |
+| Exception definitions        | `errors.py`                                        | `errors.py`                                                                            |
 
 Auxiliary utility classes or helper functions remain internal to their module unless explicitly consumed across boundaries — the true unit of extensibility in the codebase is the *source implementation*, not abstract object hierarchies.
 
 > **Why B3 avoids a consolidated `core.py`.** The operational domain of B3 resides across topical modules (`assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`) rather than a single `core.py` because each topic possesses substantial critical mass (~100–300 lines of logic) and serves divergent internal callers. Consolidating them would sacrifice 5 clean, focused files in favor of an unwieldy monolith.
 
----
+______________________________________________________________________
 
 ## Observable Architectural Layers
 
@@ -165,7 +164,7 @@ class AsyncDownloadAdapterCVM:
 
 The orchestration use case interacts with `AsyncDownloadAdapterCVM` via its observable method signature, allowing unit test suites to substitute lightweight duck-typed stubs without unnecessary mock framework overhead (see "Testing Patterns" below).
 
----
+______________________________________________________________________
 
 ## Foundational Design Patterns
 
@@ -219,7 +218,7 @@ All CLI presentation output and console diagnostic reporting reside exclusively 
 
 `VerifyPathsUseCasesCVM` (CVM, inside `client.py`) and helper `FileSystemServiceB3` (B3, inside `filesystem.py`) evaluate directory structures and explicitly raise a `SecurityError` prior to any filesystem `mkdir` or file write, proactively blocking unauthorized execution inside restricted POSIX paths such as `/etc /sys /proc /dev /boot /root`. These defense boundaries form an invariant observable contract for `FundamentalStocksDataCVM.download(destination_path=...)` and `HistoricalQuotesB3.extract(path_of_docs=...)`—they must remain bit-identical across any future refactoring initiatives.
 
----
+______________________________________________________________________
 
 ## Runtime Data Flows
 
@@ -255,7 +254,7 @@ graph TD
     A -->|10. render execution outcome| J[ExtractionResultFormatter]
 ```
 
----
+______________________________________________________________________
 
 ## Adding a New Data Source
 
@@ -273,6 +272,7 @@ src/globaldatafinance/usa/sec/fundamental_data/
 Subsequent integration steps:
 
 1. **Internal Namespace**: Add an `__init__.py` file inside the source folder (or leave blank if no internal re-export aggregation is required).
+
 2. **Public Application Facade**: Create `src/globaldatafinance/application/sec_docs/fundamental_data.py` containing a public facade class `FundamentalDataSEC` importing directly from your flat source modules:
 
    ```python
@@ -284,10 +284,12 @@ Subsequent integration steps:
    ```
 
 3. **Package Boundary Export**: Re-export the new symbol inside `src/globaldatafinance/__init__.py` and `src/globaldatafinance/application/__init__.py`. Treat this as a **semver-sensitive feature expansion**.
+
 4. **Test Suite Mirroring**: Establish `tests/usa/sec/fundamental_data/` grouped cleanly by functional topic. Test fixtures must import symbols directly from flat source modules.
+
 5. **Documentation Alignment**: Register the new architecture map within `AGENTS.md` and this architecture guide, and author reference manuals inside `docs/reference/`.
 
----
+______________________________________________________________________
 
 ## Testing Patterns
 
@@ -338,7 +340,7 @@ assert result.success_count_downloads == 2
 
 Test coverage gates are enforced per functional capability: `tests/brazil/<source>/` combined with `tests/application/<facade>/` thoroughly validates each data source as an autonomous subsystem.
 
----
+______________________________________________________________________
 
 ## Next Steps
 

@@ -1,5 +1,34 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+#
+# Hook stages
+# -----------
+#   pre-commit : fast checks only (lint, format, static file hygiene)
+#   commit-msg : Conventional Commits validation
+#   pre-push   : anything slow or network-bound (tests, dependency audit)
+#
+# Install every stage with:  uv run pre-commit install --install-hooks
+---
+minimum_pre_commit_version: "3.2.0"
+
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+# Without this, every hook that omits `stages` would also re-run on push.
+default_stages: [pre-commit]
+default_language_version:
+  python: python3.12
+
+# uv.lock is deliberately NOT excluded here: the upstream uv-lock hook matches
+# on `^(uv\.lock|pyproject\.toml|uv\.toml)$`, so a global exclude would stop it
+# from firing when the lock file is the only thing that changed. Hooks that
+# should skip it carry their own `exclude`.
+exclude: |
+  (?x)^(
+    \.secrets\.baseline|
+    site/|
+    dist/|
+    \.benchmarks/
+  )
+
 repos:
   # --------------------------------------------------------------------------
   # 0. Commit Message Validation (Conventional Commits - simplified)
@@ -12,19 +41,23 @@ repos:
         language: script
         stages: [commit-msg]
 
-      - id: standardization-build
-        name: standardization-build
-        entry: uv run python examples/build_standardization_specs.py
+      # Agent harness: .agents/ is the source of truth and .claude, .codex,
+      # .github/{agents,prompts}, .opencode and opencode.json are generated
+      # from it. Every mirror is gitignored, so this can only be an
+      # always_run check -- no staged path will ever match them.
+      #
+      # `validate-skills-metadata` used to sit here. It was removed rather
+      # than fixed: its `files: SKILL.md` pattern could never match (all
+      # SKILL.md live under the gitignored .agents/), and the validator
+      # currently exits 1 on two harness content issues. Re-add it as an
+      # always_run hook once .agents/scripts/validate-skills.py is green.
+      - id: check-harness-sync
+        name: check-harness-sync
+        entry: bash .github/hooks/check-harness-sync.sh
         language: system
-        files: ^src/domain/change_datas/.*\.json$
         pass_filenames: false
+        always_run: true
 
-      - id: validate-skills-metadata
-        name: validate-skills-metadata
-        entry: uv run python .agents/scripts/validate-skills.py
-        language: system
-        files: (^|/)(SKILL\.md)$
-        pass_filenames: false
   # --------------------------------------------------------------------------
   # 1. Basic File Checks
   # --------------------------------------------------------------------------
@@ -36,24 +69,151 @@ repos:
       - id: mixed-line-ending
       - id: check-yaml
       - id: check-toml
+      - id: check-json
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-ast
       - id: check-added-large-files
         args: ["--maxkb=1500"]
+        # Generated lock file; growing past the limit is legitimate.
+        exclude: ^uv\.lock$
       - id: check-case-conflict
       - id: detect-private-key
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: forbid-submodules
+      - id: name-tests-test
+        args: ["--pytest-test-first"]
+
   # --------------------------------------------------------------------------
   # 2. Project Integrity (uv)
   # --------------------------------------------------------------------------
+  # Keep this rev in sync with the uv version used locally and in CI: an
+  # older/newer uv here will rewrite uv.lock on every commit.
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.5.18
+    rev: 0.9.11
     hooks:
       - id: uv-lock
 
-  # Max lines per file (src + backend)
+  # --------------------------------------------------------------------------
+  # 3. Security Checks
+  # --------------------------------------------------------------------------
+  # Static security analysis is handled by Ruff's `S` (flake8-bandit) rules,
+  # configured in pyproject.toml -- no separate Bandit hook needed.
+
+  # Secret Detection: detect-secrets (baseline-driven, entropy + plugins)
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: ^(package\.lock|\.benchmarks/)
+
+  # Secret Detection: gitleaks (provider-specific token patterns)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # CI/CD supply-chain audit of GitHub Actions workflows
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.29.0
+    hooks:
+      - id: zizmor
+
+  # --------------------------------------------------------------------------
+  # 4. Formatting & Linting
+  # --------------------------------------------------------------------------
+  # Ruff owns Python lint (incl. security `S`, docstrings `D`) and formatting.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.2
+    hooks:
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        # `--number` keeps 1./2./3. numbering instead of collapsing every
+        # ordered-list item to "1.", which reads badly in raw Markdown.
+        args: ["--number"]
+        additional_dependencies: ["mdformat-gfm==1.0.0"]
+        # .agents/ is the source of truth; .claude/, .codex/, .opencode/ and
+        # .github/prompts/ are generated from it. Every mirror is gitignored
+        # today, so none of them reach pre-commit -- this is a guard against a
+        # mirror being tracked later and then reformatted into permanent drift.
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/|
+            openspec/
+          )
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: ["--strict"]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        args: ["--ignore-words=.codespellignore"]
+        exclude: ^(uv\.lock|\.secrets\.baseline)$
+
+  # --------------------------------------------------------------------------
+  # 4.1. Import Graph
+  # --------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: import-cycles
+        name: import-cycles
+        entry: uv run python .github/hooks/check-import-cycles.py
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # Layer contracts live in [tool.importlinter] in pyproject.toml.
+      - id: import-linter
+        name: import-linter
+        entry: uv run lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
+  # 5. Type Checking
+  # --------------------------------------------------------------------------
+  # Runs inside the uv environment so mypy actually sees pydantic, polars,
+  # pyarrow and httpx types -- a hook-isolated mypy would silently treat every
+  # third-party import as `Any`.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy src
+        language: system
+        # The entry hardcodes `src`, so editing a test-only file should not
+        # trigger a run that cannot see the change.
+        files: ^src/.*\.py$
+        pass_filenames: false
+
+  # --------------------------------------------------------------------------
+  # 6. Slow / Network-bound checks (pre-push only)
+  # --------------------------------------------------------------------------
   - repo: local
     hooks:
       - id: max-lines-per-file
@@ -62,23 +222,20 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+        stages: [pre-push]
 
-  # --------------------------------------------------------------------------
-  # 3. Security Checks
-  # --------------------------------------------------------------------------
-  # Static Analysis for Security (Bandit)
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.2
-    hooks:
-      - id: bandit
-        args: ["-c", "pyproject.toml"]
-        additional_dependencies: ["bandit[toml]"]
-        exclude: ^(tests/|.agents/scripts/|.agents/skills/.*/scripts/)
+      # Same selection and coverage floor as the CI `quality` job, so a push
+      # that passes here is not rejected by CI for coverage.
+      - id: pytest-unit
+        name: pytest-unit
+        entry: >-
+          uv run pytest -q -m "not integration and not slow"
+          --cov=src --cov-fail-under=70
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
 
-  # Dependency Vulnerabilities (pip-audit)
-  # Runs locally using the project's environment
-  - repo: local
-    hooks:
       - id: pip-audit
         name: pip-audit
         # PYSEC-2026-89 (markdown): vuln transitiva via mkdocs-material;
@@ -87,56 +244,4 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-
-  # Secret Detection (detect-secrets)
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args: ["--baseline", ".secrets.baseline"]
-        exclude: ^(package\.lock|\.benchmarks/)
-
-  # --------------------------------------------------------------------------
-  # 4. Formatting & Linting (Ruff replaces isort/flake8)
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.6
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
-
-  # --------------------------------------------------------------------------
-  # 4.1. Unit Tests (Fast)
-  # --------------------------------------------------------------------------
-  - repo: local
-    hooks:
-      - id: pytest-unit
-        name: pytest-unit
-        entry: uv run pytest -q -m "not integration and not slow"
-        language: system
-        pass_filenames: false
-        always_run: true
-
-  # --------------------------------------------------------------------------
-  # 5. Type Checking
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
-    hooks:
-      - id: mypy
-        args: [--ignore-missing-imports, --pretty, --no-incremental]
-        additional_dependencies: [types-requests, types-toml, types-PyYAML]
-        exclude: ^examples/|^teste_site/|^\.github/|^\.agents/
-
-  # --------------------------------------------------------------------------
-  # 6. Documentation
-  # --------------------------------------------------------------------------
-  - repo: https://github.com/PyCQA/pydocstyle
-    rev: 6.3.0
-    hooks:
-      - id: pydocstyle
-        args:
-          - --convention=google
-          - --match-dir=^src
-          - --add-ignore=D100,D101,D102,D103,D104,D105,D107,D205,D212,D415,D417
+        stages: [pre-push]

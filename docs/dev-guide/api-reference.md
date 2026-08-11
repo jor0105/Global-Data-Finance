@@ -2,7 +2,7 @@
 
 Documentação completa da API pública do Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Módulo `globaldatafinance.brazil`
 
@@ -59,7 +59,7 @@ def get_available_years(self) -> Dict[str, int]
 
 Retorna informações sobre anos disponíveis.
 
----
+______________________________________________________________________
 
 ### `HistoricalQuotesB3`
 
@@ -120,7 +120,7 @@ def get_available_years(self) -> Dict[str, int]
 
 Retorna intervalo de anos disponível.
 
----
+______________________________________________________________________
 
 Veja também:
 

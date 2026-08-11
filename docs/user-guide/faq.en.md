@@ -2,7 +2,7 @@
 
 Answers and solutions addressing common inquiries regarding installation, configuration, and architectural usage of Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Installation & Setup
 
@@ -30,7 +30,7 @@ source venv/bin/activate  # On Linux/macOS
 pip install globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## General Library Operations
 
@@ -59,7 +59,7 @@ assets = b3.get_available_assets()
 years = b3.get_available_years()
 ```
 
----
+______________________________________________________________________
 
 ## CVM Regulatory Documents
 
@@ -103,7 +103,7 @@ cvm.download(
 
 The underlying network layer features automated asynchronous retries coupled with custom exponential back-off strategies. For mission-critical production pipelines, consider pairing library retries with application-level orchestration traps (review our [Retry Strategy Architecture](../dev-guide/retry-strategy.md)).
 
----
+______________________________________________________________________
 
 ## B3 Historical Market Quotes
 
@@ -114,10 +114,10 @@ Download raw historical bundles directly from B3's official data portal:
 
 ### What is the distinction between `fast` and `slow` processing modes?
 
-| Processing Profile | Performance | CPU Usage | RAM Consumption | Recommended Use                       |
-| ------------------ | ----------- | --------- | --------------- | ------------------------------------- |
-| **fast**           | High        | Intensive | ~2GB            | Standard multi-core machines (Default)|
-| **slow**           | Moderate    | Minimal   | ~500MB          | Constrained RAM or background workers |
+| Processing Profile | Performance | CPU Usage | RAM Consumption | Recommended Use                        |
+| ------------------ | ----------- | --------- | --------------- | -------------------------------------- |
+| **fast**           | High        | Intensive | ~2GB            | Standard multi-core machines (Default) |
+| **slow**           | Moderate    | Minimal   | ~500MB          | Constrained RAM or background workers  |
 
 ```python
 # Execute using Fast mode (Recommended Default)
@@ -163,7 +163,7 @@ result = b3.extract(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Performance & System Optimization
 
@@ -202,7 +202,7 @@ with ProcessPoolExecutor(max_workers=4) as executor:
     results = list(executor.map(process_fiscal_year, range(2020, 2024)))
 ```
 
----
+______________________________________________________________________
 
 ## Data Analytics & Downstream Ingestion
 
@@ -243,7 +243,7 @@ df = pd.read_parquet("cotahist_extracted.parquet")
 petr4 = df[df['ticker'] == 'PETR4']
 ```
 
----
+______________________________________________________________________
 
 ## Troubleshooting & Common Exceptions
 
@@ -251,6 +251,7 @@ petr4 = df[df['ticker'] == 'PETR4']
 
 **Cause**: The library has not been installed into your active Python interpreter or your virtual environment remains inactive.
 **Solution**: Activate your environment and reinstall:
+
 ```bash
 pip install globaldatafinance
 ```
@@ -263,7 +264,8 @@ pip install globaldatafinance
 ### "InvalidDocumentName"
 
 **Cause**: An unconfirmed document acronym string was supplied to `list_docs`.
-**Solution**: Confirm valid document strings via programatic catalog inspection:
+**Solution**: Confirm valid document strings via programmatic catalog inspection:
+
 ```python
 docs = cvm.get_available_docs()
 print(list(docs.keys()))
@@ -278,17 +280,19 @@ print(list(docs.keys()))
 
 **Cause**: Remote regulatory web server connection dropouts or rate limitations.
 **Solution**:
+
 1. Verify active internet access and DNS resolution.
 2. Re-attempt execution during non-peak server hours.
 3. Review our [Retry Strategy Architectural Guide](../dev-guide/retry-strategy.md).
 
----
+______________________________________________________________________
 
 ## Production Deployment & Pipeline Integration
 
 ### Is Global-Data-Finance ready for production usage?
 
 Yes! The library is extensively verified under comprehensive CI quality gates. Production deployment guidelines:
+
 - Maintain diagnostic logging setups
 - Wrap invocations within robust application-level exception handlers
 - Monitor local storage capacity and system RAM parameters
@@ -305,12 +309,14 @@ Schedule automated script executions using operating system schedulers such as `
 ### How can I integrate extraction steps into Apache Airflow or modern data pipelines?
 
 Global-Data-Finance integrates cleanly into orchestration engines such as:
+
 - **Apache Airflow**: Build Python Operators inside DAG definitions
 - **Prefect**: Implement processing routines inside tasks and flows
 - **Dagster**: Package extractions as software-defined ops or assets
 - **Luigi**: Wire methods directly inside operational pipeline steps
 
 Minimal Airflow Task snippet:
+
 ```python
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -332,7 +338,7 @@ with DAG('cvm_sync_dag', ...) as dag:
     )
 ```
 
----
+______________________________________________________________________
 
 ## Contributing & Community
 
@@ -349,7 +355,7 @@ Submit a detailed bug report issue directly to our repository tracker:
 
 Open a discussion thread or feature request issue tagged as `enhancement` on GitHub.
 
----
+______________________________________________________________________
 
 ## Licensing & Terms
 
@@ -364,10 +370,11 @@ Yes! The Apache 2.0 license freely grants commercial distribution, modification,
 ### Are there external copyright restrictions attached to downloaded financial datasets?
 
 Regulatory filings and market transaction records are public data provided officially by CVM and B3. Always review official terms of use broadcast by each financial body:
+
 - **CVM**: [http://www.cvm.gov.br/](http://www.cvm.gov.br/)
 - **B3**: [https://www.b3.com.br/](https://www.b3.com.br/)
 
----
+______________________________________________________________________
 
 ## Support & Assistance
 
@@ -381,7 +388,7 @@ Regulatory filings and market transaction records are public data provided offic
 
 For sensitive architectural or security bug reporting, transmit details privately via email to: estraliotojordan@gmail.com
 
----
+______________________________________________________________________
 
 !!! tip "Didn't find your answer?"
-    Open an inquiry discussion on our GitHub repository or consult the [Technical API Reference](../reference/cvm-api.md).
+Open an inquiry discussion on our GitHub repository or consult the [Technical API Reference](../reference/cvm-api.md).

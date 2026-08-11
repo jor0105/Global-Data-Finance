@@ -2,7 +2,7 @@
 
 Detailed technical specification covering the B3 historical quote extraction API.
 
----
+______________________________________________________________________
 
 ## HistoricalQuotesB3
 
@@ -34,15 +34,15 @@ def extract(
 
 **Parameters**:
 
-| Parameter          | Type            | Required | Default                | Description                   |
-| ------------------ | --------------- | -------- | ---------------------- | ----------------------------- |
-| `path_of_docs`     | `str`           | Yes      | -                      | Source folder with COTAHIST ZIPs|
-| `assets_list`      | `List[str]`     | Yes      | -                      | Targeted asset categories     |
-| `initial_year`     | `Optional[int]` | No       | `1986`                 | Initial historical fiscal year|
-| `last_year`        | `Optional[int]` | No       | Active System Year     | Ending historical fiscal year |
-| `destination_path` | `Optional[str]` | No       | Matches `path_of_docs` | Output artifact destination   |
-| `output_filename`  | `str`           | No       | `"cotahist_extracted"` | Target Parquet base filename  |
-| `processing_mode`  | `str`           | No       | `"fast"`               | Execution mode: "fast"/"slow" |
+| Parameter          | Type            | Required | Default                | Description                      |
+| ------------------ | --------------- | -------- | ---------------------- | -------------------------------- |
+| `path_of_docs`     | `str`           | Yes      | -                      | Source folder with COTAHIST ZIPs |
+| `assets_list`      | `List[str]`     | Yes      | -                      | Targeted asset categories        |
+| `initial_year`     | `Optional[int]` | No       | `1986`                 | Initial historical fiscal year   |
+| `last_year`        | `Optional[int]` | No       | Active System Year     | Ending historical fiscal year    |
+| `destination_path` | `Optional[str]` | No       | Matches `path_of_docs` | Output artifact destination      |
+| `output_filename`  | `str`           | No       | `"cotahist_extracted"` | Target Parquet base filename     |
+| `processing_mode`  | `str`           | No       | `"fast"`               | Execution mode: "fast"/"slow"    |
 
 **Return Contract (`ExtractionResultB3`)**: Diagnostic mapping dictionary featuring:
 
@@ -115,21 +115,21 @@ years = b3.get_available_years()
 # Returns: {'minimal_year': 1986, 'current_year': active_year}
 ```
 
----
+______________________________________________________________________
 
 ## Asset Classification Codes
 
-| Code Identifier  | Description           | Included Market Segments                 |
-| ---------------- | --------------------- | ---------------------------------------- |
-| ações            | Equities / Stocks     | 010 (spot cash market), 012 (fractional) |
-| etf              | ETFs                  | Exchange Traded Fund structures          |
-| opções           | Options               | 070 (calls), 080 (puts)                  |
-| termo            | Forward Term Markets  | Forward clearing agreements              |
-| exercicio_opcoes | Option Exercises      | Exercised contract transactions          |
-| forward          | Forward Contracts     | Over-the-counter and forward agreements  |
-| leilao           | Auction Market        | Extraordinary clearing auction registers |
+| Code Identifier  | Description          | Included Market Segments                 |
+| ---------------- | -------------------- | ---------------------------------------- |
+| ações            | Equities / Stocks    | 010 (spot cash market), 012 (fractional) |
+| etf              | ETFs                 | Exchange Traded Fund structures          |
+| opções           | Options              | 070 (calls), 080 (puts)                  |
+| termo            | Forward Term Markets | Forward clearing agreements              |
+| exercicio_opcoes | Option Exercises     | Exercised contract transactions          |
+| forward          | Forward Contracts    | Over-the-counter and forward agreements  |
+| leilao           | Auction Market       | Extraordinary clearing auction registers |
 
----
+______________________________________________________________________
 
 ## Computational Execution Modes
 
@@ -138,7 +138,7 @@ years = b3.get_available_years()
 | fast            | Maximum       | Intensive | ~2GB       | Default profile for standard workflows |
 | slow            | Moderate      | Low       | ~500MB     | Constrained RAM server environments    |
 
----
+______________________________________________________________________
 
 ## Related Documentation
 

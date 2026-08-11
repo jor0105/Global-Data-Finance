@@ -2,7 +2,7 @@
 
 Bem-vindo ao **Global-Data-Finance**! Este guia irá ajudá-lo a dar os primeiros passos com a biblioteca através de exemplos práticos e simples.
 
----
+______________________________________________________________________
 
 ## Pré-requisitos
 
@@ -12,7 +12,7 @@ Antes de começar, certifique-se de que você:
 - ✅ Possui Python 3.12 ou superior
 - ✅ Tem acesso à internet para downloads
 
----
+______________________________________________________________________
 
 ## Primeiro Exemplo: Documentos CVM
 
@@ -59,7 +59,7 @@ cvm.download(
   ✓ DFP - 2023
 ```
 
----
+______________________________________________________________________
 
 ## Segundo Exemplo: Cotações Históricas B3
 
@@ -108,7 +108,7 @@ result = b3.extract(
   /home/usuario/cotacoes_extraidas/cotahist_extracted.parquet
 ```
 
----
+______________________________________________________________________
 
 ## Explorando Dados Disponíveis
 
@@ -176,7 +176,7 @@ Classes de ativos disponíveis:
 Dados disponíveis de 1986 até o ano atual
 ```
 
----
+______________________________________________________________________
 
 ## Exemplo Completo: Pipeline de Dados
 
@@ -231,7 +231,7 @@ else:
             print(f"  • {error}")
 ```
 
----
+______________________________________________________________________
 
 ## Trabalhando com os Dados Extraídos
 
@@ -268,7 +268,7 @@ print(f"\nShape: {df.shape}")
 print(f"Memória: {df.estimated_size('mb'):.2f} MB")
 ```
 
----
+______________________________________________________________________
 
 ## Dicas para Iniciantes
 
@@ -281,7 +281,7 @@ Para extração de cotações B3, o modo `"fast"` é recomendado na maioria dos 
 !!! tip "Verifique Espaço em Disco"
 Documentos CVM e cotações históricas podem ocupar bastante espaço. Certifique-se de ter espaço suficiente antes de baixar muitos anos.
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 
@@ -292,7 +292,7 @@ Agora que você conhece o básico, explore:
 - 💻 **[Exemplos Práticos](examples.md)** - Casos de uso avançados
 - ❓ **[FAQ](faq.md)** - Perguntas frequentes
 
----
+______________________________________________________________________
 
 !!! success "Parabéns!"
 Você completou o guia de início rápido! Agora você está pronto para explorar todo o potencial do Global-Data-Finance. 🚀

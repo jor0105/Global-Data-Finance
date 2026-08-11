@@ -2,7 +2,7 @@
 
 Guia para contribuir com o projeto Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Configurando Ambiente de Desenvolvimento
 
@@ -30,10 +30,10 @@ uv run mypy src
 ### 3. Instalar Pre-commit Hooks
 
 ```bash
-uv run pre-commit install
+uv run pre-commit install --install-hooks
 ```
 
----
+______________________________________________________________________
 
 ## Padrões de Código
 
@@ -68,7 +68,7 @@ def download_docs(
     pass
 ```
 
----
+______________________________________________________________________
 
 ## Testes
 
@@ -110,7 +110,7 @@ class TestFundamentalStocksData:
         assert len(docs) > 0
 ```
 
----
+______________________________________________________________________
 
 ## Workflow Git
 
@@ -143,7 +143,7 @@ git commit -m "fix bug"
 4. Atualize documentação
 5. Abra PR para `develop`
 
----
+______________________________________________________________________
 
 ## Checklist de PR
 
@@ -155,7 +155,7 @@ git commit -m "fix bug"
 - [ ] Documentação atualizada
 - [ ] Pre-commit hooks passando
 
----
+______________________________________________________________________
 
 ## Contato
 

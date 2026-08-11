@@ -2,7 +2,7 @@
 
 Comprehensive guide detailing automated test organization, execution commands, and testing patterns implemented within Global-Data-Finance.
 
----
+______________________________________________________________________
 
 ## Test Repository Hierarchy
 
@@ -29,7 +29,7 @@ tests/
 └── macro_exceptions/
 ```
 
----
+______________________________________________________________________
 
 ## Executing Tests
 
@@ -62,7 +62,7 @@ uv run pytest -m integration
 uv run pytest -m "integration and not slow"
 ```
 
----
+______________________________________________________________________
 
 ## Authoring Tests
 
@@ -132,7 +132,7 @@ class TestFundamentalStocksDataIntegration:
         assert "DFP" in docs
 ```
 
----
+______________________________________________________________________
 
 ## Standard Test Fixtures
 
@@ -153,7 +153,7 @@ def sample_zip_file(tmp_path):
     return zip_path
 ```
 
----
+______________________________________________________________________
 
 ## Coverage Goals & Gates
 
@@ -168,7 +168,7 @@ uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html
 ```
 
----
+______________________________________________________________________
 
 ## Continuous Integration (CI/CD)
 
@@ -178,7 +178,7 @@ Automated quality verification gates execute on GitHub Actions during:
 - Every Pull Request opened against project target branches
 - Tagged release build packaging workflows
 
----
+______________________________________________________________________
 
 ## Next Steps
 

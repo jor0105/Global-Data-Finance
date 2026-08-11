@@ -2,7 +2,7 @@
 
 Este guia fornece instruções detalhadas para instalar e configurar a biblioteca **Global-Data-Finance** em diferentes ambientes.
 
----
+______________________________________________________________________
 
 ## Requisitos do Sistema
 
@@ -26,7 +26,7 @@ python3 --version
 !!! warning "Versão do Python"
 O Global-Data-Finance requer Python 3.12 ou superior. Se você possui uma versão anterior, será necessário atualizar o Python antes de prosseguir.
 
----
+______________________________________________________________________
 
 ## Instalação via pip (Recomendado)
 
@@ -61,7 +61,7 @@ pip install globaldatafinance
 pip install --upgrade globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Instalação via uv (alternativa ao pip)
 
@@ -75,7 +75,7 @@ uv add globaldatafinance
 uv add --dev globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Instalação para Desenvolvimento
 
@@ -117,7 +117,7 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
----
+______________________________________________________________________
 
 ## Dependências
 
@@ -148,7 +148,7 @@ Instaladas automaticamente apenas em modo desenvolvimento:
 | `mkdocs`          | Gerador de documentação        |
 | `mkdocs-material` | Tema Material para MkDocs      |
 
----
+______________________________________________________________________
 
 ## Verificação da Instalação
 
@@ -192,7 +192,7 @@ print(f"✓ Dados disponíveis de {years['General Document Years']} até {years[
 
 Se todos os comandos acima executarem sem erros, a instalação foi bem-sucedida! ✅
 
----
+______________________________________________________________________
 
 ## Solução de Problemas
 
@@ -266,7 +266,7 @@ export HTTPS_PROXY="http://proxy.empresa.com:8080"
 pip install globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Desinstalação
 
@@ -276,7 +276,7 @@ Para remover o Global-Data-Finance do seu sistema:
 pip uninstall globaldatafinance
 ```
 
----
+______________________________________________________________________
 
 ## Próximos Passos
 
@@ -287,7 +287,7 @@ Agora que você instalou o Global-Data-Finance com sucesso, explore:
 - 📈 **[Cotações B3](b3-docs.md)** - Guia completo da API B3
 - 💻 **[Exemplos Práticos](examples.md)** - Casos de uso reais
 
----
+______________________________________________________________________
 
 !!! tip "Dica para Desenvolvedores"
 Se você planeja contribuir com o projeto, consulte o [Guia de Contribuição](../dev-guide/contributing.md) para configurar seu ambiente de desenvolvimento completo.
