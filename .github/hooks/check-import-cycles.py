@@ -23,7 +23,11 @@ PACKAGE = 'globaldatafinance'
 
 
 def find_cycles(graph: grimp.ImportGraph) -> list[list[str]]:
-    """Return every strongly connected component with more than one module.
+    """Return every strongly connected component that contains a cycle.
+
+    This check uses a static import graph. Grimp's default build includes
+    imports guarded by ``TYPE_CHECKING``; dynamic imports are outside this
+    contract.
 
     Iterative Tarjan, so a deep import graph cannot blow the stack.
     """
@@ -73,7 +77,10 @@ def find_cycles(graph: grimp.ImportGraph) -> list[list[str]]:
                     component.append(member)
                     if member == node:
                         break
-                if len(component) > 1:
+                if (
+                    len(component) > 1
+                    or component[0] in adjacency[component[0]]
+                ):
                     cycles.append(sorted(component))
 
             work.pop()

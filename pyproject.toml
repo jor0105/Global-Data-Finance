@@ -53,6 +53,7 @@ dev = [
     "requests>=2.32.5",
     "pytest-benchmark>=4.0.0",
     "import-linter>=2.0",
+    "grimp>=3.15,<4",
     # Also needed as CLIs: the workflows call `uv run ruff` and
     # `uv run detect-secrets-hook` directly, and pre-commit's isolated hook
     # venvs do not put anything on the project environment. Keep these ranges
