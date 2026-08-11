@@ -170,7 +170,7 @@ python
 ```python
 >>> import globaldatafinance
 >>> print(globaldatafinance.__version__)
-0.1.4
+0.2.0
 ```
 
 ### 3. Teste Básico
