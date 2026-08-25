@@ -63,15 +63,19 @@ from globaldatafinance.brazil.b3_data.historical_quotes import (
     ExtractHistoricalQuotesUseCaseB3,
 )
 
+
 async def run_extraction():
     # 1. Configuração da Extração
     # DocsToExtractorB3 valida automaticamente os tipos e caminhos
     config = DocsToExtractorB3(
-        path_of_docs="/dados/brutos/b3",        # Onde estão os ZIPs
-        destination_path="/dados/processados",  # Onde salvar o Parquet
-        range_years=range(2023, 2024),          # Anos a considerar
-        set_assets={"ações", "etf"},            # Tipos de ativos (ações, etf, opções, etc.)
-        documents_to_download={"COTAHIST_A2023.ZIP"} # Arquivos específicos
+        path_of_docs='/dados/brutos/b3',  # Onde estão os ZIPs
+        destination_path='/dados/processados',  # Onde salvar o Parquet
+        range_years=range(2023, 2024),  # Anos a considerar
+        set_assets={
+            'ações',
+            'etf',
+        },  # Tipos de ativos (ações, etf, opções, etc.)
+        documents_to_download={'COTAHIST_A2023.ZIP'},  # Arquivos específicos
     )
 
     # 2. Execução
@@ -80,16 +84,17 @@ async def run_extraction():
     try:
         result = await use_case.execute(
             docs_to_extract=config,
-            processing_mode="fast",  # 'fast' (memória) ou 'slow' (iterativo)
-            output_filename="b3_quotes_2023.parquet"
+            processing_mode='fast',  # 'fast' (memória) ou 'slow' (iterativo)
+            output_filename='b3_quotes_2023.parquet',
         )
 
-        print(f"Sucesso! {result['total_records']} registros processados.")
+        print(f'Sucesso! {result["total_records"]} registros processados.')
 
     except Exception as e:
-        print(f"Erro durante a extração: {e}")
+        print(f'Erro durante a extração: {e}')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     asyncio.run(run_extraction())
 ```
 

@@ -53,6 +53,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     DownloadDocumentsUseCaseCVM,
 )
 
+
 def baixar_dados_cvm():
     # 1. Adapter HTTP concreto (httpx async + retry + integrity check)
     repository = AsyncDownloadAdapterCVM()
@@ -60,31 +61,32 @@ def baixar_dados_cvm():
     # 2. Orquestrador
     downloader = DownloadDocumentsUseCaseCVM(repository=repository)
 
-    print("Iniciando downloads...")
+    print('Iniciando downloads...')
 
     # 3. Execução
     try:
         resultado = downloader.execute(
-            destination_path="./dados_cvm",  # Diretório raiz para salvar
-            list_docs=["DFP", "ITR", "FRE"], # Tipos de documentos
-            initial_year=2022,               # Ano inicial
-            last_year=2023                   # Ano final
+            destination_path='./dados_cvm',  # Diretório raiz para salvar
+            list_docs=['DFP', 'ITR', 'FRE'],  # Tipos de documentos
+            initial_year=2022,  # Ano inicial
+            last_year=2023,  # Ano final
         )
 
         # 4. Análise dos Resultados
-        print(f"\nResumo da Operação:")
-        print(f"✅ Sucessos: {resultado.success_count_downloads}")
-        print(f"❌ Falhas: {resultado.error_count_downloads}")
+        print(f'\nResumo da Operação:')
+        print(f'✅ Sucessos: {resultado.success_count_downloads}')
+        print(f'❌ Falhas: {resultado.error_count_downloads}')
 
         if resultado.failed_downloads:
-            print("\nDetalhes das falhas:")
+            print('\nDetalhes das falhas:')
             for doc, erro in resultado.failed_downloads.items():
-                print(f" - {doc}: {erro}")
+                print(f' - {doc}: {erro}')
 
     except Exception as e:
-        print(f"Erro crítico na execução: {e}")
+        print(f'Erro crítico na execução: {e}')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     baixar_dados_cvm()
 ```
 

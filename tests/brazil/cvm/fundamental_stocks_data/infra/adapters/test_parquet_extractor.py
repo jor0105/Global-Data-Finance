@@ -130,3 +130,111 @@ class TestParquetExtractorFileExtractorInterface:
         extractor = ParquetExtractorAdapterCVM()
         assert hasattr(extractor, 'extract')
         assert callable(extractor.extract)
+
+
+@pytest.mark.unit
+class TestParquetExtractorRollbackAndTransactionalBehavior:
+    def test_extract_partial_failure_triggers_atomic_rollback(
+        self, tmp_path, monkeypatch
+    ):
+        extractor = ParquetExtractorAdapterCVM()
+        zip_path = tmp_path / 'partial_fail.zip'
+
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr('good.csv', 'col1;col2\n1;2\n')
+            zf.writestr('bad.csv', 'col1;col2\n3;4\n')
+
+        orig_extract_csv = (
+            extractor.extractor_adapter.extract_csv_from_zip_to_parquet
+        )
+
+        def mock_extract_csv(z, parquet_path, parquet_filename, csv_filename):
+            if csv_filename == 'bad.csv':
+                raise ValueError('Malformed CSV data in bad.csv')
+            return orig_extract_csv(
+                z, parquet_path, parquet_filename, csv_filename
+            )
+
+        monkeypatch.setattr(
+            extractor.extractor_adapter,
+            'extract_csv_from_zip_to_parquet',
+            mock_extract_csv,
+        )
+
+        with pytest.raises(ExtractionError) as exc_info:
+            extractor.extract(str(zip_path), str(tmp_path))
+
+        assert 'Atomic extraction failed' in str(exc_info.value)
+        assert 'bad.csv' in str(exc_info.value)
+        # Ensure that good.parquet was rolled back and deleted
+        remaining_parquets = list(tmp_path.glob('*.parquet'))
+        assert len(remaining_parquets) == 0
+
+    def test_extract_disk_full_error_propagates_and_cleans_up(
+        self, tmp_path, monkeypatch
+    ):
+        from globaldatafinance.macro_exceptions import DiskFullError
+
+        extractor = ParquetExtractorAdapterCVM()
+        zip_path = tmp_path / 'disk_full.zip'
+
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr('doc.csv', 'a;b\n1;2\n')
+
+        def mock_extract_disk_full(*args, **kwargs):
+            raise DiskFullError('No space left on device')
+
+        monkeypatch.setattr(
+            extractor.extractor_adapter,
+            'extract_csv_from_zip_to_parquet',
+            mock_extract_disk_full,
+        )
+
+        with pytest.raises(DiskFullError):
+            extractor.extract(str(zip_path), str(tmp_path))
+
+        assert len(list(tmp_path.glob('*.parquet'))) == 0
+
+    def test_extract_rollback_reports_unlink_cleanup_errors(
+        self, tmp_path, monkeypatch
+    ):
+        from pathlib import Path
+
+        extractor = ParquetExtractorAdapterCVM()
+        zip_path = tmp_path / 'cleanup_fail.zip'
+
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr('good.csv', 'col1;col2\n1;2\n')
+            zf.writestr('bad.csv', 'col1;col2\n3;4\n')
+
+        orig_extract_csv = (
+            extractor.extractor_adapter.extract_csv_from_zip_to_parquet
+        )
+
+        def mock_extract_csv(z, parquet_path, parquet_filename, csv_filename):
+            if csv_filename == 'bad.csv':
+                raise ValueError('Forced error on bad.csv')
+            return orig_extract_csv(
+                z, parquet_path, parquet_filename, csv_filename
+            )
+
+        monkeypatch.setattr(
+            extractor.extractor_adapter,
+            'extract_csv_from_zip_to_parquet',
+            mock_extract_csv,
+        )
+
+        # Make unlink fail during rollback cleanup
+        orig_unlink = Path.unlink
+
+        def mock_unlink(self, *args, **kwargs):
+            if self.name.endswith('.parquet'):
+                raise PermissionError('Simulated permission denied on unlink')
+            return orig_unlink(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, 'unlink', mock_unlink)
+
+        with pytest.raises(ExtractionError) as exc_info:
+            extractor.extract(str(zip_path), str(tmp_path))
+
+        assert 'Atomic extraction failed' in str(exc_info.value)

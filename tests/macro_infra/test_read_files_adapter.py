@@ -68,3 +68,29 @@ class TestReadFilesAdapter:
         )
         assert len(chunks) == 2
         assert all(isinstance(chunk, pd.DataFrame) for chunk in chunks)
+
+    def test_read_csv_test_encoding_raises_when_all_fail(
+        self, tmp_path, monkeypatch
+    ):
+        import globaldatafinance.macro_infra.read_files as read_files_mod
+        from globaldatafinance.macro_exceptions import ExtractionError
+
+        csv_name = 'unreadable.csv'
+        zip_path = tmp_path / 'bad.zip'
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr(csv_name, b'some content')
+
+        def mock_failing_read_csv(*args, **kwargs):
+            raise UnicodeDecodeError('utf-8', b'', 0, 1, 'decoding failed')
+
+        monkeypatch.setattr(
+            read_files_mod.pd, 'read_csv', mock_failing_read_csv
+        )
+
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            with pytest.raises(ExtractionError) as exc_info:
+                ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
+
+        assert 'Could not read unreadable.csv with any encoding' in str(
+            exc_info.value
+        )
