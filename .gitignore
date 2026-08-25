@@ -186,7 +186,7 @@ metrics.prom
 # Project specific - Refactor scratch artifacts (modularizar workflow inputs/outputs)
 modularizar_*.md
 .uv-cache/
-.agents/
+#.agents/
 .github/instructions/
 .github/prompts/
 .github/agents/
@@ -203,3 +203,14 @@ dados_cvm/
 dados_b3/
 cotahist_b3/
 .benchmarks/
+
+# Import linter & grimp caches
+.import_linter_cache/
+.grimp_cache/
+
+# Mutation testing (mutmut) artifacts
+mutants/
+.mutmut-cache
+html/
+uv.lock
+package.json

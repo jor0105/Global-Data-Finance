@@ -37,23 +37,22 @@ repos:
     hooks:
       - id: validate-commit-msg
         name: validate-commit-msg
-        entry: .github/hooks/validate-commit-msg.sh
-        language: script
+        entry: bash .agents/scripts/validate-commit-msg.sh
+        language: system
         stages: [commit-msg]
 
-      # Agent harness: .agents/ is the source of truth and .claude, .codex,
-      # .github/{agents,prompts}, .opencode and opencode.json are generated
-      # from it. Every mirror is gitignored, so this can only be an
-      # always_run check -- no staged path will ever match them.
-      #
-      # `validate-skills-metadata` used to sit here. It was removed rather
-      # than fixed: its `files: SKILL.md` pattern could never match (all
-      # SKILL.md live under the gitignored .agents/), and the validator
-      # currently exits 1 on two harness content issues. Re-add it as an
-      # always_run hook once .agents/scripts/validate-skills.py is green.
       - id: check-harness-sync
         name: check-harness-sync
-        entry: bash .github/hooks/check-harness-sync.sh
+        entry: uv run --locked harness-sync --check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: lockfile-sync
+        name: lockfile-sync
+        entry: >-
+          uv run --locked python
+          .agents/skills/local-quality-gates/scripts/check_lockfile_sync.py
         language: system
         pass_filenames: false
         always_run: true
@@ -65,8 +64,11 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^\.agents/
       - id: end-of-file-fixer
+        exclude: ^\.agents/
       - id: mixed-line-ending
+        exclude: ^\.agents/
       - id: check-yaml
       - id: check-toml
       - id: check-json
@@ -132,7 +134,23 @@ repos:
     hooks:
       - id: ruff-check
         args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^\.agents/
       - id: ruff-format
+        exclude: ^\.agents/
+
+  - repo: local
+    hooks:
+      - id: generated-projection-ruff
+        name: generated-projection-ruff
+        entry: >-
+          uv run --locked ruff check
+          --no-fix
+          --ignore-noqa
+          --extend-ignore S603,S607,PTH
+          .agents
+        language: system
+        pass_filenames: false
+        always_run: true
 
   - repo: https://github.com/hukkin/mdformat
     rev: 1.0.0
@@ -142,10 +160,11 @@ repos:
         # ordered-list item to "1.", which reads badly in raw Markdown.
         args: ["--number"]
         additional_dependencies: ["mdformat-gfm==1.0.0"]
-        # .agents/ is the source of truth; .claude/, .codex/, .opencode/ and
-        # .github/prompts/ are generated from it. Every mirror is gitignored
-        # today, so none of them reach pre-commit -- this is a guard against a
-        # mirror being tracked later and then reformatted into permanent drift.
+        # Canonical source lives in the installed central distribution;
+        # .agents/ is a public, tracked projection; .claude/, .codex/,
+        # .opencode/ and .github/prompts/ are generated mirrors. Every mirror
+        # is gitignored, so none reach pre-commit -- this guard prevents drift
+        # if a mirror or projection file is processed by mdformat.
         exclude: |
           (?x)^(
             \.agents/|
@@ -172,7 +191,12 @@ repos:
     hooks:
       - id: codespell
         args: ["--ignore-words=.codespellignore"]
-        exclude: ^(uv\.lock|\.secrets\.baseline)$
+        exclude: |
+          (?x)^(
+            \.agents/|
+            uv\.lock$|
+            \.secrets\.baseline$
+          )
 
   # --------------------------------------------------------------------------
   # 4.1. Import Graph
@@ -181,7 +205,7 @@ repos:
     hooks:
       - id: import-cycles
         name: import-cycles
-        entry: uv run python .github/hooks/check-import-cycles.py
+        entry: uv run --locked python scripts/check-import-cycles.py
         language: system
         types: [python]
         pass_filenames: false
@@ -189,7 +213,7 @@ repos:
       # Layer contracts live in [tool.importlinter] in pyproject.toml.
       - id: import-linter
         name: import-linter
-        entry: uv run lint-imports
+        entry: uv run --locked lint-imports
         language: system
         types: [python]
         pass_filenames: false
@@ -204,16 +228,18 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run mypy src
+        entry: uv run --locked mypy src
         language: system
         files: ^src/.*\.py$
         pass_filenames: false
 
       - id: mypy-supporting
         name: mypy-supporting
-        entry: uv run mypy src tests examples .github/hooks --disable-error-code no-untyped-def
+        entry: >-
+          uv run --locked mypy src tests examples scripts
+          --disable-error-code no-untyped-def
         language: system
-        files: ^(tests|examples|\.github/hooks)/.*\.py$
+        files: ^(tests|examples|scripts)/.*\.py$
         pass_filenames: false
 
   # --------------------------------------------------------------------------
@@ -223,7 +249,7 @@ repos:
     hooks:
       - id: max-lines-per-file
         name: max-lines-per-file
-        entry: bash .github/hooks/check-max-lines.sh
+        entry: uv run --locked python .agents/scripts/check-max-lines.py
         language: system
         pass_filenames: false
         always_run: true
@@ -234,7 +260,9 @@ repos:
       # so the gate is defined in exactly one place.
       - id: pytest-unit
         name: pytest-unit
-        entry: uv run pytest -q -m "not integration and not slow" --cov
+        entry: >-
+          uv run --locked pytest -q
+          -m "not integration and not slow" --cov
         language: system
         pass_filenames: false
         always_run: true
@@ -244,7 +272,7 @@ repos:
         name: pip-audit
         # Do not suppress dependency advisories. Documentation-only
         # dependencies still execute in local build and CI environments.
-        entry: uv run pip-audit .
+        entry: uv run --locked pip-audit .
         language: system
         pass_filenames: false
         always_run: true

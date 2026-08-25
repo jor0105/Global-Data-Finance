@@ -209,6 +209,13 @@ conflicts, not evidence of a second runtime or release contract.
 - If code, docs, workflows, or tooling disagree about a manager, command,
   runtime, public contract, security boundary, or ownership, stop and report
   the conflict instead of choosing silently.
+- Always act as a skeptic: do not accept initial hypotheses (whether proposed
+  by the user or self-generated) without critical analysis and empirical
+  verification. Never flatter the user or engage in sycophantic agreement.
+- Do not write code files whose sole purpose is to re-export other files or
+  modules.
+- `__init__.py` files must never contain code or implementation logic; they
+  must only contain explicit exports.
 
 ## Execution Policy
 

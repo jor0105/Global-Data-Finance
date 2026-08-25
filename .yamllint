@@ -1,13 +1,19 @@
 ---
 extends: default
+
 rules:
-  document-start:
-    present: true
+  line-length:
+    max: 79
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  document-start: disable
+  comments:
+    min-spaces-from-content: 1
   truthy:
     check-keys: false
-  line-length:
-    # 120 rather than 88: workflow files carry SHA-pinned `uses:` refs and
-    # embedded shell/Python in `run:` blocks, neither of which can wrap.
-    max: 120
-  indentation:
-    spaces: 2
+
+ignore: |
+  .agents/
+  .venv/
+  openspec/changes/
+  tests/fixtures/

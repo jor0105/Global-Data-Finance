@@ -11,10 +11,7 @@ import grimp
 import pytest
 
 HOOK_PATH = (
-    Path(__file__).resolve().parents[2]
-    / '.github'
-    / 'hooks'
-    / 'check-import-cycles.py'
+    Path(__file__).resolve().parents[2] / 'scripts' / 'check-import-cycles.py'
 )
 
 
@@ -136,7 +133,9 @@ def test_main_returns_failure_and_line_details_for_cycle(
         line_number=11,
         line_contents='from . import a',
     )
-    monkeypatch.setattr(checker.grimp, 'build_graph', lambda _: graph)
+    monkeypatch.setattr(
+        checker.grimp, 'build_graph', lambda *args, **kwargs: graph
+    )
 
     assert checker.main() == 1
 

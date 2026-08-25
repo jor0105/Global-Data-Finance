@@ -193,4 +193,4 @@ layers = [
 
 # NOTE: cycle detection is NOT expressible as an import-linter contract -- a
 # layers contract cannot see a submodule importing its own package root. That
-# check lives in .github/hooks/check-import-cycles.py.
+# check lives in scripts/check-import-cycles.py.
