@@ -32,7 +32,7 @@ pip install globaldatafinance
 # For local development (uv is the canonical package manager for this repository)
 git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
-uv sync
+uv sync --locked --all-extras --dev
 ```
 
 ### Configuration
@@ -238,7 +238,7 @@ ______________________________________________________________________
 - ✅ **Flat Source Layout**: Role-named modules (CVM: ~7 files; B3: ~10 files + specialized packages) make code intuitive to navigate, debug, and audit
 - ✅ **Extensible Design**: Adding a new global data source only requires creating a parallel sibling folder with matching role names
 - ✅ **Type Safety**: Thorough TypeDict contracts and type annotations checked with `mypy` and `pyright`
-- ✅ **Automated CI/CD**: Enforced GitHub Actions quality gates (`ruff`, `mypy`, and `pytest --cov=70%`)
+- ✅ **Automated CI/CD**: Enforced GitHub Actions quality gates (`ruff`, `mypy`, and `pytest --cov=85%`)
 
 ### For Analysts & Data Scientists
 
@@ -371,8 +371,8 @@ We welcome contributions! Whether adding support for a new global data source, r
 1. Fork the repository
 2. Create your feature branch: `git checkout -b feature/new-source`
 3. Implement features strictly adhering to our established flat layout and security invariants
-4. Execute test suites with coverage: `uv run pytest --cov=src`
-5. Verify code quality gates: `uv run pre-commit run --all-files`
+4. Execute test suites with coverage: `uv run --locked --no-sync pytest --cov`
+5. Verify code quality gates: `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`
 6. Submit a Pull Request with description and test evidence
 
 [Read our Contribution Guide →](dev-guide/contributing.md)

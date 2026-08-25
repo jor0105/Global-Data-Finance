@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       # v7
       - name: Set up Python ${{ matrix.python-version }}
@@ -47,7 +48,27 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
+
+      - name: Select pull request change range
+        if: github.event_name == 'pull_request'
+        env:
+          QUALITY_GATE_BASE: ${{ github.event.pull_request.base.sha }}
+          QUALITY_GATE_HEAD: ${{ github.sha }}
+        run: |
+          range="${QUALITY_GATE_BASE}...${QUALITY_GATE_HEAD}"
+          echo "QUALITY_GATE_RANGE=$range" >> "$GITHUB_ENV"
+
+      - name: Select push change range
+        if: >-
+          github.event_name == 'push' &&
+          github.event.before != '0000000000000000000000000000000000000000'
+        env:
+          QUALITY_GATE_BASE: ${{ github.event.before }}
+          QUALITY_GATE_HEAD: ${{ github.sha }}
+        run: |
+          range="${QUALITY_GATE_BASE}..${QUALITY_GATE_HEAD}"
+          echo "QUALITY_GATE_RANGE=$range" >> "$GITHUB_ENV"
 
       # --------------------------------------------------------------------------
       # 1. Project Integrity Checks
@@ -60,12 +81,12 @@ jobs:
       # --------------------------------------------------------------------------
       - name: Static security analysis (Ruff flake8-bandit rules)
         run: |
-          uv run ruff check --select S src
+          uv run --locked --no-sync ruff check --select S src
           echo "✅ Security analysis passed"
 
       - name: Check for vulnerable dependencies
         run: |
-          uv run pip-audit
+          uv run --locked --no-sync pip-audit
           echo "✅ No vulnerable dependencies found"
 
       # --------------------------------------------------------------------------
@@ -73,19 +94,37 @@ jobs:
       # --------------------------------------------------------------------------
       # Ruff (inside pre-commit) owns docstring style `D` and security `S`.
       - name: Run pre-commit (pre-commit stage)
-        run: uv run pre-commit run --all-files --show-diff-on-failure
+        run: >-
+          uv run --locked --no-sync pre-commit run --all-files
+          --show-diff-on-failure
 
-      # Hooks staged to pre-push locally still have to gate CI. pytest and
-      # pip-audit have dedicated steps below/above; this covers the rest.
+      # `--all-files` has no staged index, so diff-based hooks skip there.
+      # Run them against the event range instead of treating SKIP as coverage.
+      - name: Enforce changed-file integrity gates
+        run: |
+          if [[ -z "${QUALITY_GATE_RANGE:-}" ]]; then
+            echo "SKIP: this event has no comparable Git range."
+            exit 0
+          fi
+          uv run --locked --no-sync python scripts/check_diff_sanity.py \
+            --range "$QUALITY_GATE_RANGE"
+          uv run --locked --no-sync python scripts/check_test_integrity.py \
+            --range "$QUALITY_GATE_RANGE"
+          uv run --locked --no-sync python scripts/check-shell-syntax.py \
+            --range "$QUALITY_GATE_RANGE"
+
+      # The heavy pre-push contracts have dedicated steps below/above so CI
+      # preserves focused type and coverage reports without duplicate runs.
       - name: Run pre-commit (pre-push stage)
         run: |
-          uv run pre-commit run max-lines-per-file --all-files \
+          uv run --locked --no-sync pre-commit run max-lines-per-file \
+            --all-files \
             --hook-stage pre-push --show-diff-on-failure
 
       - name: Type check with mypy
         run: |
-          uv run --locked mypy src --pretty
-          uv run --locked mypy src tests examples scripts \
+          uv run --locked --no-sync mypy src --pretty
+          uv run --locked --no-sync mypy src tests examples scripts \
             --disable-error-code no-untyped-def --pretty
 
       # --------------------------------------------------------------------------
@@ -95,7 +134,7 @@ jobs:
         env:
           PYTHONPATH: .
         run: |
-          uv run pytest -m "not integration and not slow" \
+          uv run --locked --no-sync pytest -m "not integration and not slow" \
                  --cov --cov-report=xml --cov-report=term-missing
 
       # v7

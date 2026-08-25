@@ -21,7 +21,6 @@ NATIVE_LOCKFILE_COMMANDS: dict[tuple[str, str], tuple[str, ...]] = {
     ('pyproject.toml', 'uv.lock'): ('uv', 'lock', '--check'),
     ('pyproject.toml', 'poetry.lock'): ('poetry', 'check', '--lock'),
     ('Cargo.toml', 'Cargo.lock'): ('cargo', 'check', '--locked'),
-    ('go.mod', 'go.sum'): ('go', 'mod', 'verify'),
 }
 
 

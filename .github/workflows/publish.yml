@@ -37,16 +37,16 @@ jobs:
           enable-cache: false
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
 
       - name: Static security analysis (Ruff flake8-bandit rules)
         run: |
-          uv run ruff check --select S src
+          uv run --locked --no-sync ruff check --select S src
           echo "✅ Security analysis passed"
 
       - name: Check for vulnerable dependencies
         run: |
-          uv run pip-audit
+          uv run --locked --no-sync pip-audit
           echo "✅ No vulnerable dependencies in release"
 
   # --------------------------------------------------------------------------
@@ -83,7 +83,7 @@ jobs:
           enable-cache: false
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
 
       - name: Build package
         run: uv build

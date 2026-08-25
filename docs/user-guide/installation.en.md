@@ -90,15 +90,17 @@ cd Global-Data-Finance
 
 ### 2. Install with uv (Recommended for Contributors)
 
-The repository commits an exact dependency lock (`uv.lock`). Running `uv sync` reproduces the exact verification environment utilized by GitHub Actions CI gates.
+The repository commits an exact dependency lock (`uv.lock`). Running
+`uv sync --locked` reproduces the exact verification environment used by
+GitHub Actions CI gates.
 
 ```bash
 # Synchronize dependencies (automatically bootstraps .venv)
-uv sync
+uv sync --locked --all-extras --dev
 
 # Run diagnostic suites inside the managed environment
-uv run pytest
-uv run pre-commit run --all-files
+uv run --locked --no-sync pytest
+uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
 ```
 
 ### 3. Install with pip in Editable Mode

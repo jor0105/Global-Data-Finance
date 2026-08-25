@@ -36,15 +36,17 @@ ______________________________________________________________________
 ### Running the Entire Suite
 
 ```bash
-uv run pytest
+uv run --locked --no-sync pytest
 ```
 
 ### Evaluating Code Coverage
 
-The root `pytest.ini` file structurally enforces a coverage floor of `fail_under = 70` across aggregated runs.
+Coverage configuration, including the `fail_under = 85` threshold, is owned by
+`[tool.coverage.report]` in `pyproject.toml`. The `pytest.ini` file owns pytest
+discovery, markers, and options.
 
 ```bash
-uv run pytest --cov=src --cov-report=html
+uv run --locked --no-sync pytest --cov --cov-report=html
 ```
 
 ### Utilizing Pytest Markers
@@ -53,13 +55,13 @@ Registered markers in `pytest.ini` include: `unit`, `integration`, `slow`, and `
 
 ```bash
 # Execute only rapid isolated unit tests
-uv run pytest -m unit
+uv run --locked --no-sync pytest -m unit
 
 # Execute integration tests
-uv run pytest -m integration
+uv run --locked --no-sync pytest -m integration
 
 # Combine logical marker constraints
-uv run pytest -m "integration and not slow"
+uv run --locked --no-sync pytest -m "integration and not slow"
 ```
 
 ______________________________________________________________________
@@ -157,14 +159,16 @@ ______________________________________________________________________
 
 ## Coverage Goals & Gates
 
-Target: **>= 70% aggregated code coverage** (automatically enforced via `fail_under = 70` within `pytest.ini`). The practical recommended target for newly introduced feature modules is `>= 80%`.
+Target: **>= 85% aggregated code coverage** (automatically enforced via
+`fail_under = 85` in `[tool.coverage.report]` within `pyproject.toml`). This is
+also the floor for newly introduced feature modules.
 
 ```bash
 # Generate terminal missing line summary report
-uv run pytest --cov=src --cov-report=term-missing
+uv run --locked --no-sync pytest --cov --cov-report=term-missing
 
 # Compile interactive HTML diagnostic coverage tree
-uv run pytest --cov=src --cov-report=html
+uv run --locked --no-sync pytest --cov --cov-report=html
 open htmlcov/index.html
 ```
 

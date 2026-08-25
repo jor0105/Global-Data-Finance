@@ -36,15 +36,17 @@ ______________________________________________________________________
 ### Todos os Testes
 
 ```bash
-uv run pytest
+uv run --locked --no-sync pytest
 ```
 
 ### Com Cobertura
 
-`pytest.ini` já força `fail_under = 70` na cobertura agregada.
+A configuração de coverage, incluindo o limite `fail_under = 85`, fica em
+`[tool.coverage.report]` no `pyproject.toml`. O `pytest.ini` mantém a
+descoberta, os markers e as opções do pytest.
 
 ```bash
-uv run pytest --cov=src --cov-report=html
+uv run --locked --no-sync pytest --cov --cov-report=html
 ```
 
 ### Marcadores
@@ -53,13 +55,13 @@ Os markers registrados em `pytest.ini` são: `unit`, `integration`, `slow`, `asy
 
 ```bash
 # Apenas testes unitários
-uv run pytest -m unit
+uv run --locked --no-sync pytest -m unit
 
 # Apenas testes de integração
-uv run pytest -m integration
+uv run --locked --no-sync pytest -m integration
 
 # Combinar markers
-uv run pytest -m "integration and not slow"
+uv run --locked --no-sync pytest -m "integration and not slow"
 ```
 
 ______________________________________________________________________
@@ -157,14 +159,16 @@ ______________________________________________________________________
 
 ## Cobertura
 
-Objetivo: **>= 70% de cobertura agregada** (enforced via `fail_under = 70` em `pytest.ini`). O alvo prático é `>= 80%` em módulos novos.
+Objetivo: **>= 85% de cobertura agregada** (enforced via `fail_under = 85` em
+`[tool.coverage.report]` no `pyproject.toml`). Esse é também o piso para
+módulos novos.
 
 ```bash
 # Gerar relatório
-uv run pytest --cov=src --cov-report=term-missing
+uv run --locked --no-sync pytest --cov --cov-report=term-missing
 
 # Relatório HTML
-uv run pytest --cov=src --cov-report=html
+uv run --locked --no-sync pytest --cov --cov-report=html
 open htmlcov/index.html
 ```
 

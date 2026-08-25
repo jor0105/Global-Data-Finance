@@ -24,23 +24,7 @@ from workspace_members import (
 )
 
 MANIFEST_LOCKFILE_PAIRS: dict[str, tuple[str, ...]] = {
-    'package.json': (
-        'pnpm-lock.yaml',
-        'package-lock.json',
-        'yarn.lock',
-        'bun.lockb',
-    ),
-    'pyproject.toml': (
-        'uv.lock',
-        'poetry.lock',
-        'requirements.txt',
-        'Pipfile.lock',
-    ),
-    'requirements.in': ('requirements.txt', 'uv.lock', 'poetry.lock'),
-    'Cargo.toml': ('Cargo.lock',),
-    'go.mod': ('go.sum',),
-    'composer.json': ('composer.lock',),
-    'Gemfile': ('Gemfile.lock',),
+    'pyproject.toml': ('uv.lock',),
 }
 LOCKFILE_UPDATED_STATUSES = frozenset({'A', 'M', 'R', 'C'})
 
@@ -235,13 +219,6 @@ def _check_single_manifest_sync(
     manifest_dir = manifest_path.parent
     manifest_name = manifest_path.name
 
-    if not lockfile_checks.has_declared_dependencies(
-        manifest_path,
-        root,
-        read_index=staged_statuses is not None or staged_changes is not None,
-    ):
-        return []
-
     local_result = _check_lockfiles_for_manifest(
         manifest_path,
         manifest_dir,
@@ -386,8 +363,7 @@ def main() -> int:
             sys.stderr.write(f'  • {error_msg}\n')
         sys.stderr.write(
             '\nResolution: Update the lockfile deliberately outside this hook '
-            '(e.g. `uv lock`, `pnpm install`, `cargo update`, or `go mod tidy`), '
-            'then stage it before committing.\n'
+            'with `uv lock`, then stage it before committing.\n'
         )
         return 1
     return 0

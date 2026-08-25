@@ -90,15 +90,16 @@ cd Global-Data-Finance
 
 ### 2. Instalar com uv (Recomendado)
 
-`uv.lock` é commitado no repositório, então `uv sync` reproduz exatamente o ambiente de desenvolvimento usado pelo CI.
+`uv.lock` é commitado no repositório, então `uv sync --locked` reproduz
+exatamente o ambiente de desenvolvimento usado pelo CI.
 
 ```bash
 # Sincronizar dependências (cria .venv automaticamente)
-uv sync
+uv sync --locked --all-extras --dev
 
 # Rodar comandos no ambiente do projeto
-uv run pytest
-uv run pre-commit run --all-files
+uv run --locked --no-sync pytest
+uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
 ```
 
 ### 3. Instalar com pip em Modo Editável

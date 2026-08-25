@@ -38,7 +38,7 @@ Documentation = "https://jordanestralioto.github.io/Global-Data-Finance/"
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.3.0",
+    "pre-commit>=4.3.0,<5",
     "pytest>=8.4.2",
     "pytest-cov>=5.0.0",
     "mypy>=1.11.0",
@@ -48,8 +48,8 @@ dev = [
     "pytest-asyncio>=1.3.0",
     "ipykernel>=7.1.0",
     "pip-audit>=2.9.0",
-    "mdformat>=0.7.17",
-    "mdformat-gfm>=0.3.5",
+    "mdformat==1.0.0",
+    "mdformat-gfm==1.0.0",
     "requests>=2.32.5",
     "pytest-benchmark>=4.0.0",
     "import-linter>=2.0",
@@ -100,7 +100,7 @@ ignore_missing_imports = true
 # ---------------------------------------------------------------------------
 # These used to live as [coverage:*] sections in pytest.ini, where coverage.py
 # never read them -- it only looks at .coveragerc, setup.cfg, tox.ini and this
-# file. That is why every caller had to repeat `--cov=src --cov-fail-under=70`
+# file. That is why every caller had to repeat `--cov=src --cov-fail-under=85`
 # on the command line.
 [tool.coverage.run]
 source = ["src"]
@@ -117,7 +117,7 @@ omit = [
 precision = 2
 show_missing = true
 skip_covered = false
-fail_under = 70
+fail_under = 85
 
 [tool.coverage.html]
 directory = "htmlcov"
@@ -161,6 +161,16 @@ known-first-party = ["globaldatafinance"]
 # conventions. Security-sensitive path, exception, cleanup and randomness
 # findings remain enabled and must be fixed at their individual call sites.
 "tests/**/*.py" = ["B007", "RUF059", "SIM117", "S101", "ARG", "PTH", "D"]
+# These scripts deliberately invoke only fixed local executables: the shell
+# gate runs `bash -n`/`sh -n`; Git inspectors query the current repository;
+# and the lock gate runs `uv lock --check`. Keep the exception file-scoped
+# instead of weakening security rules globally.
+"scripts/check-shell-syntax.py" = ["S603", "S607"]
+"scripts/git_changes.py" = ["S603", "S607"]
+"scripts/lockfile_checks.py" = ["S603"]
+"scripts/staged_changes.py" = ["S607"]
+"scripts/workspace_members.py" = ["S603", "S607"]
+"tests/tooling/test_local_quality_gates.py" = ["S603", "S607"]
 
 [tool.ruff.format]
 # Blue style: Single quotes

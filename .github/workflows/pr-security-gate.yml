@@ -40,17 +40,17 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
 
       # Ruff also owns docstring style (`D`, Google convention) and static
       # security rules (`S`), configured in pyproject.toml.
       - name: Lint with Ruff
-        run: uv run ruff check src
+        run: uv run --locked --no-sync ruff check src
 
       - name: Type check with Mypy
         run: |
-          uv run --locked mypy src --pretty
-          uv run --locked mypy src tests examples scripts \
+          uv run --locked --no-sync mypy src --pretty
+          uv run --locked --no-sync mypy src tests examples scripts \
             --disable-error-code no-untyped-def --pretty
 
   security-gate:
@@ -80,24 +80,21 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
 
       - name: Validate uv lock file
         run: uv lock --check
 
       - name: Static security analysis (Ruff flake8-bandit rules)
-        run: uv run ruff check --select S src
+        run: uv run --locked --no-sync ruff check --select S src
 
       - name: Audit dependency vulnerabilities
-        run: uv run pip-audit
-
-      - name: Install detect-secrets
-        run: uv pip install detect-secrets==1.5.0
+        run: uv run --locked --no-sync pip-audit
 
       - name: Scan secrets with detect-secrets
-        run: >-
-          git ls-files -z | xargs -0 uv run detect-secrets-hook
-          --baseline .secrets.baseline
+        run: |
+          git ls-files -z | xargs -0 uv run --locked --no-sync \
+            detect-secrets-hook --baseline .secrets.baseline
 
   public-api-invariants:
     name: Public API Surface Invariants
@@ -125,11 +122,11 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --locked --all-extras --dev
 
       - name: Verify public API exports
         run: |
-          uv run python - <<'PY'
+          uv run --locked --no-sync python - <<'PY'
           import globaldatafinance as gdf
 
           required_exports = [

@@ -32,7 +32,7 @@ pip install globaldatafinance
 # Para desenvolvimento local (uv é o gestor canônico do projeto)
 git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
-uv sync
+uv sync --locked --all-extras --dev
 ```
 
 ### Configuração
@@ -371,8 +371,8 @@ Quer adicionar uma nova fonte de dados ou melhorar a performance?
 1. Fork o repositório
 2. Crie uma branch: `git checkout -b feature/nova-feature`
 3. Implemente seguindo os padrões existentes
-4. Execute os testes: `uv run pytest --cov=src`
-5. Execute os linters: `uv run pre-commit run --all-files`
+4. Execute os testes: `uv run --locked --no-sync pytest --cov`
+5. Execute os linters: `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`
 6. Envie um Pull Request
 
 [Guia completo de contribuição →](dev-guide/contributing.md)

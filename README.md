@@ -94,9 +94,10 @@ pip install globaldatafinance
 ```bash
 git clone https://github.com/jordanestralioto/Global-Data-Finance.git
 cd Global-Data-Finance
-uv sync                       # creates .venv and installs all deps + dev deps
-uv run pytest                 # tests
-uv run pre-commit run --all-files  # lint + typecheck + bandit + etc.
+uv sync --locked --all-extras --dev
+uv run --locked --no-sync pytest
+uv run --locked --no-sync pre-commit install --install-hooks
+uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
 ```
 
 ______________________________________________________________________
@@ -253,8 +254,8 @@ Contributions are very welcome! If you wish to add new data sources, improve per
 3. Implement your changes.
 4. Run tests and linters:
    ```bash
-   uv run pre-commit run --all-files
-   uv run pytest
+   uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
+   uv run --locked --no-sync pytest
    ```
 5. Open a **Pull Request**.
 

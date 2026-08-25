@@ -19,18 +19,18 @@ cd Global-Data-Finance
 `uv` serves as the canonical project dependency manager (with the verified `uv.lock` committed directly to repository tracking). Development strictly requires **Python 3.12+**.
 
 ```bash
-# Synchronize environment dependencies (automatically provisions a .venv directory)
-uv sync
+# Synchronize the exact lockfile-approved environment (creates .venv)
+uv sync --locked --all-extras --dev
 
-# Execute commands within the isolated virtual workspace:
-uv run pytest
-uv run mypy src
+# Execute commands without implicit environment synchronization:
+uv run --locked --no-sync pytest
+uv run --locked --no-sync mypy src
 ```
 
 ### 3. Install Pre-commit Quality Hooks
 
 ```bash
-uv run pre-commit install --install-hooks
+uv run --locked --no-sync pre-commit install --install-hooks
 ```
 
 ______________________________________________________________________
@@ -76,20 +76,48 @@ ______________________________________________________________________
 
 ```bash
 # Execute complete repository test suite
-uv run pytest
+uv run --locked --no-sync pytest
 
 # Execute tests alongside coverage report calculation
-uv run pytest --cov=src
+uv run --locked --no-sync pytest --cov
 
 # Execute strictly fast unit tests
-uv run pytest -m unit
+uv run --locked --no-sync pytest -m unit
 ```
 
 Prior to submitting any Pull Request, verify quality compliance across the entire verification pipeline:
 
 ```bash
-uv run pre-commit run --all-files
-uv run pytest
+uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
+uv run --locked --no-sync pytest
+```
+
+### Local Quality Gates
+
+The `pre-commit` hook validates the staged index and keeps dependency updates
+outside the commit path. It never runs `uv sync`, `uv lock`, or a version
+updater: `uv lock --check` only proves the current lockfile is coherent. The
+`pre-push` hook runs the more expensive type, coverage, and vulnerability
+checks before a branch is published.
+
+When a dependency must change, make that operation explicit, review the
+`uv.lock` diff, synchronize the environment, and then commit:
+
+```bash
+uv lock
+uv sync --locked --all-extras --dev
+git add pyproject.toml uv.lock
+```
+
+The diff-sanity, test-integrity, and shell-syntax gates inspect only staged
+content during a commit. CI invokes the same scripts over the pull request or
+push commit range, so a diff `SKIP` without staged files is not a CI approval.
+
+`check-harness-sync` is manual because it verifies agent-client mirrors that
+do not exist in a clean checkout. Run it only while maintaining those mirrors:
+
+```bash
+uv run --locked --no-sync pre-commit run check-harness-sync --hook-stage manual
 ```
 
 ### Authoring Unit Tests
