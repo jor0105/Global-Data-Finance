@@ -8,6 +8,7 @@ alternar
 anual
 atual
 autor
+auxiliar
 caracteres
 classe
 cliente
@@ -34,6 +35,7 @@ sequencial
 ser
 termo
 utiliza
+variante
 vai
 # Deliberate spelling in parser error messages (codespell prefers "unparsable").
 unparseable

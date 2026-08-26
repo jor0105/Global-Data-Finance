@@ -129,7 +129,7 @@
     },
     {
       "hasScripts": true,
-      "hash": "sha256:f5a4c9ceffc8fb526c68f1dc927788da7f70c794a67eb5e14a0e6edac8131a7b",
+      "hash": "sha256:c21d4582821b5b2eb364cc81efdfde45914ffb88e34ff455e3744262340265d0",
       "id": "tools/opsx-alignment",
       "selectedBy": "manifest"
     },

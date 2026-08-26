@@ -47,7 +47,7 @@ globaldatafinance/
 │   │   │       └── extraction_service/        # subpackage: thread-pool streaming orchestration
 │   │   └── cvm/
 │   │       └── fundamental_stocks_data/   # flat module layout (5 core modules + 2 helpers)
-│   │           ├── core.py                    # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM
+│   │           ├── core.py                    # AvailableYearsCVM, AvailableYearsInfoCVM, DictZipsToDownloadCVM, DownloadResultCVM, validate_docs_name
 │   │           ├── client.py                  # DownloadDocumentsUseCaseCVM, GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM
 │   │           ├── http.py                    # AsyncDownloadAdapterCVM (async httpx + retry + integrity check)
 │   │           ├── extract.py                 # ParquetExtractorAdapterCVM
@@ -71,7 +71,7 @@ Every folder under `brazil/<country>/<source>/` implements the identical set of 
 | Architectural Role           | CVM                                                | B3                                                                                     |
 | ---------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Pure data constructs         | `core.py`                                          | `models.py` + `years.py` + `processing.py`                                             |
-| Validation / domain services | `core.py` (`AvailableDocsCVM.validate_*`)          | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
+| Validation / domain services | `core.py` (`validate_docs_name`)                   | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
 | Orchestration / use cases    | `client.py`                                        | `client.py`                                                                            |
 | HTTP network adaptation      | `http.py` (`AsyncDownloadAdapterCVM`)              | (N/A — COTAHIST ingestion operates on localized ZIP/TXT files via `zip_reader.py`)     |
 | Extraction / Parquet writer  | `extract.py` (`ParquetExtractorAdapterCVM`)        | `parquet_writer/` (subpackage)                                                         |
@@ -127,16 +127,13 @@ Each financial feed is self-contained across ~5–8 functional modules. CVM impl
 
 ```python
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py
-class AvailableDocsCVM:
-    DOCS_MAPPING = {
-        'DFP': 'Demonstração Financeira Padronizada',
-        'ITR': 'Informação Trimestral',
-        # ...
-    }
+def validate_docs_name(docs_name: str) -> None:
+    if not isinstance(docs_name, str):
+        raise InvalidDocumentType(docs_name)
 
-    def validate_docs_name(self, doc_name: str) -> None:
-        if doc_name not in self.DOCS_MAPPING:
-            raise InvalidDocumentName(f'Invalid document: {doc_name}')
+    key = docs_name.strip().upper()
+    if key not in _DICT_AVAILABLE_DOCS:
+        raise InvalidDocumentName(docs_name, list(_DICT_AVAILABLE_DOCS))
 ```
 
 ```python
@@ -227,7 +224,7 @@ ______________________________________________________________________
 ```mermaid
 graph TD
     A[FundamentalStocksDataCVM] -->|1. invoke download| B[DownloadDocumentsUseCaseCVM]
-    B -->|2. validate input boundaries| C[AvailableDocsCVM / AvailableYearsCVM in core.py]
+    B -->|2. validate input boundaries| C[validate_docs_name / AvailableYearsCVM in core.py]
     B -->|3. compile URL targets| D[GenerateUrlsUseCaseCVM in client.py]
     B -->|4. path safety evaluation| E[VerifyPathsUseCasesCVM<br/>raise SecurityError on /etc, /sys, ...]
     B -->|5. trigger async worker pool| F[AsyncDownloadAdapterCVM in http.py]
@@ -304,7 +301,7 @@ tests/
 │   │   ├── infra/adapters/           # unit tests for concrete I/O adapters (http.py, extract.py)
 │   │   ├── exceptions/               # test suites verifying custom exception triggers (errors.py)
 │   │   └── integration/              # integration test markers
-│   └── b3_data/historical_quotes/    # flat test layout: 21 test_*.py scripts within folder
+│   └── b3_data/historical_quotes/    # flat test layout: test_*.py scripts within folder
 └── application/
     ├── cvm_docs/   # unit tests covering public facades
     └── b3_docs/

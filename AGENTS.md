@@ -213,13 +213,10 @@ from `.env` files, credentials, or other secret-bearing environment sources.
 - Never edit generated mirrors or generated files directly; change the source
   and re-run its generation or sync command.
 
-- Chat = Portuguese. Code, identifiers, comments, docstrings, commit messages,
-  branch names, PR text, tags, and planning artifacts use English.
-
-- Portuguese is the default and canonical language for user-facing MkDocs
-  documentation. When a corresponding `*.en.md` page exists, keep the English
-  translation aligned with behavior and navigation changes; the bilingual
-  build is not a runtime conflict.
+- Chat is Portuguese (or adapted to the user's preferred language).
+  Product documentation is maintained bilingually in both Portuguese (PT-BR)
+  and English. Code, comments, Git commits/branches/PRs, and planning
+  artifacts are English. Commit messages use Conventional Commits.
 
 - Follow the repository's established naming, formatting, ownership, and
   module boundaries. Keep detailed contracts in the canonical owner documents

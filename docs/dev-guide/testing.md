@@ -16,7 +16,7 @@ tests/
 │       └── result_formatters/
 ├── brazil/
 │   ├── b3_data/
-│   │   └── historical_quotes/         # layout plano: 21 test_*.py diretamente na pasta
+│   │   └── historical_quotes/         # layout plano: arquivos test_*.py diretamente na pasta
 │   └── cvm/
 │       └── fundamental_stocks_data/
 │           ├── application/use_cases/ # tests de orquestração (client.py)
@@ -72,23 +72,23 @@ ______________________________________________________________________
 
 ```python
 import pytest
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import AvailableDocsCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    validate_docs_name,
+)
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
     InvalidDocumentName,
 )
 
 @pytest.mark.unit
-class TestAvailableDocs:
+class TestValidateDocsName:
     def test_validate_valid_doc(self):
         """Verifica validação de documento válido."""
-        docs = AvailableDocsCVM()
-        docs.validate_docs_name("DFP")  # Passa sem exceção
+        validate_docs_name("DFP")  # Passa sem exceção
 
     def test_validate_invalid_doc(self):
         """Verifica se InvalidDocumentName é lançada para documento inválido."""
-        docs = AvailableDocsCVM()
         with pytest.raises(InvalidDocumentName):
-            docs.validate_docs_name("INVALID")
+            validate_docs_name("INVALID")
 ```
 
 > Tipos e exceções de cada fonte vivem nos módulos da própria fonte: para CVM em `brazil.cvm.fundamental_stocks_data.core` e `brazil.cvm.fundamental_stocks_data.errors`; para B3 a divisão é mais granular — entidades em `models.py`, value objects em `years.py`/`processing.py`, validators de filesystem em `filesystem.py`, asset services em `assets.py`, exceções em `errors.py`.

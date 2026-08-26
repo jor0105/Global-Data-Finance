@@ -203,6 +203,7 @@ dados_cvm/
 dados_b3/
 cotahist_b3/
 .benchmarks/
+.agents/sessions/
 
 # Import linter & grimp caches
 .import_linter_cache/

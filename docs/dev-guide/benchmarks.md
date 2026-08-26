@@ -48,15 +48,28 @@ erros. O pico RSS inclui interpretador, dependências, parser e escritor Parquet
 ### Como reproduzir
 
 ```bash
+# Micro-benchmarks de hot paths no repositório (CVM URL gen e B3 parser)
+uv run --locked --no-sync pytest tests/perf -m perf
+
+# Salvar baseline de performance
+uv run --locked --no-sync pytest tests/perf -m perf --benchmark-save=baseline_v1
+
+# Comparar com baseline anterior
+uv run --locked --no-sync pytest tests/perf -m perf --benchmark-compare=baseline_v1
+```
+
+Para reprodução de benchmarks de extração em lote:
+
+```bash
 # Dataset sintético (CI/regressão rápida)
-uv run python scripts/benchmark_b3.py \
+uv run python -m tests.perf.benchmark_runner \
   --records 250000 \
   --mode both \
   --repetitions 3 \
   --output /tmp/globaldatafinance-b3-benchmark.json
 
 # Arquivos oficiais locais
-uv run python scripts/benchmark_b3.py \
+uv run python -m tests.perf.benchmark_runner \
   --data-dir /caminho/para/cotahist \
   --initial-year 2008 \
   --last-year 2024 \

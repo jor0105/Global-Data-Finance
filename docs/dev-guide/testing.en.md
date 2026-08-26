@@ -16,7 +16,7 @@ tests/
 │       └── result_formatters/
 ├── brazil/
 │   ├── b3_data/
-│   │   └── historical_quotes/         # Flat layout containing 21 test_*.py scripts directly in folder
+│   │   └── historical_quotes/         # Flat layout containing test_*.py scripts directly in folder
 │   └── cvm/
 │       └── fundamental_stocks_data/
 │           ├── application/use_cases/ # Orchestration use case tests (client.py)
@@ -72,23 +72,23 @@ ______________________________________________________________________
 
 ```python
 import pytest
-from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import AvailableDocsCVM
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    validate_docs_name,
+)
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
     InvalidDocumentName,
 )
 
 @pytest.mark.unit
-class TestAvailableDocs:
+class TestValidateDocsName:
     def test_validate_valid_doc(self):
         """Verifies validation succeeds without exception on valid document code."""
-        docs = AvailableDocsCVM()
-        docs.validate_docs_name("DFP")  # Should pass silently
+        validate_docs_name("DFP")  # Should pass silently
 
     def test_validate_invalid_doc(self):
         """Verifies InvalidDocumentName is raised upon supplying unverified strings."""
-        docs = AvailableDocsCVM()
         with pytest.raises(InvalidDocumentName):
-            docs.validate_docs_name("INVALID_CODE")
+            validate_docs_name("INVALID_CODE")
 ```
 
 > Types and exceptions belong within the flat modules of their owning source feature: for CVM inside `brazil.cvm.fundamental_stocks_data.core` and `brazil.cvm.fundamental_stocks_data.errors`; for B3 logical separation is segmented topically—entities in `models.py`, value objects in `years.py`/`processing.py`, path security validators in `filesystem.py`, asset services in `assets.py`, and exceptions in `errors.py`.

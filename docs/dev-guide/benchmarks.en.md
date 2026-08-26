@@ -47,15 +47,28 @@ includes the interpreter, dependencies, parser, and Parquet writer.
 ### Reproduction
 
 ```bash
+# In-repository hot path micro-benchmarks (CVM URL generation and B3 line parsing)
+uv run --locked --no-sync pytest tests/perf -m perf
+
+# Save a performance baseline
+uv run --locked --no-sync pytest tests/perf -m perf --benchmark-save=baseline_v1
+
+# Compare against saved baseline
+uv run --locked --no-sync pytest tests/perf -m perf --benchmark-compare=baseline_v1
+```
+
+For batch extraction dataset reproduction:
+
+```bash
 # Synthetic dataset (CI / fast regression)
-uv run python scripts/benchmark_b3.py \
+uv run python -m tests.perf.benchmark_runner \
   --records 250000 \
   --mode both \
   --repetitions 3 \
   --output /tmp/globaldatafinance-b3-benchmark.json
 
 # Official local files
-uv run python scripts/benchmark_b3.py \
+uv run python -m tests.perf.benchmark_runner \
   --data-dir /path/to/cotahist \
   --initial-year 2008 \
   --last-year 2024 \

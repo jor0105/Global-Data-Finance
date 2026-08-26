@@ -158,13 +158,9 @@ ______________________________________________________________________
 
 ## Dependência
 
-Requer `psutil`:
+O monitoramento utiliza `psutil` para consultar métricas do sistema operacional. O pacote `psutil` já é uma dependência padrão do `globaldatafinance` instalada automaticamente.
 
-```bash
-pip install psutil
-```
-
-Se `psutil` não estiver disponível, o monitor funciona em modo degradado (sempre retorna HEALTHY).
+Caso o `psutil` não esteja disponível ou seja restrito no ambiente de execução, o `ResourceMonitor` entra automaticamente em modo degradado seguro (retornando `ResourceState.HEALTHY`).
 
 ______________________________________________________________________
 

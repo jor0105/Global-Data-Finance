@@ -294,12 +294,12 @@ import polars as pl
 # Ler apenas colunas necessárias
 df = pl.read_parquet(
     "cotahist.parquet",
-    columns=["data", "codigo_negociacao", "preco_fechamento"]
+    columns=["data_pregao", "ticker", "preco_fechamento"]
 )
 
 # Filtrar durante leitura
 df = pl.scan_parquet("cotahist.parquet") \
-    .filter(pl.col("codigo_negociacao") == "PETR4") \
+    .filter(pl.col("ticker") == "PETR4") \
     .collect()
 ```
 

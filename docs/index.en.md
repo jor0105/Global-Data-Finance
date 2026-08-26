@@ -42,7 +42,7 @@ uv sync --locked --all-extras --dev
 python --version
 
 # Optional: configure logging to view detailed progress
-export LOG_LEVEL=INFO
+export DATAFIN_LOG_LEVEL=INFO
 ```
 
 ### Your First Download in 3 Lines
@@ -117,7 +117,9 @@ b3.extract(
 - `etf` - Exchange Traded Funds
 - `opções` - Calls and Puts options
 - `termo` - Forward market contracts
-- `futuro` - Futures contracts
+- `exercicio_opcoes` - Options exercise
+- `forward` - Forward contracts
+- `leilao` - Auction market
 
 **Checking available assets:**
 
@@ -139,7 +141,7 @@ for doc_type, description in docs.items():
 
 # Check available year range
 years = cvm.get_available_years()
-print(f"Available years: {years['initial_year']} - {years['last_year']}")
+print(f"Available years: {years.general_min_year} - {years.current_year}")
 ```
 
 **Supported Documents:**
@@ -165,7 +167,7 @@ print(df_quotes.head())
 print(df_quotes.info())
 
 # Mean closing price analysis by asset ticker
-mean_prices = df_quotes.groupby("cod_negociacao")["preco_fechamento"].mean()
+mean_prices = df_quotes.groupby("ticker")["preco_fechamento"].mean()
 print(mean_prices.sort_values(ascending=False).head(10))
 ```
 
@@ -296,8 +298,8 @@ cvm.download(
 )
 
 # Load extracted Parquet financial statements for analysis
-df_balance = pd.read_parquet("./fundamental_data/DFP_2023.parquet")
-print(df_balance[df_balance['conta'].str.contains('Ativo Total')])
+df_balance = pd.read_parquet("./fundamental_data/dfp_cia_aberta_BPA_con_2023.parquet")
+print(df_balance[df_balance['DS_CONTA'].str.contains('Ativo Total')])
 ```
 
 ### 2. Quantitative Strategy Backtesting
@@ -321,7 +323,7 @@ df = pd.read_parquet("./market_quotes/cotahist_extracted.parquet")
 df['data_pregao'] = pd.to_datetime(df['data_pregao'])
 
 # Calculate daily price returns per ticker
-df['daily_return'] = df.groupby('cod_negociacao')['preco_fechamento'].pct_change()
+df['daily_return'] = df.groupby('ticker')['preco_fechamento'].pct_change()
 ```
 
 ### 3. Automated Data Ingestion Pipeline

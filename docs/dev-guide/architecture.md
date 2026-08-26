@@ -47,7 +47,7 @@ globaldatafinance/
 │   │   │       └── extraction_service/        # subpacote: orquestração streaming/threadpool
 │   │   └── cvm/
 │   │       └── fundamental_stocks_data/   # layout achatado (5 + 2 helpers)
-│   │           ├── core.py                    # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM
+│   │           ├── core.py                    # AvailableYearsCVM, AvailableYearsInfoCVM, DictZipsToDownloadCVM, DownloadResultCVM, validate_docs_name
 │   │           ├── client.py                  # DownloadDocumentsUseCaseCVM, GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM
 │   │           ├── http.py                    # AsyncDownloadAdapterCVM (httpx async + retry + integrity)
 │   │           ├── extract.py                 # ParquetExtractorAdapterCVM
@@ -71,7 +71,7 @@ Cada `brazil/<país>/<fonte>/` segue o mesmo conjunto de **papéis**. O mapeamen
 | Papel                       | CVM                                                | B3                                                                                     |
 | --------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Dados puros (types, enums)  | `core.py`                                          | `models.py` + `years.py` + `processing.py`                                             |
-| Validação / domain services | `core.py` (`AvailableDocsCVM.validate_*`)          | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
+| Validação / domain services | `core.py` (`validate_docs_name`)                   | `assets.py` (`AvailableAssetsServiceB3`) + `filesystem.py` (`validate_directory_path`) |
 | Orquestração / use cases    | `client.py`                                        | `client.py`                                                                            |
 | HTTP / download             | `http.py` (`AsyncDownloadAdapterCVM`)              | (no `zip_reader.py` + `extraction_service/`; não há download HTTP)                     |
 | Extração / escrita Parquet  | `extract.py` (`ParquetExtractorAdapterCVM`)        | `parquet_writer/` (subpacote)                                                          |
@@ -127,16 +127,13 @@ Cada fonte é autocontida em ~5–8 arquivos. Exemplo CVM:
 
 ```python
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py
-class AvailableDocsCVM:
-    DOCS_MAPPING = {
-        'DFP': 'Demonstração Financeira Padronizada',
-        'ITR': 'Informação Trimestral',
-        # ...
-    }
+def validate_docs_name(docs_name: str) -> None:
+    if not isinstance(docs_name, str):
+        raise InvalidDocumentType(docs_name)
 
-    def validate_docs_name(self, doc_name: str) -> None:
-        if doc_name not in self.DOCS_MAPPING:
-            raise InvalidDocumentName(f'Invalid document: {doc_name}')
+    key = docs_name.strip().upper()
+    if key not in _DICT_AVAILABLE_DOCS:
+        raise InvalidDocumentName(docs_name, list(_DICT_AVAILABLE_DOCS))
 ```
 
 ```python
@@ -227,7 +224,7 @@ ______________________________________________________________________
 ```mermaid
 graph TD
     A[FundamentalStocksDataCVM] -->|1. chamar download| B[DownloadDocumentsUseCaseCVM]
-    B -->|2. validar inputs| C[AvailableDocsCVM / AvailableYearsCVM em core.py]
+    B -->|2. validar inputs| C[validate_docs_name / AvailableYearsCVM em core.py]
     B -->|3. gerar URLs| D[GenerateUrlsUseCaseCVM em client.py]
     B -->|4. verificar paths| E[VerifyPathsUseCasesCVM<br/>raise SecurityError em /etc, /sys, ...]
     B -->|5. executar download| F[AsyncDownloadAdapterCVM em http.py]
@@ -243,7 +240,7 @@ graph TD
 ```mermaid
 graph TD
     A[HistoricalQuotesB3] -->|1. chamar extract| B[ExtractHistoricalQuotesUseCaseB3]
-    B -->|2. validar inputs| C[validators em core.py]
+    B -->|2. validar inputs| C[validadores em assets.py / years.py]
     B -->|3. validar destino| D[validate_directory_path<br/>raise SecurityError em /etc, /sys, ...]
     B -->|4. listar arquivos| E[zip_reader.py]
     E -->|5. iterar ZIP entries| F[cotahist_parser.py]
@@ -304,7 +301,7 @@ tests/
 │   │   ├── infra/adapters/           # tests de adapters concretos (http.py, extract.py)
 │   │   ├── exceptions/               # tests das exceções (errors.py)
 │   │   └── integration/              # tests integration-marker
-│   └── b3_data/historical_quotes/    # layout plano: 21 test_*.py diretamente na pasta
+│   └── b3_data/historical_quotes/    # layout plano: arquivos test_*.py diretamente na pasta
 └── application/
     ├── cvm_docs/   # tests do facade público
     └── b3_docs/

@@ -22,7 +22,7 @@ ______________________________________________________________________
 ### Componentes Principais
 
 ```
-src/core/logging_config.py
+src/globaldatafinance/core/logging_config.py
 ├── setup_logging()           # Inicialização do logging
 ├── get_logger()              # Obter logger por módulo
 ├── log_execution_time()      # Context manager para timing

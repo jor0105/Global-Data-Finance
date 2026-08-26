@@ -42,7 +42,7 @@ uv sync --locked --all-extras --dev
 python --version
 
 # Opcional: configurar logging para ver progresso detalhado
-export LOG_LEVEL=INFO
+export DATAFIN_LOG_LEVEL=INFO
 ```
 
 ### Primeiro Download em 3 Linhas
@@ -117,7 +117,9 @@ b3.extract(
 - `etf` - Exchange Traded Funds
 - `opções` - Calls e Puts
 - `termo` - Mercado a termo
-- `futuro` - Contratos futuros
+- `exercicio_opcoes` - Exercício de opções
+- `forward` - Mercado forward
+- `leilao` - Mercado de leilão
 
 **Verificar ativos disponíveis:**
 
@@ -139,7 +141,7 @@ for doc_type, description in docs.items():
 
 # Ver anos disponíveis
 years = cvm.get_available_years()
-print(f"Anos disponíveis: {years['initial_year']} - {years['last_year']}")
+print(f"Anos disponíveis: {years.general_min_year} - {years.current_year}")
 ```
 
 **Documentos Suportados:**
@@ -165,7 +167,7 @@ print(df_cotacoes.head())
 print(df_cotacoes.info())
 
 # Análise de preços médios por ativo
-precos_medios = df_cotacoes.groupby("cod_negociacao")["preco_fechamento"].mean()
+precos_medios = df_cotacoes.groupby("ticker")["preco_fechamento"].mean()
 print(precos_medios.sort_values(ascending=False).head(10))
 ```
 
@@ -296,8 +298,8 @@ cvm.download(
 )
 
 # Analisar balanços patrimoniais
-df_balanco = pd.read_parquet("./dados_fundamentalistas/DFP_2023.parquet")
-print(df_balanco[df_balanco['conta'].str.contains('Ativo Total')])
+df_balanco = pd.read_parquet("./dados_fundamentalistas/dfp_cia_aberta_BPA_con_2023.parquet")
+print(df_balanco[df_balanco['DS_CONTA'].str.contains('Ativo Total')])
 ```
 
 ### 2. Backtesting de Estratégias
@@ -321,7 +323,7 @@ df = pd.read_parquet("./cotacoes/cotahist_extracted.parquet")
 df['data_pregao'] = pd.to_datetime(df['data_pregao'])
 
 # Calcular retornos
-df['retorno_diario'] = df.groupby('cod_negociacao')['preco_fechamento'].pct_change()
+df['retorno_diario'] = df.groupby('ticker')['preco_fechamento'].pct_change()
 ```
 
 ### 3. Pipeline de Dados Automatizado
