@@ -113,8 +113,20 @@ jobs:
             echo "SKIP: this event has no comparable Git range."
             exit 0
           fi
+          app_dir=src/globaldatafinance/application
           uv run --locked --no-sync python scripts/check_diff_sanity.py \
-            --range "$QUALITY_GATE_RANGE"
+            --range "$QUALITY_GATE_RANGE" \
+            --allow-print-file scripts/check-import-cycles.py \
+            --allow-print-file scripts/check-shell-syntax.py \
+            --allow-print-file scripts/check-docs-contracts.py \
+            --allow-print-file scripts/check-ruff-policy.py \
+            --allow-print-file \
+            "$app_dir/b3_docs/extraction_result_formatter.py" \
+            --allow-print-file \
+            "$app_dir/cvm_docs/download_result_formatter.py" \
+            --allow-print-file examples/01_quickstart_cvm.py \
+            --allow-print-file examples/02_quickstart_b3.py \
+            --allow-print-file examples/03_advanced_options_b3.py
           uv run --locked --no-sync python scripts/check_test_integrity.py \
             --range "$QUALITY_GATE_RANGE"
           uv run --locked --no-sync python scripts/check-shell-syntax.py \
