@@ -27,6 +27,7 @@ def extract_downloaded_file(
     result: DownloadResultCVM,
     cleanup_file: Callable[[str], None] = remove_file,
 ) -> None:
+    """Extract one downloaded archive and update its aggregate result."""
     document_key = f'{doc_name}_{year}'
 
     try:
@@ -67,23 +68,19 @@ def extract_downloaded_file(
         cleanup_file(filepath)
 
     except DiskFullError as disk_err:
-        logger.error(
-            'Disk full during extraction of %s: %s', document_key, disk_err
-        )
+        logger.exception('Disk full during extraction of %s', document_key)
         result.add_error_downloads(document_key, f'DiskFull: {disk_err}')
         cleanup_file(filepath)
 
     except CorruptedZipError as zip_err:
-        logger.error(
-            'Corrupted ZIP detected during extraction of %s: %s',
-            document_key,
-            zip_err,
+        logger.exception(
+            'Corrupted ZIP detected during extraction of %s', document_key
         )
         result.add_error_downloads(document_key, f'CorruptedZIP: {zip_err}')
         cleanup_file(filepath)
 
     except ExtractionError as extract_err:
-        logger.error('Extraction error for %s: %s', document_key, extract_err)
+        logger.exception('Extraction error for %s', document_key)
         result.add_error_downloads(
             document_key, f'ExtractionFailed: {extract_err}'
         )

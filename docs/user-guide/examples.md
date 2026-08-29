@@ -20,7 +20,7 @@ cvm.download(
     list_docs=["DFP"],
     initial_year=2020,
     last_year=2023,
-    automatic_extractor=True  # Converte para Parquet
+    automatic_extractor=True  # Converte os arquivos baixados para Parquet
 )
 
 print("✓ Download e extração concluídos!")
@@ -30,7 +30,8 @@ ______________________________________________________________________
 
 ## Exemplo 2: Extração de Ações e ETFs
 
-Extrair cotações históricas de ações e ETFs com alto desempenho.
+Extrair cotações históricas de ações e ETFs com alto desempenho nos mercados à
+vista (010) e fracionário (020).
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
@@ -146,11 +147,11 @@ print("ANÁLISE DE DADOS")
 print("=" * 60)
 
 print(f"\nTotal de registros: {len(df):,}")
-print(f"Período: {df['data'].min()} a {df['data'].max()}")
-print(f"Ativos únicos: {df['codigo_negociacao'].nunique()}")
+print(f"Período: {df['data_pregao'].min()} a {df['data_pregao'].max()}")
+print(f"Ativos únicos: {df['ticker'].nunique()}")
 
 # Top 10 ativos por volume
-top_volume = df.groupby('codigo_negociacao')['volume_negociado'].sum().nlargest(10)
+top_volume = df.groupby('ticker')['volume_total'].sum().nlargest(10)
 print("\nTop 10 ativos por volume:")
 for ticker, volume in top_volume.items():
     print(f"  {ticker}: R$ {volume/1e9:.2f}B")
@@ -187,7 +188,7 @@ print(f"Shape: {df.shape}")
 print(f"Memória: {df.estimated_size('mb'):.2f} MB")
 
 # Filtrar apenas PETR4
-petr4 = df.filter(pl.col('codigo_negociacao') == 'PETR4')
+petr4 = df.filter(pl.col('ticker') == 'PETR4')
 
 # Calcular retornos diários
 petr4 = petr4.with_columns([
@@ -290,7 +291,15 @@ ______________________________________________________________________
 
 Usar Global-Data-Finance em notebooks Jupyter para análise interativa.
 
-```python
+!!! note "Dependências Opcionais"
+
+    Bibliotecas de visualização utilizadas neste exemplo (`matplotlib`, `seaborn`) são dependências externas opcionais:
+
+    ```bash
+    pip install matplotlib seaborn
+    ```
+
+```ipython
 # Célula 1: Imports e configuração
 from globaldatafinance import HistoricalQuotesB3
 import polars as pl
@@ -310,11 +319,11 @@ result = b3.extract(
 
 # Célula 3: Carregar e filtrar
 df = pl.read_parquet(result['output_file'])
-petr4 = df.filter(pl.col('codigo_negociacao') == 'PETR4').to_pandas()
+petr4 = df.filter(pl.col('ticker') == 'PETR4').to_pandas()
 
 # Célula 4: Visualizar
 plt.figure(figsize=(14, 6))
-plt.plot(petr4['data'], petr4['preco_fechamento'])
+plt.plot(petr4['data_pregao'], petr4['preco_fechamento'])
 plt.title('PETR4 - Preço de Fechamento (2023)', fontsize=16)
 plt.xlabel('Data')
 plt.ylabel('Preço (R$)')
@@ -324,7 +333,7 @@ plt.show()
 
 # Célula 5: Análise de volume
 plt.figure(figsize=(14, 6))
-plt.bar(petr4['data'], petr4['volume_negociado'] / 1e6, alpha=0.7)
+plt.bar(petr4['data_pregao'], petr4['volume_total'] / 1e6, alpha=0.7)
 plt.title('PETR4 - Volume Negociado (2023)', fontsize=16)
 plt.xlabel('Data')
 plt.ylabel('Volume (Milhões R$)')

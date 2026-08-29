@@ -1,52 +1,16 @@
 """Centralized logging configuration for Global-Data-Finance library.
 
-This module provides a unified, production-ready logging system with:
-- Lazy initialization (logging disabled by default)
-- Console and file handlers
-- Customizable log levels
-- Performance timing utilities
-- Context-aware structured logging
-- Environment variable support
+This module provides a unified, production-ready logging system with lazy
+initialization, console/file handlers, configurable log levels, execution
+timing utilities, and structured context formatting.
 
-Architecture:
-    - setup_logging(): Initialize logging (call once at application start)
-    - get_logger(): Get logger instance for any module
-    - log_execution_time(): Context manager for timing operations
-    - Automatic log formatting with structured data
-
-Usage:
-    Basic usage:
-        >>> from globaldatafinance.core.logging_config import setup_logging, get_logger
-        >>>
-        >>> # Enable logging at application start
-        >>> setup_logging(level="INFO")
-        >>>
-        >>> # Get logger in any module
-        >>> logger = get_logger(__name__)
-        >>> logger.info("Processing started", extra={"file_count": 10})
-
-    Performance timing:
-        >>> from globaldatafinance.core.logging_config import log_execution_time, get_logger
-        >>>
-        >>> logger = get_logger(__name__)
-        >>> with log_execution_time(logger, "Download files", total=100):
-        ...     download_files()
-
-    Environment variables:
-        >>> # Set via environment
-        >>> # export DATAFIN_LOG_LEVEL=DEBUG
-        >>> # export DATAFIN_LOG_FILE=/var/log/datafin.log
-        >>> # export DATAFIN_LOG_STRUCTURED=true
-        >>>
-        >>> # Or programmatically
-        >>> setup_logging(level="DEBUG", log_file="/tmp/datafin.log")
-
-Design principles:
-    - Logging is DISABLED by default (library-friendly)
-    - Users must explicitly call setup_logging() to enable logs
-    - All modules use get_logger(__name__) for consistent naming
-    - Structured logging via 'extra' parameter
-    - No auto-configuration on import
+Example:
+    >>> from globaldatafinance.core.logging_config import (
+    ...     setup_logging, get_logger
+    ... )
+    >>> setup_logging(level="INFO")
+    >>> logger = get_logger(__name__)
+    >>> logger.info("Processing file", extra={"file_target": "data.csv"})
 """
 
 import logging
@@ -65,7 +29,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # ============================================================================
 
 DEFAULT_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
-DETAILED_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(funcName)s | %(message)s'
+DETAILED_FORMAT = (
+    '%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | '
+    '%(funcName)s | %(message)s'
+)
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
@@ -134,6 +101,36 @@ class ContextFilter(logging.Filter):
         return True
 
 
+_STANDARD_RECORD_ATTRS: frozenset[str] = frozenset(
+    {
+        'args',
+        'asctime',
+        'created',
+        'exc_info',
+        'exc_text',
+        'extra_data',
+        'filename',
+        'funcName',
+        'levelname',
+        'levelno',
+        'lineno',
+        'module',
+        'msecs',
+        'message',
+        'msg',
+        'name',
+        'pathname',
+        'process',
+        'processName',
+        'relativeCreated',
+        'stack_info',
+        'taskName',
+        'thread',
+        'threadName',
+    }
+)
+
+
 class StructuredFormatter(logging.Formatter):
     """Custom formatter that handles extra data from log calls."""
 
@@ -141,10 +138,17 @@ class StructuredFormatter(logging.Formatter):
         """Format log record with extra data if present."""
         message = super().format(record)
 
-        # Add extra data if present
-        extra_data = getattr(record, 'extra_data', {})
-        if extra_data:
-            extra_str = ' | '.join(f'{k}={v}' for k, v in extra_data.items())
+        extra_items: dict[str, Any] = {}
+        extra_data = getattr(record, 'extra_data', None)
+        if isinstance(extra_data, dict):
+            extra_items.update(extra_data)
+
+        for attr, val in record.__dict__.items():
+            if not attr.startswith('_') and attr not in _STANDARD_RECORD_ATTRS:
+                extra_items[attr] = val
+
+        if extra_items:
+            extra_str = ' | '.join(f'{k}={v}' for k, v in extra_items.items())
             message = f'{message} | {extra_str}'
 
         return message
@@ -173,7 +177,9 @@ def setup_logging(
         level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
                If None, uses DATAFIN_LOG_LEVEL env var or defaults to INFO.
         log_file: Path to log file. If None, logs go to console only.
-        structured: Enable JSON structured logging (not yet implemented).
+        structured: Enable structured key-value context logging. JSON output
+                    remains reserved for a future compatibility-reviewed
+                    format change.
         use_detailed_format: If True, includes line numbers and function names.
 
     Example:
@@ -251,9 +257,8 @@ def get_logger(name: str) -> logging.Logger:
 
     Example:
         >>> from globaldatafinance.core.logging_config import get_logger
-        >>>
         >>> logger = get_logger(__name__)
-        >>> logger.info("Processing file", extra={"filename": "data.csv"})
+        >>> logger.info("Processing file", extra={"file_target": "data.csv"})
         >>> logger.debug("Record count", extra={"count": 1000})
     """
     return logging.getLogger(name)
@@ -278,15 +283,21 @@ def log_execution_time(
         None
 
     Example:
-        >>> from globaldatafinance.core.logging_config import log_execution_time, get_logger
+        >>> from globaldatafinance.core.logging_config import (
+        ...     log_execution_time, get_logger
+        ... )
         >>>
         >>> logger = get_logger(__name__)
-        >>> with log_execution_time(logger, "Parse ZIP file", filename="data.zip"):
+        >>> with log_execution_time(
+        ...     logger, "Parse ZIP file", file_target="data.zip"
+        ... ):
         ...     parse_file()
         ...
         >>> # Output:
-        >>> # Starting: Parse ZIP file | operation=Parse ZIP file | filename=data.zip
-        >>> # Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | filename=data.zip
+        >>> # Starting: Parse ZIP file | operation=Parse ZIP file |
+        >>> # file_target=data.zip
+        >>> # Completed: Parse ZIP file | operation=Parse ZIP file |
+        >>> # elapsed_seconds=2.45 | file_target=data.zip
     """
     start_time = time.perf_counter()
     logger.info(
@@ -338,14 +349,16 @@ def log_with_context(
         **context: Additional context fields
 
     Example:
-        >>> from globaldatafinance.core.logging_config import log_with_context, get_logger
+        >>> from globaldatafinance.core.logging_config import (
+        ...     log_with_context, get_logger
+        ... )
         >>>
         >>> logger = get_logger(__name__)
         >>> log_with_context(
         ...     logger,
         ...     "info",
         ...     "File processed successfully",
-        ...     filename="data.csv",
+        ...     file_target="data.csv",
         ...     records=1000,
         ...     elapsed_ms=250
         ... )
@@ -361,8 +374,9 @@ def is_logging_configured() -> bool:
         True if setup_logging() has been called, False otherwise
 
     Example:
-        >>> from globaldatafinance.core.logging_config import is_logging_configured, setup_logging
-        >>>
+        >>> from globaldatafinance.core.logging_config import (
+        ...     is_logging_configured, setup_logging
+        ... )
         >>> if not is_logging_configured():
         ...     setup_logging(level="INFO")
     """
@@ -376,7 +390,9 @@ def get_logging_settings() -> LoggingSettings:
         Current LoggingSettings instance
 
     Example:
-        >>> from globaldatafinance.core.logging_config import get_logging_settings
+        >>> from globaldatafinance.core.logging_config import (
+        ...     get_logging_settings
+        ... )
         >>>
         >>> settings = get_logging_settings()
         >>> print(f"Current log level: {settings.level}")

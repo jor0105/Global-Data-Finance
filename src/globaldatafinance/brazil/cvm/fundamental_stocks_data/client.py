@@ -105,6 +105,7 @@ class VerifyPathsUseCasesCVM:
         new_set_docs: set[str],
         range_years: range,
     ):
+        """Initialize the destination and requested document-year scope."""
         self.destination_path = destination_path
         self.new_set_docs = new_set_docs
         self.range_years = range_years
@@ -131,7 +132,8 @@ class VerifyPathsUseCasesCVM:
                 is_valid = self.__is_valid_year_for_doc(doc, year)
                 if not is_valid:
                     logger.debug(
-                        'Skipping folder for doc=%s, year=%s (invalid year for this document)',
+                        'Skipping folder for doc=%s, year=%s '
+                        '(invalid year for this document)',
                         doc,
                         year,
                     )
@@ -143,7 +145,8 @@ class VerifyPathsUseCasesCVM:
                 docs_paths[doc][year] = validated_year_path
 
         logger.debug(
-            'Directory structure created successfully. Documents: %d, Years per document: %s',
+            'Directory structure created successfully. Documents: %d, '
+            'Years per document: %s',
             len(docs_paths),
             [len(years) for years in docs_paths.values()],
         )
@@ -217,7 +220,7 @@ class DownloadDocumentsUseCaseCVM:
     """
 
     def __init__(self, repository: AsyncDownloadAdapterCVM) -> None:
-        """Initialize the orchestrator with a repository-shaped collaborator."""
+        """Initialize the orchestrator with its repository collaborator."""
         self.__repository: AsyncDownloadAdapterCVM = repository
 
         logger.debug(

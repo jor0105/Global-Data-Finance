@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from git_changes import is_external_harness_path
+from process_runner import ProcessRunnerError, run_process
 from workspace_members import GitInspectionError, normalize_path
 
 
@@ -58,21 +59,17 @@ def _parse_name_status(output: str) -> list[StagedChange]:
 def get_staged_changes(repo_root: Path | None = None) -> list[StagedChange]:
     """Return staged changes with rename and copy relationships intact."""
     try:
-        result = subprocess.run(
+        result = run_process(
             ['git', 'diff', '--cached', '--name-status', '-z', '-M', '-C'],
             cwd=repo_root or Path.cwd(),
-            capture_output=True,
-            text=True,
-            check=True,
         )
-    except (
-        subprocess.CalledProcessError,
-        subprocess.SubprocessError,
-        FileNotFoundError,
-        OSError,
-    ) as err:
+    except ProcessRunnerError as err:
         raise _git_error(err) from err
-    return _parse_name_status(result.stdout)
+    return [
+        change
+        for change in _parse_name_status(result.stdout)
+        if not is_external_harness_path(change.new_path)
+    ]
 
 
 def status_for_path(

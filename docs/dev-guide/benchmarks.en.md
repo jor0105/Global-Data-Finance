@@ -11,12 +11,12 @@ machine or dataset.
 total memory. No network calls; local extraction of official ZIPs only.
 
 - **Dataset:** 17 official ZIP files (2008–2024), 503.77 MB compressed.
-- **Selected assets:** ações, etf, opções, termo, exercicio_opcoes, forward, leilao.
+- **Asset scope:** all currently supported asset categories (`ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`).
 - **Errors:** 0 (all 17 files processed successfully).
 - **Consolidated Parquet output:** 311.55 MB per mode.
 
-| Mode   | Written rows |   API time | End-to-end |    Peak RSS |    Throughput |
-| ------ | -----------: | ---------: | ---------: | ----------: | ------------: |
+| Mode   | Written rows | Elapsed time (API) | Elapsed time (end-to-end) |    Peak RSS |    Throughput |
+| ------ | -----------: | -----------------: | ------------------------: | ----------: | ------------: |
 | `fast` |   15,059,876 | 1,222.61 s | 1,224.64 s | 4,259.35 MB | 12,317 rows/s |
 | `slow` |   15,059,876 | 1,759.90 s | 1,761.91 s | 1,570.54 MB |  8,557 rows/s |
 
@@ -57,25 +57,22 @@ uv run --locked --no-sync pytest tests/perf -m perf --benchmark-save=baseline_v1
 uv run --locked --no-sync pytest tests/perf -m perf --benchmark-compare=baseline_v1
 ```
 
-For batch extraction dataset reproduction:
+The repository's available benchmarks are executed through pytest-benchmark:
 
 ```bash
-# Synthetic dataset (CI / fast regression)
-uv run python -m tests.perf.benchmark_runner \
-  --records 250000 \
-  --mode both \
-  --repetitions 3 \
-  --output /tmp/globaldatafinance-b3-benchmark.json
+# List the two benchmarks without running them
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' --collect-only -q
 
-# Official local files
-uv run python -m tests.perf.benchmark_runner \
-  --data-dir /path/to/cotahist \
-  --initial-year 2008 \
-  --last-year 2024 \
-  --assets ações etf opções termo exercicio_opcoes forward leilao \
-  --mode both \
-  --repetitions 1 \
-  --timeout-seconds 7200
+# Run the hot-path benchmarks
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts=''
+
+# Save results for a later comparison
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' \
+  --benchmark-save=baseline_v1
+
+# Compare against the saved baseline
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' \
+  --benchmark-compare=baseline_v1
 ```
 
 The synthetic archive used for the baseline has SHA-256
@@ -92,8 +89,8 @@ primary Parquet generation. Run on the same machine as the B3 benchmarks.
 - **Docs:** DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (all available types)
 - **Period:** 2010–2024
 
-| ZIPs downloaded | Parquets generated | Extracted rows | Total output | Total time |  Peak RSS | Errors |
-| --------------: | -----------------: | -------------: | -----------: | ---------: | --------: | -----: |
+| ZIPs downloaded | Parquets generated | Extracted rows | Total output | Elapsed time |  Peak RSS | Errors |
+| --------------: | -----------------: | -------------: | -----------: | ------------: | --------: | -----: |
 |              88 |              1,392 |     63,300,208 |    337.93 MB |   505.04 s | 459.18 MB |      0 |
 
 - Includes: CVM server connection, downloading all ZIPs, validation, CSV

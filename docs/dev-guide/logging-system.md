@@ -65,7 +65,7 @@ logger.error("Erro ocorreu")
 logger.info(
     "Arquivo processado",
     extra={
-        "filename": "data.csv",
+        "file_target": "data.csv",
         "records": 1000,
         "elapsed_ms": 250
     }
@@ -75,7 +75,7 @@ logger.info(
 **Saída**:
 
 ```
-2025-11-25 17:30:00 | INFO     | meu_modulo | Arquivo processado | filename=data.csv | records=1000 | elapsed_ms=250
+2025-11-25 17:30:00 | INFO     | meu_modulo | Arquivo processado | file_target=data.csv | records=1000 | elapsed_ms=250
 ```
 
 ______________________________________________________________________
@@ -149,21 +149,21 @@ from globaldatafinance.core import log_execution_time, get_logger
 
 logger = get_logger(__name__)
 
-with log_execution_time(logger, "Parse ZIP file", filename="data.zip"):
+with log_execution_time(logger, "Parse ZIP file", file_target="data.zip"):
     parse_file("data.zip")
 ```
 
 **Saída**:
 
 ```
-Starting: Parse ZIP file | operation=Parse ZIP file | filename=data.zip
-Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | filename=data.zip
+Starting: Parse ZIP file | operation=Parse ZIP file | file_target=data.zip
+Completed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=2.45 | file_target=data.zip
 ```
 
 Se ocorrer erro:
 
 ```
-Failed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=1.23 | error=File not found | filename=data.zip
+Failed: Parse ZIP file | operation=Parse ZIP file | elapsed_seconds=1.23 | error=File not found | file_target=data.zip
 ```
 
 ### Logging com Contexto
@@ -178,6 +178,7 @@ log_with_context(
     "info",
     "Download concluído",
     url="https://example.com/file.zip",
+    file_target="file.zip",
     size_mb=125.5,
     duration_seconds=45
 )
@@ -343,7 +344,7 @@ logger.error("Arquivo processado")     # Use INFO
 # ✅ Correto - dados estruturados
 logger.info(
     "Arquivo processado",
-    extra={"filename": "data.csv", "size_mb": 10.5}
+    extra={"file_target": "data.csv", "size_mb": 10.5}
 )
 
 # ❌ Evite - string interpolation
@@ -355,11 +356,11 @@ logger.info(f"Arquivo data.csv processado, tamanho: 10.5 MB")
 ```python
 # ✅ Correto - medição automática
 with log_execution_time(logger, "Download"):
-    download_files()
+    time.sleep(1)
 
 # ❌ Evite - medição manual
 start = time.time()
-download_files()
+time.sleep(1)
 logger.info(f"Levou {time.time() - start}s")
 ```
 

@@ -23,9 +23,7 @@ from typing import Any
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.cotahist_parser import (
-    CotahistParserB3,
-)
+from globaldatafinance.brazil.b3_data.historical_quotes import CotahistParserB3
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
     generate_urls,
 )
@@ -36,7 +34,8 @@ def _synthetic_cotahist_line() -> str:
 
     The exact content does not need to be a real B3 sample - the parser
     operates by fixed-width slicing, so a 245-char string with realistic
-    field positions is enough to exercise every branch of `_parse_quote_record`.
+    field positions are enough to exercise every branch of
+    `_parse_quote_record`.
     """
     parts = [
         '01',  # tipreg (1-2)

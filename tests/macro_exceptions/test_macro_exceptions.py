@@ -165,8 +165,8 @@ class TestPathPermissionError:
         error_msg = str(error)
 
         assert (
-            f"Permission denied: No write permission for destination path '{path}'"
-            == error_msg
+            f'Permission denied: No write permission for destination path '
+            f"'{path}'" == error_msg
         )
 
     def test_with_relative_path(self):
@@ -612,7 +612,7 @@ class TestExceptionIntegration:
             'SecurityError': SecurityError('security', '/path'),
         }
 
-        for name, exc in exceptions.items():
+        for _name, exc in exceptions.items():
             exc_str = str(exc)
             assert len(exc_str) > 0
             assert isinstance(exc_str, str)
@@ -629,16 +629,10 @@ class TestExceptionIntegration:
         assert exc_info.value.__cause__ is original_error
 
     def test_exception_with_context_manager(self):
-        caught = False
+        with pytest.raises(NetworkError) as exc_info:
+            raise NetworkError('file.zip', 'Failed')
 
-        try:
-            with pytest.raises(NetworkError):
-                raise NetworkError('file.zip', 'Failed')
-            caught = True
-        except Exception:
-            caught = False
-
-        assert caught
+        assert 'Failed' in str(exc_info.value)
 
 
 class TestNewOSErrorSubclasses:

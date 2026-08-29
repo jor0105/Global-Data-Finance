@@ -1,5 +1,6 @@
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -85,19 +86,19 @@ class TestDownloadDocumentsUseCaseOrchestration:
 
     def test_orchestrator_creates_directory_via_validator(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            new_path = os.path.join(tmpdir, 'new_dir')
+            new_path = Path(tmpdir) / 'new_dir'
 
             mock_repo = MockRepository()
             use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
-                destination_path=new_path,
+                destination_path=str(new_path),
                 list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
 
-            assert os.path.exists(new_path)
+            assert new_path.exists()
 
     def test_orchestrator_generates_correct_tasks(self, tmp_path):
         mock_repo = MockRepository()
@@ -200,19 +201,19 @@ class TestDownloadDocumentsUseCaseBackwardCompatibility:
 
     def test_creates_directory_if_not_exists(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            new_path = os.path.join(tmpdir, 'new_dir')
+            new_path = Path(tmpdir) / 'new_dir'
 
             mock_repo = MockRepository()
             use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
             use_case.execute(
-                destination_path=new_path,
+                destination_path=str(new_path),
                 list_docs=['DFP'],
                 initial_year=2020,
                 last_year=2020,
             )
 
-            assert os.path.exists(new_path)
+            assert new_path.exists()
 
 
 @pytest.mark.unit
@@ -253,6 +254,7 @@ class TestDownloadDocumentsUseCaseErrorHandling:
                 *,
                 automatic_extractor=False,
             ):
+                _ = tasks, automatic_extractor
                 raise RuntimeError('Download failed')
 
         error_repo = ErrorRepository()
@@ -337,7 +339,7 @@ class TestDownloadDocumentsUseCaseIntegrationWithRealSubUseCases:
         assert len(mock_repo.last_tasks) == 2
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
+            url, doc_name, year, _dest_path = task
             assert 'dados.cvm.gov.br' in url
             assert doc_name == 'DFP'
             assert year in ['2022', '2023']
@@ -384,7 +386,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         assert isinstance(url, str) and url.startswith('https://')
         assert isinstance(doc_name, str) and doc_name == 'DFP'
         assert isinstance(year, str) and year == '2020'
-        assert isinstance(dest_path, str) and os.path.isabs(dest_path)
+        assert isinstance(dest_path, str) and Path(dest_path).is_absolute()
 
     def test_tasks_match_years_from_docs_paths(self, tmp_path):
         mock_repo = MockRepository()
@@ -415,7 +417,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
+            url, _doc_name, year, _dest_path = task
             assert year in url, f'Year {year} should be in URL {url}'
 
     def test_tasks_destination_paths_are_valid(self, tmp_path):
@@ -431,9 +433,9 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
-            assert os.path.exists(dest_path)
-            assert os.path.isdir(dest_path)
+            _url, _doc_name, _year, dest_path = task
+            assert Path(dest_path).exists()
+            assert Path(dest_path).is_dir()
             assert os.access(dest_path, os.W_OK)
 
     def test_missing_url_for_year_logs_warning(self, tmp_path, caplog):
@@ -482,7 +484,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
+            url, doc_name, _year, _dest_path = task
             # URL should contain the doc name in lowercase
             assert doc_name.lower() in url.lower()
 
@@ -499,7 +501,7 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
+            url, _doc_name, _year, _dest_path = task
             assert url.endswith('.zip')
 
     def test_tasks_for_multiple_years_ordered_correctly(self, tmp_path):
@@ -534,8 +536,8 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
         )
 
         for task in mock_repo.last_tasks:
-            url, doc_name, year, dest_path = task
-            assert os.path.isabs(dest_path)
+            _url, _doc_name, _year, dest_path = task
+            assert Path(dest_path).is_absolute()
 
     def test_empty_tasks_when_no_valid_years(self, tmp_path):
         mock_repo = MockRepository()
@@ -572,6 +574,7 @@ class MockRepositoryWithFailures:
         *,
         automatic_extractor: bool = False,
     ) -> DownloadResultCVM:
+        _ = tasks, automatic_extractor
         return DownloadResultCVM(
             successful_downloads=['DFP_2020'],
             failed_downloads={'DFP_2021': 'connection reset'},

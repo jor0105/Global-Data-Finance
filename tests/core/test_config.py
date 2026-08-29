@@ -9,9 +9,10 @@ def test_defaults_imported_settings():
 
     settings = config.settings
 
-    assert settings.network.timeout == 300
-    assert settings.network.max_retries == 3
-    assert settings.network.retry_backoff == 1.0
+    assert settings.network.timeout == 180
+    assert settings.network.max_retries == 5
+    assert settings.network.retry_backoff == 2.0
+    assert settings.network.user_agent is None
 
     assert settings.debug is False
 
@@ -48,8 +49,16 @@ class TestSettingsScenarios:
     def test_scenarios_network_user_agent(self):
         from globaldatafinance.core import config
 
-        assert isinstance(config.settings.network.user_agent, str)
-        assert 'Global-Data-Finance' in config.settings.network.user_agent
+        assert config.settings.network.user_agent is None
+
+    def test_scenarios_network_user_agent_can_be_configured(self, monkeypatch):
+        from globaldatafinance.core.config import NetworkSettings
+
+        monkeypatch.setenv('DATAFINANCE_NETWORK_USER_AGENT', 'test-client/1.0')
+
+        configured = NetworkSettings()
+
+        assert configured.user_agent == 'test-client/1.0'
 
     def test_scenarios_network_retry_backoff_bounds(self):
         from globaldatafinance.core.config import NetworkSettings
@@ -76,38 +85,61 @@ class TestSettingsScenarios:
             NetworkSettings(timeout=4000)
 
 
-def test_extra_fields_in_env_file_are_ignored(tmp_path, monkeypatch):
-    """Test that Settings class ignores extra fields without validation errors.
-
-    This test simulates the real-world scenario where users have .env files
-    with variables for other projects (e.g., openai_api_key from other tools).
-    """
+def test_settings_does_not_load_dotenv_implicitly(tmp_path, monkeypatch):
+    """Settings must ignore a working-directory dotenv unless requested."""
     from globaldatafinance.core.config import Settings
 
-    # Create a temporary .env file with both valid and extra fields
     env_file = tmp_path / '.env'
     env_file.write_text(
-        'openai_api_key=sk-proj-test123\n'
-        'some_random_var=value\n'
-        'another_extra_field=12345\n'
+        'DATAFINANCE_DEBUG=true\n'
+        'DATAFINANCE_NETWORK_TIMEOUT=60\n'
+        'unrelated_setting=value\n'
     )
 
-    # Change to the directory with the .env file
     monkeypatch.chdir(tmp_path)
+    for name in (
+        'DATAFINANCE_DEBUG',
+        'DATAFINANCE_NETWORK',
+        'DATAFINANCE_NETWORK_TIMEOUT',
+        'DATAFINANCE_NETWORK_MAX_RETRIES',
+        'DATAFINANCE_NETWORK_RETRY_BACKOFF',
+        'DATAFINANCE_NETWORK_USER_AGENT',
+    ):
+        monkeypatch.delenv(name, raising=False)
 
-    # The key test: this should NOT raise ValidationError despite extra fields
-    try:
-        settings = Settings()
-        # If we got here, the test passed - extra fields were ignored
-        assert True
-    except Exception as e:
-        # If we get a validation error about extra fields, the fix didn't work
-        if 'Extra inputs are not permitted' in str(e):
-            pytest.fail(f'Settings rejected extra fields in .env file: {e}')
-        else:
-            # Some other error, re-raise it
-            raise
+    settings = Settings()
 
-    # Verify that extra fields are not accessible on the settings object
-    assert not hasattr(settings, 'openai_api_key')
-    assert not hasattr(settings, 'some_random_var')
+    assert settings.network.timeout == 180
+    assert settings.debug is False
+    assert Settings.model_config.get('env_file') is None
+    assert Settings.model_config.get('env_file_encoding') is None
+
+
+def test_settings_loads_dotenv_when_requested_explicitly(
+    tmp_path, monkeypatch
+):
+    """Settings must support pydantic-settings' explicit dotenv override."""
+    from globaldatafinance.core.config import Settings
+
+    env_file = tmp_path / 'explicit.env'
+    env_file.write_text(
+        'DATAFINANCE_DEBUG=true\n'
+        'DATAFINANCE_NETWORK={"timeout": 240, "max_retries": 4}\n',
+        encoding='utf-8',
+    )
+
+    for name in (
+        'DATAFINANCE_DEBUG',
+        'DATAFINANCE_NETWORK',
+        'DATAFINANCE_NETWORK_TIMEOUT',
+        'DATAFINANCE_NETWORK_MAX_RETRIES',
+        'DATAFINANCE_NETWORK_RETRY_BACKOFF',
+        'DATAFINANCE_NETWORK_USER_AGENT',
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.debug is True
+    assert settings.network.timeout == 240
+    assert settings.network.max_retries == 4

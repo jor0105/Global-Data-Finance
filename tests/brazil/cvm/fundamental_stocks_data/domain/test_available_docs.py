@@ -129,19 +129,19 @@ class TestUrlDocs:
         assert len(set_docs) == 7
 
     def test_get_url_docs_returns_list_of_strings(self):
-        urls, set_docs = get_url_docs()
+        urls, _set_docs = get_url_docs()
 
         for url in urls.values():
             assert isinstance(url, str)
 
     def test_get_url_docs_urls_start_with_https(self):
-        urls, set_docs = get_url_docs()
+        urls, _set_docs = get_url_docs()
 
         for url in urls.values():
             assert url.startswith('https://')
 
     def test_get_url_docs_urls_contain_cvm_domain(self):
-        urls, set_docs = get_url_docs()
+        urls, _set_docs = get_url_docs()
 
         for url in urls.values():
             assert 'dados.cvm.gov.br' in url
@@ -277,7 +277,7 @@ class TestUrlDocs:
         assert 'vlmo_cia_aberta_' in urls_vlmo['VLMO']
 
     def test_get_url_docs_urls_end_correctly(self):
-        urls, set_docs = get_url_docs(['DFP'])
+        urls, _set_docs = get_url_docs(['DFP'])
 
         assert urls['DFP'].endswith('_')
 

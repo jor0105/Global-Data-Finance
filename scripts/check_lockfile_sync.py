@@ -311,6 +311,7 @@ def check_manifest_lockfile_sync(
 
 
 def main() -> int:
+    """Check that staged dependency metadata agrees with the lockfile."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         '--files',
@@ -333,7 +334,8 @@ def main() -> int:
         )
         if not staged_files or not manifest_staged:
             sys.stdout.write(
-                'SKIP [DEPENDENCY_SYNC]: No staged manifest files to inspect.\n'
+                'SKIP [DEPENDENCY_SYNC]: No staged manifest files to '
+                'inspect.\n'
             )
             return 0
         errors = check_manifest_lockfile_sync(

@@ -34,7 +34,8 @@ A CVM disponibiliza os seguintes tipos de documentos:
 | **IPE**  | Informações Periódicas e Eventuais  | Documentos periódicos e eventuais      | 2010             |
 
 !!! info "Dados Históricos"
-A maioria dos documentos está disponível desde 2010, exceto ITR (2011) e CGVN/VLMO (2018).
+
+    A maioria dos documentos está disponível desde 2010, exceto ITR (2011) e CGVN/VLMO (2018).
 
 ______________________________________________________________________
 
@@ -78,22 +79,34 @@ Baixa documentos CVM para um diretório especificado.
 def download(
     self,
     destination_path: str,
-    list_docs: Optional[List[str]] = None,
-    initial_year: Optional[int] = None,
-    last_year: Optional[int] = None,
+    list_docs: list[str] | None = None,
+    initial_year: int | None = None,
+    last_year: int | None = None,
     automatic_extractor: bool = False,
-) -> None
+) -> DownloadResultCVM:
+    ...
 ```
 
 #### Parâmetros
 
-| Parâmetro             | Tipo        | Obrigatório | Descrição                                                     |
-| --------------------- | ----------- | ----------- | ------------------------------------------------------------- |
-| `destination_path`    | `str`       | ✅ Sim      | Diretório onde os arquivos serão salvos                       |
-| `list_docs`           | `List[str]` | ❌ Não      | Lista de tipos de documentos. Se `None`, baixa todos          |
-| `initial_year`        | `int`       | ❌ Não      | Ano inicial (inclusive). Se `None`, usa ano mínimo disponível |
-| `last_year`           | `int`       | ❌ Não      | Ano final (inclusive). Se `None`, usa ano atual               |
-| `automatic_extractor` | `bool`      | ❌ Não      | Se `True`, extrai ZIPs para Parquet automaticamente           |
+| Parâmetro             | Tipo                | Obrigatório | Descrição                                                     |
+| --------------------- | ------------------- | ----------- | ------------------------------------------------------------- |
+| `destination_path`    | `str`               | ✅ Sim      | Diretório onde os arquivos serão salvos                       |
+| `list_docs`           | `list[str] \| None` | ❌ Não      | Lista de tipos de documentos. Se `None`, baixa todos          |
+| `initial_year`        | `int \| None`       | ❌ Não      | Ano inicial (inclusive). Se `None`, usa ano mínimo disponível |
+| `last_year`           | `int \| None`       | ❌ Não      | Ano final (inclusive). Se `None`, usa ano atual               |
+| `automatic_extractor` | `bool`              | ❌ Não      | Se `True`, extrai ZIPs para Parquet automaticamente           |
+
+#### Retorno
+
+Retorna um objeto `DownloadResultCVM` com os seguintes atributos e métodos:
+
+- `success_count_downloads: int` — Total de arquivos baixados com sucesso.
+- `error_count_downloads: int` — Total de falhas durante o download.
+- `successful_downloads: list[str]` — Identificadores de documentos concluídos no formato `{DOC}_{YEAR}` (ex.: `"DFP_2023"`).
+- `failed_downloads: dict[str, str]` — Dicionário mapeando arquivos com falha para a mensagem de erro.
+- `elapsed_time: float` — Tempo total de execução em segundos.
+- `has_errors() -> bool` — Retorna `True` se houver pelo menos uma falha.
 
 #### Exemplos
 
@@ -149,7 +162,8 @@ Retorna todos os tipos de documentos disponíveis com suas descrições.
 #### Assinatura
 
 ```python
-def get_available_docs(self) -> Dict[str, str]
+def get_available_docs(self) -> dict[str, str]:
+    ...
 ```
 
 #### Retorno
@@ -180,26 +194,27 @@ IPE: Informações Periódicas e Eventuais
 
 ______________________________________________________________________
 
-### `get_available_years()`
+#### `get_available_years()`
 
 Retorna informações sobre os anos disponíveis para cada tipo de documento.
 
 #### Assinatura
 
 ```python
-def get_available_years(self) -> Dict[str, int]
+def get_available_years(self) -> AvailableYearsInfoCVM:
+    ...
 ```
 
-#### Retorno
+#### Retorno (`AvailableYearsInfoCVM`)
 
-Dicionário com informações de anos disponíveis:
+Objeto `NamedTuple` com informações estruturadas de anos disponíveis:
 
-| Chave                            | Descrição                                |
-| -------------------------------- | ---------------------------------------- |
-| `"General Document Years"`       | Ano mínimo para documentos gerais (2010) |
-| `"ITR Document Years"`           | Ano mínimo para ITR (2011)               |
-| `"CGVN and VMLO Document Years"` | Ano mínimo para CGVN/VLMO (2018)         |
-| `"Current Year"`                 | Ano atual                                |
+| Atributo             | Tipo  | Descrição                                |
+| -------------------- | ----- | ---------------------------------------- |
+| `general_min_year`   | `int` | Ano mínimo para documentos gerais (2010) |
+| `itr_min_year`       | `int` | Ano mínimo para ITR (2011)               |
+| `cgvn_vlmo_min_year` | `int` | Ano mínimo para CGVN/VLMO (2018)         |
+| `current_year`       | `int` | Ano corrente do sistema                  |
 
 #### Exemplo
 
@@ -207,9 +222,9 @@ Dicionário com informações de anos disponíveis:
 cvm = FundamentalStocksDataCVM()
 years = cvm.get_available_years()
 
-print(f"Documentos gerais disponíveis desde: {years['General Document Years']}")
-print(f"ITR disponível desde: {years['ITR Document Years']}")
-print(f"Ano atual: {years['Current Year']}")
+print(f"Documentos gerais disponíveis desde: {years.general_min_year}")
+print(f"ITR disponível desde: {years.itr_min_year}")
+print(f"Ano atual: {years.current_year}")
 ```
 
 ______________________________________________________________________
@@ -218,7 +233,7 @@ ______________________________________________________________________
 
 ### Download Incremental
 
-Baixar apenas anos que ainda não foram baixados:
+Baixar apenas anos que ainda não foram baixados, respeitando a estrutura particionada de diretórios:
 
 ```python
 import os
@@ -227,17 +242,16 @@ from globaldatafinance import FundamentalStocksDataCVM
 cvm = FundamentalStocksDataCVM()
 base_path = "/data/cvm"
 
-# Verificar quais anos já existem
+# Verificar quais anos já existem no subdiretório particionado {base_path}/DFP/{YEAR}/
 existing_years = set()
-if os.path.exists(base_path):
-    for filename in os.listdir(base_path):
-        if "DFP" in filename:
-            # Extrair ano do nome do arquivo
-            year = int(filename.split("_")[-1].replace(".zip", ""))
-            existing_years.add(year)
+dfp_dir = os.path.join(base_path, "DFP")
+if os.path.exists(dfp_dir):
+    for entry in os.listdir(dfp_dir):
+        if entry.isdigit() and os.path.isdir(os.path.join(dfp_dir, entry)):
+            existing_years.add(int(entry))
 
 # Baixar apenas anos faltantes
-current_year = 2023
+current_year = cvm.get_available_years().current_year
 all_years = set(range(2020, current_year + 1))
 missing_years = all_years - existing_years
 
@@ -251,13 +265,11 @@ if missing_years:
         initial_year=min_year,
         last_year=max_year
     )
-else:
-    print("✓ Todos os anos já foram baixados")
 ```
 
-### Download com Validação
+### Validação Prévia
 
-Validar documentos antes de baixar:
+Validar parâmetros antes de iniciar downloads pesados:
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
@@ -275,12 +287,16 @@ if invalid_docs:
     print(f"⚠️  Documentos inválidos: {invalid_docs}")
     print(f"✓ Documentos válidos: {valid_docs}")
 
+# Guarda de segurança: lista vazia acionaria o download de todos os documentos
+if not valid_docs:
+    raise ValueError("Nenhum documento válido foi informado.")
+
 # Validar anos
 years_info = cvm.get_available_years()
 requested_year = 2015
 
-if requested_year < years_info['General Document Years']:
-    print(f"⚠️  Ano {requested_year} não disponível (mínimo: {years_info['General Document Years']})")
+if requested_year < years_info.general_min_year:
+    print(f"⚠️  Ano {requested_year} não disponível (mínimo: {years_info.general_min_year})")
 else:
     # Prosseguir com download
     cvm.download(
@@ -294,18 +310,18 @@ ______________________________________________________________________
 
 ## Tratamento de Erros
 
-### Exceções Comuns
+### Exceções Síncronas
 
-A API pode lançar as seguintes exceções:
+A API valida parâmetros na fronteira pública e pode lançar:
 
 | Exceção                       | Quando ocorre                           | Como tratar                                |
 | ----------------------------- | --------------------------------------- | ------------------------------------------ |
 | `InvalidDocumentName`         | Tipo de documento inválido              | Verificar lista com `get_available_docs()` |
 | `InvalidFirstYear`            | Ano inicial fora do intervalo           | Verificar anos com `get_available_years()` |
 | `InvalidLastYear`             | Ano final inválido ou menor que inicial | Validar intervalo de anos                  |
-| `NetworkError`                | Erro de conexão                         | Verificar internet e tentar novamente      |
-| `TimeoutError`                | Timeout na requisição                   | Aumentar timeout ou tentar mais tarde      |
 | `InvalidDestinationPathError` | Caminho de destino inválido             | Verificar permissões e caminho             |
+
+> Falhas transitórias de conexão durante o download assíncrono passam pela política automática de retry. Erros persistentes são consolidados no atributo `failed_downloads` do `DownloadResultCVM` retornado.
 
 ______________________________________________________________________
 
@@ -316,46 +332,21 @@ ______________________________________________________________________
 Após o download, os arquivos são organizados da seguinte forma:
 
 ```
-
 destination_path/
     DFP/
         2020/
             dfp_cia_aberta_2020.zip
         2021/
             dfp_cia_aberta_2021.zip
-        2022/
-            dfp_cia_aberta_2022.zip
-        2023/
-            dfp_cia_aberta_2023.zip
+        ...
     ITR/
         2020/
             itr_cia_aberta_2020.zip
-        2021/
-            itr_cia_aberta_2021.zip
-        2022/
-            itr_cia_aberta_2022.zip
-        2023/
-            itr_cia_aberta_2023.zip
+        ...
     FRE/
         2020/
             fre_cia_aberta_2020.zip
-        2021/
-            fre_cia_aberta_2021.zip
-        2022/
-            fre_cia_aberta_2022.zip
-        2023/
-            fre_cia_aberta_2023.zip
-    FCA/
-        2020/
-            fca_cia_aberta_2020.zip
-        2021/
-            fca_cia_aberta_2021.zip
-        2022/
-            fca_cia_aberta_2022.zip
-        2023/
-            fca_cia_aberta_2023.zip
-    etc...
-
+        ...
 ```
 
 ### Conteúdo dos Arquivos ZIP
@@ -429,7 +420,11 @@ free_gb = stats.free / (1024**3)
 if free_gb < 10:
     print(f"⚠️  Pouco espaço disponível: {free_gb:.2f} GB")
 else:
-    cvm.download(destination_path="/data", ...)
+    cvm.download(
+        destination_path="/data/cvm",
+        list_docs=["DFP"],
+        initial_year=2023
+    )
 ```
 
 ### 3. Use Extração Automática para Análise
@@ -484,4 +479,5 @@ ______________________________________________________________________
 ______________________________________________________________________
 
 !!! tip "Dica de Performance"
-Para análises de dados, sempre use `automatic_extractor=True`. O formato Parquet é muito mais eficiente que CSV para leitura e processamento.
+
+    Para análises de dados, sempre use `automatic_extractor=True`. O formato Parquet é muito mais eficiente que CSV para leitura e processamento.

@@ -92,6 +92,7 @@ def test_validate_parquet_files_when_pyarrow_none(
 def test_validate_parquet_files_unexpected_outer_exception(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    _ = monkeypatch
     # Pass an object where iterating over parquet_files raises an exception
     bad_list = MagicMock()
     bad_list.__iter__.side_effect = RuntimeError(
@@ -104,13 +105,17 @@ def test_validate_parquet_files_unexpected_outer_exception(
     )
 
 
-def test_has_valid_zip_contents_corrupt_zip(tmp_path: Path) -> None:
+def test_has_valid_zip_contents_corrupt_zip(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     corrupt_zip = tmp_path / 'bad.zip'
     corrupt_zip.write_text('not a zip')
 
-    assert (
-        download_validation._has_valid_zip_contents(str(corrupt_zip)) is False
-    )
+    with caplog.at_level('ERROR'):
+        result = download_validation._has_valid_zip_contents(str(corrupt_zip))
+
+    assert result is False
+    assert any(record.exc_info is not None for record in caplog.records)
 
 
 def test_has_valid_zip_contents_empty_zip(tmp_path: Path) -> None:

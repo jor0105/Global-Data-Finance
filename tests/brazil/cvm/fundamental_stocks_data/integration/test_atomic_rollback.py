@@ -32,7 +32,7 @@ class TestAtomicRollback:
             )
 
         corrupted_zip = tmp_path / 'corrupted.zip'
-        with open(corrupted_zip, 'wb') as f:
+        with corrupted_zip.open('wb') as f:
             f.write(b'PK\x03\x04' + b'\x00' * 100)
 
         from globaldatafinance.macro_exceptions import CorruptedZipError
@@ -54,7 +54,8 @@ class TestAtomicRollback:
 
         parquet_files = list(output_dir.glob('*.parquet'))
         assert len(parquet_files) == 1, (
-            f'Partial files were not cleaned! Found: {[f.name for f in parquet_files]}'
+            'Partial files were not cleaned! Found: '
+            f'{[f.name for f in parquet_files]}'
         )
         assert parquet_files[0].name == 'existing.parquet', (
             'Incorrect file in directory'

@@ -8,13 +8,14 @@ from local COTAHIST files (e.g. COTAHIST_A2023.ZIP or .TXT) saved in
 import sys
 from pathlib import Path
 
-# Ensure examples import active repository code (src/) rather than installed package
+# Ensure examples import repository code rather than the installed package.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
 
 from globaldatafinance import HistoricalQuotesB3
 
 
 def main() -> None:
+    """Run the B3 quickstart example."""
     # 1. Initialize the B3 public facade
     b3 = HistoricalQuotesB3()
 

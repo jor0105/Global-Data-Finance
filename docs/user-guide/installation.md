@@ -10,7 +10,7 @@ Antes de instalar o Global-Data-Finance, certifique-se de que seu sistema atende
 
 ### Requisitos Obrigatórios
 
-- **Python**: Versão 3.12 ou superior
+- **Python**: `>=3.12,<4.0`
 - **Sistema Operacional**: Linux, macOS ou Windows
 - **Espaço em Disco**: Mínimo de 2 GB para conseguir baixar todos os dados
 - **Memória RAM**: Mínimo de 3 GB (recomendado 6 GB ou mais para grandes volumes)
@@ -24,7 +24,8 @@ python3 --version
 ```
 
 !!! warning "Versão do Python"
-O Global-Data-Finance requer Python 3.12 ou superior. Se você possui uma versão anterior, será necessário atualizar o Python antes de prosseguir.
+
+    O Global-Data-Finance requer uma versão do Python no intervalo `>=3.12,<4.0`. O workflow atual de CI exercita Python 3.12, 3.13 e 3.14; outras versões dentro do intervalo suportado não são implicitamente testadas pelo CI.
 
 ______________________________________________________________________
 
@@ -102,22 +103,6 @@ uv run --locked --no-sync pytest
 uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
 ```
 
-### 3. Instalar com pip em Modo Editável
-
-```bash
-# Criar e ativar ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# ou
-venv\Scripts\activate  # Windows
-
-# Instalar em modo editável
-pip install -e .
-
-# Instalar dependências de desenvolvimento
-pip install -e ".[dev]"
-```
-
 ______________________________________________________________________
 
 ## Dependências
@@ -131,7 +116,7 @@ O Global-Data-Finance possui as seguintes dependências principais:
 | `httpx`             | ≥0.28.1 | Cliente HTTP assíncrono com suporte HTTP/2 |
 | `pandas`            | ≥2.3.3  | Manipulação e análise de dados             |
 | `polars`            | ≥1.0.0  | Processamento de dados de alto desempenho  |
-| `pyarrow`           | ≥22.0.0 | Suporte para formato Apache Parquet        |
+| `pyarrow`           | ≥23.0.1,<24.0.0 | Suporte para formato Apache Parquet        |
 | `pydantic-settings` | ≥2.11.0 | Configuração e validação de dados          |
 | `psutil`            | ≥5.9.0  | Utilitários de sistema e processos         |
 
@@ -157,22 +142,23 @@ Após a instalação, verifique se tudo está funcionando corretamente:
 
 ### 1. Verificar Importação
 
-```python
-# Abrir Python interativo
-python
-
-# Tentar importar a biblioteca
+```pycon
 >>> from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 >>> print("✓ Global-Data-Finance instalado com sucesso!")
+✓ Global-Data-Finance instalado com sucesso!
 ```
 
 ### 2. Verificar Versão
 
-```python
+```pycon
 >>> import globaldatafinance
 >>> print(globaldatafinance.__version__)
 0.2.0
 ```
+
+O valor `0.2.0` acima é o alvo local de desenvolvimento/release documentado
+por esta branch. A versão atualmente publicada no PyPI ainda é `0.1.4`, então
+uma instalação via PyPI pode informar `0.1.4` até o release de `v0.2.0`.
 
 ### 3. Teste Básico
 
@@ -188,7 +174,7 @@ print(f"✓ Encontrados {len(docs)} tipos de documentos disponíveis")
 
 # Verificar anos disponíveis
 years = cvm.get_available_years()
-print(f"✓ Dados disponíveis de {years['General Document Years']} até {years['Current Year']}")
+print(f"✓ Dados disponíveis de {years.general_min_year} até {years.current_year}")
 ```
 
 Se todos os comandos acima executarem sem erros, a instalação foi bem-sucedida! ✅
@@ -212,13 +198,13 @@ where python  # Windows
 pip install --force-reinstall globaldatafinance
 ```
 
-### Erro: "Python version 3.12 or higher required"
+### Erro: "Python version outside supported range"
 
-**Causa**: Versão do Python é anterior a 3.12.
+**Causa**: A versão do interpretador está fora do intervalo `>=3.12,<4.0`.
 
 **Solução**:
 
-1. Instale Python 3.12 ou superior do [site oficial](https://www.python.org/downloads/)
+1. Instale uma versão suportada do Python no [site oficial](https://www.python.org/downloads/)
 2. Crie um novo ambiente virtual com a versão correta:
 
 ```bash
@@ -291,4 +277,5 @@ Agora que você instalou o Global-Data-Finance com sucesso, explore:
 ______________________________________________________________________
 
 !!! tip "Dica para Desenvolvedores"
-Se você planeja contribuir com o projeto, consulte o [Guia de Contribuição](../dev-guide/contributing.md) para configurar seu ambiente de desenvolvimento completo.
+
+    Se você planeja contribuir com o projeto, consulte o [Guia de Contribuição](../dev-guide/contributing.md) para configurar seu ambiente de desenvolvimento completo.

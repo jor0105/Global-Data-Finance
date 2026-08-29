@@ -26,9 +26,17 @@ default_stages: [pre-commit]
 # identically. The project's own Python is pinned where it matters, in
 # [project] requires-python and the CI matrix.
 
-# Keep exclusions hook-local. A global filter would make generated or artifact
-# paths invisible to every scanner, including security hooks. A hook that
-# cannot process a specific generated input must declare its own `exclude`.
+# `.agents/` is tracked so clones carry the portable validators, while the
+# central-skills project remains the only owner of generated harness content.
+# Generic file-based hooks must not format or inspect those projections.
+exclude: |
+  (?x)^(
+    \.agents/|
+    \.claude/|
+    \.codex/|
+    \.opencode/|
+    \.github/prompts/
+  )
 
 repos:
   # --------------------------------------------------------------------------
@@ -46,11 +54,22 @@ repos:
         name: check-harness-sync
         # Generated AI-client links are not present in a clean checkout and
         # are maintained deliberately, not as a code-commit quality gate.
-        entry: uv run --locked --no-sync harness-sync --check
+        entry: harness-sync --check
         language: system
         pass_filenames: false
         always_run: true
         stages: [manual]
+
+      - id: validate-agents-md
+        name: validate-agents-md
+        entry: >-
+          uv run --locked --no-sync python
+          .agents/skills/agents-md-author/scripts/validate_agents_md.py
+          --strict-governance
+        language: system
+        files: ^AGENTS\.md$
+        pass_filenames: false
+        stages: [pre-commit]
 
       - id: uv-lock-check
         name: uv-lock-check
@@ -77,6 +96,25 @@ repos:
         entry: >-
           uv run --locked --no-sync python
           scripts/check_diff_sanity.py
+        args:
+          - --allow-print-file
+          - scripts/check-import-cycles.py
+          - --allow-print-file
+          - scripts/check-shell-syntax.py
+          - --allow-print-file
+          - scripts/check-docs-contracts.py
+          - --allow-print-file
+          - scripts/check-ruff-policy.py
+          - --allow-print-file
+          - src/globaldatafinance/application/b3_docs/extraction_result_formatter.py
+          - --allow-print-file
+          - src/globaldatafinance/application/cvm_docs/download_result_formatter.py
+          - --allow-print-file
+          - examples/01_quickstart_cvm.py
+          - --allow-print-file
+          - examples/02_quickstart_b3.py
+          - --allow-print-file
+          - examples/03_advanced_options_b3.py
         language: system
         pass_filenames: false
         always_run: true
@@ -100,6 +138,18 @@ repos:
         always_run: true
         stages: [pre-commit]
 
+      # The checked-in protocol validator is portable and does not require the
+      # optional central-skills installation used to regenerate `.agents/`.
+      - id: validate-agent-protocols
+        name: validate-agent-protocols
+        entry: >-
+          uv run --locked --no-sync python
+          .agents/scripts/validate-agent-protocols.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, pre-push]
+
   # --------------------------------------------------------------------------
   # 1. Basic File Checks
   # --------------------------------------------------------------------------
@@ -108,11 +158,32 @@ repos:
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # pragma: allowlist secret
     hooks:
       - id: trailing-whitespace
-        exclude: ^\.agents/
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/
+          )
       - id: end-of-file-fixer
-        exclude: ^\.agents/
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/
+          )
       - id: mixed-line-ending
-        exclude: ^\.agents/
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/
+          )
       - id: check-yaml
       - id: check-toml
       - id: check-json
@@ -134,8 +205,8 @@ repos:
   # --------------------------------------------------------------------------
   # 3. Security Checks
   # --------------------------------------------------------------------------
-  # Static security analysis is handled by Ruff's `S` (flake8-bandit) rules,
-  # configured in pyproject.toml -- no separate Bandit hook needed.
+  # Static security analysis is handled by the explicit Ruff security profile
+  # below; the base configuration intentionally does not enable `S` globally.
 
   # Secret Detection: detect-secrets (baseline-driven, entropy + plugins)
   - repo: https://github.com/Yelp/detect-secrets
@@ -152,6 +223,9 @@ repos:
     rev: 2ca41cc1372d1e939a6a879f18cdc19fc1cac1ce  # pragma: allowlist secret
     hooks:
       - id: gitleaks
+        args: [--redact, --config=.gitleaks.toml]
+        pass_filenames: false
+        always_run: true
 
   # CI/CD supply-chain audit of GitHub Actions workflows
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
@@ -163,30 +237,44 @@ repos:
   # --------------------------------------------------------------------------
   # 4. Formatting & Linting
   # --------------------------------------------------------------------------
-  # Ruff owns Python lint (incl. security `S`, docstrings `D`) and formatting.
+  # Ruff check/format enforce base rules on changed Python files.
+  # The local policy hook below owns the complete, path-scoped base, docs, and
+  # security profiles so CI and local hooks share one auditable entrypoint.
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # frozen: v0.16.4
     rev: aab412d509121cb5f7533134b7e67f9fab59c682  # pragma: allowlist secret
     hooks:
       - id: ruff-check
         args: [--fix, --exit-non-zero-on-fix]
-        exclude: ^\.agents/
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/
+          )
       - id: ruff-format
-        exclude: ^\.agents/
+        exclude: |
+          (?x)^(
+            \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/
+          )
 
   - repo: local
     hooks:
-      - id: generated-projection-ruff
-        name: generated-projection-ruff
+      - id: ruff-policy
+        name: ruff-policy
         entry: >-
-          uv run --locked --no-sync ruff check
-          --no-fix
-          --ignore-noqa
-          --extend-ignore S603,S607,PTH
-          .agents
+          uv run --locked --no-sync python scripts/check-ruff-policy.py
+          --profile all
         language: system
         pass_filenames: false
         always_run: true
+        stages: [pre-commit, pre-push]
 
   - repo: https://github.com/hukkin/mdformat
     # frozen: 1.0.0
@@ -197,13 +285,17 @@ repos:
         # ordered-list item to "1.", which reads badly in raw Markdown.
         args: ["--number"]
         additional_dependencies: ["mdformat-gfm==1.0.0"]
+        # docs/ is built and strictly validated by MkDocs Material; mdformat
+        # does not support Python-Markdown admonitions (!!!) and would corrupt
+        # 4-space callout indentations.
         # Canonical source lives in the installed central distribution;
         # .agents/ is a public, tracked projection; .claude/, .codex/,
-        # .opencode/ and .github/prompts/ are generated mirrors. Every mirror
-        # is gitignored, so none reach pre-commit -- this guard prevents drift
-        # if a mirror or projection file is processed by mdformat.
+        # .opencode/ and .github/prompts/ are generated mirrors. The global
+        # exclusion keeps these paths out of generic hooks; this local guard
+        # prevents drift if a projection is passed to mdformat explicitly.
         exclude: |
           (?x)^(
+            docs/|
             \.agents/|
             \.claude/|
             \.codex/|
@@ -231,18 +323,31 @@ repos:
     hooks:
       - id: codespell
         args: ["--ignore-words=.codespellignore"]
+        files: ^(?:src|tests|scripts|examples)/.*\.(?:py|pyi|pyw|sh|bash)$
         exclude: |
           (?x)^(
             \.agents/|
+            \.claude/|
+            \.codex/|
+            \.opencode/|
+            \.github/prompts/|
             uv\.lock$|
             \.secrets\.baseline$
           )
 
   # --------------------------------------------------------------------------
-  # 4.1. Import Graph
+  # 4.1. Import Graph & Documentation Contracts
   # --------------------------------------------------------------------------
   - repo: local
     hooks:
+      - id: check-docs-contracts
+        name: check-docs-contracts
+        entry: uv run --locked --no-sync python scripts/check-docs-contracts.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, pre-push]
+
       - id: import-cycles
         name: import-cycles
         entry: uv run --locked --no-sync python scripts/check-import-cycles.py
@@ -296,6 +401,7 @@ repos:
         entry: >-
           uv run --locked --no-sync python
           .agents/scripts/check-max-lines.py
+        args: [src, tests, scripts, examples]
         language: system
         pass_filenames: false
         always_run: true
@@ -318,7 +424,7 @@ repos:
         name: pip-audit
         # Do not suppress dependency advisories. Documentation-only
         # dependencies still execute in local build and CI environments.
-        entry: uv run --locked --no-sync pip-audit
+        entry: uv run --locked --no-sync pip-audit --timeout 60
         language: system
         pass_filenames: false
         always_run: true

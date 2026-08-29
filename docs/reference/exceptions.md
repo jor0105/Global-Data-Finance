@@ -4,162 +4,229 @@ Catálogo completo de exceções do Global-Data-Finance.
 
 ______________________________________________________________________
 
-## Exceções Globais (`macro_exceptions`)
+## Visão Geral
 
-### `NetworkError`
+O Global-Data-Finance adota uma política rigorosa de tratamento de erros:
 
-```python
-class NetworkError(Exception):
-    """Erro de rede durante download."""
-```
+- **Validação Antecipada (Fail-Fast)**: Erros de parâmetros de entrada, tipos de documentos, classes de ativos ou caminhos inseguros disparam exceções tipadas de forma síncrona antes do início das operações de I/O.
+- **Resiliência em Rede**: Em downloads assíncronos da CVM, falhas transitórias de conexão acionam retries automáticos com backoff exponencial. Falhas persistentes são agregadas no atributo `failed_downloads` do `DownloadResultCVM`, sem abortar downloads de outros arquivos.
+- **Hierarquia Clara**: Não há exceção genérica fictícia (como `GlobalDataFinanceError`); cada fonte e infraestrutura possui classes específicas e previsíveis.
 
-**Quando ocorre**: Problemas de conexão HTTP
+______________________________________________________________________
 
-**Como tratar**:
+## Exceções de Infraestrutura (`macro_exceptions`)
 
-```python
-try:
-    cvm.download(...)
-except NetworkError as e:
-    print(f"Erro de rede: {e}")
-    # Verificar conexão e tentar novamente
-```
+As exceções de infraestrutura representam erros transversais de sistema de arquivos, rede, validação de caminhos e integridade de arquivos.
 
-### `TimeoutError`
+### Sistema de Arquivos e Permissões
 
-```python
-class TimeoutError(Exception):
-    """Timeout em requisição."""
-```
-
-**Quando ocorre**: Requisição excede tempo limite
-
-### `ExtractionError`
-
-```python
-class ExtractionError(Exception):
-    """Erro ao extrair arquivo."""
-```
-
-**Quando ocorre**: Falha ao extrair ZIP ou processar dados
-
-### `EmptyDirectoryError`
-
-```python
-class EmptyDirectoryError(Exception):
-    """Diretório vazio ou sem arquivos esperados."""
-```
-
-**Quando ocorre**: Diretório não contém arquivos necessários
-
-### `InvalidDestinationPathError`
+#### `InvalidDestinationPathError`
 
 ```python
 class InvalidDestinationPathError(ValueError):
-    """Caminho de destino inválido."""
+    """Caminho de destino inválido ou bloqueado por política de segurança."""
 ```
 
-**Quando ocorre**: Caminho não existe ou sem permissões
+- **Herança**: `ValueError`
+- **Quando ocorre**: Caminho de destino aponta para diretório de sistema protegido, arquivo em vez de pasta, ou viola regras de traversal.
 
-### `DiskFullError`
+#### `PathIsNotDirectoryError`
+
+```python
+class PathIsNotDirectoryError(ValueError):
+    """Caminho fornecido não é um diretório."""
+```
+
+- **Herança**: `ValueError`
+
+#### `PathPermissionError`
+
+```python
+class PathPermissionError(OSError):
+    """Permissão insuficiente para criar ou acessar diretório."""
+```
+
+- **Herança**: `OSError`
+
+#### `PathCreationError`
+
+```python
+class PathCreationError(OSError):
+    """Falha ao criar diretório no sistema de arquivos."""
+```
+
+- **Herança**: `OSError`
+
+#### `FileWriteError` e `ParquetWriteError`
+
+```python
+class FileWriteError(OSError):
+    """Falha ao gravar arquivo no disco."""
+
+
+class ParquetWriteError(OSError):
+    """Falha ao serializar ou gravar arquivo Parquet."""
+```
+
+- **Herança**: `OSError`
+
+#### `DiskFullError`
 
 ```python
 class DiskFullError(OSError):
-    """Disco cheio."""
+    """Espaço em disco insuficiente."""
 ```
 
-**Quando ocorre**: Espaço insuficiente em disco
+- **Herança**: `OSError`
 
-### `SecurityError`
+### Operações de Extração e Arquivos
+
+#### `EmptyDirectoryError`
+
+```python
+class EmptyDirectoryError(Exception):
+    """Diretório de entrada fisicamente vazio."""
+```
+
+- **Quando ocorre**: Somente quando o diretório de entrada está fisicamente vazio.
+  Um diretório que não está vazio, mas não contém COTAHIST correspondente ao
+  ano solicitado, retorna um resultado vazio (`success=True`, `total_files=0`,
+  `total_records=0`, `output_file=""` e `errors={}`).
+
+#### `ExtractionError` e `CorruptedZipError`
+
+```python
+class ExtractionError(Exception):
+    """Erro durante o processo de extração de dados."""
+
+
+class CorruptedZipError(ExtractionError):
+    """Arquivo ZIP corrompido ou ilegível."""
+```
+
+- **Herança**: `CorruptedZipError` herda de `ExtractionError`.
+
+#### `SecurityError`
 
 ```python
 class SecurityError(Exception):
-    """Violação de segurança."""
+    """Violação de segurança detectada em operações de arquivo ou caminho."""
 ```
 
-**Quando ocorre**: Tentativa de acesso não autorizado
+### Rede e HTTP de Baixo Nível
+
+#### `NetworkError` e `TimeoutError`
+
+```python
+class NetworkError(Exception):
+    """Falha de conectividade traduzida durante downloads CVM."""
+
+
+class TimeoutError(Exception):
+    """Tempo limite de requisição excedido durante downloads CVM."""
+```
+
+- **Origem e Tradução no Pipeline**:
+  1. O adapter HTTP de baixo nível (`RequestsAdapter.async_download_file`) executa o streaming via `httpx` e pode propagar exceções de transporte (`httpx.RequestError`, `httpx.HTTPStatusError`, `httpx.TimeoutException`, `ConnectionError`) ou erros de escrita em disco.
+  2. O adapter CVM (`AsyncDownloadAdapterCVM._download_with_retry`) intercepta essas exceções de transporte e as traduz para as exceções de domínio `NetworkError` e `TimeoutError`.
+  3. A camada `RetryStrategy` aplica tentativas automáticas com recuo exponencial (*exponential backoff*).
+  4. Falhas persistentes após o esgotamento dos retries são consolidadas no dicionário `result.failed_downloads` do `DownloadResultCVM`, sem abortar downloads concorrentes de outros anos ou documentos.
 
 ______________________________________________________________________
 
-## Exceções CVM
+## Exceções CVM (`fundamental_stocks_data.errors`)
 
-### `InvalidDocumentName`
-
-```python
-class InvalidDocumentName(Exception):
-    """Tipo de documento inválido."""
-```
-
-**Quando ocorre**: Documento não está na lista de disponíveis
-
-**Como tratar**:
+Todas as exceções específicas da CVM herdam de `CvmError`.
 
 ```python
-try:
-    cvm.download(list_docs=["INVALID"])
-except InvalidDocumentName:
-    docs = cvm.get_available_docs()
-    print(f"Documentos válidos: {list(docs.keys())}")
+class CvmError(Exception):
+    """Exceção base para todas as falhas de domínio CVM."""
 ```
 
-### `InvalidFirstYear`
+### `InvalidDocumentName` e `InvalidDocumentType`
 
 ```python
-class InvalidFirstYear(Exception):
-    """Ano inicial inválido."""
+class InvalidDocumentName(CvmError):
+    """Nome ou código de documento CVM inválido."""
+
+
+class InvalidDocumentType(CvmError):
+    """Tipo de dado inválido para a lista de documentos."""
 ```
 
-**Quando ocorre**: Ano < mínimo ou > atual
+- **Quando ocorrem**: Documento não pertence ao catálogo oficial (`"DFP"`, `"ITR"`, `"FCA"`, `"FRE"`, `"CGVN"`, `"VLMO"`, `"IPE"`), ou o parâmetro não é uma lista/string válida.
 
-### `InvalidLastYear`
+### `InvalidFirstYear` e `InvalidLastYear`
 
 ```python
-class InvalidLastYear(Exception):
-    """Ano final inválido."""
+class InvalidFirstYear(CvmError):
+    """Ano inicial fora do intervalo permitido para o documento."""
+
+
+class InvalidLastYear(CvmError):
+    """Ano final inválido ou menor que o ano inicial."""
 ```
 
-**Quando ocorre**: Ano < initial_year ou > atual
+- **Quando ocorrem**: Ano informado é inferior ao ano mínimo histórico daquele documento ou superior ao ano corrente do sistema.
 
-### `EmptyDocumentListError`
+### `EmptyDocumentListError` e `MissingDownloadUrlError`
 
 ```python
-class EmptyDocumentListError(Exception):
-    """Lista de documentos vazia."""
+class EmptyDocumentListError(CvmError):
+    """Nenhum documento disponível para download após resolução interna."""
+
+
+class MissingDownloadUrlError(CvmError):
+    """URL de download não configurada para o documento solicitado."""
 ```
 
-**Quando ocorre**: `list_docs` é lista vazia
+- **Nota de semântica**: Na API pública `FundamentalStocksDataCVM.download()`, passar `list_docs=None` ou `list_docs=[]` é interpretado como solicitação de **todos os documentos disponíveis**. `EmptyDocumentListError` é uma exceção interna usada quando a resolução de URLs resulta em conjunto vazio.
 
 ______________________________________________________________________
 
-## Exceções B3
+## Exceções B3 (`historical_quotes.errors`)
 
-### `InvalidAssetsName`
+Exceções do domínio de cotações históricas da B3.
+
+### `InvalidAssetsName` e `EmptyAssetListError`
 
 ```python
 class InvalidAssetsName(Exception):
-    """Classe de ativo inválida."""
-```
+    """Classe de ativo não suportada pela B3."""
 
-**Quando ocorre**: Ativo não está na lista de disponíveis
 
-**Como tratar**:
-
-```python
-try:
-    b3.extract(assets_list=["invalid"])
-except InvalidAssetsName:
-    assets = b3.get_available_assets()
-    print(f"Ativos válidos: {assets}")
-```
-
-### `EmptyAssetListError`
-
-```python
 class EmptyAssetListError(Exception):
-    """Lista de ativos vazia."""
+    """Lista de classes de ativos vazia."""
 ```
 
-**Quando ocorre**: `assets_list` é lista vazia
+- **Quando ocorrem**: `assets_list` está vazia ou contém identificadores fora do catálogo suportado (`'ações'`, `'etf'`, `'opções'`, `'termo'`, `'exercicio_opcoes'`, `'forward'`, `'leilao'`).
+
+### `InvalidProcessingMode`
+
+```python
+class InvalidProcessingMode(Exception):
+    """Modo de processamento inválido (deve ser 'fast' ou 'slow')."""
+```
+
+### `InvalidOutputFilename`
+
+```python
+class InvalidOutputFilename(Exception):
+    """Nome de arquivo de saída inválido (deve ser apenas basename sem caminhos)."""
+```
+
+- **Quando ocorre**: `output_filename` contém barras (`/` ou `\`) ou `..`. O sufixo `.parquet` é opcional e é acrescentado automaticamente quando omitido.
+
+### `InvalidFirstYear` e `InvalidLastYear` (B3)
+
+```python
+class InvalidFirstYear(Exception):
+    """Ano inicial inferior a 1986 ou superior ao ano atual."""
+
+
+class InvalidLastYear(Exception):
+    """Ano final inferior ao ano inicial ou superior ao ano atual."""
+```
 
 ______________________________________________________________________
 
@@ -167,66 +234,136 @@ ______________________________________________________________________
 
 ```
 Exception
-├── NetworkError
-├── TimeoutError
-├── ExtractionError
-│   └── CorruptedZipError
-├── SecurityError
-├── InvalidDocumentName
-├── InvalidFirstYear
-├── InvalidLastYear
-├── InvalidAssetsName
-├── EmptyAssetListError
-├── EmptyDocumentListError
-└── EmptyDirectoryError
+├── macro_exceptions
+│   ├── EmptyDirectoryError
+│   ├── NetworkError
+│   ├── TimeoutError
+│   ├── ExtractionError
+│   │   └── CorruptedZipError
+│   └── SecurityError
+├── CvmError
+│   ├── InvalidDocumentName
+│   ├── InvalidDocumentType
+│   ├── InvalidFirstYear
+│   ├── InvalidLastYear
+│   ├── EmptyDocumentListError
+│   └── MissingDownloadUrlError
+└── B3 Exceptions
+    ├── InvalidAssetsName
+    ├── EmptyAssetListError
+    ├── InvalidProcessingMode
+    ├── InvalidOutputFilename
+    ├── InvalidFirstYear
+    └── InvalidLastYear
 
 ValueError
-└── InvalidDestinationPathError
+├── InvalidDestinationPathError
+└── PathIsNotDirectoryError
 
 OSError
+├── PathPermissionError
+├── PathCreationError
+├── FileWriteError
+├── ParquetWriteError
 └── DiskFullError
 ```
 
 ______________________________________________________________________
 
-## Exemplo de Tratamento Completo
+## Exemplos de Tratamento
+
+### Exemplo 1: Tratamento na API CVM
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
+    CvmError,
     InvalidDocumentName,
     InvalidFirstYear,
     InvalidLastYear,
 )
 from globaldatafinance.macro_exceptions import (
-    NetworkError,
-    TimeoutError,
-    DiskFullError,
+    InvalidDestinationPathError,
+    PathPermissionError,
 )
 
 cvm = FundamentalStocksDataCVM()
 
 try:
-    cvm.download(
+    # 1. Validação síncrona de parâmetros e diretórios
+    result = cvm.download(
         destination_path="/data/cvm",
         list_docs=["DFP"],
-        initial_year=2022
+        initial_year=2022,
+        last_year=2023,
     )
-except InvalidDocumentName as e:
-    print(f"Documento inválido: {e}")
-except InvalidFirstYear as e:
-    print(f"Ano inválido: {e}")
-except NetworkError as e:
-    print(f"Erro de rede: {e}")
-except TimeoutError as e:
-    print(f"Timeout: {e}")
-except DiskFullError as e:
-    print(f"Disco cheio: {e}")
-except Exception as e:
-    print(f"Erro inesperado: {e}")
+
+    # 2. Inspeção do resultado agregado (falhas de rede são retentadas e reportadas no resultado)
+    if result.has_errors():
+        print(f"Houve {result.error_count_downloads} falha(s) persistente(s):")
+        for doc_key, message in result.failed_downloads.items():
+            print(f"  • {doc_key}: {message}")
+    else:
+        print(f"Sucesso: {result.success_count_downloads} arquivos baixados.")
+
+except InvalidDocumentName as exc:
+    print(f"Documento inválido: {exc}")
+except (InvalidFirstYear, InvalidLastYear) as exc:
+    print(f"Intervalo de anos inválido: {exc}")
+except InvalidDestinationPathError as exc:
+    print(f"Caminho de destino inseguro ou inválido: {exc}")
+except PathPermissionError as exc:
+    print(f"Sem permissão no diretório: {exc}")
+except CvmError as exc:
+    print(f"Erro geral do módulo CVM: {exc}")
 ```
 
-> Exceções específicas de cada fonte vivem em `errors.py` dentro da própria fonte (ex.: `brazil.cvm.fundamental_stocks_data.errors`, `brazil.b3_data.historical_quotes.errors`).
+### Exemplo 2: Tratamento na API B3
+
+```python
+from globaldatafinance import HistoricalQuotesB3
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
+    EmptyAssetListError,
+    InvalidAssetsName,
+    InvalidFirstYear,
+    InvalidLastYear,
+    InvalidOutputFilename,
+    InvalidProcessingMode,
+)
+from globaldatafinance.macro_exceptions import (
+    EmptyDirectoryError,
+    InvalidDestinationPathError,
+)
+
+b3 = HistoricalQuotesB3()
+
+try:
+    result = b3.extract(
+        path_of_docs="/data/cotahist",
+        assets_list=["ações", "etf"],
+        initial_year=2023,
+        output_filename="cotacoes_2023",
+        processing_mode="fast",
+    )
+    print(
+        f"Extraídos {result['total_records']:,} registros em {result['output_file']}"
+    )
+
+except EmptyAssetListError:
+    print("A lista de classes de ativos não pode ser vazia.")
+except InvalidAssetsName as exc:
+    print(f"Classe de ativo inválida: {exc}")
+except (InvalidFirstYear, InvalidLastYear) as exc:
+    print(f"Intervalo de anos B3 inválido: {exc}")
+except InvalidOutputFilename as exc:
+    print(f"Nome de arquivo de saída inválido: {exc}")
+except InvalidProcessingMode as exc:
+    print(f"Modo de processamento deve ser 'fast' ou 'slow': {exc}")
+except EmptyDirectoryError as exc:
+    print(f"Diretório sem arquivos COTAHIST: {exc}")
+except InvalidDestinationPathError as exc:
+    print(f"Caminho inválido: {exc}")
+```
 
 ______________________________________________________________________
 

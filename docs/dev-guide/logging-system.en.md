@@ -65,7 +65,7 @@ logger.error("Exception encountered during operational step")
 logger.info(
     "Dataset normalization completed",
     extra={
-        "filename": "dfp_cia_aberta_2023.csv",
+        "file_target": "dfp_cia_aberta_2023.csv",
         "records": 1000,
         "elapsed_ms": 250
     }
@@ -75,7 +75,7 @@ logger.info(
 **Console Output**:
 
 ```text
-2025-11-25 17:30:00 | INFO     | my_pipeline_module | Dataset normalization completed | filename=dfp_cia_aberta_2023.csv | records=1000 | elapsed_ms=250
+2025-11-25 17:30:00 | INFO     | my_pipeline_module | Dataset normalization completed | file_target=dfp_cia_aberta_2023.csv | records=1000 | elapsed_ms=250
 ```
 
 ______________________________________________________________________
@@ -151,21 +151,21 @@ from globaldatafinance.core import log_execution_time, get_logger
 
 logger = get_logger(__name__)
 
-with log_execution_time(logger, "Parse COTAHIST ZIP archive", filename="COTAHIST_A2023.ZIP"):
+with log_execution_time(logger, "Parse COTAHIST ZIP archive", file_target="COTAHIST_A2023.ZIP"):
     parse_file("COTAHIST_A2023.ZIP")
 ```
 
 **Console Output**:
 
 ```text
-Starting: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | filename=COTAHIST_A2023.ZIP
-Completed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=2.45 | filename=COTAHIST_A2023.ZIP
+Starting: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | file_target=COTAHIST_A2023.ZIP
+Completed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=2.45 | file_target=COTAHIST_A2023.ZIP
 ```
 
 Upon encountering runtime failures:
 
 ```text
-Failed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=1.23 | error=File not found | filename=COTAHIST_A2023.ZIP
+Failed: Parse COTAHIST ZIP archive | operation=Parse COTAHIST ZIP archive | elapsed_seconds=1.23 | error=File not found | file_target=COTAHIST_A2023.ZIP
 ```
 
 ### Contextual Event Reporting
@@ -180,6 +180,7 @@ log_with_context(
     "info",
     "Parallel download batch completed",
     url="https://example.com/bundle.zip",
+    file_target="bundle.zip",
     size_mb=125.5,
     duration_seconds=45
 )
@@ -342,7 +343,7 @@ logger.error("Completed extraction step")      # Should utilize INFO
 # ✅ Correct - explicit structured field assignment
 logger.info(
     "Dataframe normalized",
-    extra={"filename": "cotahist.parquet", "size_mb": 10.5}
+    extra={"file_target": "cotahist.parquet", "size_mb": 10.5}
 )
 
 # ❌ Discouraged - mixing unparseable values within string interpolation
@@ -354,11 +355,11 @@ logger.info(f"File cotahist.parquet processed with size: 10.5 MB")
 ```python
 # ✅ Correct - automated exception tracking and duration timing
 with log_execution_time(logger, "Download Workflow"):
-    download_files()
+    time.sleep(1)
 
 # ❌ Discouraged - manual timer bookkeeping
 start = time.time()
-download_files()
+time.sleep(1)
 logger.info(f"Execution took {time.time() - start} seconds")
 ```
 

@@ -3,8 +3,43 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
+
+from process_runner import ProcessResult, ProcessRunnerError, run_process
+
+EXTERNAL_HARNESS_ROOTS = (
+    '.agents/',
+    '.claude/',
+    '.codex/',
+    '.opencode/',
+    '.github/prompts/',
+)
+
+
+def is_external_harness_path(path: str) -> bool:
+    """Return whether a repository path belongs to a generated projection."""
+    normalized = path.replace('\\', '/')
+    while normalized.startswith('./'):
+        normalized = normalized[2:]
+    return any(
+        normalized == root.rstrip('/') or normalized.startswith(root)
+        for root in EXTERNAL_HARNESS_ROOTS
+    )
+
+
+def _pathspecs(target_files: list[str] | None) -> list[str]:
+    """Build Git pathspecs that exclude generated harness projections."""
+    if target_files:
+        included = [
+            path for path in target_files if not is_external_harness_path(path)
+        ]
+        if not included:
+            return []
+    else:
+        included = ['.']
+
+    excluded = [f':(exclude){root}**' for root in EXTERNAL_HARNESS_ROOTS]
+    return [*included, *excluded]
 
 
 class GitInspectionError(RuntimeError):
@@ -16,25 +51,12 @@ def _run_git(
     root: Path,
     *,
     check: bool = True,
-) -> subprocess.CompletedProcess[str]:
+) -> ProcessResult:
     """Run Git in a repository and translate infrastructure failures."""
     try:
-        return subprocess.run(
-            ['git', *arguments],
-            cwd=root,
-            capture_output=True,
-            check=check,
-            encoding='utf-8',
-            text=True,
-        )
-    except (
-        subprocess.SubprocessError,
-        FileNotFoundError,
-        OSError,
-        UnicodeError,
-    ) as err:
-        detail = getattr(err, 'stderr', None) or str(err)
-        raise GitInspectionError(str(detail).strip()) from err
+        return run_process(['git', *arguments], cwd=root, check=check)
+    except ProcessRunnerError as err:
+        raise GitInspectionError(str(err)) from err
 
 
 def _root(repo_root: Path | None) -> Path:
@@ -45,7 +67,7 @@ def _root(repo_root: Path | None) -> Path:
 def range_target_revision(
     revision_range: str, repo_root: Path | None = None
 ) -> str:
-    """Validate a Git range and return the revision representing its right side."""
+    """Validate a Git range and return its right-side revision."""
     separator = '...' if '...' in revision_range else '..'
     if separator not in revision_range:
         raise GitInspectionError(
@@ -81,9 +103,10 @@ def get_diff(
     else:
         range_target_revision(revision_range, root)
         command.append(revision_range)
-    command.append('--')
-    if target_files:
-        command.extend(target_files)
+    pathspecs = _pathspecs(target_files)
+    if target_files and not pathspecs:
+        return ''
+    command.extend(['--', *pathspecs])
     return _run_git(command, root).stdout
 
 
@@ -106,9 +129,11 @@ def get_changed_paths(
     else:
         range_target_revision(revision_range, root)
         command.append(revision_range)
-    command.append('--')
+    command.extend(['--', *_pathspecs(None)])
     return sorted(
-        path for path in _run_git(command, root).stdout.splitlines() if path
+        path
+        for path in _run_git(command, root).stdout.splitlines()
+        if path and not is_external_harness_path(path)
     )
 
 
@@ -119,6 +144,8 @@ def read_git_file(
     repo_root: Path | None = None,
 ) -> str | None:
     """Read a file from the staged index or from a revision range endpoint."""
+    if is_external_harness_path(file_path):
+        return None
     root = _root(repo_root)
     if revision_range is None:
         index_entry = _run_git(['ls-files', '--stage', '--', file_path], root)

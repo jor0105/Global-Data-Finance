@@ -23,43 +23,46 @@ ______________________________________________________________________
 
 A B3 disponibiliza cotações históricas para as seguintes classes de ativos:
 
-| Código               | Descrição           | Mercados Incluídos                        |
+| Código               | Descrição           | Códigos TPMERC B3 Incluídos               |
 | -------------------- | ------------------- | ----------------------------------------- |
-| **ações**            | Ações               | Mercado à vista (010) e fracionário (012) |
-| **etf**              | ETFs                | Exchange Traded Funds                     |
+| **ações**            | Ações               | Mercado à vista (010) e fracionário (020) |
+| **etf**              | ETFs                | Mercado à vista (010) e fracionário (020) |
 | **opções**           | Opções              | Calls (070) e Puts (080)                  |
-| **termo**            | Mercado a Termo     | Contratos a termo                         |
-| **exercicio_opcoes** | Exercício de Opções | Exercício de opções                       |
-| **forward**          | Mercado Forward     | Contratos forward                         |
-| **leilao**           | Leilão              | Mercado de leilão                         |
+| **termo**            | Mercado a Termo     | Contratos a termo (030)                   |
+| **exercicio_opcoes** | Exercício de Opções | Exercício Compra (012) e Venda (013)      |
+| **forward**          | Contratos forward   | Forward c/ Ganho (050) e Mov. (060)       |
+| **leilao**           | Leilão              | Mercado de leilão (017)                   |
+
+> `ações` e `etf` são aliases de seleção que compartilham os códigos de mercado à vista (010) e fracionário (020).
+
+BDRs e Futures são **Planned** e não são aceitos pelo contrato atual de
+`HistoricalQuotesB3`. As strings em português da tabela são valores canônicos
+da API e devem ser passadas exatamente como mostradas.
 
 !!! info "Dados Históricos"
-Cotações históricas da B3 estão disponíveis desde **1986** até o ano atual.
+    Cotações históricas da B3 estão disponíveis desde **1986** até o ano atual.
 
 ______________________________________________________________________
 
 ## Uso Básico
 
-### Importação
+Antes de chamar `extract()`, coloque arquivos oficiais `COTAHIST_A{YYYY}.ZIP` ou
+`COTAHIST_A{YYYY}.TXT` no diretório existente de `path_of_docs`; a biblioteca
+não baixa nem preenche esse diretório. Obtenha os arquivos na [página oficial de
+Cotações Históricas da B3](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/); o ZIP prevalece quando os dois formatos existem para o mesmo ano.
+
+### Exemplo de Início Rápido
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
-```
 
-### Criar Instância
-
-```python
 b3 = HistoricalQuotesB3()
-```
 
-### Extração Simples
-
-```python
-# Extrair cotações de ações do ano atual
+# Extrair cotações de ações de um ano histórico fechado
 result = b3.extract(
-    path_of_docs="/home/usuario/cotahist_zips",
+    path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    initial_year=2023
+    initial_year=2023,
 )
 
 print(f"✓ Extraídos {result['total_records']:,} registros")
@@ -71,7 +74,7 @@ ______________________________________________________________________
 
 ### `extract()`
 
-Extrai cotações históricas de arquivos COTAHIST ZIP para formato Parquet.
+Extrai cotações históricas de arquivos COTAHIST (arquivos ZIP ou TXT descompactados) e consolida os dados filtrados em formato Parquet.
 
 #### Assinatura
 
@@ -79,54 +82,59 @@ Extrai cotações históricas de arquivos COTAHIST ZIP para formato Parquet.
 def extract(
     self,
     path_of_docs: str,
-    assets_list: List[str],
-    initial_year: Optional[int] = None,
-    last_year: Optional[int] = None,
-    destination_path: Optional[str] = None,
+    assets_list: list[str],
+    initial_year: int | None = None,
+    last_year: int | None = None,
+    destination_path: str | None = None,
     output_filename: str = "cotahist_extracted",
     processing_mode: str = "fast",
-) -> Dict[str, Any]
+    verbose: bool = True,
+) -> ExtractionResultB3:
+    ...
 ```
 
 #### Parâmetros
 
-| Parâmetro          | Tipo        | Obrigatório | Descrição                                             |
-| ------------------ | ----------- | ----------- | ----------------------------------------------------- |
-| `path_of_docs`     | `str`       | ✅ Sim      | Diretório contendo arquivos COTAHIST ZIP              |
-| `assets_list`      | `List[str]` | ✅ Sim      | Lista de classes de ativos a extrair                  |
-| `initial_year`     | `int`       | ❌ Não      | Ano inicial (padrão: 1986)                            |
-| `last_year`        | `int`       | ❌ Não      | Ano final (padrão: ano atual)                         |
-| `destination_path` | `str`       | ❌ Não      | Diretório de saída (padrão: mesmo que `path_of_docs`) |
-| `output_filename`  | `str`       | ❌ Não      | Nome do arquivo de saída sem extensão                 |
-| `processing_mode`  | `str`       | ❌ Não      | Modo de processamento: `"fast"` ou `"slow"`           |
+| Parâmetro          | Tipo          | Obrigatório | Descrição                                             |
+| ------------------ | ------------- | ----------- | ----------------------------------------------------- |
+| `path_of_docs`     | `str`         | ✅ Sim      | Diretório contendo arquivos COTAHIST ZIP ou TXT       |
+| `assets_list`      | `list[str]`   | ✅ Sim      | Lista de classes de ativos a extrair                  |
+| `initial_year`     | `int \| None` | ❌ Não      | Ano inicial (padrão: 1986)                            |
+| `last_year`        | `int \| None` | ❌ Não      | Ano final (padrão: ano atual)                         |
+| `destination_path` | `str \| None` | ❌ Não      | Diretório de saída (padrão: mesmo que `path_of_docs`) |
+| `output_filename`  | `str`         | ❌ Não      | Basename obrigatório; `.parquet` opcional e acrescentado apenas quando ausente |
+| `processing_mode`  | `str`         | ❌ Não      | Modo de processamento: `"fast"` ou `"slow"`           |
+| `verbose`          | `bool`        | ❌ Não      | Se `True` (padrão), imprime resumo no console         |
 
-#### Retorno
+#### Retorno (`ExtractionResultB3`)
 
-Dicionário com as seguintes chaves:
-
-| Chave           | Tipo        | Descrição                                  |
-| --------------- | ----------- | ------------------------------------------ |
-| `success`       | `bool`      | `True` se extração foi bem-sucedida        |
-| `message`       | `str`       | Mensagem resumida do resultado             |
-| `total_files`   | `int`       | Total de arquivos ZIP processados          |
-| `success_count` | `int`       | Arquivos processados com sucesso           |
-| `error_count`   | `int`       | Arquivos com erro                          |
-| `total_records` | `int`       | Total de registros extraídos               |
-| `output_file`   | `str`       | Caminho completo do arquivo Parquet gerado |
-| `errors`        | `List[str]` | Lista de erros (se houver)                 |
+| Chave             | Tipo             | Descrição                                             |
+| ----------------- | ---------------- | ----------------------------------------------------- |
+| `success`         | `bool`           | `True` se a extração foi concluída com sucesso        |
+| `message`         | `str`            | Mensagem resumida do resultado                        |
+| `total_files`     | `int`            | Total de arquivos de entrada processados (ZIP ou TXT) |
+| `success_count`   | `int`            | Arquivos processados com sucesso                      |
+| `error_count`     | `int`            | Arquivos com erro                                     |
+| `total_records`   | `int`            | Total de registros extraídos                          |
+| `output_file`     | `str`            | Caminho completo do arquivo Parquet gerado            |
+| `errors`          | `dict[str, str]` | Dicionário mapeando arquivos com erro à mensagem      |
+| `assets`          | `list[str]`      | Lista de classes de ativos extraídas                  |
+| `processing_mode` | `str`            | Modo de processamento utilizado                       |
+| `elapsed_time`    | `float`          | Tempo total de execução em segundos                   |
 
 #### Exemplos
 
 **Exemplo 1: Extração básica de ações**
 
 ```python
-b3 = HistoricalQuotesB3()
+from globaldatafinance import HistoricalQuotesB3
 
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=2022,
-    last_year=2023
+    last_year=2023,
 )
 
 if result['success']:
@@ -137,35 +145,44 @@ if result['success']:
 **Exemplo 2: Múltiplas classes de ativos**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações", "etf", "opções"],
     initial_year=2020,
     last_year=2023,
-    output_filename="multi_ativos_2020_2023"
+    output_filename="multi_ativos_2020_2023",
 )
 ```
 
 **Exemplo 3: Modo de baixa performance (economia de recursos)**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=2023,
-    processing_mode="slow"  # Usa menos CPU/RAM
+    processing_mode="slow",  # Usa menos CPU/RAM
 )
 ```
 
 **Exemplo 4: Destino personalizado**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist_zips",
     destination_path="/data/cotacoes_extraidas",
     assets_list=["ações", "etf"],
     initial_year=2023,
-    output_filename="acoes_etf_2023"
+    output_filename="acoes_etf_2023",
 )
 # Arquivo salvo em: /data/cotacoes_extraidas/acoes_etf_2023.parquet
 ```
@@ -179,7 +196,8 @@ Retorna lista de todas as classes de ativos disponíveis.
 #### Assinatura
 
 ```python
-def get_available_assets(self) -> List[str]
+def get_available_assets(self) -> list[str]:
+    ...
 ```
 
 #### Retorno
@@ -189,25 +207,12 @@ Lista de strings com códigos das classes de ativos.
 #### Exemplo
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
 b3 = HistoricalQuotesB3()
 assets = b3.get_available_assets()
-
-print("Classes de ativos disponíveis:")
-for asset in assets:
-    print(f"  • {asset}")
-```
-
-**Saída**:
-
-```
-Classes de ativos disponíveis:
-  • ações
-  • etf
-  • opções
-  • termo
-  • exercicio_opcoes
-  • forward
-  • leilao
+# ['ações', 'etf', 'opções', 'termo', 'exercicio_opcoes', 'forward', 'leilao']
+print(f"Disponíveis {len(assets)} classes de ativos")
 ```
 
 ______________________________________________________________________
@@ -219,31 +224,23 @@ Retorna informações sobre o intervalo de anos disponível.
 #### Assinatura
 
 ```python
-def get_available_years(self) -> Dict[str, int]
+def get_available_years(self) -> dict[str, int]:
+    ...
 ```
 
 #### Retorno
 
-Dicionário com:
-
-| Chave            | Descrição                    |
-| ---------------- | ---------------------------- |
-| `"minimal_year"` | Ano mínimo disponível (1986) |
-| `"current_year"` | Ano atual                    |
+Dicionário com `minimal_year` (1986) e `current_year`.
 
 #### Exemplo
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
 b3 = HistoricalQuotesB3()
 years = b3.get_available_years()
-
-print(f"Dados disponíveis de {years['minimal_year']} até {years['current_year']}")
-```
-
-**Saída**:
-
-```
-Dados disponíveis de 1986 até ano atual
+# `current_year` corresponde ao ano corrente de execução.
+print(f"Dados de {years['minimal_year']} até {years['current_year']}")
 ```
 
 ______________________________________________________________________
@@ -260,10 +257,13 @@ A extração suporta dois modos de processamento:
 - **Recomendado para**: Máquinas com bons recursos, processamento de grandes volumes
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    processing_mode="fast"  # Padrão
+    processing_mode="fast",  # Padrão
 )
 ```
 
@@ -275,43 +275,48 @@ result = b3.extract(
 - **Recomendado para**: Máquinas com recursos limitados, processamento em background
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    processing_mode="slow"
+    processing_mode="slow",
 )
 ```
 
 ### Comparação de Performance
 
-| Modo     | Throughput medido | CPU   | Pico de RAM | Recomendado        |
-| -------- | ----------------- | ----- | ----------- | ------------------ |
-| **fast** | ~12.317 reg/s     | Alto  | ~4.260 MB   | ✅ Sim (padrão)    |
-| **slow** | ~8.557 reg/s      | Baixo | ~1.571 MB   | Recursos limitados |
+*Medição de benchmark em dataset completo (picos gerais variam de ~2 GB a 4.2 GB no modo `fast` e ~500 MB a 1.5 GB no modo `slow` conforme hardware e volume).*
+
+| Modo     | Throughput medido | CPU   | Pico de RAM (Benchmark) | Cenário Indicado   |
+| -------- | ----------------- | ----- | ----------------------- | ------------------ |
+| **fast** | ~12.317 reg/s     | Alto  | ~4.260 MB               | ✅ Padrão (rápido) |
+| **slow** | ~8.557 reg/s      | Baixo | ~1.571 MB               | Recursos limitados |
 
 ______________________________________________________________________
 
 ## Exemplos Avançados
 
-### Extração de Todos os Ativos
+### Todas as Classes Atualmente Suportadas
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 
-# Obter todas as classes de ativos
+# Obter todas as classes de ativos atualmente suportadas
 all_assets = b3.get_available_assets()
 
-# Extrair tudo
+# Extrair todas as classes atualmente suportadas
 result = b3.extract(
     path_of_docs="/data/cotahist",
-    assets_list=all_assets,  # Todas as classes
+    assets_list=all_assets,  # Todas as classes suportadas
     initial_year=2023,
     output_filename="todos_ativos_2023"
 )
 
-print(f"✓ Extraídos {result['total_records']:,} registros de {len(all_assets)} classes")
+print(f"✓ Extraídos {result['total_records']:,} registros de {len(all_assets)} classes suportadas")
 ```
 
 ### Extração Incremental por Ano
@@ -346,8 +351,9 @@ for year in range(2020, 2024):
 ### Validação Antes da Extração
 
 ```python
-from globaldatafinance import HistoricalQuotesB3
 import os
+import re
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 path_docs = "/data/cotahist"
@@ -357,23 +363,21 @@ if not os.path.exists(path_docs):
     print(f"✗ Diretório não encontrado: {path_docs}")
     exit(1)
 
-# 2. Verificar se há arquivos COTAHIST
-zip_files = [f for f in os.listdir(path_docs) if f.startswith("COTAHIST") and f.endswith(".ZIP")]
-
-if not zip_files:
+# 2. Verificar se há arquivos COTAHIST válidos (ZIP ou TXT com 4 dígitos de ano)
+pattern = re.compile(r"^COTAHIST_A\d{4}\.(?:ZIP|TXT)$", re.IGNORECASE)
+files = [f for f in os.listdir(path_docs) if pattern.match(f)]
+if not files:
     print(f"✗ Nenhum arquivo COTAHIST encontrado em {path_docs}")
     exit(1)
 
-print(f"✓ Encontrados {len(zip_files)} arquivos COTAHIST")
+print(f"✓ Encontrados {len(files)} arquivos COTAHIST")
 
 # 3. Validar classes de ativos
 requested_assets = ["ações", "etf"]
 available_assets = b3.get_available_assets()
-
 invalid_assets = [a for a in requested_assets if a not in available_assets]
 if invalid_assets:
-    print(f"✗ Ativos inválidos: {invalid_assets}")
-    print(f"Ativos disponíveis: {available_assets}")
+    print(f"✗ Ativos inválidos: {invalid_assets} (disponíveis: {available_assets})")
     exit(1)
 
 # 4. Prosseguir com extração
@@ -390,14 +394,14 @@ ______________________________________________________________________
 
 ### Exceções Comuns
 
-| Exceção               | Quando ocorre                    | Como tratar                            |
-| --------------------- | -------------------------------- | -------------------------------------- |
-| `EmptyAssetListError` | `assets_list` está vazio         | Fornecer pelo menos um ativo           |
-| `InvalidAssetsName`   | Ativo inválido em `assets_list`  | Verificar com `get_available_assets()` |
-| `InvalidFirstYear`    | `initial_year` fora do intervalo | Usar 1986 ≤ ano ≤ ano atual            |
-| `InvalidLastYear`     | `last_year` inválido             | Usar `initial_year` ≤ ano ≤ ano atual  |
-| `EmptyDirectoryError` | Diretório sem arquivos COTAHIST  | Verificar caminho e arquivos           |
-| `ExtractionError`     | Erro ao processar ZIP            | Verificar integridade dos arquivos     |
+| Exceção               | Quando ocorre                      | Como tratar                            |
+| --------------------- | ---------------------------------- | -------------------------------------- |
+| `EmptyAssetListError` | `assets_list` está vazio           | Fornecer pelo menos um ativo           |
+| `InvalidAssetsName`   | Ativo inválido em `assets_list`    | Verificar com `get_available_assets()` |
+| `InvalidFirstYear`    | `initial_year` fora do intervalo   | Usar 1986 ≤ ano ≤ ano atual            |
+| `InvalidLastYear`     | `last_year` inválido               | Usar `initial_year` ≤ ano ≤ ano atual  |
+| `EmptyDirectoryError` | Ocorre somente se o diretório estiver fisicamente vazio; diretório que não está vazio sem COTAHIST correspondente retorna resultado vazio (`success=True`, contadores 0, `output_file=""`, `errors={}`) | Inspecionar `total_files` e `total_records` |
+| `ExtractionError`     | Erro ao processar arquivo COTAHIST | Verificar integridade dos arquivos     |
 
 ______________________________________________________________________
 
@@ -405,19 +409,7 @@ ______________________________________________________________________
 
 ### Nomenclatura
 
-Os arquivos COTAHIST seguem o padrão:
-
-```
-COTAHIST_AXXXX.ZIP
-```
-
-Onde `XXXX` é o ano (ex: `COTAHIST_A2023.ZIP`).
-
-### Onde Obter
-
-Os arquivos COTAHIST podem ser baixados do site oficial da B3:
-
-🔗 **[https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)**
+Os arquivos oficiais da B3 seguem o padrão `COTAHIST_A{YYYY}.ZIP` (ex: `COTAHIST_A2023.ZIP`), onde `{YYYY}` é o ano com 4 dígitos. O extrator também aceita arquivos de texto descompactados no formato `COTAHIST_A{YYYY}.TXT`. Se ZIP e TXT do mesmo ano coexistirem, somente o ZIP será selecionado, de forma determinística.
 
 ### Estrutura Interna
 
@@ -492,34 +484,32 @@ ______________________________________________________________________
 ### 1. Use Modo Fast para Grandes Volumes
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 # ✅ Recomendado para grandes volumes
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=1986,  # 23+ anos
-    processing_mode="fast"
+    processing_mode="fast",
 )
 ```
 
 ### 2. Separe Extrações por Classe de Ativo
 
 ```python
-# ✅ Melhor: arquivos separados por classe
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+# ✅ Recomendado: arquivos separados por classe
 for asset in ["ações", "etf", "opções"]:
     result = b3.extract(
         path_of_docs="/data/cotahist",
         assets_list=[asset],
         initial_year=2023,
-        output_filename=f"{asset}_2023"
+        output_filename=f"{asset}_2023",
     )
-
-# ❌ Evite: tudo em um arquivo (pode ficar muito grande)
-result = b3.extract(
-    path_of_docs="/data/cotahist",
-    assets_list=["ações", "etf", "opções", "termo", "forward"],
-    initial_year=1986,  # 38+ anos!
-    output_filename="tudo"
-)
 ```
 
 ### 3. Verifique Espaço em Disco
@@ -550,4 +540,4 @@ ______________________________________________________________________
 ______________________________________________________________________
 
 !!! tip "Dica de Análise"
-Após extrair para Parquet, use Polars para análises de alto desempenho. É significativamente mais rápido que Pandas para grandes volumes de dados.
+    Após extrair para Parquet, use Polars para análises de alto desempenho. É significativamente mais rápido que Pandas para grandes volumes de dados.

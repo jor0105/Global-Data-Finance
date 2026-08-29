@@ -1,3 +1,5 @@
+"""Batch parsing helper used by the parallel B3 extraction path."""
+
 from ..cotahist_parser import CotahistParserB3
 from .types import ParsedRecord
 

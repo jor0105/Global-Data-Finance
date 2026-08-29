@@ -7,13 +7,14 @@ statements (DFP) for Brazilian public companies directly into Parquet format.
 import sys
 from pathlib import Path
 
-# Ensure examples import active repository code (src/) rather than installed package
+# Ensure examples import repository code rather than the installed package.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'src'))
 
 from globaldatafinance import FundamentalStocksDataCVM
 
 
 def main() -> None:
+    """Run the CVM quickstart example."""
     # 1. Initialize the CVM public facade
     cvm = FundamentalStocksDataCVM()
 

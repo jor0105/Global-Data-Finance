@@ -31,7 +31,7 @@ ______________________________________________________________________
 ### Configuring `ResourceLimits`
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceLimits
+from globaldatafinance.core import ResourceLimits
 
 limits = ResourceLimits(
     memory_warning_threshold=70.0,      # RAM % threshold triggering WARNING state
@@ -53,19 +53,23 @@ ______________________________________________________________________
 ### Instantiate Singleton Monitor
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceMonitor
+from globaldatafinance.core import ResourceLimits, ResourceMonitor
 
-# Request default global singleton instance
-monitor = ResourceMonitor()
-
-# Or register custom limit profiles on initial startup
+# The first initialization defines the active limits.
 limits = ResourceLimits(memory_warning_threshold=60.0)
 monitor = ResourceMonitor(limits)
+# Later calls return the same object and do not replace its limits.
+same_monitor = ResourceMonitor(ResourceLimits(memory_warning_threshold=50.0))
+assert same_monitor is monitor
+assert monitor.limits.memory_warning_threshold == 60.0
 ```
 
 ### Inspect Current Resource State
 
 ```python
+from globaldatafinance.core import ResourceMonitor
+
+monitor = ResourceMonitor()
 state = monitor.check_resources()
 print(f"Current telemetry assessment: {state}")  # Returns HEALTHY, WARNING, CRITICAL, or EXHAUSTED
 ```
@@ -89,9 +93,9 @@ print(f"Optimal adjusted batch size: {safe_batch}")
 ### Pause Until Resources Free Up
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceState
+from globaldatafinance.core import ResourceMonitor, ResourceState
 
-# Pause execution thread until resource availability returns below designated thresholds
+monitor = ResourceMonitor()
 success = monitor.wait_for_resources(
     required_state=ResourceState.WARNING,
     timeout_seconds=60
@@ -106,35 +110,32 @@ else:
 ### Query Current Process RAM Footprint
 
 ```python
+from globaldatafinance.core import ResourceMonitor
+
+monitor = ResourceMonitor()
 memory_mb = monitor.get_process_memory_mb()
 print(f"Active process consuming: {memory_mb:.2f} MB")
 ```
 
 ______________________________________________________________________
 
-## Automated Adapter Integration
+## Source-Specific Policy
 
-The `ResourceMonitor` telemetry engine is deployed automatically inside concrete download and extraction adapters:
+The CVM flow uses a static concurrency semaphore in
+`AsyncDownloadAdapterCVM`; it does not query `ResourceMonitor` to resize
+workers during downloads. The limit is set by `max_concurrent` when the
+adapter is constructed.
 
-```python
-# AsyncDownloadAdapterCVM incorporates ResourceMonitor internally to:
-# - Dynamically scale active HTTP down-stream worker queues
-# - Compress dataframe batch sizes during periods of RAM exhaustion
-# - Suspend worker queues temporarily when system resources become CRITICAL
-
-cvm = FundamentalStocksDataCVM()
-cvm.download(...)  # Resource monitoring triggers transparently inside library routines
-```
+The B3 flow consumes `ResourceMonitor` through `ResourcePolicyB3`. This policy
+uses the singleton to limit concurrent files, parsing workers, and batch sizes
+according to CPU and memory pressure.
 
 ______________________________________________________________________
 
 ## Practical Standalone Scripting
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import (
-    ResourceMonitor,
-    ResourceState
-)
+from globaldatafinance.core import ResourceMonitor, ResourceState
 
 monitor = ResourceMonitor()
 

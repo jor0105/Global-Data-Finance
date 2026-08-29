@@ -1,14 +1,14 @@
 [project]
 name = "globaldatafinance"
 version = "0.2.0"
-description = "Library for extracting, normalizing and processing global financial and economic data — including market data from exchanges worldwide, regulatory filings, company fundamentals and historical quotes; optimized for high-performance storage and analysis (e.g., Parquet)."
+description = "Library for extracting, normalizing and persisting Brazilian CVM regulatory filings and B3 historical market quotes in Parquet."
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
     { name = "Jordan Estralioto", email = "estraliotojordan@gmail.com" }
 ]
-keywords = ["finance", "financial-data", "economic-data", "market-data", "global-markets", "exchanges", "fundamentals", "historical-quotes", "macroeconomics", "parquet", "b3", "cvm"]
+keywords = ["finance", "financial-data", "market-data", "fundamentals", "historical-quotes", "parquet", "b3", "cvm"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -127,27 +127,19 @@ directory = "htmlcov"
 line-length = 79
 
 [tool.ruff.lint]
-# Curated rule set for a distribution-shaped library. Beyond the default
-# E/F (pycodestyle errors + pyflakes) we enable import sorting (I), modern
-# syntax (UP), likely-bug detection (B), comprehension (C4) and simplify
-# (SIM) hygiene, plus Ruff's own rules (RUF). Ruff also owns what used to be
-# two extra hooks: `S` replaces Bandit and `D` replaces pydocstyle (archived
-# upstream), keeping the same Google convention and ignore list.
+# Curated base rule set for a distribution-shaped library. The explicit
+# ruff-policy gate adds the opt-in docstring and security profiles so each
+# profile has a visible, reviewable scope.
 select = [
   "E", "W", "F", "I", "UP", "B", "C4", "SIM", "RUF",
-  "S",      # Security (flake8-bandit)
   "PTH",    # Use pathlib (flake8-use-pathlib)
   "ARG",    # Unused arguments (flake8-unused-arguments)
   "LOG",    # Logging best practices (flake8-logging)
-  "D",      # Docstrings (pydocstyle, Google convention)
-]
-# E501 (line-too-long) is owned by `ruff-format`.
-ignore = [
-  "E501",
-  # Google-convention docstring rules intentionally relaxed (previously
-  # carried by the standalone pydocstyle hook, now retired upstream).
-  "D100", "D101", "D102", "D103", "D104", "D105", "D107",
-  "D205", "D212", "D415", "D417",
+  "C901",   # McCabe cyclomatic complexity
+  "BLE001", # No blind exception catches
+  "TRY203", # No useless try/except reraises
+  "TRY400", # Preserve traceback logging in exception handlers
+  "TRY401", # Do not repeat logged exception objects
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -156,21 +148,14 @@ convention = "google"
 [tool.ruff.lint.isort]
 known-first-party = ["globaldatafinance"]
 
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
 [tool.ruff.lint.per-file-ignores]
-# Test suites legitimately use pytest assertions and a small set of fixture
-# conventions. Security-sensitive path, exception, cleanup and randomness
-# findings remain enabled and must be fixed at their individual call sites.
-"tests/**/*.py" = ["B007", "RUF059", "SIM117", "S101", "ARG", "PTH", "D"]
-# These scripts deliberately invoke only fixed local executables: the shell
-# gate runs `bash -n`/`sh -n`; Git inspectors query the current repository;
-# and the lock gate runs `uv lock --check`. Keep the exception file-scoped
-# instead of weakening security rules globally.
-"scripts/check-shell-syntax.py" = ["S603", "S607"]
-"scripts/git_changes.py" = ["S603", "S607"]
-"scripts/lockfile_checks.py" = ["S603"]
-"scripts/staged_changes.py" = ["S607"]
-"scripts/workspace_members.py" = ["S603", "S607"]
-"tests/tooling/test_local_quality_gates.py" = ["S603", "S607"]
+# The single subprocess boundary is reviewed and tested as an internal
+# adapter. Its resolved executable and `shell=False` contract make S603 the
+# only legitimate file-scoped exception in this repository.
+"scripts/process_runner.py" = ["S603"]
 
 [tool.ruff.format]
 # Blue style: Single quotes

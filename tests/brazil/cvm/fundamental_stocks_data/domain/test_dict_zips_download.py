@@ -30,7 +30,7 @@ class TestDictZipsToDownload:
         assert isinstance(set_docs, set)
 
     def test_get_dict_zips_to_download_returns_strings(self, dict_zips):
-        result, set_docs = dict_zips.get_dict_zips_to_download(
+        result, _set_docs = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
         for urls_list in result.values():
@@ -120,7 +120,7 @@ class TestDictZipsToDownload:
                 assert '.zip' in url
 
     def test_get_dict_zips_to_download_all_urls_end_with_zip(self, dict_zips):
-        result, set_docs = dict_zips.get_dict_zips_to_download(
+        result, _set_docs = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2022
         )
 
@@ -131,7 +131,7 @@ class TestDictZipsToDownload:
     def test_get_dict_zips_to_download_all_urls_start_with_https(
         self, dict_zips
     ):
-        result, set_docs = dict_zips.get_dict_zips_to_download(
+        result, _set_docs = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2022
         )
 
@@ -142,7 +142,7 @@ class TestDictZipsToDownload:
     def test_get_dict_zips_to_download_urls_contain_cvm_domain(
         self, dict_zips
     ):
-        result, set_docs = dict_zips.get_dict_zips_to_download(
+        result, _set_docs = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
 
@@ -284,7 +284,7 @@ class TestDictZipsToDownload:
             assert len(urls_list) == 1
 
     def test_get_dict_zips_to_download_url_format_is_correct(self, dict_zips):
-        result, set_docs = dict_zips.get_dict_zips_to_download(
+        result, _set_docs = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
 
@@ -369,17 +369,17 @@ class TestDictZipsToDownload:
     def test_get_dict_zips_to_download_specific_url_structure_for_each_doc(
         self, dict_zips
     ):
-        result_dfp, set_dfp = dict_zips.get_dict_zips_to_download(
+        result_dfp, _set_dfp = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
         assert '/DFP/DADOS/dfp_cia_aberta_2020.zip' in result_dfp['DFP'][0]
 
-        result_itr, set_itr = dict_zips.get_dict_zips_to_download(
+        result_itr, _set_itr = dict_zips.get_dict_zips_to_download(
             ['ITR'], 2020, 2020
         )
         assert '/ITR/DADOS/itr_cia_aberta_2020.zip' in result_itr['ITR'][0]
 
-        result_fre, set_fre = dict_zips.get_dict_zips_to_download(
+        result_fre, _set_fre = dict_zips.get_dict_zips_to_download(
             ['FRE'], 2020, 2020
         )
         assert '/FRE/DADOS/fre_cia_aberta_2020.zip' in result_fre['FRE'][0]
@@ -464,10 +464,10 @@ class TestDictZipsToDownload:
         assert len(result['DFP']) == 2
 
     def test_get_dict_zips_to_download_result_is_new_list(self, dict_zips):
-        result1, set1 = dict_zips.get_dict_zips_to_download(
+        result1, _set1 = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
-        result2, set2 = dict_zips.get_dict_zips_to_download(
+        result2, _set2 = dict_zips.get_dict_zips_to_download(
             ['DFP'], 2020, 2020
         )
 

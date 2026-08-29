@@ -196,6 +196,7 @@ class TestExtractorReadTxtFromZipAsync:
     async def test_async_read_txt_handles_decode_errors(
         self, tmp_path, caplog
     ):
+        _ = caplog
         zip_path = tmp_path / 'decode_error.zip'
         content = b'Valid line\n\x00\x01\x02\x03\nAnother line\n'
         extractor = ExtractorAdapter()

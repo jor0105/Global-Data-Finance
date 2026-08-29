@@ -20,7 +20,7 @@ cvm.download(
     list_docs=["DFP"],
     initial_year=2020,
     last_year=2023,
-    automatic_extractor=True  # Automatically converts enclosed ZIP tables into Parquet
+    automatic_extractor=True  # Automatically converts downloaded tables into Parquet
 )
 
 print("✓ Ingestion and extraction completed successfully!")
@@ -30,7 +30,8 @@ ______________________________________________________________________
 
 ## Example 2: High-Performance Equities and ETF Extraction
 
-Extract historical exchange trading quotes for spot market equities and ETFs utilizing multi-threaded vectorization.
+Extract historical exchange trading quotes for equities and ETFs across the spot
+(010) and fractional (020) markets, utilizing multi-threaded vectorization.
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
@@ -290,7 +291,15 @@ ______________________________________________________________________
 
 Harnessing Global-Data-Finance inside interactive Jupyter notebook sessions to generate financial charting analytics.
 
-```python
+!!! note "Optional Dependencies"
+
+    Visualization libraries used in this example (`matplotlib`, `seaborn`) are optional external packages:
+
+    ```bash
+    pip install matplotlib seaborn
+    ```
+
+```ipython
 # Cell 1: Package imports and visual configuration
 from globaldatafinance import HistoricalQuotesB3
 import polars as pl

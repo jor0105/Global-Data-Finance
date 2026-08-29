@@ -1,3 +1,5 @@
+"""Format user-facing messages for B3 historical quote extraction."""
+
 from typing import Any, cast
 
 from ..types import ExtractionResultB3
@@ -39,7 +41,8 @@ class HistoricalQuotesResultFormatter:
         else:
             return (
                 f'Extraction completed with errors. '
-                f'Processed {result["success_count"]}/{result["total_files"]} files. '
+                f'Processed {result["success_count"]}/'
+                f'{result["total_files"]} files. '
                 f'Extracted {result["total_records"]:,} records. '
                 f'Errors: {result["error_count"]}'
             )

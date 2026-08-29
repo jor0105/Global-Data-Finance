@@ -1,7 +1,10 @@
+"""Polars schema overrides for decimal-valued B3 quote columns."""
+
 from typing import Any
 
 
 def get_schema_overrides(polars_module: Any) -> dict[str, Any]:
+    """Return fixed-precision decimal types for numeric quote fields."""
     return {
         'preco_abertura': polars_module.Decimal(precision=38, scale=2),
         'preco_maximo': polars_module.Decimal(precision=38, scale=2),

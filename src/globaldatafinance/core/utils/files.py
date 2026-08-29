@@ -26,6 +26,6 @@ def remove_file(filepath: str, log_on_error: bool = True) -> None:
         if path_obj.exists():
             path_obj.unlink()
             logger.debug(f'Removed file: {filepath}')
-    except Exception as e:
+    except OSError:
         if log_on_error:
-            logger.warning(f'Failed to remove file {filepath}: {e}')
+            logger.warning('Failed to remove file %s', filepath, exc_info=True)

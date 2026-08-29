@@ -39,7 +39,7 @@ class TestAsyncDownloadDocsAdapter:
         adapter = _make_adapter()
 
         async def fake_download_and_extract(
-            url, dest_path, doc_name, year, result, progress_bar, **kwargs
+            _url, _dest_path, doc_name, year, result, _progress_bar, **_kwargs
         ):
             result.add_success_downloads(f'{doc_name}_{year}')
 
@@ -127,6 +127,7 @@ class _FakeAsyncRepository:
     async def async_download_docs(
         self, tasks, *, automatic_extractor=False
     ) -> DownloadResultCVM:
+        _ = tasks
         self.called = True
         self.received_automatic_extractor = automatic_extractor
         return self.result
@@ -171,6 +172,7 @@ class TestExecuteAsyncOrchestrator:
             async def async_download_docs(
                 self, tasks, *, automatic_extractor=False
             ):
+                _ = tasks, automatic_extractor
                 raise RuntimeError('async download failed')
 
         use_case = DownloadDocumentsUseCaseCVM(ErrorRepository())

@@ -21,39 +21,54 @@ class FundamentalStocksDataCVM:
 def download(
     self,
     destination_path: str,
-    list_docs: Optional[List[str]] = None,
-    initial_year: Optional[int] = None,
-    last_year: Optional[int] = None,
+    list_docs: list[str] | None = None,
+    initial_year: int | None = None,
+    last_year: int | None = None,
     automatic_extractor: bool = False,
-) -> None
+) -> DownloadResultCVM:
+    ...
 ```
 
-**Descrição**: Baixa documentos CVM para diretório especificado.
+**Descrição**: Baixa documentos CVM para o diretório especificado.
 
 **Parâmetros**:
 
-| Nome                  | Tipo                  | Obrigatório | Padrão  | Descrição                              |
-| --------------------- | --------------------- | ----------- | ------- | -------------------------------------- |
-| `destination_path`    | `str`                 | Sim         | -       | Diretório de destino                   |
-| `list_docs`           | `Optional[List[str]]` | Não         | `None`  | Tipos de documentos (None = todos)     |
-| `initial_year`        | `Optional[int]`       | Não         | `None`  | Ano inicial (None = mínimo disponível) |
-| `last_year`           | `Optional[int]`       | Não         | `None`  | Ano final (None = ano atual)           |
-| `automatic_extractor` | `bool`                | Não         | `False` | Extrair para Parquet                   |
+| Nome                  | Tipo                | Obrigatório | Padrão  | Descrição                              |
+| --------------------- | ------------------- | ----------- | ------- | -------------------------------------- |
+| `destination_path`    | `str`               | Sim         | -       | Diretório de destino                   |
+| `list_docs`           | `list[str] \| None` | Não         | `None`  | Tipos de documentos (None = todos)     |
+| `initial_year`        | `int \| None`       | Não         | `None`  | Ano inicial (None = mínimo disponível) |
+| `last_year`           | `int \| None`       | Não         | `None`  | Ano final (None = ano atual)           |
+| `automatic_extractor` | `bool`              | Não         | `False` | Extrair para Parquet                   |
 
-**Exceções**:
+**Retorno**:
 
-- `InvalidDocumentName`: Tipo de documento inválido
-- `InvalidFirstYear`: Ano inicial inválido
-- `InvalidLastYear`: Ano final inválido
-- `NetworkError`: Erro de rede
-- `TimeoutError`: Timeout
-- `InvalidDestinationPathError`: Caminho inválido
+Retorna um objeto `DownloadResultCVM` contendo os resultados consolidados:
+
+- `success_count_downloads: int` — Quantidade de downloads bem-sucedidos.
+- `error_count_downloads: int` — Quantidade de downloads que falharam.
+- `successful_downloads: list[str]` — Lista de identificadores concluídos no formato `{DOC}_{YEAR}` (ex.: `"DFP_2023"`).
+- `failed_downloads: dict[str, str]` — Dicionário mapeando arquivos com falha para mensagens de erro.
+- `elapsed_time: float` — Tempo decorrido em segundos.
+- `has_errors() -> bool` — Indica se houve pelo menos uma falha.
+
+**Exceções Síncronas**:
+
+- `InvalidDocumentName`: Tipo de documento inválido.
+- `InvalidFirstYear`: Ano inicial inválido.
+- `InvalidLastYear`: Ano final inválido.
+- `InvalidDestinationPathError`: Caminho de destino inválido ou não seguro.
+
+Falhas de rede ou indisponibilidade transitória de arquivos específicos durante
+o download assíncrono são tratadas pelo mecanismo interno de retry. Quando as
+tentativas se esgotam, cada falha é consolidada em `failed_downloads` do
+`DownloadResultCVM`, sem interromper os demais downloads.
 
 **Exemplo**:
 
 ```python
 cvm = FundamentalStocksDataCVM()
-cvm.download(
+result = cvm.download(
     destination_path="/data/cvm",
     list_docs=["DFP", "ITR"],
     initial_year=2022,
@@ -65,7 +80,8 @@ cvm.download(
 #### `get_available_docs()`
 
 ```python
-def get_available_docs(self) -> Dict[str, str]
+def get_available_docs(self) -> dict[str, str]:
+    ...
 ```
 
 **Descrição**: Retorna mapeamento de códigos para descrições de documentos.
@@ -82,23 +98,26 @@ docs = cvm.get_available_docs()
 #### `get_available_years()`
 
 ```python
-def get_available_years(self) -> Dict[str, int]
+def get_available_years(self) -> AvailableYearsInfoCVM:
+    ...
 ```
 
-**Descrição**: Retorna informações sobre anos disponíveis.
+**Descrição**: Retorna informações estruturadas sobre anos mínimos suportados e ano corrente da CVM.
 
-**Retorno**: Dicionário com chaves:
+**Retorno (`AvailableYearsInfoCVM`)**: `NamedTuple` com os atributos:
 
-- `"General Document Years"`: Ano mínimo para docs gerais (2010)
-- `"ITR Document Years"`: Ano mínimo para ITR (2011)
-- `"CGVN and VMLO Document Years"`: Ano mínimo para CGVN/VLMO (2018)
-- `"Current Year"`: Ano atual
+- `general_min_year` (`int`): Ano mínimo para documentos gerais (`DFP`, `FRE`, `FCA`, `IPE`) — `2010`.
+- `itr_min_year` (`int`): Ano mínimo para `ITR` — `2011`.
+- `cgvn_vlmo_min_year` (`int`): Ano mínimo para `CGVN` e `VLMO` — `2018`.
+- `current_year` (`int`): Ano corrente do sistema.
 
 **Exemplo**:
 
 ```python
 years = cvm.get_available_years()
-# {'General Document Years': 2010, 'ITR Document Years': 2011, ...}
+print(f"Docs gerais a partir de: {years.general_min_year}")
+print(f"ITR a partir de: {years.itr_min_year}")
+print(f"Ano atual: {years.current_year}")
 ```
 
 ______________________________________________________________________
@@ -117,7 +136,7 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-Veja também:
+## Documentação Relacionada
 
 - [Guia de Uso CVM](../user-guide/cvm-docs.md)
 - [Exceções](exceptions.md)

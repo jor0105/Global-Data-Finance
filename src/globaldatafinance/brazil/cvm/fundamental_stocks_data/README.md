@@ -22,7 +22,7 @@ brazil/cvm/fundamental_stocks_data/
 ├── client.py                 # DownloadDocumentsUseCaseCVM (orquestrador), GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM, etc.
 ├── http.py                   # AsyncDownloadAdapterCVM (httpx async + retry/back-off + integrity check)
 ├── extract.py                # ParquetExtractorAdapterCVM (CSV → Parquet com rollback atômico)
-├── errors.py                 # InvalidDocName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
+├── errors.py                 # InvalidDocumentName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
 ├── download_validation.py    # Validação de ZIPs e Parquets gerados (integridade estrutural e de dados)
 └── download_extraction.py    # Delegação de extração e rastreamento de artefatos para rollback
 ```
@@ -51,12 +51,15 @@ brazil/cvm/fundamental_stocks_data/
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     AsyncDownloadAdapterCVM,
     DownloadDocumentsUseCaseCVM,
+    ParquetExtractorAdapterCVM,
 )
 
 
 def baixar_dados_cvm():
     # 1. Adapter HTTP concreto (httpx async + retry + integrity check)
-    repository = AsyncDownloadAdapterCVM()
+    repository = AsyncDownloadAdapterCVM(
+        file_extractor_repository=ParquetExtractorAdapterCVM()
+    )
 
     # 2. Orquestrador
     downloader = DownloadDocumentsUseCaseCVM(repository=repository)
@@ -117,8 +120,8 @@ if __name__ == '__main__':
 
 Objeto retornado pelo método `execute`, contendo:
 
-- `successful_downloads` (`list[str]`): Lista com os caminhos completos dos arquivos baixados.
-- `failed_downloads` (`dict[str, str]`): Dicionário onde a chave é o identificador do documento e o valor é a mensagem de erro.
+- `successful_downloads` (`list[str]`): Lista de identificadores lógicos concluídos no formato `{DOC}_{YEAR}` (ex.: `DFP_2023`), não caminhos de arquivo.
+- `failed_downloads` (`dict[str, str]`): Dicionário que mapeia identificadores `{DOC}_{YEAR}` para mensagens de erro.
 - `success_count_downloads` (`int`): Contagem total de sucessos.
 - `error_count_downloads` (`int`): Contagem total de erros.
 
@@ -127,7 +130,7 @@ Objeto retornado pelo método `execute`, contendo:
 Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.errors` (re-exportadas pelo `__init__.py` da fonte):
 
 - `MissingDownloadUrlError`: não foi possível gerar uma URL para o documento/ano solicitado.
-- `InvalidDocName`: tipo de documento não reconhecido.
+- `InvalidDocumentName`: tipo de documento não reconhecido.
 - `InvalidFirstYear` / `InvalidLastYear`: ano inválido ou fora do range suportado.
 - `SecurityError` (de `macro_exceptions`): tentativa de escrita em path sensível (`/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) — defesa em `VerifyPathsUseCasesCVM`.
 
@@ -135,10 +138,12 @@ Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.er
 
 ## 🔧 Troubleshooting
 
-> [!CAUTION] > **Bloqueio de IP**
+> [!CAUTION]
+> **Bloqueio de IP**
 > O site da CVM pode bloquear IPs que realizam muitas requisições em curto período. O adaptador de infraestrutura deve implementar "backoff" ou pausas entre requisições.
 
-> [!TIP] > **Estrutura de Pastas**
+> [!TIP]
+> **Estrutura de Pastas**
 > O sistema cria automaticamente subpastas para cada tipo de documento dentro de `destination_path`. Não é necessário criá-las manualmente.
 
 ## 🔎 Como funciona a extração dos arquivos da CVM

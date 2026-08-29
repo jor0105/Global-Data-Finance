@@ -3,12 +3,14 @@
 from typing import TypedDict
 
 
-class ExtractionResultB3(TypedDict, total=False):
+class ExtractionResultB3(TypedDict):
     """Public shape of the dict returned by ``HistoricalQuotesB3.extract``.
 
-    It is a ``TypedDict`` (not a dataclass) so existing ``result['key']``
-    access keeps working, while consumers gain type checking and editor
-    autocomplete on the public contract.
+    It is a required-field ``TypedDict`` (not a dataclass) so existing
+    ``result['key']`` access keeps working, while consumers gain type checking
+    and editor autocomplete on the complete public contract. Every public
+    extraction response contains all declared fields, including when no
+    matching input file is found.
     """
 
     success: bool

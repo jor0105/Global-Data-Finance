@@ -84,7 +84,7 @@ for retry_count in range(3):
     print(f"Attempt {retry_count + 1} scheduling delay: {backoff} seconds")
 ```
 
-**Sample Estimated Output (initial=1.0, multiplier=2.0 with Jitter [0.5, 1.5])**:
+**Sample Estimated Output (initial=1.0, multiplier=2.0 with bounded multiplicative jitter [0.5, 1.5])**:
 
 ```text
 Attempt 1 scheduling delay: ~1.0 seconds (e.g. 0.92s)
@@ -92,7 +92,10 @@ Attempt 2 scheduling delay: ~2.0 seconds (e.g. 2.15s)
 Attempt 3 scheduling delay: ~4.0 seconds (e.g. 3.80s)
 ```
 
-> Note: The `calculate_backoff` method applies randomized *Full Jitter* (`[0.5, 1.5]`) on top of the base exponential calculation to prevent thundering-herd retry collisions when multiple concurrent downloads fail in lockstep.
+> Note: The `calculate_backoff` method applies bounded multiplicative jitter
+> with a uniformly sampled factor between `0.5` and `1.5` on top of the base
+> exponential calculation. This prevents thundering-herd retry collisions when
+> multiple concurrent downloads fail in lockstep.
 
 ______________________________________________________________________
 
@@ -113,7 +116,8 @@ strategy = RetryStrategy(
 
 max_retries = 3
 
-for attempt in range(max_retries):
+# max_retries counts additional attempts after the first execution.
+for attempt in range(max_retries + 1):
     try:
         result = download_file()
         break  # Successful execution completion
@@ -121,7 +125,7 @@ for attempt in range(max_retries):
         if not strategy.is_retryable(exc):
             raise  # Abort loop on hard system faults
 
-        if attempt < max_retries - 1:
+        if attempt < max_retries:
             backoff = strategy.calculate_backoff(attempt)
             print(f"Attempt {attempt + 1} failed. Next attempt scheduled in {backoff}s...")
             time.sleep(backoff)
@@ -136,9 +140,16 @@ ______________________________________________________________________
 Concrete download adapters invoke `RetryStrategy` automatically during network operations:
 
 ```python
+from globaldatafinance import FundamentalStocksDataCVM
+
 # AsyncDownloadAdapterCVM natively integrates automated exponential backoff loops
 cvm = FundamentalStocksDataCVM()
-cvm.download(...)  # Automatic fault recovery across transient network interruptions
+result = cvm.download(
+    destination_path="/data/cvm",
+    list_docs=["DFP"],
+    initial_year=2023,
+    last_year=2023,
+)
 ```
 
 The underlying adapter execution loop operates as follows:
@@ -147,7 +158,7 @@ The underlying adapter execution loop operates as follows:
 2. If exceptions occur, evaluates if the resulting error matches retryable criteria
 3. Computes the required exponential back-off duration
 4. Yields worker threads for the duration of the computed back-off interval
-5. Repeats down-streaming steps until completion or maximum retry threshold exhaustion
+5. Repeats until the initial execution plus `max_retries` additional attempts are exhausted, or the operation succeeds
 
 ______________________________________________________________________
 

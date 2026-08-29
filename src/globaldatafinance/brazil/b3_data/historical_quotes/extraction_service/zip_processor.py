@@ -1,3 +1,5 @@
+"""Process individual B3 COTAHIST inputs with resource-aware parsing."""
+
 import asyncio
 import contextlib
 import gc
@@ -26,7 +28,7 @@ class _LineParser(Protocol):
 
 
 class ZipProcessorB3:
-    """Process one COTAHIST ZIP into one temporary Parquet file."""
+    """Process one COTAHIST ZIP or TXT input into temporary Parquet."""
 
     SEQUENTIAL_FLUSH_CHECK_INTERVAL = 10_000
     SEQUENTIAL_RESOURCE_CHECK_INTERVAL = 5_000
@@ -38,6 +40,7 @@ class ZipProcessorB3:
         buffered_writer: BufferedParquetWriterB3,
         resource_policy: ResourcePolicyB3,
     ) -> None:
+        """Initialize processing collaborators and the optional worker pool."""
         self.zip_reader = zip_reader
         self.parser = parser
         self.buffered_writer = buffered_writer
@@ -63,15 +66,15 @@ class ZipProcessorB3:
         target_tpmerc_codes: set[str],
         output_path: Path,
     ) -> ZipProcessingResult:
-        """Process one ZIP into a unique temp parquet file."""
-        zip_basename = Path(zip_file).stem
+        """Process one COTAHIST input into a unique temporary Parquet file."""
+        input_name = Path(zip_file).name
         temp_output = (
             output_path.parent
-            / f'{output_path.stem}_{zip_basename}_temp.parquet'
+            / f'{output_path.stem}_{input_name}_temp.parquet'
         )
 
         logger.debug(
-            f'Processing ZIP: {zip_file}',
+            f'Processing COTAHIST input: {zip_file}',
             extra={
                 'target_codes': len(target_tpmerc_codes),
                 'parallel_parsing': self.resource_policy.use_parallel_parsing,
@@ -122,7 +125,7 @@ class ZipProcessorB3:
                 total_written += records_written
 
             logger.debug(
-                f'Completed ZIP: {zip_file}',
+                f'Completed COTAHIST input: {zip_file}',
                 extra={
                     'records_extracted': total_written,
                     'temp_file': str(temp_output),
@@ -133,7 +136,7 @@ class ZipProcessorB3:
 
         except Exception as e:
             logger.error(
-                f'Error processing ZIP: {zip_file}',
+                f'Error processing COTAHIST input: {zip_file}',
                 extra={
                     'error': str(e),
                     'records_written_so_far': total_written,

@@ -5,32 +5,21 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from functools import cache
 from pathlib import Path
+
+from process_runner import ProcessResult, ProcessRunnerError, run_process
 
 
 class GitInspectionError(Exception):
     """Raised when an index or Git operation cannot be inspected."""
 
 
-def _run_git(args: list[str], root: Path) -> subprocess.CompletedProcess[str]:
+def _run_git(args: list[str], root: Path) -> ProcessResult:
     try:
-        return subprocess.run(
-            ['git', *args],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except (
-        subprocess.CalledProcessError,
-        subprocess.SubprocessError,
-        FileNotFoundError,
-        OSError,
-    ) as err:
-        detail = getattr(err, 'stderr', None) or str(err)
-        raise GitInspectionError(str(detail).strip()) from err
+        return run_process(['git', *args], cwd=root)
+    except ProcessRunnerError as err:
+        raise GitInspectionError(str(err)) from err
 
 
 def _index_file_exists(file_path: str, root: Path) -> bool:

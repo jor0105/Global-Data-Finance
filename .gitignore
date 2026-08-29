@@ -215,3 +215,4 @@ mutants/
 html/
 uv.lock
 package.json
+__pycache__

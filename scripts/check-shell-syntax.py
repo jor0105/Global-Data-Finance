@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 import argparse
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 from git_changes import GitInspectionError, get_changed_paths, read_git_file
+from process_runner import ProcessRunnerError, run_process
 
 SHELL_SUFFIXES = frozenset({'.bash', '.sh'})
 SHELL_INTERPRETERS = frozenset({'bash', 'sh', 'dash'})
@@ -20,7 +20,7 @@ class ShellInspectionError(RuntimeError):
 
 
 def shell_command(path: str, content: str) -> tuple[str, ...] | None:
-    """Return the fixed syntax-check command for a shell script, if applicable."""
+    """Return the fixed shell syntax command when the path is applicable."""
     suffix = Path(path).suffix.lower()
     first_line = content.splitlines()[0].strip() if content else ''
     shebang_parts = (
@@ -49,7 +49,8 @@ def staged_shell_files(
         content = read_git_file(path, revision_range=revision_range)
         if content is None:
             raise ShellInspectionError(
-                f'Changed shell candidate is absent from inspected Git state: {path}'
+                f'Changed shell candidate is absent from inspected Git state: '
+                f'{path}'
             )
         command = shell_command(path, content)
         if command is not None:
@@ -71,24 +72,23 @@ def validate_shell_file(
             suffix=Path(path).suffix or '.sh',
             delete=False,
         ) as temporary_file:
-            temporary_file.write(content)
             temporary_path = Path(temporary_file.name)
-        result = subprocess.run(
+            temporary_file.write(content)
+        result = run_process(
             [*command, str(temporary_path)],
-            capture_output=True,
-            text=True,
             check=False,
+            cwd=temporary_path.parent,
         )
-    except (subprocess.SubprocessError, OSError, UnicodeError) as err:
+    except (OSError, UnicodeError, ProcessRunnerError) as err:
         command_text = ' '.join(command)
         raise ShellInspectionError(
-            f'Unable to execute {command_text} for {path}: {err}'
+            f'Unable to prepare or execute {command_text} for {path}: {err}'
         ) from err
     finally:
         if temporary_path is not None:
             try:
                 temporary_path.unlink(missing_ok=True)
-            except OSError as err:
+            except (OSError, UnicodeError, ProcessRunnerError) as err:
                 raise ShellInspectionError(
                     f'Unable to remove temporary shell validation file: {err}'
                 ) from err
@@ -108,7 +108,9 @@ def main() -> int:
     parser.add_argument(
         '--range',
         dest='revision_range',
-        help='Inspect an explicit Git A..B or A...B range instead of the index.',
+        help=(
+            'Inspect an explicit Git A..B or A...B range instead of the index.'
+        ),
     )
     args = parser.parse_args()
 
@@ -141,7 +143,8 @@ def main() -> int:
         for error in errors:
             print(f'  • {error}', file=sys.stderr)
         print(
-            '\nResolution: Fix the shell syntax and rerun the matching shell -n command.',
+            '\nResolution: Fix the shell syntax and rerun the matching '
+            'shell -n command.',
             file=sys.stderr,
         )
         return 1

@@ -24,7 +24,9 @@ Example:
     ...     initial_year=2020,
     ...     last_year=2023
     ... )
-    >>> print(f"Downloaded {result.success_count_downloads} files successfully")
+    >>> print(
+    ...     f"Downloaded {result.success_count_downloads} files successfully"
+    ... )
 """
 
 from ...brazil.cvm.fundamental_stocks_data import (
@@ -36,7 +38,7 @@ from ...brazil.cvm.fundamental_stocks_data import (
     get_available_docs,
     get_available_years,
 )
-from ...core import get_logger
+from ...core import get_logger, settings
 from .download_result_formatter import DownloadResultFormatter
 
 logger = get_logger(__name__)
@@ -46,7 +48,7 @@ class FundamentalStocksDataCVM:
     """High-level interface for CVM fundamental stocks data operations.
 
     This class provides a simple API for downloading CVM financial documents
-    and discovering available data. It uses the AsyncDownloadAdapterCVM by default
+    and discovering available data. It uses AsyncDownloadAdapterCVM by default
     for 3-5x faster downloads compared to wget, with automatic retry logic.
 
     You can also customize the adapter:
@@ -83,10 +85,13 @@ class FundamentalStocksDataCVM:
         The automatic_extractor option can be passed per download call.
         See download() method for details.
         """
-        # Initialize with ParquetExtractorAdapterCVM and automatic_extractor=False by default
-        # automatic_extractor can be overridden per download call
+        network_settings = settings.network
         self.download_adapter = AsyncDownloadAdapterCVM(
-            file_extractor_repository=ParquetExtractorAdapterCVM()
+            file_extractor_repository=ParquetExtractorAdapterCVM(),
+            timeout=network_settings.timeout,
+            max_retries=network_settings.max_retries,
+            backoff_multiplier=network_settings.retry_backoff,
+            user_agent=network_settings.user_agent,
         )
         self.__download_use_case = DownloadDocumentsUseCaseCVM(
             self.download_adapter
@@ -94,7 +99,8 @@ class FundamentalStocksDataCVM:
         self.__result_formatter = DownloadResultFormatter(use_colors=True)
 
         logger.info(
-            'FundamentalStocksDataCVM client initialized with AsyncDownloadAdapterCVM '
+            'FundamentalStocksDataCVM client initialized with '
+            'AsyncDownloadAdapterCVM '
             '(automatic_extractor can be set per download call)'
         )
 
@@ -124,22 +130,24 @@ class FundamentalStocksDataCVM:
                       Valid types: DFP, ITR, FCA, FRE, etc.
                       Example: ["DFP", "ITR"]
             initial_year: Starting year for downloads (inclusive).
-                       If None, uses the minimum available year for each document type.
+                       If None, uses each document's minimum available year.
                        Example: 2020
             last_year: Ending year for downloads (inclusive).
                      If None, uses the current year.
                      Example: 2023
-            automatic_extractor: If True, automatically extracts downloaded ZIP files
-                                to Parquet format. If False or None, keeps ZIP files.
-                                Default: False (keeps original ZIP files)
+            automatic_extractor: If True, extracts downloaded ZIP files to
+                                Parquet format. If False, keeps ZIP files.
+                                Default: False (keeps original ZIP files).
                                 Example: True
 
         Returns:
             DownloadResultCVM object containing:
             - success_count_downloads: Number of successfully downloaded files
             - error_count_downloads: Number of failed downloads
-            - successful_downloads: List of successfully downloaded files
-            - failed_downloads: Dictionary mapping files to error messages
+            - successful_downloads: Logical identifiers in ``{DOC}_{YEAR}``
+                                   format, not filesystem paths
+            - failed_downloads: Dictionary mapping ``{DOC}_{YEAR}`` identifiers
+                                to error messages
             - Methods: add_success_downloads(), add_error_downloads()
 
         Raises:
@@ -174,11 +182,13 @@ class FundamentalStocksDataCVM:
         if not isinstance(automatic_extractor, bool):
             raise TypeError(
                 f'automatic_extractor must be a boolean (True or False), '
-                f'got {type(automatic_extractor).__name__}: {automatic_extractor!r}'
+                f'got {type(automatic_extractor).__name__}: '
+                f'{automatic_extractor!r}'
             )
 
         logger.info(
-            'Download requested: path=%s, docs=%s, years=%s-%s, auto_extract=%s',
+            'Download requested: path=%s, docs=%s, years=%s-%s, '
+            'auto_extract=%s',
             destination_path,
             list_docs,
             initial_year,
@@ -307,7 +317,7 @@ class FundamentalStocksDataCVM:
         """Get information about available years for CVM documents.
 
         This method returns the year ranges for which documents are available,
-        including minimum years for different document types and the current year.
+        including minimum years for document types and the current year.
 
         Returns:
             AvailableYearsInfoCVM named tuple with:
@@ -321,7 +331,10 @@ class FundamentalStocksDataCVM:
             >>> years = cvm.get_available_years()
             >>>
             >>> # Access via typed attributes (IDE-friendly)
-            >>> print(f"General documents available from: {years.general_min_year}")
+            >>> print(
+            ...     f"General documents available from: "
+            ...         f"{years.general_min_year}"
+            ... )
             >>> print(f"ITR documents available from: {years.itr_min_year}")
             >>> print(f"Current year: {years.current_year}")
             >>>

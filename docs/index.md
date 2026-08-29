@@ -1,23 +1,32 @@
 # 📊 Global-Data-Finance
 
-> Biblioteca Python para extração e processamento de dados financeiros globais com layout plano por fonte, alta performance e ferramentas extensíveis.
+> Biblioteca Python para extração, normalização e persistência em Parquet de dados regulatórios e de mercado brasileiros.
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-%3E%3D3.12%2C%3C4.0-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
 ______________________________________________________________________
 
+> **Status do release:** Esta documentação descreve o alvo local de
+> desenvolvimento/release `0.2.0`. A versão atualmente publicada no PyPI ainda
+> é `0.1.4`; esta branch não foi publicada. Remova esta nota após o release de
+> `v0.2.0`.
+
 ## 🎯 O que este sistema oferece?
 
 **Global-Data-Finance** é uma biblioteca Python que permite extrair e processar dados financeiros de forma profissional e escalável:
 
-✅ **Múltiplas fontes de dados**: CVM (regulatório) e B3 (mercado) com layout idêntico por fonte
+✅ **Fontes atuais**: documentos regulatórios brasileiros da CVM e cotações históricas da B3
 ✅ **Processamento otimizado**: Downloads assíncronos (`httpx[http2]`) com concorrência adaptativa por CPU/RAM
 ✅ **Formato eficiente**: Extração nativa para Parquet (Pandas/Polars ready)
 ✅ **Robustez integrada**: Retries com back-off, validação de integridade e rollback atômico
-✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados), garantindo simplicidade e legibilidade direto ao ponto.
+✅ **Ownership claro por fonte**: módulos específicos permanecem nas pastas de CVM e B3, enquanto preocupações genéricas ficam em `core/`, `macro_infra/` e `macro_exceptions/`.
+
+As verificações atuais de arquivos baixados cobrem segurança do path, tamanho
+esperado e legibilidade do ZIP. O suporte a checksum MD5 é **Planned** e não
+está implementado.
 
 ______________________________________________________________________
 
@@ -38,7 +47,7 @@ uv sync --locked --all-extras --dev
 ### Configuração
 
 ```bash
-# Requer Python 3.12+
+# Requer Python >=3.12,<4.0
 python --version
 
 # Opcional: configurar logging para ver progresso detalhado
@@ -78,7 +87,10 @@ cvm.download(
     automatic_extractor=True
 )
 
-# B3 - Cotações Históricas (Ações, ETFs, Opções, Futuros)
+# B3 - Cotações Históricas (ações, ETFs, opções, termo, forward, leilões)
+# O extrator aceita inputs locais COTAHIST_A{YYYY}.ZIP ou COTAHIST_A{YYYY}.TXT;
+# ZIP prevalece no mesmo ano.
+
 from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
@@ -96,18 +108,22 @@ result = b3.extract(
 A biblioteca oferece diferentes modos de processamento para otimizar performance:
 
 ```python
-# Modo FAST - Processamento em memória (mais rápido)
-b3.extract(
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+
+# Modo FAST - Processamento de alto desempenho
+result_fast = b3.extract(
     path_of_docs="./dados",
     assets_list=["ações"],
-    processing_mode="fast"  # Recomendado para datasets pequenos/médios
+    processing_mode="fast",  # Padrão recomendado
 )
 
-# Modo SLOW - Processamento incremental (menor uso de memória)
-b3.extract(
+# Modo SLOW - Processamento com menor uso de memória
+result_slow = b3.extract(
     path_of_docs="./dados",
     assets_list=["ações"],
-    processing_mode="slow"  # Recomendado para datasets grandes
+    processing_mode="slow",  # Para ambientes restritos
 )
 ```
 
@@ -120,6 +136,11 @@ b3.extract(
 - `exercicio_opcoes` - Exercício de opções
 - `forward` - Mercado forward
 - `leilao` - Mercado de leilão
+
+BDRs e Futures são **Planned** e não são aceitos pelo contrato atual do
+runtime. As strings em português acima são valores canônicos da API e devem ser
+passadas exatamente como mostradas. Funcionalidades planejadas não devem ser
+passadas à API pública.
 
 **Verificar ativos disponíveis:**
 
@@ -208,7 +229,7 @@ ______________________________________________________________________
 
 ### Para Desenvolvedores
 
-- **[Arquitetura](dev-guide/architecture.md)** - Layout plano por fonte e padrões de design
+- **[Arquitetura](dev-guide/architecture.md)** - Ownership por fonte e decisões de arquitetura
 - **[Referência da API](dev-guide/api-reference.md)** - Documentação completa da API
 - **[Como Contribuir](dev-guide/contributing.md)** - Guia de contribuição
 - **[Testes](dev-guide/testing.md)** - Estratégias de teste e cobertura
@@ -216,7 +237,7 @@ ______________________________________________________________________
 - **[Uso Avançado](dev-guide/advanced-usage.md)** - Técnicas avançadas e otimizações
 - **[Sistema de Logging](dev-guide/logging-system.md)** - Configurações e práticas de logs estruturados
 - **[Monitoramento de Recursos](dev-guide/resource-monitoring.md)** - Monitoramento adaptativo de CPU e memória
-- **[Estratégia de Retry](dev-guide/retry-strategy.md)** - Mecanismo de reexecução com backoff exponencial
+- **[Estratégia de Retry](dev-guide/retry-strategy.md)** - Resiliência assíncrona de rede e backoff exponencial
 
 ### Referência Técnica
 
@@ -237,9 +258,9 @@ ______________________________________________________________________
 
 ### Para Desenvolvedores
 
-- ✅ **Layout plano por fonte**: módulos nomeados por papel (CVM: ~7 arquivos; B3: ~10 arquivos + subpacotes pesados) — código fácil de ler e estender
-- ✅ **Extensível**: Adicionar uma nova fonte = criar uma pasta-irmã com o mesmo padrão de papéis (granularidade ajustável por tamanho)
-- ✅ **Type hints**: Suporte completo para IDEs e type checkers (mypy, pyright)
+- ✅ **Layout orientado por fonte**: módulos nomeados por papel e subpacotes especializados — código fácil de ler e auditar
+- ✅ **Extensível**: Uma nova fonte suportada pode seguir os limites atuais de ownership e módulos por papel
+- ✅ **Type hints**: Contratos `TypedDict` e anotações verificados com `mypy`
 - ✅ **CI/CD**: Quality checks automáticos com GitHub Actions (`ruff`, `mypy`, `pytest --cov`)
 
 ### Para Analistas e Cientistas de Dados
@@ -253,8 +274,9 @@ ______________________________________________________________________
 
 ## 📊 Arquitetura
 
-1. **Facade público (`application/`)** — superfície semver-relevante para usuários da lib.
-2. **Implementação por fonte (`brazil/<país>/<fonte>/`)** — layout plano de módulos nomeados por papel.
+1. **Facades públicas e camada application (`application/`)** — superfície semver-relevante para consumidores, incluindo os formatadores de console.
+2. **Implementações por fonte** — CVM fica em `brazil/cvm/fundamental_stocks_data/` e B3 em `brazil/b3_data/historical_quotes/`. Clients e use cases orquestram o trabalho, adapters possuem o I/O e módulos focados possuem validação, parsing e transformação.
+3. **Infraestrutura compartilhada** — `core/` possui configuração, logging, segurança de paths, retry, progresso e monitoramento; `macro_infra/` possui adapters genéricos de HTTP/arquivos; `macro_exceptions/` possui as exceções-base do projeto.
 
 ```mermaid
 graph TD
@@ -262,7 +284,7 @@ graph TD
 
     subgraph "globaldatafinance"
         Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
-        Facade --> Source["Fonte (brazil/&lt;país&gt;/&lt;fonte&gt;/)<br/>módulos planos por papel<br/>(client.py, models.py, errors.py...)"]
+        Facade --> Source["Implementações por fonte<br/>brazil/cvm/fundamental_stocks_data/<br/>brazil/b3_data/historical_quotes/"]
         Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
@@ -273,7 +295,7 @@ graph TD
 
 - **Leitura direta**: Poucos arquivos por fonte com nomes claros por responsabilidade, tornando o fluxo do código intuitivo.
 - **Adapters concretos**: Adapters são importados e instanciados diretamente para manter a base de código simples e de fácil navegação.
-- **Extensibilidade orientada a fontes**: Adicionar uma fonte significa adicionar uma nova pasta com o mesmo conjunto plano de papéis.
+- **Extensibilidade orientada a fontes**: Uma nova fonte suportada pode definir módulos próprios e uma facade pública adequada às suas responsabilidades, reutilizando limites existentes quando fizer sentido.
 - **Defesa de path-traversal como contrato**: `VerifyPathsUseCasesCVM` e `validate_directory_path` (B3) levantam `SecurityError` antes de qualquer `mkdir`.
 
 [Saiba mais sobre a arquitetura →](dev-guide/architecture.md)
@@ -368,7 +390,7 @@ ______________________________________________________________________
 
 ## 🤝 Contribuindo
 
-Quer adicionar uma nova fonte de dados ou melhorar a performance?
+Quer adicionar uma nova fonte suportada ou melhorar a performance?
 
 1. Fork o repositório
 2. Crie uma branch: `git checkout -b feature/nova-feature`
@@ -408,7 +430,7 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-**Status:** 🚀 Projeto em produção! Aberto para contribuições e sugestões.
+**Status:** A distribuição do pacote está em **Beta** (`Development Status :: 4 - Beta`). Os fluxos CVM e B3 implementados são considerados **Production** dentro dos contratos atuais; capacidades planejadas continuam sem suporte.
 
 <div align="center">
     <sub>Copyright © 2026 Jordan Estralioto • Licensed under Apache 2.0</sub>

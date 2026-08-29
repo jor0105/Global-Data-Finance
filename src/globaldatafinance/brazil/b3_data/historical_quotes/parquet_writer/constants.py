@@ -1,3 +1,5 @@
+"""Constants controlling B3 Parquet compression and batching."""
+
 from typing import Literal
 
 PARQUET_COMPRESSION: Literal['zstd'] = 'zstd'

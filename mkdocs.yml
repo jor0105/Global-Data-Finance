@@ -54,10 +54,10 @@ theme:
 extra:
   alternate:
     - name: Português
-      link: ./
+      link: /
       lang: pt
     - name: English
-      link: ./en/
+      link: /en/
       lang: en
   social:
     - icon: fontawesome/brands/github

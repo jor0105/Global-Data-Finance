@@ -6,7 +6,7 @@ ______________________________________________________________________
 
 ## Test Repository Hierarchy
 
-The test directory structure cleanly mirrors the source tree. Subdirectories inside individual source test folders serve an strictly **organizational** purpose (grouping test scripts by functional topic to enhance code legibility) rather than architectural enforcement—all testing fixtures import symbols directly from flat source modules (`from globaldatafinance.brazil.<country>.<source>.<module> import ...`).
+The test directory structure cleanly mirrors the source tree. Subdirectories inside individual source test folders serve a strictly **organizational** purpose (grouping test scripts by functional topic to enhance code legibility) rather than architectural enforcement—all testing fixtures import symbols directly from the owning source modules.
 
 ```text
 tests/
@@ -91,25 +91,37 @@ class TestValidateDocsName:
             validate_docs_name("INVALID_CODE")
 ```
 
-> Types and exceptions belong within the flat modules of their owning source feature: for CVM inside `brazil.cvm.fundamental_stocks_data.core` and `brazil.cvm.fundamental_stocks_data.errors`; for B3 logical separation is segmented topically—entities in `models.py`, value objects in `years.py`/`processing.py`, path security validators in `filesystem.py`, asset services in `assets.py`, and exceptions in `errors.py`.
+> Types and exceptions belong within the focused modules of their owning source feature: for CVM inside `brazil.cvm.fundamental_stocks_data.core` and `brazil.cvm.fundamental_stocks_data.errors`; for B3 logical separation is segmented topically—entities in `models.py`, value objects in `years.py`/`processing.py`, path security validators in `filesystem.py`, asset services in `assets.py`, and exceptions in `errors.py`.
 
 ### Mock and Dependency Substitution Strategies
 
 To decouple unit verification from live network servers or real storage file system IO, test fixtures substitute external adapters using duck-typed stubs or `monkeypatch.setattr`:
 
 ```python
-class MockRepository:
-    def download_docs(self, tasks):
-        return DownloadResultCVM(
-            success_count_downloads=2,
-            error_count_downloads=0,
-            successful_downloads=["DFP_2023", "ITR_2023"],
-            failed_downloads={},
-        )
-
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
     DownloadDocumentsUseCaseCVM,
 )
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    DownloadResultCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
+    DownloadTaskCVM,
+)
+
+
+class MockRepository:
+    def download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
+        return DownloadResultCVM(
+            successful_downloads=["DFP_2023", "ITR_2023"],
+            failed_downloads={},
+            elapsed_time=0.5,
+        )
+
 
 use_case = DownloadDocumentsUseCaseCVM(MockRepository())
 result = use_case.execute(destination_path="/tmp/cvm")

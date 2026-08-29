@@ -11,12 +11,12 @@ fixo para qualquer hardware.
 memória total. Sem chamadas de rede; apenas extração local dos ZIPs oficiais.
 
 - **Dataset:** 17 arquivos ZIP oficiais (2008–2024), 503,77 MB comprimido.
-- **Assets selecionados:** ações, etf, opções, termo, exercicio_opcoes, forward, leilao.
+- **Escopo de ativos:** todas as categorias atualmente suportadas (`ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`).
 - **Erros:** 0 (todos os 17 arquivos processados com sucesso).
 - **Saída Parquet consolidada:** 311,55 MB por modo.
 
-| Modo   | Linhas gravadas | Tempo da API | Tempo ponta a ponta |    Pico RSS |   Throughput |
-| ------ | --------------: | -----------: | ------------------: | ----------: | -----------: |
+| Modo   | Linhas gravadas | Tempo decorrido (API) | Tempo decorrido (ponta a ponta) |    Pico RSS |   Throughput |
+| ------ | --------------: | --------------------: | ------------------------------: | ----------: | -----------: |
 | `fast` |      15.059.876 |   1.222,61 s |          1.224,64 s | 4.259,35 MB | 12.317 reg/s |
 | `slow` |      15.059.876 |   1.759,90 s |          1.761,91 s | 1.570,54 MB |  8.557 reg/s |
 
@@ -58,25 +58,22 @@ uv run --locked --no-sync pytest tests/perf -m perf --benchmark-save=baseline_v1
 uv run --locked --no-sync pytest tests/perf -m perf --benchmark-compare=baseline_v1
 ```
 
-Para reprodução de benchmarks de extração em lote:
+Os benchmarks disponíveis no repositório são executados pelo pytest-benchmark:
 
 ```bash
-# Dataset sintético (CI/regressão rápida)
-uv run python -m tests.perf.benchmark_runner \
-  --records 250000 \
-  --mode both \
-  --repetitions 3 \
-  --output /tmp/globaldatafinance-b3-benchmark.json
+# Listar os dois benchmarks sem executá-los
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' --collect-only -q
 
-# Arquivos oficiais locais
-uv run python -m tests.perf.benchmark_runner \
-  --data-dir /caminho/para/cotahist \
-  --initial-year 2008 \
-  --last-year 2024 \
-  --assets ações etf opções termo exercicio_opcoes forward leilao \
-  --mode both \
-  --repetitions 1 \
-  --timeout-seconds 7200
+# Executar os benchmarks de hot paths
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts=''
+
+# Salvar resultados para uma comparação posterior
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' \
+  --benchmark-save=baseline_v1
+
+# Comparar com o baseline salvo
+uv run --locked --no-sync pytest tests/perf -m perf -o addopts='' \
+  --benchmark-compare=baseline_v1
 ```
 
 O arquivo sintético da linha de base tem SHA-256
@@ -93,8 +90,8 @@ geração dos Parquets primários. Executado na mesma máquina dos benchmarks B3
 - **Docs:** DFP, ITR, FRE, FCA, CGVN, VLMO, IPE (todos os tipos disponíveis)
 - **Período:** 2010–2024
 
-| ZIPs baixados | Parquets gerados | Linhas extraídas | Saída total | Tempo total |  Pico RSS | Erros |
-| ------------: | ---------------: | ---------------: | ----------: | ----------: | --------: | ----: |
+| ZIPs baixados | Parquets gerados | Linhas extraídas | Saída total | Tempo decorrido |  Pico RSS | Erros |
+| ------------: | ---------------: | ---------------: | ----------: | ---------------: | --------: | ----: |
 |            88 |            1.392 |       63.300.208 |   337,93 MB |    505,04 s | 459,18 MB |     0 |
 
 - Inclui: conexão com servidores CVM, download de todos os ZIPs, validação,

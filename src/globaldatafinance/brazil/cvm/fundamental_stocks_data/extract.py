@@ -24,6 +24,7 @@ class ParquetExtractorAdapterCVM:
     MAX_FALLBACK_SIZE_MB = 500
 
     def __init__(self) -> None:
+        """Initialize the generic archive extraction adapter."""
         self.extractor_adapter = ExtractorAdapter()
 
     def extract(self, source_path: str, destination_path: str) -> None:

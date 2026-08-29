@@ -1,6 +1,8 @@
-import contextlib
+"""Merge temporary B3 Parquet artifacts while limiting memory use."""
+
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import Any
 
 import pyarrow.parquet as pq  # type: ignore
 
@@ -8,6 +10,70 @@ from .....core import get_logger
 from .....macro_exceptions import ExtractionError, ParquetWriteError
 
 logger = get_logger(__name__)
+
+
+def _remove_temp_file(temp_file: Path) -> None:
+    """Remove one merged temporary file without aborting a valid merge."""
+    try:
+        temp_file.unlink()
+        logger.debug(f'Deleted temporary file: {temp_file.name}')
+    except OSError:
+        logger.warning(
+            'Failed to delete temp file %s', temp_file.name, exc_info=True
+        )
+
+
+async def _check_merge_resources(
+    total_rows: int,
+    check_resources: Callable[[], Awaitable[None]],
+) -> None:
+    """Check resources at the established cumulative row boundary."""
+    if total_rows > 0 and total_rows % 500_000 == 0:
+        await check_resources()
+
+
+async def _write_temp_parquet(
+    writer: Any,
+    temp_file: Path,
+    *,
+    index: int,
+    file_count: int,
+    total_rows: int,
+    check_resources: Callable[[], Awaitable[None]],
+) -> int:
+    """Stream one temporary Parquet into the merge writer."""
+    logger.debug(f'Merging file {index}/{file_count}: {temp_file.name}')
+    parquet_file = pq.ParquetFile(str(temp_file))
+    file_rows = 0
+    for batch in parquet_file.iter_batches(batch_size=200_000):
+        writer.write_batch(batch)
+        file_rows += batch.num_rows
+        total_rows += batch.num_rows
+
+    logger.debug(
+        f'Merged {file_rows:,} rows from {temp_file.name}',
+        extra={'cumulative_rows': total_rows},
+    )
+    _remove_temp_file(temp_file)
+    await _check_merge_resources(total_rows, check_resources)
+    return total_rows
+
+
+def _cleanup_path(path: Path) -> None:
+    """Best-effort cleanup one merge artifact with observable failures."""
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        logger.warning(
+            'Failed to clean up merge artifact %s', path, exc_info=True
+        )
+
+
+def _cleanup_failed_merge(temp_merge: Path, temp_files: list[Path]) -> None:
+    """Remove the intermediate output and all remaining temporary inputs."""
+    _cleanup_path(temp_merge)
+    for temp_file in temp_files:
+        _cleanup_path(temp_file)
 
 
 async def merge_temp_files_streaming(
@@ -50,33 +116,14 @@ async def merge_temp_files_streaming(
         total_rows = 0
 
         for index, temp_file in enumerate(temp_files, 1):
-            logger.debug(
-                f'Merging file {index}/{len(temp_files)}: {temp_file.name}'
+            total_rows = await _write_temp_parquet(
+                writer,
+                temp_file,
+                index=index,
+                file_count=len(temp_files),
+                total_rows=total_rows,
+                check_resources=check_resources,
             )
-
-            parquet_file = pq.ParquetFile(str(temp_file))
-            file_rows = 0
-
-            for batch in parquet_file.iter_batches(batch_size=200_000):
-                writer.write_batch(batch)
-                file_rows += batch.num_rows
-                total_rows += batch.num_rows
-
-            logger.debug(
-                f'Merged {file_rows:,} rows from {temp_file.name}',
-                extra={'cumulative_rows': total_rows},
-            )
-
-            try:
-                temp_file.unlink()
-                logger.debug(f'Deleted temporary file: {temp_file.name}')
-            except Exception as e:
-                logger.warning(
-                    f'Failed to delete temp file {temp_file.name}: {e}'
-                )
-
-            if total_rows % 500_000 == 0 and total_rows > 0:
-                await check_resources()
 
         writer.close()
 
@@ -93,24 +140,12 @@ async def merge_temp_files_streaming(
 
         return total_rows
 
-    except Exception as e:
-        logger.error(
-            f'Failed to merge temporary files: {e}',
-            exc_info=True,
-        )
-
-        if temp_merge.exists():
-            with contextlib.suppress(Exception):
-                temp_merge.unlink()
-
-        for temp_file in temp_files:
-            if temp_file.exists():
-                with contextlib.suppress(Exception):
-                    temp_file.unlink()
-
+    except Exception as error:
+        logger.exception('Failed to merge temporary files')
+        _cleanup_failed_merge(temp_merge, temp_files)
         raise ParquetWriteError(
-            str(final_output), f'Merge operation failed: {e}'
-        ) from e
+            str(final_output), f'Merge operation failed: {error}'
+        ) from error
 
 
 def count_parquet_rows(path: Path) -> int:
@@ -119,8 +154,8 @@ def count_parquet_rows(path: Path) -> int:
         parquet_file = pq.ParquetFile(str(path))
         result: int = parquet_file.metadata.num_rows
         return result
-    except Exception as e:
-        logger.error(f'Error counting rows in {path}: {e}', exc_info=True)
+    except Exception as error:
+        logger.exception('Error counting rows in %s', path)
         raise ExtractionError(
-            str(path), f'Failed to read rows count: {e}'
-        ) from e
+            str(path), f'Failed to read rows count: {error}'
+        ) from error

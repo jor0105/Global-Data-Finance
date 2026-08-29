@@ -6,13 +6,19 @@ ______________________________________________________________________
 
 ## Overview
 
-Global-Data-Finance is a Python distribution library published via PyPI whose public API boundary is deliberately narrow — exposing at the package root level the core classes `FundamentalStocksDataCVM` and `HistoricalQuotesB3`, alongside the typed dictionary contract `ExtractionResultB3`. Internamente, each supported data source is implemented within its own dedicated directory utilizing a **flat layout of role-named modules**.
+Global-Data-Finance is a Python distribution library whose public API boundary
+is deliberately narrow — exposing at the package root the classes
+`FundamentalStocksDataCVM` and `HistoricalQuotesB3`, alongside the typed
+dictionary contract `ExtractionResultB3`. The currently implemented sources are
+Brazilian CVM regulatory feeds and B3 historical market data. Internally, each
+source is implemented in its owning feature directory using focused modules and
+specialized subpackages where the domain requires them.
 
 This architectural paradigm prioritizes:
 
 - ✅ **Readability**: concise module files with explicit operational roles (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: role-named modules — `client.py`, `assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`, `errors.py`, supplemented by domain subpackages)
 - ✅ **Maintainability**: a clean, concise structure pragmatically aligned with module capabilities and functional boundaries
-- ✅ **Extensibility**: integrating a new regulatory source = adding a sibling source folder implementing the identical flat role set
+- ✅ **Extensibility**: integrating a new supported source means defining source-owned modules and a public facade that fit its responsibilities, reusing the CVM or B3 boundaries where appropriate
 - ✅ **Testability**: straightforward dependency injection and duck typing to isolate and test components cleanly without ceremony
 
 ______________________________________________________________________
@@ -41,7 +47,7 @@ globaldatafinance/
 │   │   │       ├── processing.py              # ProcessingModeEnumB3, _ProcessingModeConfig
 │   │   │       ├── filesystem.py              # FileSystemServiceB3.validate_directory_path
 │   │   │       ├── errors.py                  # source-specific exception definitions
-│   │   │       ├── zip_reader.py              # COTAHIST ZIP discovery and decompression
+│   │   │       ├── zip_reader.py              # COTAHIST ZIP/TXT discovery and streaming
 │   │   │       ├── cotahist_parser.py         # fixed-width positional parser (isolated domain module)
 │   │   │       ├── parquet_writer/            # subpackage: Parquet compiler and writer
 │   │   │       └── extraction_service/        # subpackage: thread-pool streaming orchestration
@@ -66,7 +72,15 @@ ______________________________________________________________________
 
 ## Source Module Patterns
 
-Every folder under `brazil/<country>/<source>/` implements the identical set of **system roles**. The role-to-file mapping is unified in CVM (one designated file per role) and decomposed granularly in B3 (where pure data constructs and domain validation routines are broken into topical modules to prevent an oversized `core.py`). Introducing a new data source can adopt either pattern — the guiding principle is long-term code legibility.
+B3 input follows the `COTAHIST_A{YYYY}.ZIP` or `.TXT` naming contract; the
+reader streams the TXT entry inside a ZIP or the uncompressed TXT file.
+
+CVM and B3 are the current source implementations: CVM is owned by
+`brazil/cvm/fundamental_stocks_data/`, and B3 is owned by
+`brazil/b3_data/historical_quotes/`. Their modules are organized by actual
+responsibility rather than by a promise that every future source will have an
+identical file set. A future source can reuse these boundaries when its needs
+match them.
 
 | Architectural Role           | CVM                                                | B3                                                                                     |
 | ---------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -87,7 +101,11 @@ ______________________________________________________________________
 
 ## Observable Architectural Layers
 
-The repository is organized around **two well-delineated operational layers**:
+The repository has a public application boundary, source implementation
+packages, and shared infrastructure. Within those boundaries, clients and use
+cases orchestrate work, adapters own HTTP/filesystem/extraction I/O, focused
+modules own validation and transformation, and `*_formatter.py` modules own
+console presentation.
 
 ### 1. Public Facade Layer (`application/`)
 
@@ -119,11 +137,14 @@ class FundamentalStocksDataCVM:
         return result
 ```
 
-The public facade imports **directly** from the source flat modules without traversing obscure re-exports in intermediate `brazil/__init__.py` bridges.
+The public facade imports **directly** from source-owned modules without traversing obscure re-exports in intermediate `brazil/__init__.py` bridges.
 
-### 2. Source Implementation Layer (`brazil/<country>/<source>/`)
+### 2. Source Implementation Layer
 
-Each financial feed is self-contained across ~5–8 functional modules. CVM implementation example:
+The current source packages are `brazil/cvm/fundamental_stocks_data/` and
+`brazil/b3_data/historical_quotes/`. CVM is organized across focused modules;
+B3 additionally uses `extraction_service/` and `parquet_writer/` for streaming
+orchestration and Parquet output. CVM implementation example:
 
 ```python
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py
@@ -155,11 +176,16 @@ class DownloadDocumentsUseCaseCVM:
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/http.py
 class AsyncDownloadAdapterCVM:
     def download_docs(self, tasks) -> DownloadResultCVM:
-        # Concrete implementation utilizing async httpx pools, retry policies, and MD5 integrity verification
+        # Concrete implementation using async httpx pools, retries, and
+        # path/size/readable-ZIP validation
         ...
 ```
 
-The orchestration use case interacts with `AsyncDownloadAdapterCVM` via its observable method signature, allowing unit test suites to substitute lightweight duck-typed stubs without unnecessary mock framework overhead (see "Testing Patterns" below).
+The orchestration use case interacts with `AsyncDownloadAdapterCVM` via its
+observable method signature, allowing unit test suites to substitute lightweight
+duck-typed stubs without unnecessary mock framework overhead (see "Testing
+Patterns" below). MD5 checksum verification is a planned capability and is not
+part of the current download contract.
 
 ______________________________________________________________________
 
@@ -188,7 +214,10 @@ Adapters governing network and filesystem I/O—such as `AsyncDownloadAdapterCVM
 
 ### Explicit Result Objects
 
-Operations capable of partial runtime failures return structured result dataclasses containing explicit success metrics and failure details, rather than executing disruptive `raise` exceptions upon encountering partial interruptions.
+Operations capable of partial runtime failures return structured result objects
+containing explicit success metrics and failure details: CVM uses the
+`DownloadResultCVM` dataclass, while the public B3 facade returns the
+`ExtractionResultB3` `TypedDict`.
 
 ```python
 @dataclass
@@ -203,9 +232,10 @@ class DownloadResultCVM:
         return self.error_count_downloads > 0
 ```
 
-### Immutable Value Objects
+### Data Objects and Value Objects
 
-Immutable domain constructs in `core.py` encapsulate data validation and initialization bounds (`DictZipsToDownloadCVM`, `DocsToExtractorB3`, etc.).
+Focused data objects and value objects encapsulate validated requests and year
+bounds (`AvailableYearsInfoCVM`, `DocsToExtractorB3`, and the B3 year model).
 
 ### Separation of Console Presentation
 
@@ -242,9 +272,9 @@ graph TD
     A[HistoricalQuotesB3] -->|1. invoke extract| B[ExtractHistoricalQuotesUseCaseB3]
     B -->|2. validate asset arguments| C[Domain validators in assets.py / years.py]
     B -->|3. evaluate target directory| D[validate_directory_path<br/>raise SecurityError on /etc, /sys, ...]
-    B -->|4. discover archive targets| E[zip_reader.py]
-    E -->|5. stream ZIP ascii entries| F[cotahist_parser.py]
-    F -->|6. emit intermediate dataframes| G[extraction_service/]
+    B -->|4. discover ZIP/TXT targets| E[zip_reader.py]
+    E -->|5. stream ZIP entries or TXT lines| F[cotahist_parser.py]
+    F -->|6. emit parsed batches| G[extraction_service/]
     G -->|7. manage threadpool & memory flush| H[parquet_writer/]
     H -->|8. persist consolidated Parquet| I[Local Filesystem Storage]
     B -->|9. return ExtractionResultB3| A
@@ -255,7 +285,12 @@ ______________________________________________________________________
 
 ## Adding a New Data Source
 
-To integrate a novel regulatory or exchange feed (e.g., US SEC filings), establish a new sibling directory implementing role-named operational modules. For compact data feeds, the streamlined 5-module CVM pattern provides an ideal baseline; for complex feeds, mirror the granular composition of B3 to segment topical logic before `core.py` exceeds manageable complexity thresholds.
+The following is a **future architecture example** only; a US SEC source is
+not implemented by the current runtime. When a new regulatory or exchange feed
+is accepted, establish a source implementation directory with modules that fit
+its responsibilities. For compact feeds, the streamlined CVM pattern is a
+reasonable baseline; for complex feeds, the granular B3 composition can
+separate topical logic before a single module becomes unwieldy.
 
 ```text
 src/globaldatafinance/usa/sec/fundamental_data/
@@ -270,7 +305,7 @@ Subsequent integration steps:
 
 1. **Internal Namespace**: Add an `__init__.py` file inside the source folder (or leave blank if no internal re-export aggregation is required).
 
-2. **Public Application Facade**: Create `src/globaldatafinance/application/sec_docs/fundamental_data.py` containing a public facade class `FundamentalDataSEC` importing directly from your flat source modules:
+2. **Public Application Facade**: Create `src/globaldatafinance/application/sec_docs/fundamental_data.py` containing a public facade class `FundamentalDataSEC` importing directly from source-owned modules:
 
    ```python
    from ...usa.sec.fundamental_data import (
@@ -282,7 +317,7 @@ Subsequent integration steps:
 
 3. **Package Boundary Export**: Re-export the new symbol inside `src/globaldatafinance/__init__.py` and `src/globaldatafinance/application/__init__.py`. Treat this as a **semver-sensitive feature expansion**.
 
-4. **Test Suite Mirroring**: Establish `tests/usa/sec/fundamental_data/` grouped cleanly by functional topic. Test fixtures must import symbols directly from flat source modules.
+4. **Test Suite Mirroring**: Establish `tests/usa/sec/fundamental_data/` grouped cleanly by functional topic. Test fixtures must import symbols directly from source-owned modules.
 
 5. **Documentation Alignment**: Register the new architecture map within `AGENTS.md` and this architecture guide, and author reference manuals inside `docs/reference/`.
 
@@ -321,14 +356,30 @@ To verify orchestrators and adapters cleanly in isolated environments without tr
 Duck-typed stub example:
 
 ```python
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
+    DownloadDocumentsUseCaseCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    DownloadResultCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
+    DownloadTaskCVM,
+)
+
+
 class MockRepository:
-    def download_docs(self, tasks):
+    def download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
         return DownloadResultCVM(
-            success_count_downloads=2,
-            error_count_downloads=0,
             successful_downloads=['DFP_2023', 'ITR_2023'],
             failed_downloads={},
+            elapsed_time=0.5,
         )
+
 
 use_case = DownloadDocumentsUseCaseCVM(MockRepository())
 result = use_case.execute(destination_path='/tmp/cvm')

@@ -38,11 +38,11 @@ class HistoricalQuotesB3:
     """High-level interface for B3 historical quotes extraction operations.
 
     This class provides a simple API for extracting historical stock quotes
-    from B3 COTAHIST ZIP files and converting them to Parquet format.
+    from B3 COTAHIST archives (ZIP or TXT) and converting them to Parquet.
 
     The extraction process supports two processing modes:
     - Fast mode: High performance with higher CPU/RAM usage (recommended)
-    - Slow mode: Resource-efficient with lower CPU/RAM usage (for limited resources)
+    - Slow mode: Resource-efficient with lower CPU/RAM usage.
 
     Supported asset classes:
     - 'ações': Stocks (cash and fractional market)
@@ -59,7 +59,7 @@ class HistoricalQuotesB3:
     Example:
         >>> b3 = HistoricalQuotesB3()
         >>> result = b3.extract(
-        ...     path_of_docs="/data/cotahist_zips",
+        ...     path_of_docs="/data/cotahist",
         ...     destination_path="/data/output",
         ...     assets_list=["ações", "etf"],
         ...     initial_year=2022,
@@ -71,7 +71,7 @@ class HistoricalQuotesB3:
     def __init__(self) -> None:
         """Initialize the HistoricalQuotesB3 client.
 
-        Sets up the extraction use case and result formatter with sensible defaults.
+        Sets up the extraction use case and result formatter with defaults.
         """
         self._extract_use_case = ExtractHistoricalQuotesUseCaseB3()
         self._available_assets_use_case = GetAvailableAssetsUseCaseB3()
@@ -92,72 +92,52 @@ class HistoricalQuotesB3:
         processing_mode: str = 'fast',
         verbose: bool = True,
     ) -> ExtractionResultB3:
-        r"""Extract historical quotes from COTAHIST ZIP files to Parquet format.
+        r"""Extract historical quotes from COTAHIST archives to Parquet.
 
         Validates the asset classes and year range, finds the matching
-        COTAHIST ZIP files, parses and filters them, and writes the result to
-        a Parquet file.
+        COTAHIST files (ZIP or TXT), parses and filters them, and writes the
+        result to a Parquet file.
 
         Args:
-            path_of_docs: Directory path where COTAHIST ZIP files are located.
-                         The files should follow the naming pattern: COTAHIST_AXXXX.ZIP
+            path_of_docs: Directory path where COTAHIST files reside
+                         (`COTAHIST_A{YYYY}.ZIP` or `COTAHIST_A{YYYY}.TXT`).
                          Example: "/home/user/cotahist_files"
             assets_list: List of asset class codes to extract.
                         Valid values: 'ações', 'etf', 'opções', 'termo',
                                      'exercicio_opcoes', 'forward', 'leilao'
-                        Example: ["ações", "etf"]
-            initial_year: Starting year for extraction (inclusive).
-                       If None, uses the minimal available year (1986).
-                       Must be >= 1986 (first year of B3 historical data).
-                       Example: 2020
-            last_year: Ending year for extraction (inclusive).
-                     If None, uses the current year.
-                     Must be >= initial_year and <= current year.
-                     Example: 2023
-            destination_path: Directory path where the output Parquet file will be saved.
+            initial_year: Starting year (inclusive, >= 1986). Defaults to 1986.
+            last_year: Ending year (inclusive). Defaults to current year.
+            destination_path: Directory path for the generated Parquet file.
                             If None, uses path_of_docs as destination.
-                            The directory will be created if it doesn't exist.
-                            Example: "/home/user/output"
-            output_filename: Name of the output file (without .parquet extension).
-                           Must be a basename: no path separators ('/' or '\'),
-                           no '..' traversal segments, no absolute paths, no
-                           Windows drive letters. Subdirectories or paths raise
-                           ``InvalidOutputFilename`` before any file is written.
-                           The '.parquet' extension will be added automatically.
-                           Default: "cotahist_extracted" (saves as "cotahist_extracted.parquet")
-                           Example: "stocks_2020_2023" (saves as "stocks_2020_2023.parquet")
-            processing_mode: Processing strategy for resource management.
-                           - 'fast': High performance mode (default)
-                             Uses more CPU/RAM for faster processing
-                           - 'slow': Resource-efficient mode
-                             Uses less CPU/RAM, suitable for limited resources
-                           Example: "fast"
-            verbose: When True (default), print a formatted summary of the
-                     result to stdout. Set to False for programmatic use where
-                     console output is unwanted; the returned dictionary is
-                     identical either way.
+            output_filename: Required output basename without path separators.
+                           The optional ``.parquet`` suffix is accepted and
+                           is appended automatically only when it is absent.
+                           Default: "cotahist_extracted"
+            processing_mode: 'fast' (high performance) or 'slow' (low RAM).
+            verbose: When True (default), print summary to stdout.
 
         Note:
-            This is a synchronous wrapper around :meth:`extract_async` that
-            calls ``asyncio.run``. Call :meth:`extract_async` directly from
-            inside a running event loop.
+            Synchronous wrapper around :meth:`extract_async` using ``asyncio``.
 
         Returns:
-            Dictionary containing extraction results with the following keys:
+            ExtractionResultB3 TypedDict containing:
             - success (bool): True if extraction completed without errors
             - message (str): Human-readable summary of the extraction
-            - total_files (int): Total number of ZIP files processed
+            - total_files (int): Number of input files processed (ZIP or TXT)
             - success_count (int): Number of successfully processed files
             - error_count (int): Number of files that failed to process
             - total_records (int): Total number of records extracted
             - output_file (str): Path to the generated Parquet file
-            - errors (list[str], optional): List of error messages if any
+            - errors (dict[str, str]): Failed files mapped to error messages
+            - assets (list[str]): Asset classes filtered during extraction
+            - processing_mode (str): Processing mode ('fast' or 'slow')
+            - elapsed_time (float): Total elapsed execution duration in seconds
 
         Raises:
             EmptyAssetListError: If assets_list is empty or not a list.
             InvalidAssetsName: If any asset class in assets_list is invalid.
-            InvalidFirstYear: If initial_year is outside valid range (1986 - current year).
-            InvalidLastYear: If last_year is outside valid range or < initial_year.
+            InvalidFirstYear: If initial_year is outside 1986-current year.
+            InvalidLastYear: If last_year is outside range or < initial_year.
             ValueError: If path_of_docs is invalid.
             OSError: If directories cannot be created or accessed.
 
@@ -277,7 +257,8 @@ class HistoricalQuotesB3:
         ).execute()
 
         logger.info(
-            f'Found {len(docs_to_extract.documents_to_download)} ZIP files to process'
+            f'Found {len(docs_to_extract.documents_to_download)} COTAHIST '
+            'input files to process'
         )
 
         return docs_to_extract, processing_mode, output_filename_with_ext
@@ -340,7 +321,7 @@ class HistoricalQuotesB3:
     def get_available_years(self) -> dict[str, int]:
         """Get information about available years for B3 historical data.
 
-        This method returns the year range for which COTAHIST data is available.
+        This method returns the available COTAHIST year range.
         B3 historical quotes data is available from 1986 to the current year.
 
         Returns:

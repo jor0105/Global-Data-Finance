@@ -1,23 +1,31 @@
 # 📊 Global-Data-Finance
 
-> Python library for extracting and processing global financial data with a flat source layout, high performance, and extensible tools.
+> Python library for extracting, normalizing, and persisting Brazilian regulatory and market data in Parquet.
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-%3E%3D3.12%2C%3C4.0-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
 ______________________________________________________________________
 
+> **Release status:** This documentation describes the local `0.2.0`
+> development/release target. The currently published PyPI release is still
+> `0.1.4`; this branch has not been published. Remove this note after `v0.2.0`
+> is released.
+
 ## 🎯 What Does This Library Offer?
 
 **Global-Data-Finance** is a Python library designed to extract and process financial data in a professional and scalable manner:
 
-✅ **Multiple data sources**: CVM (regulatory filings) and B3 (historical market quotes) with an identical per-source layout.
+✅ **Current data sources**: Brazilian CVM regulatory filings and B3 historical market quotes.
 ✅ **Optimized processing**: Asynchronous downloads (`httpx[http2]`) with adaptive concurrency monitored by CPU and memory.
 ✅ **Efficient format**: Native Parquet extraction (ready for Pandas/Polars).
 ✅ **Integrated robustness**: Retries with exponential back-off, data integrity validation, and atomic rollback.
-✅ **Flat source layout**: Role-named modules (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: `client.py`, `models.py`, `years.py`, `processing.py`, `assets.py`, `filesystem.py`, `errors.py`, plus specialized subpackages), ensuring simplicity, direct readability, and straightforward maintainability.
+✅ **Clear source ownership**: Source-specific modules remain under the CVM and B3 feature directories, while generic concerns live in `core/`, `macro_infra/`, and `macro_exceptions/`.
+
+Current downloaded-file checks cover path safety, expected size, and readable
+ZIP contents. MD5 checksum support is **Planned** and is not implemented.
 
 ______________________________________________________________________
 
@@ -38,7 +46,7 @@ uv sync --locked --all-extras --dev
 ### Configuration
 
 ```bash
-# Requires Python 3.12+
+# Requires Python >=3.12,<4.0
 python --version
 
 # Optional: configure logging to view detailed progress
@@ -78,7 +86,10 @@ cvm.download(
     automatic_extractor=True
 )
 
-# B3 - Historical Quotes (Stocks, ETFs, Options, Futures)
+# B3 - Historical Quotes (stocks, ETFs, options, term, forward, auctions)
+# The extractor accepts local COTAHIST_A{YYYY}.ZIP or COTAHIST_A{YYYY}.TXT inputs;
+# ZIP takes precedence for one year.
+
 from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
@@ -96,18 +107,22 @@ result = b3.extract(
 The library offers distinct processing modes to optimize resource utilization:
 
 ```python
-# FAST Mode - In-memory processing (highest speed)
-b3.extract(
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+
+# FAST Mode - High-performance processing
+result_fast = b3.extract(
     path_of_docs="./data",
     assets_list=["ações"],
-    processing_mode="fast"  # Recommended for small to medium datasets
+    processing_mode="fast",  # Recommended default
 )
 
-# SLOW Mode - Incremental processing (lower memory footprint)
-b3.extract(
+# SLOW Mode - Memory-constrained processing
+result_slow = b3.extract(
     path_of_docs="./data",
     assets_list=["ações"],
-    processing_mode="slow"  # Recommended for large datasets or memory-constrained environments
+    processing_mode="slow",  # Recommended for low-memory environments
 )
 ```
 
@@ -116,10 +131,14 @@ b3.extract(
 - `ações` - Spot market and fractional shares
 - `etf` - Exchange Traded Funds
 - `opções` - Calls and Puts options
-- `termo` - Forward market contracts
+- `termo` - Term-market contracts
 - `exercicio_opcoes` - Options exercise
 - `forward` - Forward contracts
 - `leilao` - Auction market
+
+BDRs and Futures are **Planned** and are not accepted by the current runtime
+contract. The Portuguese strings above are canonical API values and must be
+passed exactly as shown. Planned features must not be passed to the public API.
 
 **Checking available assets:**
 
@@ -208,7 +227,7 @@ ______________________________________________________________________
 
 ### Developer Guide
 
-- **[Architecture](dev-guide/architecture.md)** - Flat source layout and architectural design decisions
+- **[Architecture](dev-guide/architecture.md)** - Source ownership and architectural design decisions
 - **[API Reference](dev-guide/api-reference.md)** - Full structural reference of public boundaries
 - **[Contributing](dev-guide/contributing.md)** - Contribution guidelines and validation practices
 - **[Testing](dev-guide/testing.md)** - Test suites, markers, and coverage gate strategy
@@ -216,7 +235,7 @@ ______________________________________________________________________
 - **[Advanced Usage](dev-guide/advanced-usage.md)** - Optimization patterns and programmatic customization
 - **[Logging System](dev-guide/logging-system.md)** - Structured log formatting and diagnostic setup
 - **[Resource Monitoring](dev-guide/resource-monitoring.md)** - Adaptive memory and CPU resource throttling
-- **[Retry Strategy](dev-guide/retry-strategy.md)** - Asymmetric network resilience and exponential backoff
+- **[Retry Strategy](dev-guide/retry-strategy.md)** - Asynchronous network resilience and exponential backoff
 
 ### Technical Reference
 
@@ -237,9 +256,9 @@ ______________________________________________________________________
 
 ### For Developers
 
-- ✅ **Flat Source Layout**: Role-named modules (CVM: ~7 files; B3: ~10 files + specialized packages) make code intuitive to navigate, debug, and audit
-- ✅ **Extensible Design**: Adding a new global data source only requires creating a parallel sibling folder with matching role names
-- ✅ **Type Safety**: Thorough TypeDict contracts and type annotations checked with `mypy` and `pyright`
+- ✅ **Source-Oriented Layout**: Role-named modules and specialized packages make the implementation intuitive to navigate, debug, and audit
+- ✅ **Extensible Design**: Adding a new supported source can follow the existing source-ownership and role-based module boundaries
+- ✅ **Type Safety**: TypedDict contracts and type annotations checked with `mypy`
 - ✅ **Automated CI/CD**: Enforced GitHub Actions quality gates (`ruff`, `mypy`, and `pytest --cov=85%`)
 
 ### For Analysts & Data Scientists
@@ -253,8 +272,9 @@ ______________________________________________________________________
 
 ## 📊 Architecture Overview
 
-1. **Public Facades (`application/`)** — SemVer-sensitive boundary consumed by calling applications and pipelines.
-2. **Source Implementations (`brazil/<country>/<source>/`)** — Flat layout of cohesive modules structured by functional role.
+1. **Public facades and application layer (`application/`)** — SemVer-sensitive boundary consumed by calling applications and pipelines, including console formatters.
+2. **Source implementations** — CVM is under `brazil/cvm/fundamental_stocks_data/` and B3 is under `brazil/b3_data/historical_quotes/`. Clients and use cases orchestrate work, adapters own I/O, and focused modules own validation, parsing, and transformation.
+3. **Shared infrastructure** — `core/` owns configuration, logging, path safety, retries, progress, and resource monitoring; `macro_infra/` owns generic HTTP/file adapters; `macro_exceptions/` owns project exception bases.
 
 ```mermaid
 graph TD
@@ -262,7 +282,7 @@ graph TD
 
     subgraph "globaldatafinance"
         Facade["Public Facades<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
-        Facade --> Source["Source Package (brazil/&lt;country&gt;/&lt;source&gt;/)<br/>Role-Named Flat Modules<br/>(client.py, models.py, errors.py...)"]
+        Facade --> Source["Source implementations<br/>brazil/cvm/fundamental_stocks_data/<br/>brazil/b3_data/historical_quotes/"]
         Source --> Cross["Cross-cutting Core<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
@@ -273,7 +293,7 @@ graph TD
 
 - **Direct Readability**: Minimal abstraction layers and cohesive, responsibility-named modules keep the execution path crystal clear.
 - **Concrete Adapters**: Concrete I/O adapters are imported and instantiated directly, ensuring straightforward, traceable execution pathways without complex dependency injection containers.
-- **Source-Oriented Extensibility**: Adding a new financial feed requires creating an isolated source directory with an identical role-named foundation.
+- **Source-Oriented Extensibility**: A new supported financial feed can define source-owned modules and a public facade suited to its responsibilities, reusing existing boundaries where appropriate.
 - **Strict Security Contracts**: Path-traversal defenses (`VerifyPathsUseCasesCVM` and B3 path validation) strictly raise `SecurityError` before creating directories or persisting data.
 
 [Learn more about our design decisions in Architecture →](dev-guide/architecture.md)
@@ -368,11 +388,11 @@ ______________________________________________________________________
 
 ## 🤝 Contributing
 
-We welcome contributions! Whether adding support for a new global data source, refining parsers, or boosting throughput:
+We welcome contributions! Whether adding a new supported source, refining parsers, or boosting throughput:
 
 1. Fork the repository
 2. Create your feature branch: `git checkout -b feature/new-source`
-3. Implement features strictly adhering to our established flat layout and security invariants
+3. Implement features within the established source-ownership boundaries and security invariants
 4. Execute test suites with coverage: `uv run --locked --no-sync pytest --cov`
 5. Verify code quality gates: `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`
 6. Submit a Pull Request with description and test evidence
@@ -408,7 +428,7 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-**Status:** 🚀 In Production! Active maintenance, stable public API, and welcoming contributions.
+**Status:** The package distribution is **Beta** (`Development Status :: 4 - Beta`). The implemented CVM and B3 workflows are considered **Production** for their current contracts; planned capabilities remain unsupported.
 
 <div align="center">
     <sub>Copyright © 2026 Jordan Estralioto • Licensed under Apache 2.0</sub>

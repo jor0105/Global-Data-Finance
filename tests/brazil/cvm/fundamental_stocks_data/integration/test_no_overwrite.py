@@ -64,7 +64,9 @@ class TestNoOverwrite:
         df_after = pd.read_parquet(existing_file)
 
         assert len(df_after) == len(new_data), (
-            f'Number of rows should have changed! Original: {len(original_data)}, New: {len(new_data)}, Current: {len(df_after)}'
+            f'Number of rows should have changed! Original: '
+            f'{len(original_data)}, New: {len(new_data)}, '
+            f'Current: {len(df_after)}'
         )
 
         pd.testing.assert_frame_equal(
@@ -132,7 +134,8 @@ class TestNoOverwrite:
         df_result = pd.read_parquet(tmp_path / 'data.parquet')
 
         assert df_result['source'].iloc[0] == 'second', (
-            f'CRITICAL: Second file did NOT overwrite the first! Source: {df_result["source"].iloc[0]}'
+            'CRITICAL: Second file did NOT overwrite the first! Source: '
+            f'{df_result["source"].iloc[0]}'
         )
 
         print('✅ Second file successfully overwrote the first')

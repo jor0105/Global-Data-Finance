@@ -22,6 +22,18 @@ class TestRequestsAdapterInitialization:
         assert adapter.verify is False
         assert adapter.http2 is True
 
+    def test_initialization_without_default_headers(self):
+        adapter = RequestsAdapter()
+
+        assert adapter.default_headers is None
+
+    def test_initialization_with_default_headers(self):
+        adapter = RequestsAdapter(
+            default_headers={'User-Agent': 'test-client/1.0'}
+        )
+
+        assert adapter.default_headers == {'User-Agent': 'test-client/1.0'}
+
 
 class TestRequestsAdapterAsyncMethods:
     @pytest.mark.asyncio
@@ -58,6 +70,65 @@ class TestRequestsAdapterAsyncMethods:
 
         call_args = mock_client.head.call_args
         assert call_args[1]['headers'] == headers
+
+    @pytest.mark.asyncio
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    async def test_async_head_has_no_default_headers_by_default(
+        self, mock_client_class
+    ):
+        mock_client = AsyncMock()
+        mock_client.__aenter__.return_value = mock_client
+        mock_client.head.return_value = Mock()
+        mock_client_class.return_value = mock_client
+
+        await RequestsAdapter().async_head('https://example.com')
+
+        assert mock_client.head.call_args.kwargs['headers'] is None
+
+    @pytest.mark.asyncio
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    async def test_async_head_propagates_configured_user_agent(
+        self, mock_client_class
+    ):
+        mock_client = AsyncMock()
+        mock_client.__aenter__.return_value = mock_client
+        mock_client.head.return_value = Mock()
+        mock_client_class.return_value = mock_client
+
+        adapter = RequestsAdapter(
+            default_headers={'User-Agent': 'configured-client/1.0'}
+        )
+        await adapter.async_head('https://example.com')
+
+        assert mock_client.head.call_args.kwargs['headers'] == {
+            'User-Agent': 'configured-client/1.0'
+        }
+
+    @pytest.mark.asyncio
+    @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
+    async def test_request_headers_override_default_headers(
+        self, mock_client_class
+    ):
+        mock_client = AsyncMock()
+        mock_client.__aenter__.return_value = mock_client
+        mock_client.head.return_value = Mock()
+        mock_client_class.return_value = mock_client
+
+        adapter = RequestsAdapter(
+            default_headers={
+                'User-Agent': 'configured-client/1.0',
+                'Accept': 'application/octet-stream',
+            }
+        )
+        await adapter.async_head(
+            'https://example.com',
+            headers={'user-agent': 'per-request-client/2.0'},
+        )
+
+        assert mock_client.head.call_args.kwargs['headers'] == {
+            'Accept': 'application/octet-stream',
+            'user-agent': 'per-request-client/2.0',
+        }
 
     @pytest.mark.asyncio
     @patch('globaldatafinance.macro_infra.requests_adapter.httpx.AsyncClient')
@@ -155,6 +226,8 @@ class TestRequestsAdapterDownload:
     async def test_async_download_file_handles_http_error(
         self, mock_unlink, mock_open, mock_client_class
     ):
+        _ = mock_open
+
         async def chunk_generator():
             if False:
                 yield b''

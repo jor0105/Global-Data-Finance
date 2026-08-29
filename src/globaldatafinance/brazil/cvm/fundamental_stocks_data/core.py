@@ -44,13 +44,55 @@ class AvailableYearsInfoCVM(NamedTuple):
 
 
 _DICT_AVAILABLE_DOCS: dict[str, str] = {
-    'CGVN': '(Governance Code Report) a periodic document that records information about adherence/compatibility with the Corporate Governance Code for publicly traded companies — governance structure, committees, policies, and relevant indicators.',
-    'FRE': '(Reference Form) an electronic document (periodic/eventual) that gathers corporate and descriptive information required by the CVM: activities, risk factors, corporate and capital structure, management, compensation policies, information about securities, auditing, and other regulatory disclosures.',
-    'FCA': "(Registration Form) an electronic form (periodic/eventual) with the company's official registration data and its updates: identification (CNPJ, corporate name), address, registration status, segment, identifier codes, and registration/contact information.",
-    'DFP': "(Standardized Financial Statements) a periodic electronic form (related to the closed fiscal year) containing the standardized financial statements required by the CVM: Balance Sheet (BPA/BPP), Income Statement (DRE), Cash Flow Statement (DFC — direct/indirect methods, as applicable), Statement of Value Added (DVA), explanatory notes, independent auditor's report, and standardized annexes.",
-    'ITR': '(Quarterly Information) a periodic electronic form with the statements and disclosures for each quarter — BPA/BPP, DRE, DFC (when applicable), and quarterly notes/disclosures required by the applicable regulation.',
-    'IPE': '(Periodic and Eventual Documents) a set of unstructured documents (minutes, material facts, announcements, reports, prospectuses, official letters, etc.) made available with metadata and a link/file; the format and content vary depending on the document type.',
-    'VLMO': '(Data on Negotiated and Held Securities) periodic reports on securities linked to the company (trades, quantities, positions, custody, and related information) provided as datasets on the CVM Open Data Portal.',
+    'CGVN': (
+        '(Governance Code Report) a periodic document that records '
+        'information '
+        'about adherence/compatibility with the Corporate Governance Code for '
+        'publicly traded companies — governance structure, committees, '
+        'policies, and relevant indicators.'
+    ),
+    'FRE': (
+        '(Reference Form) an electronic document (periodic/eventual) that '
+        'gathers corporate and descriptive information required by the CVM: '
+        'activities, risk factors, corporate and capital structure, '
+        'management, '
+        'compensation policies, information about securities, auditing, and '
+        'other regulatory disclosures.'
+    ),
+    'FCA': (
+        '(Registration Form) an electronic form (periodic/eventual) with the '
+        "company's official registration data and its updates: identification "
+        '(CNPJ, corporate name), address, registration status, segment, '
+        'identifier codes, and registration/contact information.'
+    ),
+    'DFP': (
+        '(Standardized Financial Statements) a periodic electronic form '
+        '(related to the closed fiscal year) containing the standardized '
+        'financial statements required by the CVM: Balance Sheet (BPA/BPP), '
+        'Income Statement (DRE), Cash Flow Statement (DFC — direct/indirect '
+        'methods, as applicable), Statement of Value Added (DVA), explanatory '
+        "notes, independent auditor's report, and standardized annexes."
+    ),
+    'ITR': (
+        '(Quarterly Information) a periodic electronic form with the '
+        'statements and disclosures for each quarter — BPA/BPP, DRE, DFC '
+        '(when applicable), and quarterly notes/disclosures required by the '
+        'applicable regulation.'
+    ),
+    'IPE': (
+        '(Periodic and Eventual Documents) a set of unstructured documents '
+        '(minutes, material facts, announcements, reports, prospectuses, '
+        'official letters, etc.) made available with metadata and a '
+        'link/file; '
+        'the format and content vary depending on the document type.'
+    ),
+    'VLMO': (
+        '(Data on Negotiated and Held Securities) periodic reports on '
+        'securities '
+        'linked to the company (trades, quantities, positions, custody, and '
+        'related information) provided as datasets on the CVM Open Data '
+        'Portal.'
+    ),
 }
 
 
@@ -85,7 +127,7 @@ _DICT_URL_DOCS: dict[str, str] = {
 def get_url_docs(
     list_docs: list[str] | None = None,
 ) -> tuple[dict[str, str], set[str]]:
-    """Get URLs for specified docs (or all docs if `list_docs` is None)."""
+    """Get URLs for specified docs or all docs when the list is empty."""
     if list_docs and not isinstance(list_docs, list):
         raise TypeError('list_docs must be a list of strings or None')
 
@@ -171,6 +213,7 @@ class DictZipsToDownloadCVM:
     """Builds the per-doc ZIP-URL map for the requested year range."""
 
     def __init__(self) -> None:
+        """Initialize the helper used to validate requested years."""
         self._available_years = AvailableYearsCVM()
 
     def get_dict_zips_to_download(
@@ -204,14 +247,17 @@ class DownloadResultCVM:
     _success_set: set[str] = field(default_factory=set, init=False, repr=False)
 
     def __post_init__(self) -> None:
+        """Build the private set used to deduplicate successful downloads."""
         self._success_set = set(self.successful_downloads)
 
     @property
     def success_count_downloads(self) -> int:
+        """Return the number of successful downloads."""
         return len(self.successful_downloads)
 
     @property
     def error_count_downloads(self) -> int:
+        """Return the number of failed downloads."""
         return len(self.failed_downloads)
 
     def has_errors(self) -> bool:
@@ -219,14 +265,17 @@ class DownloadResultCVM:
         return self.error_count_downloads > 0
 
     def add_success_downloads(self, item: str) -> None:
+        """Record a successful download once."""
         if item not in self._success_set:
             self.successful_downloads.append(item)
             self._success_set.add(item)
 
     def add_error_downloads(self, item: str, error: str) -> None:
+        """Record the error associated with a failed download."""
         self.failed_downloads[item] = error
 
     def __str__(self) -> str:
+        """Return a concise summary of the download result."""
         return (
             f'DownloadResultCVM(success={self.success_count_downloads}, '
             f'errors={self.error_count_downloads})'

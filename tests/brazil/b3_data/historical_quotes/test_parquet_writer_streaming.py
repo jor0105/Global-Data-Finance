@@ -7,14 +7,14 @@ import pyarrow.parquet as pq
 import pytest
 
 from globaldatafinance.brazil.b3_data.historical_quotes.parquet_writer import (
+    constants,
     streaming,
-)
-from globaldatafinance.brazil.b3_data.historical_quotes.parquet_writer.constants import (
-    APPEND_TEMP_SUFFIX,
 )
 from globaldatafinance.macro_exceptions import ParquetWriteError
 
 pytestmark = pytest.mark.unit
+
+APPEND_TEMP_SUFFIX = constants.APPEND_TEMP_SUFFIX
 
 
 def test_require_pyarrow_raises_when_missing(
@@ -95,7 +95,7 @@ def test_cast_table_to_schema_fallback_column_by_column() -> None:
     target_schema = pa.schema([('id', pa.int64()), ('val', pa.float64())])
     table = pa.table({'id': [1, 2], 'val': [10, 20]})
 
-    # Simulate direct table.cast raising an error so it triggers column-by-column fallback
+    # Simulate table.cast failing so column-by-column fallback is exercised.
     mock_table = MagicMock()
     mock_table.cast.side_effect = pa.ArrowException('Direct cast failed')
     mock_table.column.side_effect = lambda idx: table.column(idx)

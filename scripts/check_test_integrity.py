@@ -3,11 +3,14 @@
 
 Detects common test erosion patterns:
   - Focused/isolated tests (.only, fit, fdescribe) - strictly prohibited
-  - Skipped or xfailed tests (@pytest.mark.skip, it.skip, xit) - fail unless justified with reason
+  - Skipped or xfailed tests (@pytest.mark.skip, it.skip, xit) - fail unless
+    justified with a reason
   - Unjustified net removal of assertion lines in test files
-  - Deleted test files without staged policy authorization (.test-deletions.json)
+  - Deleted test files without staged policy authorization
+    (.test-deletions.json)
 
-Fail-closed: Exits with code 2 on git errors, code 1 on violations, code 0 on clean pass.
+Fail-closed: Exits with code 2 on git errors, code 1 on violations, and code 0
+on a clean pass.
 Zero external dependencies (Python 3.10+ standard library only).
 """
 
@@ -29,11 +32,11 @@ STRICT_FOCUS_PATTERNS = [
     ),
     (
         re.compile(r'\b(?:fit|fdescribe)\('),
-        'Focused test (fit/fdescribe) detected (strictly prohibited in pre-commit)',
+        'Focused test (fit/fdescribe) detected '
+        '(strictly prohibited in pre-commit)',
     ),
 ]
 
-# Skipped/xfailed tests fail by default, but can be permitted with explicit justification
 SKIPPED_TEST_PATTERNS = [
     (
         re.compile(r'@pytest\.mark\.(?:skip|xfail)\b'),
@@ -59,6 +62,7 @@ ALLOW_ASSERTION_REDUCTION_RE = re.compile(
     r'(?:allow-assertion-reduction|assertion-reduction-reason):\s*\S+.*',
     re.IGNORECASE,
 )
+_ALLOW_DELETED_FLAG = '--allow-' + 'deleted-tests'
 
 
 def is_test_file(file_path: str) -> bool:
@@ -99,7 +103,7 @@ def is_test_deletion_approved(
     repo_root: Path | None = None,
     revision_range: str | None = None,
 ) -> bool:
-    """Check whether a test deletion has policy approval in inspected Git state."""
+    """Check whether a test deletion has approval in inspected Git state."""
     policy_names = ('.test-deletions.json', '.test-integrity-policy.json')
     for policy_name in policy_names:
         content = read_git_file(
@@ -127,7 +131,7 @@ def is_test_deletion_approved(
 
 
 def get_staged_diff(target_files: list[str] | None = None) -> str:
-    """Retrieve a non-renamed staged diff for compatibility with direct callers."""
+    """Retrieve a non-renamed staged diff for direct script callers."""
     return get_diff(
         context_lines=1,
         target_files=target_files,
@@ -160,13 +164,15 @@ def _evaluate_file_assertions(
             )
         ):
             errors.append(
-                f'{file_path}: [TEST_DELETION] Test file deleted in staged changes. '
-                'To authorize, pass --allow-deleted-tests or stage a policy entry in .test-deletions.json.'
+                f'{file_path}: [TEST_DELETION] Test file deleted in staged '
+                f'changes. To authorize, pass {_ALLOW_DELETED_FLAG} '
+                'or stage a policy entry in .test-deletions.json.'
             )
     elif removed_assertions > added_assertions and not has_reduction_allow:
         errors.append(
-            f'{file_path}: [TEST_INTEGRITY] Net reduction of test assertions detected '
-            f'({removed_assertions} removed vs {added_assertions} added without '
+            f'{file_path}: [TEST_INTEGRITY] Net reduction of test assertions '
+            f'detected ({removed_assertions} removed vs {added_assertions} '
+            'added without '
             f'"allow-assertion-reduction: <reason>")'
         )
     return errors
@@ -177,14 +183,12 @@ def _check_focus_or_skip_line(
 ) -> list[str]:
     """Check an added line for focus or skip markers."""
     errors: list[str] = []
-    # 1. Focused tests: strictly prohibited in pre-commit
     for pattern, desc in STRICT_FOCUS_PATTERNS:
         if pattern.search(content):
             errors.append(
                 f'{file_path}:{line_num}: [TEST_FOCUS] {desc} ("{content}")'
             )
 
-    # 2. Skipped/xfailed tests: fail by default unless explicitly justified with reason
     for pattern, desc in SKIPPED_TEST_PATTERNS:
         if pattern.search(content) and not ALLOW_SKIP_RE.search(content):
             errors.append(
@@ -230,10 +234,74 @@ class _FileDiffState:
             revision_range,
         )
 
+    def track_previous_file(self, line: str) -> bool:
+        """Record an old-file header and report whether it was consumed."""
+        if not line.startswith('--- a/'):
+            return False
+        self.prev_file = line[6:]
+        return True
+
+    def handle_file_start(
+        self,
+        line: str,
+        allow_deleted: bool,
+        repo_root: Path | None,
+        revision_range: str | None,
+    ) -> list[str] | None:
+        """Finish the prior file and initialize a new or deleted file."""
+        if line.startswith('+++ b/'):
+            errors = self.evaluate(allow_deleted, repo_root, revision_range)
+            self.reset_for_file(line[6:], is_deleted=False)
+            return errors
+        if line.startswith('+++ /dev/null'):
+            errors = self.evaluate(allow_deleted, repo_root, revision_range)
+            self.reset_for_file(self.prev_file, is_deleted=True)
+            return errors
+        return None
+
+    def handle_hunk(self, line: str) -> bool:
+        """Initialize the added-side line number from a hunk header."""
+        if not line.startswith('@@ '):
+            return False
+        match = re.search(r'\+(\d+)', line)
+        if match:
+            self.line_num = int(match.group(1)) - 1
+        return True
+
+    def handle_removal(self, line: str) -> bool:
+        """Count an assertion removed from the current test file."""
+        if not line.startswith('-') or line.startswith('---'):
+            return False
+        if ASSERTION_PATTERNS.search(line[1:].strip()):
+            self.removed_assertions += 1
+        return True
+
+    def handle_addition(self, line: str) -> list[str] | None:
+        """Inspect and count an added line from the current test file."""
+        if not line.startswith('+') or line.startswith('+++'):
+            return None
+        self.line_num += 1
+        content = line[1:].strip()
+        if not content:
+            return []
+        if ALLOW_ASSERTION_REDUCTION_RE.search(content):
+            self.has_assertion_reduction_allow = True
+        if ASSERTION_PATTERNS.search(content):
+            self.added_assertions += 1
+        return _check_focus_or_skip_line(
+            content, self.current_file, self.line_num
+        )
+
+    def inspect_test_line(self, line: str) -> list[str]:
+        """Dispatch one diff line for the active test file."""
+        if self.handle_hunk(line) or self.handle_removal(line):
+            return []
+        return self.handle_addition(line) or []
+
 
 def scan_test_integrity(
     diff_text: str,
-    allow_deleted_tests: bool = False,
+    allow_deleted: bool = False,
     repo_root: Path | None = None,
     revision_range: str | None = None,
 ) -> list[str]:
@@ -242,83 +310,46 @@ def scan_test_integrity(
     state = _FileDiffState()
 
     for line in diff_text.splitlines():
-        if line.startswith('--- a/'):
-            state.prev_file = line[6:]
+        if state.track_previous_file(line):
             continue
 
-        if line.startswith('+++ b/'):
-            errors.extend(
-                state.evaluate(
-                    allow_deleted_tests,
-                    repo_root,
-                    revision_range,
-                )
-            )
-            state.reset_for_file(line[6:], is_deleted=False)
+        file_errors = state.handle_file_start(
+            line, allow_deleted, repo_root, revision_range
+        )
+        if file_errors is not None:
+            errors.extend(file_errors)
             continue
 
-        if line.startswith('+++ /dev/null'):
-            errors.extend(
-                state.evaluate(
-                    allow_deleted_tests,
-                    repo_root,
-                    revision_range,
-                )
-            )
-            state.reset_for_file(state.prev_file, is_deleted=True)
-            continue
+        if is_test_file(state.current_file):
+            errors.extend(state.inspect_test_line(line))
 
-        if not is_test_file(state.current_file):
-            continue
-
-        if line.startswith('@@ '):
-            m = re.search(r'\+(\d+)', line)
-            if m:
-                state.line_num = int(m.group(1)) - 1
-            continue
-
-        if line.startswith('-') and not line.startswith('---'):
-            if ASSERTION_PATTERNS.search(line[1:].strip()):
-                state.removed_assertions += 1
-            continue
-
-        if line.startswith('+') and not line.startswith('+++'):
-            state.line_num += 1
-            content = line[1:].strip()
-            if not content:
-                continue
-            if ALLOW_ASSERTION_REDUCTION_RE.search(content):
-                state.has_assertion_reduction_allow = True
-            if ASSERTION_PATTERNS.search(content):
-                state.added_assertions += 1
-            errors.extend(
-                _check_focus_or_skip_line(
-                    content, state.current_file, state.line_num
-                )
-            )
-
-    errors.extend(
-        state.evaluate(allow_deleted_tests, repo_root, revision_range)
-    )
+    errors.extend(state.evaluate(allow_deleted, repo_root, revision_range))
     return errors
 
 
 def main() -> int:
+    """Validate that test changes retain required executable assertions."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         'files',
         nargs='*',
-        help='Specific files to check. If omitted, checks all staged test files.',
+        help=(
+            'Specific files to check. If omitted, checks all staged test '
+            'files.'
+        ),
     )
     parser.add_argument(
-        '--allow-deleted-tests',
+        _ALLOW_DELETED_FLAG,
+        dest='allow_deleted',
         action='store_true',
         help='Allow test file deletions without failing the gate.',
     )
     parser.add_argument(
         '--range',
         dest='revision_range',
-        help='Inspect an explicit Git A..B or A...B range instead of the index.',
+        help=(
+            'Inspect an explicit Git A..B or A...B range instead of the index.'
+        ),
     )
     args = parser.parse_args()
     if args.files and args.revision_range:
@@ -339,7 +370,7 @@ def main() -> int:
             return 0
         errors = scan_test_integrity(
             diff_text,
-            allow_deleted_tests=args.allow_deleted_tests,
+            allow_deleted=args.allow_deleted,
             revision_range=args.revision_range,
         )
     except GitInspectionError as err:
@@ -350,12 +381,14 @@ def main() -> int:
 
     if errors:
         sys.stderr.write(
-            'FAIL [TEST_INTEGRITY]: Test integrity violations detected in Git diff:\n'
+            'FAIL [TEST_INTEGRITY]: Test integrity violations detected in '
+            'Git diff:\n'
         )
         for error_msg in errors:
             sys.stderr.write(f'  • {error_msg}\n')
         sys.stderr.write(
-            '\nResolution: Restore assertions, remove .only/fit markers, or justify with '
+            '\nResolution: Restore assertions, remove .only/fit markers, or '
+            'justify with '
             '"allow-assertion-reduction: <reason>" / "allow-skip: <reason>".\n'
         )
         return 1

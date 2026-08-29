@@ -1,3 +1,5 @@
+"""Bounded buffering and retry orchestration for B3 Parquet writes."""
+
 import asyncio
 import gc
 from pathlib import Path
@@ -29,6 +31,7 @@ class BufferedParquetWriterB3:
         data_writer: _ParquetWriter,
         resource_policy: ResourcePolicyB3,
     ) -> None:
+        """Initialize the writer collaborator and resource policy."""
         self.data_writer = data_writer
         self.resource_policy = resource_policy
 
@@ -39,7 +42,7 @@ class BufferedParquetWriterB3:
         *,
         is_first_write: bool,
     ) -> tuple[int, bool]:
-        """Flush buffered records when size or memory thresholds are reached."""
+        """Flush records when size or memory thresholds are reached."""
         should_flush = (
             len(buffer) >= self.resource_policy.flush_batch_size
             or self.resource_policy.should_flush_by_memory()
@@ -101,7 +104,8 @@ class BufferedParquetWriterB3:
                 if attempt < self.MAX_WRITE_RETRIES - 1:
                     wait_time = 2**attempt
                     logger.warning(
-                        f'Write failed (attempt {attempt + 1}/{self.MAX_WRITE_RETRIES}), '
+                        f'Write failed (attempt {attempt + 1}/'
+                        f'{self.MAX_WRITE_RETRIES}), '
                         f'retrying in {wait_time}s: {e}',
                         extra={'output_path': str(output_path)},
                     )

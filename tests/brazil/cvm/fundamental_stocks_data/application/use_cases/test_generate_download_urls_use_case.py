@@ -260,7 +260,7 @@ class TestGenerateUrlsUseCaseIntegration:
             list_docs=['DFP', 'ITR'], initial_year=2022, last_year=2023
         )
 
-        for doc_type, url_list in urls.items():
+        for _doc_type, url_list in urls.items():
             for url in url_list:
                 assert url.startswith('http://') or url.startswith('https://')
                 assert '.zip' in url

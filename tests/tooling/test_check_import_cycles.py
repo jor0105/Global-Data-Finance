@@ -84,10 +84,20 @@ def test_find_cycles_finds_three_module_component_with_extra_edges(
 
 @pytest.mark.unit
 def test_find_cycles_reports_self_loop(checker: Any) -> None:
-    """A module importing itself is a singleton strongly connected component."""
+    """A self-import is reported as a singleton cycle."""
     graph = make_graph([('a', 'a')])
 
     assert checker.find_cycles(graph) == [['a']]
+
+
+@pytest.mark.unit
+def test_find_cycles_reports_multiple_components(checker: Any) -> None:
+    """Disconnected strongly connected components remain separate cycles."""
+    graph = make_graph(
+        [('a', 'b'), ('b', 'a'), ('c', 'd'), ('d', 'e'), ('e', 'c')]
+    )
+
+    assert checker.find_cycles(graph) == [['a', 'b'], ['c', 'd', 'e']]
 
 
 @pytest.mark.unit
@@ -134,7 +144,7 @@ def test_main_returns_failure_and_line_details_for_cycle(
         line_contents='from . import a',
     )
     monkeypatch.setattr(
-        checker.grimp, 'build_graph', lambda *args, **kwargs: graph
+        checker.grimp, 'build_graph', lambda *_args, **_kwargs: graph
     )
 
     assert checker.main() == 1

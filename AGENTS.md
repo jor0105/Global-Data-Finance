@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > Owner: Library Engineering
-> Last reviewed: 2026-08-25
+> Last reviewed: 2026-08-28
 > Status: Confirmed
 > Knowledge class: Agent policy
 
@@ -114,6 +114,7 @@ above.
 | Dependency manager and lockfile          | [`uv.lock`](uv.lock)                                                                                                                                                                                         | Reproducible uv dependency resolution used by local development and CI                                                                                                                          |
 | Pytest configuration                     | [`pytest.ini`](pytest.ini)                                                                                                                                                                                   | Test discovery, markers, strict pytest options, and test-path defaults; coverage ownership is in `pyproject.toml`                                                                               |
 | Local quality hooks                      | [`.pre-commit-config.yaml`](.pre-commit-config.yaml)                                                                                                                                                         | Staged integrity, read-only uv lock validation, secrets and supply-chain scans, Ruff, Markdown/YAML/action checks, import graph checks, pre-push type/test/audit gates, and manual harness sync |
+| Ruff policy and process adapter          | [`scripts/check-ruff-policy.py`](scripts/check-ruff-policy.py) · [`scripts/process_runner.py`](scripts/process_runner.py)                                                                                    | Single path-scoped Ruff profile entrypoint and the allowlisted, shell-free subprocess boundary used by repository tooling                                                                       |
 | MkDocs configuration                     | [`mkdocs.yml`](mkdocs.yml)                                                                                                                                                                                   | MkDocs Material site configuration; Portuguese is the default language and the English `*.en.md` build is enabled through the i18n plugin                                                       |
 | Runtime settings                         | `src/globaldatafinance/core/config.py`                                                                                                                                                                       | Network timeout, retry count, retry backoff, user-agent, and global debug settings                                                                                                              |
 | Logging settings                         | `src/globaldatafinance/core/logging_config.py`                                                                                                                                                               | Log level, optional file, structured output flag, and detailed-format settings                                                                                                                  |
@@ -133,8 +134,9 @@ above.
 | Run the CI coverage gate                   | `uv run --locked --no-sync pytest -m "not integration and not slow" --cov --cov-report=xml --cov-report=term-missing` |
 | Run all repository quality hooks           | `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`                                         |
 | Type-check the source gate                 | `uv run --locked --no-sync mypy src --pretty`                                                                         |
-| Run full Ruff lint on source               | `uv run --locked --no-sync ruff check src`                                                                            |
-| Run the explicit Ruff security gate        | `uv run --locked --no-sync ruff check --select S src`                                                                 |
+| Run all explicit Ruff profiles             | `uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all`                                         |
+| Run the explicit Ruff security profile     | `uv run --locked --no-sync python scripts/check-ruff-policy.py --profile security`                                    |
+| Check Ruff formatting                      | `uv run --locked --no-sync ruff format --check src tests scripts examples`                                            |
 | Audit dependency vulnerabilities           | `uv run --locked --no-sync pip-audit`                                                                                 |
 | Check the committed lockfile               | `uv lock --check`                                                                                                     |
 | Build the distribution                     | `uv build`                                                                                                            |
@@ -166,9 +168,10 @@ from `.env` files, credentials, or other secret-bearing environment sources.
   `psutil`-based resource monitoring.
 - `polars`, `pandas`, `pyarrow`, and Parquet for data processing and persisted
   output; `pydantic-settings` for configuration.
-- `pytest`, `pytest-cov`, and `pytest-asyncio` for tests; Ruff for formatting,
-  lint, security `S`, and Google-style docstring `D` rules; mypy for type
-  checking.
+- `pytest`, `pytest-cov`, and `pytest-asyncio` for tests; Ruff for formatting
+  and the curated base lint rules; `scripts/check-ruff-policy.py` runs the
+  explicit base, Google-style docstring `D`, and security `S` profiles; mypy
+  for type checking.
 - pre-commit with detect-secrets, gitleaks, zizmor, import-linter, the local
   import-cycle checker, pip-audit, and repository hygiene hooks; mdformat,
   yamllint, actionlint, and codespell for non-Python quality checks.
@@ -279,6 +282,22 @@ from `.env` files, credentials, or other secret-bearing environment sources.
 - Keep functions focused, names clear, imports sorted, and reusable values in
   configuration/constants or documented parameters. Do not leave unused
   imports or unreachable branches.
+
+- Keep `scripts/check-ruff-policy.py` as the single internal entrypoint for
+  Ruff profiles: base rules cover `src`, `tests`, `scripts`, and `examples`;
+  docstring rules cover `src`, `scripts`, and `examples` except
+  `**/__init__.py`; security rules cover source/scripts/examples and tests with
+  only `S101` ignored in tests. The base profile enforces McCabe complexity at
+  no more than 10 with `C901` and the focused exception rules `BLE001`,
+  `TRY203`, `TRY400`, and `TRY401`; do not replace this with a broad `TRY`
+  selection or a second branch-count policy. Do not reintroduce global or
+  broad Ruff suppressions or rule extensions; the only file-scoped exception
+  is `S603` in `scripts/process_runner.py`.
+
+- Keep `scripts/process_runner.py` as the only subprocess boundary for
+  repository tooling. Use its allowlisted, resolved executable commands with
+  an explicit working directory and `shell=False`; tooling scripts and their
+  tests must not call `subprocess` directly.
 
 - Run path-safety checks before `mkdir` or writes. Preserve the shared
   blocklist for POSIX system directories, sensitive user-secret directories,

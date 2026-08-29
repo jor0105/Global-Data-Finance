@@ -65,14 +65,17 @@ class TestMemorySafety:
         MAX_MEM_INCREASE_MB = 50
 
         assert mem_increase < MAX_MEM_INCREASE_MB, (
-            f'Memory increased too much ({mem_increase:.2f} MB > {MAX_MEM_INCREASE_MB} MB)! '
-            f'Suspected full-file load into memory. File size: {file_size_mb:.2f} MB.'
+            f'Memory increased too much ({mem_increase:.2f} MB > '
+            f'{MAX_MEM_INCREASE_MB} MB)! '
+            f'Suspected full-file load into memory. File size: '
+            f'{file_size_mb:.2f} MB.'
         )
 
         df_result = pd.read_parquet(parquet_file)
         assert len(df_result) == 200_000, 'Incorrect number of rows'
         print(
-            f'✅ Extraction with controlled memory: {len(df_result)} rows processed'
+            f'✅ Extraction with controlled memory: {len(df_result)} rows '
+            'processed'
         )
 
     def test_multiple_large_files_do_not_accumulate_memory(self, tmp_path):

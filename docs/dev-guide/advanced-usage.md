@@ -11,6 +11,7 @@ ______________________________________________________________________
 Habilite logging profissional para rastreamento e debugging:
 
 ```python
+from globaldatafinance import FundamentalStocksDataCVM
 from globaldatafinance.core import setup_logging, get_logger, log_execution_time
 
 # Configurar logging
@@ -18,6 +19,7 @@ setup_logging(level="INFO", log_file="app.log")
 
 # Obter logger
 logger = get_logger(__name__)
+cvm = FundamentalStocksDataCVM()
 
 # Logging estruturado
 logger.info(
@@ -27,7 +29,12 @@ logger.info(
 
 # Performance timing
 with log_execution_time(logger, "Download CVM", total=5):
-    cvm.download(...)
+    result = cvm.download(
+        destination_path="/data/cvm",
+        list_docs=["DFP"],
+        initial_year=2023,
+        last_year=2023,
+    )
 ```
 
 [Ver documentação completa →](logging-system.md)
@@ -35,6 +42,13 @@ with log_execution_time(logger, "Download CVM", total=5):
 ### Configuração Global
 
 Customize network settings via environment variables:
+
+A biblioteca lê os valores padrão e as variáveis `DATAFINANCE_*` do ambiente
+do processo. Ela não procura nem carrega automaticamente um arquivo `.env` a
+partir do diretório de trabalho atual. Em casos avançados, os consumidores
+podem passar `_env_file=...` diretamente para `Settings` quando quiserem que o
+pydantic-settings carregue um arquivo explicitamente; isso não adiciona uma
+opção dotenv às facades públicas.
 
 ```bash
 # Aumentar timeout para conexões lentas
@@ -60,11 +74,7 @@ print(f"Max retries: {settings.network.max_retries}")
 Monitore e gerencie recursos automaticamente:
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import (
-    ResourceMonitor,
-    ResourceState,
-    ResourceLimits
-)
+from globaldatafinance.core import ResourceMonitor, ResourceState
 
 # Criar monitor
 monitor = ResourceMonitor()
@@ -98,8 +108,8 @@ strategy = RetryStrategy(
     multiplier=2.0
 )
 
-max_retries = 5
-for attempt in range(max_retries):
+max_retries = 5  # Tentativas adicionais após a primeira execução.
+for attempt in range(max_retries + 1):
     try:
         result = risky_operation()
         break
@@ -107,10 +117,12 @@ for attempt in range(max_retries):
         if not strategy.is_retryable(e):
             raise
 
-        if attempt < max_retries - 1:
+        if attempt < max_retries:
             backoff = strategy.calculate_backoff(attempt)
             print(f"Retry {attempt + 1} após {backoff}s...")
             time.sleep(backoff)
+        else:
+            raise
 ```
 
 [Ver documentação completa →](retry-strategy.md)
@@ -130,20 +142,24 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
     DownloadResultCVM,
 )
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
+    DownloadTaskCVM,
+)
 
 
 class MyCustomAdapter:
     """Adapter alternativo de download (duck-typed)."""
 
-    def download_docs(self, tasks) -> DownloadResultCVM:
-        # tasks é a estrutura produzida por GenerateUrlsUseCaseCVM:
-        # uma sequência de (doc_name, url, destination_path).
-        # Implemente sua lógica (wget, aiohttp, gsutil, etc.) e devolva
-        # o mesmo objeto de resultado.
+    def download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
+        # tasks é uma lista de DownloadTaskCVM: (url, doc_name, year, destination_path).
+        # Implemente sua lógica (wget, aiohttp, gsutil, etc.) e devolva o objeto de resultado.
         return DownloadResultCVM(
-            success_count_downloads=0,
-            error_count_downloads=0,
-            successful_downloads=[],
+            successful_downloads=["DFP_2023"],
             failed_downloads={},
             elapsed_time=0.0,
         )
@@ -193,6 +209,8 @@ ______________________________________________________________________
 
 ### Múltiplos Anos em Paralelo
 
+O extrator B3 aceita `COTAHIST_A{YYYY}.ZIP` ou `.TXT`; se os dois formatos do mesmo ano estiverem no diretório, somente o ZIP será processado.
+
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from globaldatafinance import HistoricalQuotesB3
@@ -218,6 +236,14 @@ for year, result in zip(years, results):
 ______________________________________________________________________
 
 ## Integração com Frameworks
+
+!!! note "Dependências Opcionais"
+
+    Frameworks de orquestração mencionados nesta seção (`apache-airflow`, `prefect`) são dependências externas opcionais:
+
+    ```bash
+    pip install apache-airflow prefect
+    ```
 
 ### Apache Airflow
 
@@ -303,18 +329,16 @@ df = pl.scan_parquet("cotahist.parquet") \
     .collect()
 ```
 
-### Processamento em Chunks
+### Processamento em Batches (Streaming com PyArrow)
 
 ```python
-import pandas as pd
+import pyarrow.parquet as pq
 
-# Processar arquivo grande em chunks
-for chunk in pd.read_parquet(
-    "cotahist.parquet",
-    chunksize=100000
-):
-    # Processar chunk
-    process_chunk(chunk)
+# Processar arquivo Parquet grande em batches com streaming
+parquet_file = pq.ParquetFile("cotahist.parquet")
+for batch in parquet_file.iter_batches(batch_size=100000):
+    chunk_df = batch.to_pandas()
+    process_chunk(chunk_df)
 ```
 
 ______________________________________________________________________
@@ -341,7 +365,7 @@ for year in tqdm(years, desc="Extraindo anos"):
 
 ______________________________________________________________________
 
-Veja também:
+## Próximos Passos
 
 - [Arquitetura](architecture.md)
 - [Exemplos Práticos](../user-guide/examples.md)

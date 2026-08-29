@@ -1,9 +1,14 @@
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from globaldatafinance.application import FundamentalStocksDataCVM
+from globaldatafinance.application.cvm_docs import (
+    fundamental_stocks_data as facade_module,
+)
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     AvailableYearsInfoCVM,
 )
+from globaldatafinance.core.config import NetworkSettings
 
 
 class TestFundamentalStocksData:
@@ -16,6 +21,31 @@ class TestFundamentalStocksData:
         cvm = FundamentalStocksDataCVM()
         assert cvm.download_adapter is not None
         assert hasattr(cvm.download_adapter, 'automatic_extractor')
+
+    def test_initialization_propagates_network_settings(self, monkeypatch):
+        controlled_network = NetworkSettings(
+            timeout=321,
+            max_retries=4,
+            retry_backoff=1.7,
+            user_agent='controlled-client/1.0',
+        )
+        monkeypatch.setattr(
+            facade_module,
+            'settings',
+            SimpleNamespace(network=controlled_network),
+        )
+
+        cvm = FundamentalStocksDataCVM()
+        adapter = cvm.download_adapter
+
+        assert adapter.requests_adapter.timeout == 321
+        assert adapter.max_retries == 4
+        assert adapter.retry_strategy.multiplier == 1.7
+        assert adapter.retry_strategy.initial_backoff == 1.0
+        assert adapter.retry_strategy.max_backoff == 120.0
+        assert adapter.requests_adapter.default_headers == {
+            'User-Agent': 'controlled-client/1.0'
+        }
 
     def test_get_available_docs(self):
         cvm = FundamentalStocksDataCVM()
@@ -275,7 +305,7 @@ class TestFundamentalStocksData:
         'globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM'
     )
     def test_download_returns_download_result(self, mock_download_use_case):
-        """Test that download() returns DownloadResultCVM object (API change)."""
+        """Test that download() returns a DownloadResultCVM object."""
         mock_result = Mock()
         mock_result.success_count_downloads = 1
         mock_result.error_count_downloads = 0

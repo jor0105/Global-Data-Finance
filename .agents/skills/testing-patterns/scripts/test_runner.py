@@ -8,16 +8,17 @@ import json
 import re
 import subprocess
 import sys
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-try:
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')  # type: ignore[union-attr]
-except (AttributeError, OSError):
-    pass
+for stream in (sys.stdout, sys.stderr):
+    with suppress(AttributeError, OSError):
+        getattr(stream, 'reconfigure', lambda **_: None)(
+            encoding='utf-8', errors='replace'
+        )
 
 
 @dataclass(frozen=True)

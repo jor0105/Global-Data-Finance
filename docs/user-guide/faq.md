@@ -16,7 +16,9 @@ Veja o [guia completo de instalação](installation.md) para mais detalhes.
 
 ### Qual versão do Python é necessária?
 
-Global-Data-Finance requer **Python 3.12 ou superior**. Versões anteriores não são suportadas.
+Global-Data-Finance requer Python **>=3.12,<4.0**. O workflow atual de CI
+exercita Python 3.12, 3.13 e 3.14; outras versões dentro do intervalo suportado
+não são implicitamente testadas pelo CI.
 
 ### Posso usar em ambiente virtual?
 
@@ -34,18 +36,31 @@ ______________________________________________________________________
 
 ### Onde os arquivos são salvos?
 
-Os arquivos são salvos no diretório especificado em `destination_path`. Por exemplo:
+Os arquivos baixados e extraídos são salvos no diretório especificado em `destination_path`, estruturados em subpastas por tipo de documento e ano (formato `{destination_path}/{DOC}/{YEAR}/`). Por exemplo:
 
 ```python
-cvm.download(destination_path="/home/usuario/dados")
-# Arquivos salvos em: /home/usuario/dados/
+from globaldatafinance import FundamentalStocksDataCVM
+
+cvm = FundamentalStocksDataCVM()
+cvm.download(
+    destination_path="/home/usuario/dados",
+    list_docs=["DFP"],
+    initial_year=2023,
+    last_year=2023,
+)
+# Arquivos salvos em: /home/usuario/dados/DFP/2023/dfp_cia_aberta_2023.zip
 ```
 
 ### Como verificar quais documentos estão disponíveis?
 
-Use os métodos `get_available_*`:
+Use os métodos `get_available_*` das classes principais:
 
 ```python
+from globaldatafinance import (
+    FundamentalStocksDataCVM,
+    HistoricalQuotesB3,
+)
+
 # Para CVM
 cvm = FundamentalStocksDataCVM()
 docs = cvm.get_available_docs()
@@ -88,10 +103,13 @@ cvm.download(
 Com `automatic_extractor=True`, os arquivos ZIP são automaticamente extraídos e convertidos para formato Parquet:
 
 ```python
-cvm.download(
+from globaldatafinance import FundamentalStocksDataCVM
+
+cvm = FundamentalStocksDataCVM()
+result = cvm.download(
     destination_path="/data",
     list_docs=["DFP"],
-    automatic_extractor=True  # Converte para Parquet
+    automatic_extractor=True,  # Converte para Parquet
 )
 ```
 
@@ -108,28 +126,54 @@ ______________________________________________________________________
 Baixe do site oficial da B3:
 🔗 [https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)
 
+A API aceita `COTAHIST_A{YYYY}.ZIP` e o TXT descompactado
+`COTAHIST_A{YYYY}.TXT`; para o mesmo ano, o ZIP tem precedência. `path_of_docs`
+é um diretório de entrada local já existente; a biblioteca não baixa nem o
+preenche com arquivos B3. BDRs e Futures são **Planned**, não categorias aceitas
+atualmente.
+
 ### Qual a diferença entre modo fast e slow?
 
-| Modo     | Performance | CPU   | RAM    | Quando usar                         |
-| -------- | ----------- | ----- | ------ | ----------------------------------- |
-| **fast** | Alta        | Alto  | ~2GB   | Máquinas com bons recursos (padrão) |
-| **slow** | Moderada    | Baixo | ~500MB | Recursos limitados                  |
+| Modo     | Performance | CPU   | Pico de RAM (Faixa Operacional) | Quando usar                         |
+| -------- | ----------- | ----- | ------------------------------- | ----------------------------------- |
+| **fast** | Alta        | Alto  | ~2 GB a 4.2 GB (padrão)         | Máquinas com bons recursos (padrão) |
+| **slow** | Moderada    | Baixo | ~500 MB a 1.5 GB                | Recursos limitados                  |
+
+> Os valores de benchmark medidos em dataset anual completo (~4.260 MB em modo `fast` e ~1.571 MB em modo `slow`) representam cenários de carga máxima. Em execuções operacionais típicas ou anos individuais, o pico varia dentro das faixas indicadas.
 
 ```python
-# Modo fast (padrão)
-result = b3.extract(..., processing_mode="fast")
+from globaldatafinance import HistoricalQuotesB3
 
-# Modo slow
-result = b3.extract(..., processing_mode="slow")
+b3 = HistoricalQuotesB3()
+
+# Modo fast (padrão)
+result_fast = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="fast",
+)
+
+# Modo slow (menor consumo de recursos)
+result_slow = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="slow",
+)
 ```
 
-### Como extrair apenas ações?
+### Como extrair registros da classe de ações?
+
+O alias `"ações"` seleciona os códigos TPMERC 010 (mercado à vista) e 020
+(mercado fracionário):
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
-    assets_list=["ações"],  # Apenas ações
-    initial_year=2023
+    assets_list=["ações"],  # Seleciona os códigos TPMERC 010 e 020
+    initial_year=2023,
 )
 ```
 
@@ -138,10 +182,13 @@ result = b3.extract(
 Sim! Passe uma lista com as classes desejadas:
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações", "etf", "opções"],
-    initial_year=2023
+    initial_year=2023,
 )
 ```
 
@@ -150,10 +197,13 @@ result = b3.extract(
 Use o parâmetro `output_filename`:
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    output_filename="acoes_2023"  # Gera: acoes_2023.parquet
+    output_filename="acoes_2023",  # Gera: acoes_2023.parquet
 )
 ```
 
@@ -170,7 +220,14 @@ O Global-Data-Finance já usa download paralelo por padrão (`AsyncDownloadAdapt
 Use o modo `"fast"` (padrão):
 
 ```python
-result = b3.extract(..., processing_mode="fast")
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+result = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="fast",
+)
 ```
 
 ### Posso processar em paralelo?
@@ -181,19 +238,21 @@ Sim! Você pode executar múltiplas extrações em paralelo usando `multiprocess
 from concurrent.futures import ProcessPoolExecutor
 from globaldatafinance import HistoricalQuotesB3
 
-def extract_year(year):
+
+def extract_year(year: int) -> dict:
     b3 = HistoricalQuotesB3()
     return b3.extract(
         path_of_docs="/data/cotahist",
         assets_list=["ações"],
         initial_year=year,
         last_year=year,
-        output_filename=f"acoes_{year}"
+        output_filename=f"acoes_{year}",
     )
 
-# Processar anos em paralelo
-with ProcessPoolExecutor(max_workers=4) as executor:
-    results = list(executor.map(extract_year, range(2020, 2024)))
+
+if __name__ == "__main__":
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(extract_year, range(2020, 2024)))
 ```
 
 ______________________________________________________________________
@@ -229,12 +288,12 @@ import polars as pl
 df = pl.read_parquet("cotahist_extracted.parquet")
 
 # Filtrar PETR4
-petr4 = df.filter(pl.col('codigo_negociacao') == 'PETR4')
+petr4 = df.filter(pl.col('ticker') == 'PETR4')
 
 # Ou com Pandas
 import pandas as pd
 df = pd.read_parquet("cotahist_extracted.parquet")
-petr4 = df[df['codigo_negociacao'] == 'PETR4']
+petr4 = df[df['ticker'] == 'PETR4']
 ```
 
 ______________________________________________________________________
@@ -253,9 +312,9 @@ pip install globaldatafinance
 
 ### "Python version not supported"
 
-**Causa**: Python < 3.12.
+**Causa**: O script está executando fora do intervalo `>=3.12,<4.0`.
 
-**Solução**: Atualize para Python 3.12+.
+**Solução**: Instale uma versão suportada do Python e recrie o ambiente.
 
 ### "InvalidDocumentName"
 
@@ -270,19 +329,26 @@ print(list(docs.keys()))
 
 ### "EmptyDirectoryError"
 
-**Causa**: Diretório vazio ou sem arquivos COTAHIST.
+**Causa**: `EmptyDirectoryError` ocorre somente quando o diretório de entrada
+está fisicamente vazio. Se o diretório não está vazio, mas não contém COTAHIST
+correspondente ao ano solicitado, a API retorna um resultado vazio com
+`success=True`, `total_files=0`, `total_records=0`, `output_file=""` e
+`errors={}`.
 
-**Solução**: Verifique se os arquivos `COTAHIST_AXXXX.ZIP` estão no diretório.
+**Solução**: Quando o diretório estiver vazio, coloque nele arquivos
+`COTAHIST_A{YYYY}.ZIP` ou `.TXT`. Para diretórios não vazios, inspecione
+`total_files` e `total_records` para confirmar se os anos solicitados possuem
+dados.
 
-### "NetworkError" ou "TimeoutError"
+### Falhas de Download ou Timeout
 
-**Causa**: Problemas de conexão.
+**Causa**: Instabilidade de conexão ou indisponibilidade temporária dos servidores regulatórios da CVM.
 
 **Solução**:
 
-1. Verifique sua conexão com a internet
-2. Tente novamente mais tarde
-3. Implemente retry logic (veja [estratégia de retry](../dev-guide/retry-strategy.md#exemplo-de-uso))
+1. A biblioteca realiza retries automáticos com backoff exponencial durante o download assíncrono.
+2. Inspecione `result.failed_downloads` após a chamada para verificar se algum arquivo falhou.
+3. Se necessário, configure `DATAFINANCE_NETWORK_TIMEOUT` e `DATAFINANCE_NETWORK_MAX_RETRIES` via variáveis de ambiente.
 
 ______________________________________________________________________
 
@@ -290,7 +356,10 @@ ______________________________________________________________________
 
 ### Posso usar em produção?
 
-Sim! O Global-Data-Finance é estável e testado. Recomendações:
+O pacote está classificado como **Beta**. Os fluxos CVM e B3 atualmente
+implementados são considerados **Production** dentro dos contratos
+documentados e são exercitados pelos quality gates do repositório. BDRs,
+Futures e outras capacidades planejadas não são suportados. Recomendações:
 
 - Use logging apropriado
 - Implemente tratamento de erros robusto
@@ -318,22 +387,30 @@ Global-Data-Finance funciona bem com:
 Exemplo com Airflow:
 
 ```python
+from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from globaldatafinance import FundamentalStocksDataCVM
+
 
 def download_cvm():
     cvm = FundamentalStocksDataCVM()
     cvm.download(
         destination_path="/data/cvm",
         list_docs=["DFP"],
-        initial_year=2023
+        initial_year=2023,
     )
 
-with DAG('cvm_download', ...) as dag:
+
+with DAG(
+    dag_id="cvm_download",
+    start_date=datetime(2024, 1, 1),
+    schedule="@daily",
+    catchup=False,
+) as dag:
     task = PythonOperator(
-        task_id='download',
-        python_callable=download_cvm
+        task_id="download",
+        python_callable=download_cvm,
     )
 ```
 
@@ -390,4 +467,5 @@ Envie um email para: estraliotojordan@gmail.com
 ______________________________________________________________________
 
 !!! tip "Não encontrou sua pergunta?"
-Abra uma issue no GitHub ou consulte a [documentação completa](../index.md).
+
+    Abra uma issue no GitHub ou consulte a [documentação completa](../index.md).

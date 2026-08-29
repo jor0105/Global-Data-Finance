@@ -12,7 +12,7 @@ import stat
 import subprocess
 import sys
 import tomllib
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from fnmatch import fnmatchcase
 from pathlib import Path
@@ -809,12 +809,15 @@ def render_inventory(
     return '\n'.join(lines) + '\n'
 
 
-def _section(
-    lines: list[str], heading: str, items: Sequence[object], render: object
+def _section[SectionItem](
+    lines: list[str],
+    heading: str,
+    items: Sequence[SectionItem],
+    render: Callable[[SectionItem], str],
 ) -> None:
     lines.append(heading)
     if items:
-        lines.extend(render(item) for item in items)  # type: ignore[operator]
+        lines.extend(render(item) for item in items)
     else:
         lines.append('None')
 

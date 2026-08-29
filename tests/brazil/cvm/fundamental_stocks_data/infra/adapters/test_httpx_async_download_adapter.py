@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import string
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -118,13 +119,35 @@ class TestHttpxAsyncDownloadAdapterHelpers:
 
 @pytest.mark.asyncio
 class TestHttpxAsyncDownloadAdapterAsyncMethods:
+    async def test_get_content_length_logs_head_failure_with_traceback(
+        self, caplog
+    ):
+        adapter = AsyncDownloadAdapterCVM(
+            file_extractor_repository=MagicMock()
+        )
+        adapter.requests_adapter.async_head = AsyncMock(
+            side_effect=OSError('HEAD unavailable')
+        )
+
+        with caplog.at_level(logging.WARNING):
+            result = await adapter._get_content_length(
+                'https://example.com/file.zip'
+            )
+
+        assert result is None
+        assert any(
+            record.exc_info is not None
+            and 'Failed to get Content-Length' in record.message
+            for record in caplog.records
+        )
+
     async def test_download_with_retry_success_first_attempt(self):
         mock_extractor = MagicMock()
         adapter = AsyncDownloadAdapterCVM(
             file_extractor_repository=mock_extractor
         )
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             pass
 
         adapter._stream_download = mock_stream_download
@@ -145,7 +168,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
             file_extractor_repository=mock_extractor, max_retries=2
         )
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             raise NetworkError('DRE', 'Connection refused')
 
         adapter._stream_download = mock_stream_download
@@ -169,7 +192,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         call_count = 0
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             nonlocal call_count
             call_count += 1
             if call_count == 1:
@@ -196,7 +219,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         call_count = 0
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             nonlocal call_count
             call_count += 1
             raise ValueError('Invalid URL format')
@@ -220,7 +243,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
             file_extractor_repository=mock_extractor, max_retries=2
         )
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             raise TimeoutError('DRE', 30.0)
 
         adapter._stream_download = mock_stream_download
@@ -244,7 +267,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
             file_extractor_repository=mock_extractor, max_retries=1
         )
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             raise NetworkError('DRE', 'Error')
 
         adapter._stream_download = mock_stream_download
@@ -273,7 +296,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         call_count = 0
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             nonlocal call_count
             call_count += 1
             if call_count < 3:
@@ -304,7 +327,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
 
         call_count = 0
 
-        async def mock_stream_download(url, filepath):
+        async def mock_stream_download(_url, _filepath):
             nonlocal call_count
             call_count += 1
             if call_count < 2:
@@ -395,7 +418,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_without_automatic_extractor(
-        self, mock_remove, tmp_path
+        self, _mock_remove, tmp_path
     ):
         import zipfile
 
@@ -403,7 +426,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
         zip_path = output_dir / 'file.zip'
 
-        # Create a deterministic payload larger than the 100KB validation floor.
+        # Use a deterministic payload above the 100 KB validation floor.
         random_data = _large_test_data()
         csv_data = _csv_test_data()
 
@@ -416,10 +439,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=False
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None  # No Content-Length available
 
         adapter._download_with_retry = mock_download_with_retry
@@ -469,7 +492,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         mock_extractor = MagicMock()
 
-        def create_current_parquet(_source_path, destination_path):
+        def create_current_parquet(_source_path, _destination_path):
             pl.DataFrame({'col': [1]}).write_parquet(
                 output_dir / 'current.parquet'
             )
@@ -479,10 +502,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -503,14 +526,15 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
 
         mock_extractor.extract.assert_called_once()
         assert mock_remove.called, (
-            'ZIP source should be removed after successful extraction with parquet files'
+            'ZIP source should be removed after successful extraction with '
+            'parquet files'
         )
         assert result.success_count_downloads == 1
 
     @patch(
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
-    async def test_download_and_extract_ignores_old_parquets_when_extractor_creates_none(
+    async def test_download_and_extract_ignores_old_parquets_when_empty(
         self, mock_remove, tmp_path
     ):
         import zipfile
@@ -533,10 +557,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -572,7 +596,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # Create a deterministic payload larger than the 100KB validation floor.
+        # Use a deterministic payload above the 100 KB validation floor.
         random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
@@ -584,10 +608,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -619,7 +643,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_extraction_error(
-        self, mock_remove, tmp_path
+        self, _mock_remove, tmp_path
     ):
         import zipfile
 
@@ -627,7 +651,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # Create a deterministic payload larger than the 100KB validation floor.
+        # Use a deterministic payload above the 100 KB validation floor.
         random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
@@ -643,10 +667,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -681,7 +705,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # Create a deterministic payload larger than the 100KB validation floor.
+        # Use a deterministic payload above the 100 KB validation floor.
         random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
@@ -695,10 +719,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -725,7 +749,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
     async def test_download_and_extract_unexpected_extraction_error(
-        self, mock_remove, tmp_path
+        self, _mock_remove, tmp_path
     ):
         import zipfile
 
@@ -733,7 +757,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
         output_dir.mkdir()
 
         zip_path = output_dir / 'file.zip'
-        # Create a deterministic payload larger than the 100KB validation floor.
+        # Use a deterministic payload above the 100 KB validation floor.
         random_data = _large_test_data()
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as zf:
@@ -747,10 +771,10 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
-        async def mock_get_content_length(url):
+        async def mock_get_content_length(_url):
             return None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -778,7 +802,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=True
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return False, 'NetworkError: Connection refused'
 
         adapter._download_with_retry = mock_download_with_retry
@@ -806,7 +830,7 @@ class TestHttpxAsyncDownloadAdapterDownloadAndExtract:
             file_extractor_repository=mock_extractor, automatic_extractor=False
         )
 
-        async def mock_download_with_retry(url, filepath, doc_name, year):
+        async def mock_download_with_retry(_url, _filepath, _doc_name, _year):
             return True, None
 
         adapter._download_with_retry = mock_download_with_retry
@@ -840,7 +864,7 @@ class TestHttpxAsyncDownloadAdapterConcurrency:
         max_concurrent = 0
         lock = asyncio.Lock()
 
-        async def mock_download_and_extract(*args, **kwargs):
+        async def mock_download_and_extract(*_args, **_kwargs):
             nonlocal concurrent_count, max_concurrent
             async with lock:
                 concurrent_count += 1
@@ -916,6 +940,7 @@ class TestHttpxAsyncDownloadAdapterEdgeCases:
         # async_download_docs.
         assert result is expected
         mock_asyncio_run.assert_called_once()
+        mock_asyncio_run.call_args.args[0].close()
 
 
 @pytest.mark.unit

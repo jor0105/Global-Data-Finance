@@ -5,8 +5,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.extraction_service import (
-    temp_parquet_merge,
+from globaldatafinance.brazil.b3_data.historical_quotes import (
+    extraction_service,
 )
 from globaldatafinance.macro_exceptions import (
     ExtractionError,
@@ -14,6 +14,8 @@ from globaldatafinance.macro_exceptions import (
 )
 
 pytestmark = pytest.mark.unit
+
+temp_parquet_merge = extraction_service.temp_parquet_merge
 
 
 def test_count_parquet_rows_success(tmp_path: Path) -> None:
@@ -108,6 +110,44 @@ async def test_merge_temp_files_streaming_multiple_files(
 
 
 @pytest.mark.asyncio
+async def test_merge_temp_files_logs_cleanup_failure_and_continues(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    temp1 = tmp_path / 'protected.parquet'
+    temp2 = tmp_path / 'removable.parquet'
+    pq.write_table(pa.table({'id': [1]}), str(temp1))
+    pq.write_table(pa.table({'id': [2]}), str(temp2))
+    final_output = tmp_path / 'merged.parquet'
+    original_unlink = Path.unlink
+
+    def guarded_unlink(path: Path, *args, **kwargs) -> None:
+        if path == temp1:
+            raise PermissionError('cleanup denied')
+        original_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, 'unlink', guarded_unlink)
+
+    with caplog.at_level('WARNING'):
+        total = await temp_parquet_merge.merge_temp_files_streaming(
+            [temp1, temp2],
+            final_output,
+            check_resources=AsyncMock(),
+        )
+
+    assert total == 2
+    assert final_output.exists()
+    assert temp1.exists()
+    assert not temp2.exists()
+    assert any(
+        record.exc_info is not None
+        and 'Failed to delete temp file' in record.message
+        for record in caplog.records
+    )
+
+
+@pytest.mark.asyncio
 async def test_merge_temp_files_streaming_triggers_resource_check(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -121,11 +161,11 @@ async def test_merge_temp_files_streaming_triggers_resource_check(
     final_output = tmp_path / 'merged_resource_check.parquet'
     check_resources = AsyncMock()
 
-    # Temporarily adjust the condition or batch size check to verify check_resources call
-    # The condition is: if total_rows % 500_000 == 0 and total_rows > 0: await check_resources()
+    # Exercise the resource check at the 500,000-row boundary.
     # We can create two files of 2 rows and mock total_rows modulo check
     class MockParquetFile(pq.ParquetFile):
         def iter_batches(self, batch_size=200_000):
+            _ = batch_size
             # Yield a batch with num_rows = 500_000
             batch = pa.record_batch({'id': pa.array(list(range(500_000)))})
             yield batch
@@ -160,6 +200,7 @@ async def test_merge_temp_files_streaming_failure_cleans_up_and_raises(
             pass
 
         def write_batch(self, batch):
+            _ = batch
             raise OSError('Disk write failure simulated')
 
         def close(self):

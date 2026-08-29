@@ -50,6 +50,7 @@ class FakePolarsModule:
     def concat(
         frames: list[FakeDataFrame], how: str = 'vertical'
     ) -> FakeDataFrame:
+        _ = how
         combined: list[dict] = []
         for frame in frames:
             combined.extend(frame.data)
@@ -135,6 +136,7 @@ async def test_parquet_writer_append_uses_streaming(monkeypatch, tmp_path):
     streaming_calls: list[int] = []
 
     async def fake_stream(df: FakeDataFrame, output_path: Path) -> None:
+        _ = output_path
         streaming_calls.append(df.height)
 
     monkeypatch.setattr(writer, '_append_with_streaming', fake_stream)

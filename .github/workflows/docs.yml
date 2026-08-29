@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
 
+      - name: Validate documentation contracts
+        run: uv run --locked --no-sync python scripts/check-docs-contracts.py
+
       - name: Build documentation
         run: uv run --locked --no-sync mkdocs build --strict
 

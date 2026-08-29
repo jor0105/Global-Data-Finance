@@ -1,237 +1,377 @@
 # Exception Reference
 
-Complete structural catalog of custom error boundaries and exception types defined in Global-Data-Finance.
+Complete catalog of exceptions and error handling contracts in Global-Data-Finance.
 
 ______________________________________________________________________
 
-## Root Infrastructure Exceptions (`macro_exceptions`)
+## Overview
 
-### `NetworkError`
+Global-Data-Finance adheres to a strict error handling policy:
 
-```python
-class NetworkError(Exception):
-    """Network connection failure encountered during download operations."""
-```
+- **Fail-Fast Parameter Validation**: Invalid input parameters, unknown document codes, unsupported asset classes, or unsafe destination directories synchronously raise typed domain exceptions before any network or file I/O operations commence.
+- **Network Resilience**: In asynchronous CVM downloads, transient connection disruptions trigger automatic retries with exponential backoff. Persistent network failures are compiled into the `failed_downloads` attribute of the returned `DownloadResultCVM` without aborting other concurrent tasks.
+- **Explicit Hierarchy**: No artificial catch-all exception exists (such as `GlobalDataFinanceError`). Every source domain and infrastructure boundary provides clear, predictable, and typed exception classes.
 
-**Trigger Condition**: HTTP connection disruptions, socket timeouts, or TLS handshakes failures.
+______________________________________________________________________
 
-**Recommended Handling**:
+## Infrastructure Exceptions (`macro_exceptions`)
 
-```python
-try:
-    cvm.download(...)
-except NetworkError as exc:
-    print(f"Network transport interruption: {exc}")
-    # Assess internet routing and implement retry back-off
-```
+Infrastructure exceptions represent cross-cutting errors originating from filesystem interactions, low-level network transports, path security validation, and archive integrity.
 
-### `TimeoutError`
+### Filesystem & Permissions
 
-```python
-class TimeoutError(Exception):
-    """Request timeout exceeded during socket read operations."""
-```
-
-**Trigger Condition**: Remote regulatory endpoints fail to respond within configured threshold boundaries.
-
-### `ExtractionError`
-
-```python
-class ExtractionError(Exception):
-    """Failure encountered during ZIP decompression or tabular translation."""
-```
-
-**Trigger Condition**: Archive corrupted headers or unexpected positional CSV/TXT formatting mismatches.
-
-### `EmptyDirectoryError`
-
-```python
-class EmptyDirectoryError(Exception):
-    """Target directory is empty or lacks compliant source files."""
-```
-
-**Trigger Condition**: Target source folders do not enclose necessary input files matching naming contracts.
-
-### `InvalidDestinationPathError`
+#### `InvalidDestinationPathError`
 
 ```python
 class InvalidDestinationPathError(ValueError):
-    """Target filesystem path destination is invalid or inaccessible."""
+    """Target destination path is invalid, malformed, or violates security constraints."""
 ```
 
-**Trigger Condition**: Target export directory access denied or restricted by OS authorization permissions.
+- **Inheritance**: `ValueError`
+- **When Raised**: Destination path points to a protected system directory, a file rather than a directory, or contains path traversal sequences.
 
-### `DiskFullError`
+#### `PathIsNotDirectoryError`
+
+```python
+class PathIsNotDirectoryError(ValueError):
+    """Supplied path is not a valid directory."""
+```
+
+- **Inheritance**: `ValueError`
+
+#### `PathPermissionError`
+
+```python
+class PathPermissionError(OSError):
+    """Insufficient filesystem permissions to create or access directory."""
+```
+
+- **Inheritance**: `OSError`
+
+#### `PathCreationError`
+
+```python
+class PathCreationError(OSError):
+    """Failed to create directory structure on filesystem."""
+```
+
+- **Inheritance**: `OSError`
+
+#### `FileWriteError` & `ParquetWriteError`
+
+```python
+class FileWriteError(OSError):
+    """Failed to write file to disk storage."""
+
+
+class ParquetWriteError(OSError):
+    """Failed to serialize or write Apache Parquet artifact."""
+```
+
+- **Inheritance**: `OSError`
+
+#### `DiskFullError`
 
 ```python
 class DiskFullError(OSError):
-    """Storage volume capacity exhaustion encountered."""
+    """Insufficient storage capacity on destination filesystem."""
 ```
 
-**Trigger Condition**: Available hard storage capacity depleted before file write completion.
+- **Inheritance**: `OSError`
 
-### `SecurityError`
+### Extraction & Archive Operations
+
+#### `EmptyDirectoryError`
+
+```python
+class EmptyDirectoryError(Exception):
+    """Input directory is physically empty."""
+```
+
+- **When Raised**: Only when the input directory is physically empty. A
+  directory that is not empty but contains no COTAHIST file for the requested
+  year returns an empty result (`success=True`, `total_files=0`,
+  `total_records=0`, `output_file=""`, and `errors={}`).
+
+#### `ExtractionError` & `CorruptedZipError`
+
+```python
+class ExtractionError(Exception):
+    """Error encountered during archive decompression or data extraction."""
+
+
+class CorruptedZipError(ExtractionError):
+    """ZIP archive is corrupted or unreadable."""
+```
+
+- **Inheritance**: `CorruptedZipError` inherits from `ExtractionError`.
+
+#### `SecurityError`
 
 ```python
 class SecurityError(Exception):
-    """Path safety check failed or restricted filesystem traversal detected."""
+    """Security policy violation detected during path or file operations."""
 ```
 
-**Trigger Condition**: Attempted writing or directory creation aimed directly at system-level restricted POSIX routes (`/etc`, `/sys`, `/boot`, `/root`, etc.).
+### Low-Level Network & HTTP
+#### `NetworkError` & `TimeoutError`
+
+```python
+class NetworkError(Exception):
+    """Network transport disruption translated during CVM downloads."""
+
+
+class TimeoutError(Exception):
+    """Socket read or connection timeout translated during CVM downloads."""
+```
+
+- **Origin and Pipeline Translation**:
+  1. The low-level HTTP adapter (`RequestsAdapter.async_download_file`) executes streaming transfers via `httpx` and may propagate transport failures (`httpx.RequestError`, `httpx.HTTPStatusError`, `httpx.TimeoutException`, `ConnectionError`) or filesystem write faults.
+  2. The CVM download adapter (`AsyncDownloadAdapterCVM._download_with_retry`) intercepts these low-level transport errors and translates them into domain exceptions `NetworkError` and `TimeoutError`.
+  3. `RetryStrategy` applies automated retries with exponential backoff up to configured retry limits.
+  4. Persistent failures after retry exhaustion are consolidated into the `result.failed_downloads` dictionary of `DownloadResultCVM` without aborting concurrent transfers of other years or document types.
 
 ______________________________________________________________________
 
-## CVM Domain Exceptions
+## CVM Domain Exceptions (`fundamental_stocks_data.errors`)
 
-### `InvalidDocumentName`
-
-```python
-class InvalidDocumentName(Exception):
-    """Supplied document type acronym is unrecognized."""
-```
-
-**Trigger Condition**: Document parameter keyword falls outside supported CVM filing catalog.
-
-**Recommended Handling**:
+All CVM-specific exceptions inherit from `CvmError`.
 
 ```python
-try:
-    cvm.download(list_docs=["UNSUPPORTED_CODE"])
-except InvalidDocumentName:
-    docs = cvm.get_available_docs()
-    print(f"Supported document keywords: {list(docs.keys())}")
+class CvmError(Exception):
+    """Base exception class for all CVM domain failures."""
 ```
 
-### `InvalidFirstYear`
+### `InvalidDocumentName` & `InvalidDocumentType`
 
 ```python
-class InvalidFirstYear(Exception):
-    """Supplied starting fiscal year falls outside valid boundaries."""
+class InvalidDocumentName(CvmError):
+    """Supplied CVM document identifier is unrecognized."""
+
+
+class InvalidDocumentType(CvmError):
+    """Invalid parameter type supplied for document list."""
 ```
 
-**Trigger Condition**: Requested initial year falls below historic floor (e.g., prior to 2010) or exceeds active system year.
+- **When Raised**: Document code does not belong to the official catalog (`"DFP"`, `"ITR"`, `"FCA"`, `"FRE"`, `"CGVN"`, `"VLMO"`, `"IPE"`), or parameter is not a valid list/string.
 
-### `InvalidLastYear`
+### `InvalidFirstYear` & `InvalidLastYear`
 
 ```python
-class InvalidLastYear(Exception):
-    """Supplied ending fiscal year is invalid."""
+class InvalidFirstYear(CvmError):
+    """Starting fiscal year falls below minimum historical boundary."""
+
+
+class InvalidLastYear(CvmError):
+    """Ending fiscal year is invalid or precedes starting year."""
 ```
 
-**Trigger Condition**: Ending year precedes initial starting year or exceeds current operating year.
+- **When Raised**: Year is below the historical floor for that document type or exceeds current system year.
 
-### `EmptyDocumentListError`
+### `EmptyDocumentListError` & `MissingDownloadUrlError`
 
 ```python
-class EmptyDocumentListError(Exception):
-    """Document filter list parameter was supplied empty."""
+class EmptyDocumentListError(CvmError):
+    """No document download targets remained after internal resolution."""
+
+
+class MissingDownloadUrlError(CvmError):
+    """Download URL prefix not registered for requested document."""
 ```
 
-**Trigger Condition**: An empty array (`[]`) was passed into `list_docs`.
+- **Semantic Note**: On the public facade `FundamentalStocksDataCVM.download()`, supplying `list_docs=None` or `list_docs=[]` downloads **all available document types**. `EmptyDocumentListError` is an internal domain exception used when URL resolution produces an empty set.
 
 ______________________________________________________________________
 
-## B3 Domain Exceptions
+## B3 Domain Exceptions (`historical_quotes.errors`)
 
-### `InvalidAssetsName`
+Exceptions governing historical market exchange quote processing.
+
+### `InvalidAssetsName` & `EmptyAssetListError`
 
 ```python
 class InvalidAssetsName(Exception):
-    """Supplied asset filter keyword is unrecognized."""
-```
+    """Asset class keyword is unrecognized by B3 extractor."""
 
-**Trigger Condition**: Asset parameter falls outside whitelist classifications supported by extraction rules.
 
-**Recommended Handling**:
-
-```python
-try:
-    b3.extract(assets_list=["unsupported_asset"])
-except InvalidAssetsName:
-    assets = b3.get_available_assets()
-    print(f"Supported asset filters: {assets}")
-```
-
-### `EmptyAssetListError`
-
-```python
 class EmptyAssetListError(Exception):
-    """Required assets filter list parameter was supplied empty."""
+    """Required asset class list parameter was supplied empty."""
 ```
 
-**Trigger Condition**: An empty array (`[]`) was supplied into mandatory `assets_list` argument.
+- **When Raised**: `assets_list` is empty or contains identifiers outside the supported whitelist (`'ações'`, `'etf'`, `'opções'`, `'termo'`, `'exercicio_opcoes'`, `'forward'`, `'leilao'`).
+
+### `InvalidProcessingMode`
+
+```python
+class InvalidProcessingMode(Exception):
+    """Invalid execution profile (must be 'fast' or 'slow')."""
+```
+
+### `InvalidOutputFilename`
+
+```python
+class InvalidOutputFilename(Exception):
+    """Output filename is invalid (must be a basename without path segments)."""
+```
+
+- **When Raised**: `output_filename` contains directory separators (`/` or `\`) or traversal segments (`..`). The `.parquet` suffix is optional and is appended automatically when omitted.
+
+### `InvalidFirstYear` & `InvalidLastYear` (B3)
+
+```python
+class InvalidFirstYear(Exception):
+    """Starting year precedes historical floor (1986) or exceeds current year."""
+
+
+class InvalidLastYear(Exception):
+    """Ending year precedes initial year or exceeds current system year."""
+```
 
 ______________________________________________________________________
 
 ## Exception Class Hierarchy
 
-```text
+```
 Exception
-├── NetworkError
-├── TimeoutError
-├── ExtractionError
-│   └── CorruptedZipError
-├── SecurityError
-├── InvalidDocumentName
-├── InvalidFirstYear
-├── InvalidLastYear
-├── InvalidAssetsName
-├── EmptyAssetListError
-├── EmptyDocumentListError
-└── EmptyDirectoryError
+├── macro_exceptions
+│   ├── EmptyDirectoryError
+│   ├── NetworkError
+│   ├── TimeoutError
+│   ├── ExtractionError
+│   │   └── CorruptedZipError
+│   └── SecurityError
+├── CvmError
+│   ├── InvalidDocumentName
+│   ├── InvalidDocumentType
+│   ├── InvalidFirstYear
+│   ├── InvalidLastYear
+│   ├── EmptyDocumentListError
+│   └── MissingDownloadUrlError
+└── B3 Exceptions
+    ├── InvalidAssetsName
+    ├── EmptyAssetListError
+    ├── InvalidProcessingMode
+    ├── InvalidOutputFilename
+    ├── InvalidFirstYear
+    └── InvalidLastYear
 
 ValueError
-└── InvalidDestinationPathError
+├── InvalidDestinationPathError
+└── PathIsNotDirectoryError
 
 OSError
+├── PathPermissionError
+├── PathCreationError
+├── FileWriteError
+├── ParquetWriteError
 └── DiskFullError
 ```
 
 ______________________________________________________________________
 
-## Comprehensive Exception Handling Pattern
+## Exception Handling Examples
+
+### Example 1: Handling CVM Operations
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.errors import (
+    CvmError,
     InvalidDocumentName,
     InvalidFirstYear,
     InvalidLastYear,
 )
 from globaldatafinance.macro_exceptions import (
-    NetworkError,
-    TimeoutError,
-    DiskFullError,
+    InvalidDestinationPathError,
+    PathPermissionError,
 )
 
 cvm = FundamentalStocksDataCVM()
 
 try:
-    cvm.download(
+    # 1. Synchronous parameter and directory validation
+    result = cvm.download(
         destination_path="/data/cvm",
         list_docs=["DFP"],
-        initial_year=2022
+        initial_year=2022,
+        last_year=2023,
     )
+
+    # 2. Result evaluation (network failures are retried and compiled into failed_downloads)
+    if result.has_errors():
+        print(
+            f"Encountered {result.error_count_downloads} persistent failure(s):"
+        )
+        for doc_key, message in result.failed_downloads.items():
+            print(f"  • {doc_key}: {message}")
+    else:
+        print(
+            f"Success: {result.success_count_downloads} files downloaded cleanly."
+        )
+
 except InvalidDocumentName as exc:
-    print(f"Parameter validation fault: {exc}")
-except InvalidFirstYear as exc:
+    print(f"Invalid document parameter: {exc}")
+except (InvalidFirstYear, InvalidLastYear) as exc:
     print(f"Temporal parameter boundary violation: {exc}")
-except NetworkError as exc:
-    print(f"Network connection failure: {exc}")
-except TimeoutError as exc:
-    print(f"Remote server request timeout: {exc}")
-except DiskFullError as exc:
-    print(f"Filesystem capacity exhaustion: {exc}")
-except Exception as exc:
-    print(f"Unexpected operational exception: {exc}")
+except InvalidDestinationPathError as exc:
+    print(f"Unsafe or invalid destination path: {exc}")
+except PathPermissionError as exc:
+    print(f"Insufficient filesystem permission: {exc}")
+except CvmError as exc:
+    print(f"General CVM domain failure: {exc}")
 ```
 
-> Source-specific exception definitions reside inside `errors.py` modules within their owning domain features (e.g., `brazil.cvm.fundamental_stocks_data.errors`, `brazil.b3_data.historical_quotes.errors`).
+### Example 2: Handling B3 Operations
+
+```python
+from globaldatafinance import HistoricalQuotesB3
+from globaldatafinance.brazil.b3_data.historical_quotes.errors import (
+    EmptyAssetListError,
+    InvalidAssetsName,
+    InvalidFirstYear,
+    InvalidLastYear,
+    InvalidOutputFilename,
+    InvalidProcessingMode,
+)
+from globaldatafinance.macro_exceptions import (
+    EmptyDirectoryError,
+    InvalidDestinationPathError,
+)
+
+b3 = HistoricalQuotesB3()
+
+try:
+    result = b3.extract(
+        path_of_docs="/data/cotahist",
+        assets_list=["ações", "etf"],
+        initial_year=2023,
+        output_filename="quotes_2023",
+        processing_mode="fast",
+    )
+    print(
+        f"Extracted {result['total_records']:,} rows into {result['output_file']}"
+    )
+
+except EmptyAssetListError:
+    print("Asset classes filter list cannot be empty.")
+except InvalidAssetsName as exc:
+    print(f"Unrecognized asset class keyword: {exc}")
+except (InvalidFirstYear, InvalidLastYear) as exc:
+    print(f"Invalid historical year range: {exc}")
+except InvalidOutputFilename as exc:
+    print(f"Invalid output filename basename: {exc}")
+except InvalidProcessingMode as exc:
+    print(f"Processing mode must be 'fast' or 'slow': {exc}")
+except EmptyDirectoryError as exc:
+    print(f"Source directory contains no COTAHIST archives: {exc}")
+except InvalidDestinationPathError as exc:
+    print(f"Invalid destination directory: {exc}")
+```
 
 ______________________________________________________________________
 
-## Related Documentation
+See also:
 
 - [CVM API Reference](cvm-api.md)
 - [B3 API Reference](b3-api.md)
-- [Frequently Asked Questions](../user-guide/faq.md)
+- [FAQ](../user-guide/faq.md)

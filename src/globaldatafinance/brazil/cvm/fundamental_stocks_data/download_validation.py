@@ -39,6 +39,7 @@ def validate_downloaded_file(
 
 
 def find_parquet_files(dest_path: str) -> list[Path]:
+    """Return all Parquet files below a destination directory."""
     return list(Path(dest_path).glob('**/*.parquet'))
 
 
@@ -121,7 +122,8 @@ def _has_valid_size(path: Path, expected_size: int) -> bool:
 
     if size_diff_pct > 5.0:
         logger.error(
-            'File size mismatch for %s: expected %d bytes, got %d bytes (%.1f%% difference)',
+            'File size mismatch for %s: expected %d bytes, got %d bytes '
+            '(%.1f%% difference)',
             path,
             expected_size,
             actual_size,
@@ -162,8 +164,8 @@ def _has_valid_zip_contents(filepath: str) -> bool:
                     '...' if len(namelist) > 5 else '',
                 )
 
-    except zipfile.BadZipFile as e:
-        logger.error('Invalid ZIP file: %s - %s', filepath, e)
+    except zipfile.BadZipFile:
+        logger.exception('Invalid ZIP file: %s', filepath)
         return False
 
     logger.debug('File validation passed: %s', filepath)

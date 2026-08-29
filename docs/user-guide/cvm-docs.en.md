@@ -34,7 +34,8 @@ CVM publishes official disclosures under the following classifications:
 | **IPE**       | Informações Periódicas e Eventuais  | Periodic and Eventual Filings (Material Facts) | 2010            |
 
 !!! info "Historical Data Depth"
-The major structural financial forms (`DFP`, `FRE`, `FCA`, `IPE`) span from fiscal year 2010 onward, while `ITR` disclosures start in 2011 and `CGVN`/`VLMO` commence in 2018.
+
+    The major structural financial forms (`DFP`, `FRE`, `FCA`, `IPE`) span from fiscal year 2010 onward, while `ITR` disclosures start in 2011 and `CGVN`/`VLMO` commence in 2018.
 
 ______________________________________________________________________
 
@@ -78,22 +79,34 @@ Downloads regulatory CVM archives directly into a designated filesystem destinat
 def download(
     self,
     destination_path: str,
-    list_docs: Optional[List[str]] = None,
-    initial_year: Optional[int] = None,
-    last_year: Optional[int] = None,
+    list_docs: list[str] | None = None,
+    initial_year: int | None = None,
+    last_year: int | None = None,
     automatic_extractor: bool = False,
-) -> None
+) -> DownloadResultCVM:
+    ...
 ```
 
 #### Parameters
 
-| Parameter             | Type        | Mandatory | Description                                                                                |
-| --------------------- | ----------- | --------- | ------------------------------------------------------------------------------------------ |
-| `destination_path`    | `str`       | ✅ Yes    | Target filesystem directory where downloaded bundles are saved                             |
-| `list_docs`           | `List[str]` | ❌ No     | Specific document codes to fetch. Defaults to all codes when `None`                        |
-| `initial_year`        | `int`       | ❌ No     | Starting historical fiscal year (inclusive). Defaults to minimal supported year            |
-| `last_year`           | `int`       | ❌ No     | Ending fiscal year (inclusive). Defaults to current operating year                         |
-| `automatic_extractor` | `bool`      | ❌ No     | When set to `True`, automatically unpacks and normalizes ZIP bundles into Parquet datasets |
+| Parameter             | Type                | Mandatory | Description                                                                                |
+| --------------------- | ------------------- | --------- | ------------------------------------------------------------------------------------------ |
+| `destination_path`    | `str`               | ✅ Yes    | Target filesystem directory where downloaded bundles are saved                             |
+| `list_docs`           | `list[str] \| None` | ❌ No     | Specific document codes to fetch. Defaults to all codes when `None`                        |
+| `initial_year`        | `int \| None`       | ❌ No     | Starting historical fiscal year (inclusive). Defaults to minimal supported year            |
+| `last_year`           | `int \| None`       | ❌ No     | Ending fiscal year (inclusive). Defaults to current operating year                         |
+| `automatic_extractor` | `bool`              | ❌ No     | When set to `True`, automatically unpacks and normalizes ZIP bundles into Parquet datasets |
+
+#### Return Value
+
+Returns a `DownloadResultCVM` object with the following attributes and methods:
+
+- `success_count_downloads: int` — Total number of successfully downloaded bundles.
+- `error_count_downloads: int` — Total number of failed download tasks.
+- `successful_downloads: list[str]` — List of completed document identifiers in `{DOC}_{YEAR}` format (e.g., `"DFP_2023"`).
+- `failed_downloads: dict[str, str]` — Dictionary mapping failed items to error messages.
+- `elapsed_time: float` — Total execution duration in seconds.
+- `has_errors() -> bool` — Returns `True` if one or more downloads failed.
 
 #### Usage Examples
 
@@ -149,7 +162,8 @@ Retrieves a mapped catalog containing all supported regulatory document types al
 #### Method Signature
 
 ```python
-def get_available_docs(self) -> Dict[str, str]
+def get_available_docs(self) -> dict[str, str]:
+    ...
 ```
 
 #### Return Value
@@ -180,26 +194,27 @@ IPE: Informações Periódicas e Eventuais
 
 ______________________________________________________________________
 
-### `get_available_years()`
+#### `get_available_years()`
 
 Returns descriptive information detailing permissible temporal intervals across supported filings.
 
 #### Method Signature
 
 ```python
-def get_available_years(self) -> Dict[str, int]
+def get_available_years(self) -> AvailableYearsInfoCVM:
+    ...
 ```
 
-#### Return Value
+#### Return Value (`AvailableYearsInfoCVM`)
 
-A structural dictionary describing historical floor boundaries:
+A structural `NamedTuple` container describing historical floor boundaries:
 
-| Dictionary Key                   | Description                                                  |
-| -------------------------------- | ------------------------------------------------------------ |
-| `"General Document Years"`       | Minimum historical starting year for general filings (2010)  |
-| `"ITR Document Years"`           | Minimum historical year for ITR quarterly disclosures (2011) |
-| `"CGVN and VMLO Document Years"` | Minimum historical year for governance disclosures (2018)    |
-| `"Current Year"`                 | Real-time operational system year                            |
+| Attribute Name       | Type  | Description                                                  |
+| -------------------- | ----- | ------------------------------------------------------------ |
+| `general_min_year`   | `int` | Minimum historical starting year for general filings (2010)  |
+| `itr_min_year`       | `int` | Minimum historical year for ITR quarterly disclosures (2011) |
+| `cgvn_vlmo_min_year` | `int` | Minimum historical year for governance disclosures (2018)    |
+| `current_year`       | `int` | Real-time operational system year                            |
 
 #### Example Execution
 
@@ -207,9 +222,9 @@ A structural dictionary describing historical floor boundaries:
 cvm = FundamentalStocksDataCVM()
 years = cvm.get_available_years()
 
-print(f"General disclosures available since: {years['General Document Years']}")
-print(f"Interim statements (ITR) available since: {years['ITR Document Years']}")
-print(f"Active operating system year: {years['Current Year']}")
+print(f"General disclosures available since: {years.general_min_year}")
+print(f"Interim statements (ITR) available since: {years.itr_min_year}")
+print(f"Active operating system year: {years.current_year}")
 ```
 
 ______________________________________________________________________
@@ -218,7 +233,7 @@ ______________________________________________________________________
 
 ### Incremental Data Synchronizer
 
-Execute selective historical synchronization to avoid re-downloading existing archives:
+Execute selective historical synchronization to avoid re-downloading existing archives, respecting the partitioned directory hierarchy:
 
 ```python
 import os
@@ -227,17 +242,16 @@ from globaldatafinance import FundamentalStocksDataCVM
 cvm = FundamentalStocksDataCVM()
 base_path = "/data/cvm"
 
-# Inspect existing local storage directory
+# Inspect existing partitioned local storage subdirectories {base_path}/DFP/{YEAR}/
 existing_years = set()
-if os.path.exists(base_path):
-    for filename in os.listdir(base_path):
-        if "DFP" in filename:
-            # Extract fiscal year from the standard filename naming contract
-            year = int(filename.split("_")[-1].replace(".zip", ""))
-            existing_years.add(year)
+dfp_dir = os.path.join(base_path, "DFP")
+if os.path.exists(dfp_dir):
+    for entry in os.listdir(dfp_dir):
+        if entry.isdigit() and os.path.isdir(os.path.join(dfp_dir, entry)):
+            existing_years.add(int(entry))
 
-# Identify missing target fiscal years
-current_year = 2023
+# Download only missing historical fiscal periods
+current_year = cvm.get_available_years().current_year
 all_years = set(range(2020, current_year + 1))
 missing_years = all_years - existing_years
 
@@ -251,13 +265,11 @@ if missing_years:
         initial_year=min_year,
         last_year=max_year
     )
-else:
-    print("✓ Local database is fully synchronized")
 ```
 
 ### Pre-execution Input Validation
 
-Programmatically filter out invalid requests before transmitting network instructions:
+Validate parameters prior to initiating heavy network downloads:
 
 ```python
 from globaldatafinance import FundamentalStocksDataCVM
@@ -275,12 +287,16 @@ if invalid_docs:
     print(f"⚠️  Discarding unsupported document strings: {invalid_docs}")
     print(f"✓ Authorized processing items: {valid_docs}")
 
+# Safety guard: empty list would trigger downloading all documents
+if not valid_docs:
+    raise ValueError("No valid document codes provided.")
+
 # Validate temporal input limits
 years_info = cvm.get_available_years()
 requested_year = 2015
 
-if requested_year < years_info['General Document Years']:
-    print(f"⚠️  Requested fiscal period {requested_year} is prior to floor {years_info['General Document Years']}")
+if requested_year < years_info.general_min_year:
+    print(f"⚠️  Requested fiscal period {requested_year} is prior to floor {years_info.general_min_year}")
 else:
     # Trigger safe downstream extraction
     cvm.download(
@@ -294,18 +310,18 @@ ______________________________________________________________________
 
 ## Error Handling & Exceptions
 
-### Custom Exception Hierarchy
+### Synchronous Exceptions
 
-The CVM module enforces fail-fast error behavior by raising specialized exception types:
+The CVM module enforces fail-fast error behavior by validating parameters at public boundaries:
 
 | Exception Class               | Trigger Condition                             | Recommended Handling Pattern                    |
 | ----------------------------- | --------------------------------------------- | ----------------------------------------------- |
 | `InvalidDocumentName`         | Provided document string is unrecognized      | Validate inputs via `get_available_docs()`      |
 | `InvalidFirstYear`            | Requested initial year below historical floor | Inspect boundaries with `get_available_years()` |
 | `InvalidLastYear`             | End year is prior to start year or invalid    | Validate parameters prior to invocation         |
-| `NetworkError`                | Network connection or TLS handshake failure   | Implement application-level fallback alarms     |
-| `TimeoutError`                | Remote regulatory server request timeout      | Re-execute during off-peak processing hours     |
 | `InvalidDestinationPathError` | Target filesystem path fails safety check     | Confirm folder write and creation access        |
+
+> Transient network failures during asynchronous downloads are automatically managed via retry policies. Unresolved errors are consolidated in the `failed_downloads` dictionary of the returned `DownloadResultCVM` object.
 
 ______________________________________________________________________
 
@@ -322,38 +338,15 @@ destination_path/
             dfp_cia_aberta_2020.zip
         2021/
             dfp_cia_aberta_2021.zip
-        2022/
-            dfp_cia_aberta_2022.zip
-        2023/
-            dfp_cia_aberta_2023.zip
+        ...
     ITR/
         2020/
             itr_cia_aberta_2020.zip
-        2021/
-            itr_cia_aberta_2021.zip
-        2022/
-            itr_cia_aberta_2022.zip
-        2023/
-            itr_cia_aberta_2023.zip
+        ...
     FRE/
         2020/
             fre_cia_aberta_2020.zip
-        2021/
-            fre_cia_aberta_2021.zip
-        2022/
-            fre_cia_aberta_2022.zip
-        2023/
-            fre_cia_aberta_2023.zip
-    FCA/
-        2020/
-            fca_cia_aberta_2020.zip
-        2021/
-            fca_cia_aberta_2021.zip
-        2022/
-            fca_cia_aberta_2022.zip
-        2023/
-            fca_cia_aberta_2023.zip
-    etc...
+        ...
 ```
 
 ### Internal ZIP Structure
@@ -423,7 +416,11 @@ free_gb = stats.free / (1024**3)
 if free_gb < 10:
     print(f"⚠️  Insufficient workspace capacity detected: {free_gb:.2f} GB")
 else:
-    cvm.download(destination_path="/data", ...)
+    cvm.download(
+        destination_path="/data/cvm",
+        list_docs=["DFP"],
+        initial_year=2023
+    )
 ```
 
 ### 3. Rely on Parquet for Quantitative Processing
@@ -478,4 +475,5 @@ ______________________________________________________________________
 ______________________________________________________________________
 
 !!! tip "Performance Best Practice"
-For analytical pipeline integrations, consistently specify `automatic_extractor=True`. Columnar Parquet data structures bypass repetitive textual CSV decoding overhead during dataframe initialization.
+
+    For analytical pipeline integrations, consistently specify `automatic_extractor=True`. Columnar Parquet data structures bypass repetitive textual CSV decoding overhead during dataframe initialization.

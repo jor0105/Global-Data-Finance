@@ -411,3 +411,23 @@ class TestZipFileReaderEdgeCases:
         assert len(lines) == 10
         assert lines[0] == 'Line 0'
         assert lines[9] == 'Line 9'
+
+    @pytest.mark.asyncio
+    async def test_read_lines_from_plain_txt_file(self, reader, tmp_path):
+        txt_path = tmp_path / 'COTAHIST_A2023.TXT'
+        txt_path.write_text('Line A\nLine B\nLine C\n', encoding='latin-1')
+
+        lines = []
+        async for line in reader.read_lines_from_zip(str(txt_path)):
+            lines.append(line)
+
+        assert lines == ['Line A', 'Line B', 'Line C']
+
+    @pytest.mark.asyncio
+    async def test_read_lines_from_plain_txt_nonexistent(
+        self, reader, tmp_path
+    ):
+        txt_path = tmp_path / 'nonexistent.TXT'
+        with pytest.raises(FileNotFoundError):
+            async for _ in reader.read_lines_from_zip(str(txt_path)):
+                pass

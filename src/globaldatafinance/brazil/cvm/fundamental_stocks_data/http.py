@@ -40,29 +40,31 @@ class AsyncDownloadAdapterCVM:
         backoff_multiplier: float = 2.0,
         http2: bool = True,
         automatic_extractor: bool = False,
+        user_agent: str | None = None,
     ):
-        """Initialize the asynchronous download adapter."""
+        """Initialize the adapter and preserve httpx defaults."""
         self.file_extractor_repository = file_extractor_repository
         self.max_concurrent = max_concurrent
         self.chunk_size = chunk_size
         self.max_retries = max_retries
         self.automatic_extractor = automatic_extractor
-
         self.requests_adapter = RequestsAdapter(
             timeout=timeout,
             http2=http2,
             verify=True,
             max_redirects=5,
+            default_headers=None
+            if user_agent is None
+            else {'User-Agent': user_agent},
         )
-
         self.retry_strategy = RetryStrategy(
             initial_backoff=initial_backoff,
             max_backoff=max_backoff,
             multiplier=backoff_multiplier,
         )
-
         logger.debug(
-            'AsyncDownloadAdapterCVM initialized with max_concurrent=%d, http2=%s, timeout=%s',
+            'AsyncDownloadAdapterCVM initialized with max_concurrent=%d, '
+            'http2=%s, timeout=%s',
             max_concurrent,
             http2,
             timeout,
@@ -364,7 +366,6 @@ class AsyncDownloadAdapterCVM:
         try:
             response = await self.requests_adapter.async_head(url)
             content_length = response.headers.get('content-length')
-
             if content_length:
                 size_bytes = int(content_length)
                 logger.debug(
@@ -373,12 +374,13 @@ class AsyncDownloadAdapterCVM:
                     size_bytes / 1024 / 1024,
                 )
                 return size_bytes
-            else:
-                logger.debug('No Content-Length header for %s', url)
-                return None
+            logger.debug('No Content-Length header for %s', url)
+            return None
 
-        except Exception as e:
-            logger.warning('Failed to get Content-Length for %s: %s', url, e)
+        except Exception:
+            logger.warning(
+                'Failed to get Content-Length for %s', url, exc_info=True
+            )
             return None
 
     def _validate_downloaded_file(

@@ -117,33 +117,64 @@ class FileSystemServiceB3:
         return normalized_path
 
     def find_files_by_years(self, directory: Path, years: range) -> set[str]:
-        """Find official COTAHIST files whose year is in the given range.
+        """Find one official COTAHIST input file for each requested year.
 
         Only files matching the official annual B3 naming contract
         ``COTAHIST_A{YYYY}.(ZIP|TXT)`` are considered. The four-digit year
         is extracted from the name and compared against the requested year
         set, so files like ``data_12020.zip`` no longer match ``2020`` and
-        non-COTAHIST files in the directory are ignored.
+        non-COTAHIST files in the directory are ignored. If both extensions
+        exist for one year, the official ZIP is selected and the TXT is
+        ignored to prevent duplicate records and temporary-file collisions.
+        When multiple matching files have the same extension, the
+        case-insensitive filename order is used for deterministic selection.
 
         Args:
             directory: Directory to scan for COTAHIST files.
             years: Range of years to match against.
 
         Returns:
-            Set of absolute file paths whose extracted year is in ``years``.
+            Set of absolute file paths, with at most one selected file per
+            requested year.
         """
         requested_years = set(years)
         if not requested_years:
             return set()
 
-        matching_files: set[str] = set()
+        candidates_by_year: dict[int, list[Path]] = {}
         for file in directory.iterdir():
             if not file.is_file():
                 continue
             match = _COTAHIST_YEAR_PATTERN.match(file.name)
             if match is None:
                 continue
-            if int(match.group(1)) in requested_years:
-                matching_files.add(str(file))
+            year = int(match.group(1))
+            if year in requested_years:
+                candidates_by_year.setdefault(year, []).append(file)
+
+        matching_files: set[str] = set()
+        for year, candidates in candidates_by_year.items():
+            ordered_candidates = sorted(
+                candidates,
+                key=lambda path: (
+                    path.suffix.lower() != '.zip',
+                    path.name.casefold(),
+                    path.name,
+                ),
+            )
+            selected = ordered_candidates[0]
+            matching_files.add(str(selected))
+
+            ignored = ordered_candidates[1:]
+            if ignored:
+                logger.warning(
+                    'Multiple COTAHIST inputs found for year; selecting one '
+                    'deterministically',
+                    extra={
+                        'year': year,
+                        'selected_file': str(selected),
+                        'ignored_files': [str(path) for path in ignored],
+                    },
+                )
 
         return matching_files

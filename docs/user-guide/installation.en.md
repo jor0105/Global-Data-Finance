@@ -10,7 +10,7 @@ Before installing Global-Data-Finance, verify that your machine meets the follow
 
 ### Mandatory Requirements
 
-- **Python**: Version 3.12 or higher
+- **Python**: `>=3.12,<4.0`
 - **Operating System**: Linux, macOS, or Windows
 - **Disk Space**: Minimum of 2 GB to store large multi-year regulatory and market datasets
 - **RAM**: Minimum of 3 GB (6 GB or more recommended when processing extensive multi-year historical quotes)
@@ -24,7 +24,8 @@ python3 --version
 ```
 
 !!! warning "Python Version"
-Global-Data-Finance strictly requires Python 3.12 or newer. If your system runs an older version, you must upgrade Python before attempting installation.
+
+    Global-Data-Finance requires a Python version in the range `>=3.12,<4.0`. The current CI workflow exercises Python 3.12, 3.13, and 3.14; other versions in the supported range are not implied to be CI-tested.
 
 ______________________________________________________________________
 
@@ -103,22 +104,6 @@ uv run --locked --no-sync pytest
 uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
 ```
 
-### 3. Install with pip in Editable Mode
-
-```bash
-# Create and activate a new virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or
-venv\Scripts\activate  # Windows
-
-# Install library in editable mode
-pip install -e .
-
-# Install with development dependency tools
-pip install -e ".[dev]"
-```
-
 ______________________________________________________________________
 
 ## Runtime Dependencies
@@ -132,7 +117,7 @@ Global-Data-Finance builds upon an optimized selection of high-performance libra
 | `httpx`             | ≥0.28.1 | Asynchronous HTTP client with HTTP/2 support             |
 | `pandas`            | ≥2.3.3  | Data structures and numerical analytics                  |
 | `polars`            | ≥1.0.0  | High-performance columnar dataframe processing           |
-| `pyarrow`           | ≥22.0.0 | Native support for Apache Parquet storage                |
+| `pyarrow`           | ≥23.0.1,<24.0.0 | Native support for Apache Parquet storage                |
 | `pydantic-settings` | ≥2.11.0 | Typed runtime configuration and environment validation   |
 | `psutil`            | ≥5.9.0  | Real-time CPU and RAM monitoring for adaptive throttling |
 
@@ -158,22 +143,23 @@ After installation completes, run these quick smoke tests to confirm functional 
 
 ### 1. Verify Public Symbol Imports
 
-```python
-# Open an interactive Python terminal
-python
-
-# Attempt to import public facade entry points
+```pycon
 >>> from globaldatafinance import FundamentalStocksDataCVM, HistoricalQuotesB3
 >>> print("✓ Global-Data-Finance successfully installed and imported!")
+✓ Global-Data-Finance successfully installed and imported!
 ```
 
 ### 2. Check Package Version
 
-```python
+```pycon
 >>> import globaldatafinance
 >>> print(globaldatafinance.__version__)
 0.2.0
 ```
+
+The `0.2.0` value above is the local development/release target documented by
+this branch. The currently published PyPI release is still `0.1.4`, so an
+installation from PyPI may report `0.1.4` until `v0.2.0` is released.
 
 ### 3. Basic Inspection Test
 
@@ -189,7 +175,7 @@ print(f"✓ Found {len(docs)} supported regulatory document types")
 
 # Retrieve permissible historical time windows
 years = cvm.get_available_years()
-print(f"✓ Available data spanning from {years['General Document Years']} to {years['Current Year']}")
+print(f"✓ Available data spanning from {years.general_min_year} to {years.current_year}")
 ```
 
 If all evaluations above execute cleanly without exceptions, your installation is fully verified! ✅
@@ -213,13 +199,13 @@ where python  # Windows
 pip install --force-reinstall globaldatafinance
 ```
 
-### Error: "Python version 3.12 or higher required"
+### Error: "Python version outside supported range"
 
-**Cause**: The interpreter executing the command is older than Python 3.12.
+**Cause**: The interpreter executing the command is outside `>=3.12,<4.0`.
 
 **Solution**:
 
-1. Install Python 3.12 or newer from [python.org](https://www.python.org/downloads/).
+1. Install a supported Python release from [python.org](https://www.python.org/downloads/).
 2. Create a clean virtual environment targeting the compliant binary:
 
 ```bash
@@ -292,4 +278,5 @@ With your runtime configured and verified, dive into practical implementations:
 ______________________________________________________________________
 
 !!! tip "Contributor Tip"
-If you plan to submit improvements or architectural enhancements to the repository, read the [Contribution Guide](../dev-guide/contributing.md) to initialize local git pre-commit verification hooks.
+
+    If you intend to contribute code to the repository, consult the [Contributing Guide](../dev-guide/contributing.md) to set up your full local developer environment.

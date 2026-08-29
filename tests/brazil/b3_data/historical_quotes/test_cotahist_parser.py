@@ -3,9 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.cotahist_parser import (
-    CotahistParserB3,
-)
+from globaldatafinance.brazil.b3_data.historical_quotes import CotahistParserB3
 
 pytestmark = pytest.mark.unit
 
@@ -160,6 +158,23 @@ class TestCotahistParserB3:
             if 'degraded required_date field' in record.message
         ]
         assert len(required_date_warnings) == 3
+
+    def test_parse_line_logs_and_drops_unexpected_parser_failure(
+        self, parser, target_codes, monkeypatch, caplog
+    ):
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+
+        def fail_unexpectedly(_line):
+            raise RuntimeError('unexpected parser failure')
+
+        monkeypatch.setattr(parser, '_parse_quote_record', fail_unexpectedly)
+
+        with caplog.at_level('ERROR'):
+            result = parser.parse_line(line, target_codes)
+
+        assert result is None
+        assert parser._error_count == 1
+        assert any(record.exc_info is not None for record in caplog.records)
 
 
 class TestCotahistParserB3FieldParsing:
@@ -329,7 +344,7 @@ class TestCotahistParserB3EdgeCases:
         parser._error_count = 0
         parser._max_errors_to_log = 3
 
-        for i in range(20):
+        for _i in range(20):
             malformed_line = '01' + 'INVALID' * 30
             parser.parse_line(malformed_line, target_codes)
 

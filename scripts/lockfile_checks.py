@@ -3,8 +3,9 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
+
+from process_runner import ProcessRunnerError, run_process
 
 UV_LOCK_CHECK = ('uv', 'lock', '--check')
 
@@ -38,8 +39,8 @@ def is_lockfile_in_sync(
 
     No universal wall-clock budget is imposed here. A native command that
     returns non-zero means the existing lockfile is not confirmed as coherent.
-    A missing tool or subprocess execution error is infrastructure failure and
-    must remain distinguishable from that deterministic mismatch.
+    A missing tool or child-process execution error is infrastructure failure
+    and must remain distinguishable from that deterministic mismatch.
     """
     target_dir = root / manifest_dir
     if manifest_path.name != 'pyproject.toml' or existing_locks != ['uv.lock']:
@@ -47,14 +48,12 @@ def is_lockfile_in_sync(
 
     command_text = ' '.join(UV_LOCK_CHECK)
     try:
-        result = subprocess.run(
+        result = run_process(
             list(UV_LOCK_CHECK),
             cwd=target_dir,
-            capture_output=True,
-            text=True,
             check=False,
         )
-    except (subprocess.SubprocessError, OSError) as err:
+    except ProcessRunnerError as err:
         raise LockfileInfrastructureError(
             f'Unable to execute native lockfile check "{command_text}" '
             f'for {manifest_path.as_posix()} (uv.lock): {err}'

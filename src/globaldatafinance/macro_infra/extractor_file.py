@@ -1,3 +1,5 @@
+"""Provide generic ZIP and text extraction primitives."""
+
 import asyncio
 import gc
 import io
@@ -91,7 +93,7 @@ class ExtractorAdapter:
     async def extract_txt_from_zip_async(
         self, zip_path: str
     ) -> AsyncIterator[str]:
-        """Read lines from TXT file inside ZIP asynchronously with true streaming.
+        """Read ZIP TXT lines asynchronously with true streaming.
 
         This method is designed for COTAHIST files from B3 and uses
         true streaming without loading entire file into memory.
@@ -107,77 +109,22 @@ class ExtractorAdapter:
             CorruptedZipError: If ZIP file is invalid or corrupted
             ExtractionError: If no TXT file found in ZIP
         """
-        # Validate file existence using existing method
         try:
             txt_files = ExtractorAdapter.list_files_in_zip(zip_path, '.txt')
-        except (FileNotFoundError, CorruptedZipError):
-            raise
+            if not txt_files:
+                raise ExtractionError(zip_path, 'No .TXT file found in ZIP')
 
-        if not txt_files:
-            raise ExtractionError(zip_path, 'No .TXT file found in ZIP')
-
-        # Use streaming approach with limited buffer
-        loop = asyncio.get_event_loop()
-
-        try:
-            # Open ZIP in executor (blocking operation)
-            zip_file = await loop.run_in_executor(
-                None, zipfile.ZipFile, zip_path, 'r'
-            )
-
-            try:
-                # Open the first TXT file for streaming
-                txt_file_handle = ExtractorAdapter.open_file_from_zip(
+            with (
+                zipfile.ZipFile(zip_path, 'r') as zip_file,
+                ExtractorAdapter.open_file_from_zip(
                     zip_file, txt_files[0]
-                )
-
-                try:
-                    # Read in chunks to avoid memory issues
-                    buffer = b''
-
-                    while True:
-                        # Read chunk in executor
-                        chunk = await loop.run_in_executor(
-                            None, txt_file_handle.read, self.CHUNK_SIZE_TXT
-                        )
-
-                        if not chunk:
-                            # Process remaining buffer
-                            if buffer:
-                                try:
-                                    line = buffer.decode('latin-1')
-                                    if line.strip():
-                                        yield line.strip()
-                                except UnicodeDecodeError:
-                                    logger.warning(
-                                        f'Failed to decode final buffer in {zip_path}'
-                                    )
-                            break
-
-                        buffer += chunk
-
-                        # Process complete lines from buffer
-                        while b'\n' in buffer:
-                            line_bytes, buffer = buffer.split(b'\n', 1)
-
-                            try:
-                                line = line_bytes.decode('latin-1').strip()
-                                if line:  # Skip empty lines
-                                    yield line
-                            except UnicodeDecodeError:
-                                logger.warning(
-                                    f'Failed to decode line in {zip_path}, skipping'
-                                )
-                                continue
-
-                finally:
-                    # Cleanup file handle
-                    await loop.run_in_executor(None, txt_file_handle.close)
-
-            finally:
-                # Cleanup ZIP file
-                await loop.run_in_executor(None, zip_file.close)
-
+                ) as txt_file_handle,
+            ):
+                for raw_line in txt_file_handle:
+                    line = raw_line.decode('latin-1', errors='replace').strip()
+                    if line:
+                        yield line
+                    await asyncio.sleep(0)
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e)) from e
         except Exception as e:
@@ -359,7 +306,8 @@ class ExtractorAdapter:
                 if attempt >= max_attempts - 1:
                     raise ExtractionError(
                         str(file_path),
-                        f'Cannot delete file after {max_attempts} attempts: {e}. '
+                        f'Cannot delete file after {max_attempts} attempts: '
+                        f'{e}. '
                         f'Manual intervention required.',
                     ) from e
                 time.sleep(0.1 * (attempt + 1))

@@ -16,7 +16,7 @@ cd Global-Data-Finance
 
 ### 2. Install Dependencies
 
-`uv` serves as the canonical project dependency manager (with the verified `uv.lock` committed directly to repository tracking). Development strictly requires **Python 3.12+**.
+`uv` serves as the canonical project dependency manager (with the verified `uv.lock` committed directly to repository tracking). Development uses **Python >=3.12,<4.0**. The current CI workflow exercises Python 3.12, 3.13, and 3.14.
 
 ```bash
 # Synchronize the exact lockfile-approved environment (creates .venv)
@@ -44,6 +44,41 @@ ______________________________________________________________________
 - Format module docstrings adhering to **Google Style** documentation layouts
 - Enforce a hard line length boundary of **79 characters** (evaluated via Ruff Blue-style rules)
 
+### Ruff Profiles
+
+Ruff uses an explicit base selection for `src/`, `tests/`, `scripts/`, and
+`examples/`. The `scripts/check-ruff-policy.py` script is the single internal
+entrypoint for the complete profiles: `base` verifies the base selection,
+`docs` applies Google docstring rules to `src/`, `scripts/`, and `examples/`
+(excluding `**/__init__.py`), and `security` applies `S` rules to code and
+scripts and to tests with only `S101` ignored.
+
+The base selection preserves the existing simplification and correctness rules
+and adds two focused contracts. `C901` limits McCabe cyclomatic complexity to
+**10 per function**: complexity 10 passes and 11 or more fails. `BLE001`,
+`TRY203`, `TRY400`, and `TRY401` prevent blind catches, useless reraises, and
+logging that discards or repeats exception context. The full `TRY` group and
+`PLR0912` are not part of this gate.
+
+```bash
+# Verify every profile and the policy shape in pyproject.toml
+uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all
+
+# Reproduce only the complexity and exception gate
+uv run --locked --no-sync ruff check --select C901,BLE001,TRY203,TRY400,TRY401 src tests scripts examples
+
+# Check formatting without changing files
+uv run --locked --no-sync ruff format --check src tests scripts examples
+```
+
+This is a closed policy: the checker rejects every Ruff key outside the
+canonical shape and values, including `exclude`, `extend`, `ignore`,
+`extend-ignore`, `extend-select`, `extend-per-file-ignores`, and unexpected
+nested tables. The only per-file exception is `S603` in
+`scripts/process_runner.py`, which centralizes allowlisted, resolved,
+shell-free command execution for tooling scripts. Those scripts must not call
+`subprocess` directly.
+
 ### Docstring Implementation Example
 
 ```python
@@ -63,7 +98,7 @@ def download_docs(
 
     Raises:
         InvalidDocumentName: Raised if an unsupported document string is supplied.
-        NetworkError: Raised if connection drops or HTTP transfer timeouts occur.
+        InvalidDestinationPathError: Raised if the destination path is invalid or unsafe.
     """
     pass
 ```
@@ -113,12 +148,31 @@ The diff-sanity, test-integrity, and shell-syntax gates inspect only staged
 content during a commit. CI invokes the same scripts over the pull request or
 push commit range, so a diff `SKIP` without staged files is not a CI approval.
 
-`check-harness-sync` is manual because it verifies agent-client mirrors that
-do not exist in a clean checkout. Run it only while maintaining those mirrors:
+`.agents/` remains tracked so every clone distributes the portable validators,
+but it is a generated projection maintained by the separate `central-skills`
+repository; generated files must never be edited manually.
+Ordinary contributors and project users do not need a `central-skills`
+installation: the portable `validate-agent-protocols` hook validates the
+tracked structure. A maintainer changing the selection or projection must fix
+the canonical source, regenerate with `harness-sync`, and run both checks:
 
 ```bash
-uv run --locked --no-sync pre-commit run check-harness-sync --hook-stage manual
+uv run --locked --no-sync python .agents/scripts/validate-agent-protocols.py
+harness-sync --check
 ```
+
+The `check-harness-sync` hook is manual and intended only for maintainers with
+the optional executable installed. It is not part of the default `pre-commit`,
+`pre-push`, or CI stages; when the executable is absent, the check fails
+explicitly instead of producing a false `SKIP`.
+
+Generic hooks have an explicit exclusion for `.agents/`, `.claude/`, `.codex/`,
+`.opencode/`, and `.github/prompts/`, so they do not format or inspect those
+projections. The tracked validators inside `.agents/` are the deliberate
+exception: they can run directly from a clone and do not require an external
+installation. The optional synchronization executable being absent does not
+block normal commits or pushes; real validator failures must be fixed rather
+than bypassed by disabling hooks.
 
 ### Authoring Unit Tests
 

@@ -23,46 +23,49 @@ ______________________________________________________________________
 
 B3 archives historical financial transactions under the following standard categories:
 
-| Parameter Keyword    | Professional Classification  | Included Sub-Market Classifications           |
+| Parameter Keyword    | Professional Classification  | Included TPMERC Codes                         |
 | -------------------- | ---------------------------- | --------------------------------------------- |
-| **ações**            | Stocks & Equities            | Spot market (010) and fractional market (012) |
-| **etf**              | Exchange Traded Funds (ETFs) | Exchange Traded Fund instruments              |
+| **ações**            | Stocks & Equities            | Spot market (010) and fractional market (020) |
+| **etf**              | Exchange Traded Funds (ETFs) | Spot market (010) and fractional market (020) |
 | **opções**           | Options Contracts            | Option Calls (070) and Option Puts (080)      |
-| **termo**            | Forward Term Contracts       | Term financial agreements                     |
-| **exercicio_opcoes** | Option Exercises             | Option execution transaction registers        |
-| **forward**          | Forward Contracts            | Over-the-counter and forward agreements       |
-| **leilao**           | Auction Market Records       | Extraordinary auction clearing executions     |
+| **termo**            | Term-market contracts        | Term financial agreements (030)               |
+| **exercicio_opcoes** | Option Exercises             | Option Exercise Calls (012) and Puts (013)    |
+| **forward**          | Forward Contracts            | Forward c/ Gain (050) and Movement (060)      |
+| **leilao**           | Auction Market Records       | Auction clearing executions (017)             |
+
+> `ações` and `etf` are selection aliases in the COTAHIST parser sharing spot (010) and fractional (020) TPMERC codes.
+
+BDRs and Futures are **Planned** and are not accepted by the current
+`HistoricalQuotesB3` runtime contract. The Portuguese strings in the table are
+canonical API values and must be passed exactly as shown.
 
 !!! info "Historical Depth"
-B3 COTAHIST historical quote archives cover market transaction activity continuously from **1986** through the present day.
+    B3 COTAHIST historical quote archives cover market transaction activity continuously from **1986** through the present day.
 
 ______________________________________________________________________
 
 ## Basic Usage
 
-### Library Import
+Before calling `extract()`, place official `COTAHIST_A{YYYY}.ZIP` or
+`COTAHIST_A{YYYY}.TXT` files in the existing `path_of_docs` directory; the
+library does not download or populate it. Obtain files from the [official B3
+Historical Quotes page](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/); ZIP takes precedence when both formats exist for one year.
+
+### Quickstart Example
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
-```
 
-### Instantiate Public Client
-
-```python
 b3 = HistoricalQuotesB3()
-```
 
-### Simple Extraction Example
-
-```python
-# Extract historical stock quotes from current year archives
+# Extract historical stock quotes from a closed historical year
 result = b3.extract(
-    path_of_docs="/home/user/cotahist_zips",
+    path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    initial_year=2023
+    initial_year=2023,
 )
 
-print(f"✓ Successfully processed and consolidated {result['total_records']:,} transaction records")
+print(f"✓ Successfully processed {result['total_records']:,} transaction records")
 ```
 
 ______________________________________________________________________
@@ -79,54 +82,59 @@ Parses COTAHIST archives (ZIP bundles or plain positional TXT files) and exports
 def extract(
     self,
     path_of_docs: str,
-    assets_list: List[str],
-    initial_year: Optional[int] = None,
-    last_year: Optional[int] = None,
-    destination_path: Optional[str] = None,
+    assets_list: list[str],
+    initial_year: int | None = None,
+    last_year: int | None = None,
+    destination_path: str | None = None,
     output_filename: str = "cotahist_extracted",
     processing_mode: str = "fast",
-) -> Dict[str, Any]
+    verbose: bool = True,
+) -> ExtractionResultB3:
+    ...
 ```
 
 #### Parameters
 
-| Parameter          | Type        | Mandatory | Description                                                        |
-| ------------------ | ----------- | --------- | ------------------------------------------------------------------ |
-| `path_of_docs`     | `str`       | ✅ Yes    | Filesystem path pointing to raw COTAHIST archives                  |
-| `assets_list`      | `List[str]` | ✅ Yes    | Selected asset filtering category strings                          |
-| `initial_year`     | `int`       | ❌ No     | Starting historical year (default: 1986)                           |
-| `last_year`        | `int`       | ❌ No     | Ending historical year (default: current system year)              |
-| `destination_path` | `str`       | ❌ No     | Destination output directory (default: matches `path_of_docs`)     |
-| `output_filename`  | `str`       | ❌ No     | Base filename of the target Parquet artifact (omit file extension) |
-| `processing_mode`  | `str`       | ❌ No     | Execution concurrency profile: `"fast"` or `"slow"`                |
+| Parameter          | Type          | Mandatory | Description                                                        |
+| ------------------ | ------------- | --------- | ------------------------------------------------------------------ |
+| `path_of_docs`     | `str`         | ✅ Yes    | Filesystem path pointing to raw COTAHIST archives (ZIP or TXT)     |
+| `assets_list`      | `list[str]`   | ✅ Yes    | Selected asset filtering category strings                          |
+| `initial_year`     | `int \| None` | ❌ No     | Starting historical year (default: 1986)                           |
+| `last_year`        | `int \| None` | ❌ No     | Ending historical year (default: current system year)              |
+| `destination_path` | `str \| None` | ❌ No     | Destination output directory (default: matches `path_of_docs`)     |
+| `output_filename`  | `str`         | ❌ No     | Base filename of the target Parquet artifact; optional `.parquet` suffix       |
+| `processing_mode`  | `str`         | ❌ No     | Execution concurrency profile: `"fast"` or `"slow"`                |
+| `verbose`          | `bool`        | ❌ No     | When `True` (default), prints formatted console summary            |
 
-#### Return Contract
+#### Return Contract (`ExtractionResultB3`)
 
-A typed diagnostic mapping dictionary (`ExtractionResultB3`) containing the following entries:
-
-| Dictionary Key  | Type        | Description                                         |
-| --------------- | ----------- | --------------------------------------------------- |
-| `success`       | `bool`      | `True` if extraction pipeline completed cleanly     |
-| `message`       | `str`       | Human-readable summary of the execution outcome     |
-| `total_files`   | `int`       | Total count of COTAHIST archives evaluated          |
-| `success_count` | `int`       | Number of archives successfully parsed and merged   |
-| `error_count`   | `int`       | Number of archives encountering format exceptions   |
-| `total_records` | `int`       | Cumulative count of consolidated Parquet records    |
-| `output_file`   | `str`       | Absolute filesystem path of the produced `.parquet` |
-| `errors`        | `List[str]` | Detailed stack traces or validation failure notes   |
+| Dictionary Key    | Type             | Description                                          |
+| ----------------- | ---------------- | ---------------------------------------------------- |
+| `success`         | `bool`           | `True` if extraction pipeline completed cleanly      |
+| `message`         | `str`            | Human-readable summary of the execution outcome      |
+| `total_files`     | `int`            | Total input files processed (ZIP or TXT)             |
+| `success_count`   | `int`            | Number of input files successfully parsed and merged |
+| `error_count`     | `int`            | Number of input files encountering format exceptions |
+| `total_records`   | `int`            | Cumulative count of consolidated Parquet records     |
+| `output_file`     | `str`            | Absolute filesystem path of the produced `.parquet`  |
+| `errors`          | `dict[str, str]` | Dictionary mapping failed files to error messages    |
+| `assets`          | `list[str]`      | Asset category strings included during extraction    |
+| `processing_mode` | `str`            | Processing mode utilized (`"fast"` or `"slow"`)      |
+| `elapsed_time`    | `float`          | Elapsed execution duration in seconds                |
 
 #### Usage Examples
 
 **Example 1: Core Stock Extraction**
 
 ```python
-b3 = HistoricalQuotesB3()
+from globaldatafinance import HistoricalQuotesB3
 
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=2022,
-    last_year=2023
+    last_year=2023,
 )
 
 if result['success']:
@@ -137,35 +145,44 @@ if result['success']:
 **Example 2: Multi-Asset Ingestion**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações", "etf", "opções"],
     initial_year=2020,
     last_year=2023,
-    output_filename="multi_assets_2020_2023"
+    output_filename="multi_assets_2020_2023",
 )
 ```
 
 **Example 3: Low-Footprint Background Execution**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=2023,
-    processing_mode="slow"  # Minimizes active system memory footprint
+    processing_mode="slow",  # Minimizes active system memory footprint
 )
 ```
 
 **Example 4: Custom Export Routing**
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist_zips",
     destination_path="/data/processed_quotes",
     assets_list=["ações", "etf"],
     initial_year=2023,
-    output_filename="stocks_etf_2023"
+    output_filename="stocks_etf_2023",
 )
 # Resulting artifact persisted at: /data/processed_quotes/stocks_etf_2023.parquet
 ```
@@ -179,7 +196,8 @@ Returns an exhaustive list of valid asset string identifiers supported by the ex
 #### Method Signature
 
 ```python
-def get_available_assets(self) -> List[str]
+def get_available_assets(self) -> list[str]:
+    ...
 ```
 
 #### Return Value
@@ -189,25 +207,12 @@ A list containing permissible asset filtering strings.
 #### Example Execution
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
 b3 = HistoricalQuotesB3()
 assets = b3.get_available_assets()
-
-print("Supported asset categories:")
-for asset in assets:
-    print(f"  • {asset}")
-```
-
-**Console Output**:
-
-```
-Supported asset categories:
-  • ações
-  • etf
-  • opções
-  • termo
-  • exercicio_opcoes
-  • forward
-  • leilao
+# ['ações', 'etf', 'opções', 'termo', 'exercicio_opcoes', 'forward', 'leilao']
+print(f"Available {len(assets)} asset classes")
 ```
 
 ______________________________________________________________________
@@ -219,25 +224,23 @@ Returns dictionary containing extreme boundaries of supported historical time ho
 #### Method Signature
 
 ```python
-def get_available_years(self) -> Dict[str, int]
+def get_available_years(self) -> dict[str, int]:
+    ...
 ```
 
 #### Return Value
 
-A dictionary detailing:
-
-| Key              | Description                           |
-| ---------------- | ------------------------------------- |
-| `"minimal_year"` | Earliest supported fiscal year (1986) |
-| `"current_year"` | Real-time system operational year     |
+A dictionary detailing `minimal_year` (1986) and `current_year`.
 
 #### Example Execution
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
 b3 = HistoricalQuotesB3()
 years = b3.get_available_years()
-
-print(f"B3 market archives available from {years['minimal_year']} through {years['current_year']}")
+# `current_year` is the current execution year.
+print(f"B3 data from {years['minimal_year']} through {years['current_year']}")
 ```
 
 ______________________________________________________________________
@@ -254,10 +257,13 @@ The extraction pipeline provides distinct computational operational modes:
 - **Recommended Use**: Dedicated data processing servers and moderate-to-large analytical jobs
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    processing_mode="fast"  # Default configuration
+    processing_mode="fast",  # Default configuration
 )
 ```
 
@@ -269,35 +275,40 @@ result = b3.extract(
 - **Recommended Use**: Memory-constrained environments, shared hardware, or background cron processing
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    processing_mode="slow"
+    processing_mode="slow",
 )
 ```
 
 ### Performance Benchmark Comparison
 
-| Processing Profile | Measured Throughput | CPU Impact | Peak RAM  | Guidance                   |
-| ------------------ | ------------------- | ---------- | --------- | -------------------------- |
-| **fast**           | ~12,317 rows/s      | High       | ~4,260 MB | ✅ Recommended Default     |
-| **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB | Memory-Constrained Servers |
+*Measured benchmark on complete annual dataset (general peak RAM ranges between ~2 GB to 4.2 GB in `fast` mode and ~500 MB to 1.5 GB in `slow` mode depending on dataset span and hardware).*
+
+| Processing Profile | Measured Throughput | CPU Impact | Peak RAM (Benchmark) | Guidance                   |
+| ------------------ | ------------------- | ---------- | -------------------- | -------------------------- |
+| **fast**           | ~12,317 rows/s      | High       | ~4,260 MB            | ✅ Recommended Default     |
+| **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB            | Memory-Constrained Servers |
 
 ______________________________________________________________________
 
 ## Advanced Recipes & Implementations
 
-### Full-Spectrum Asset Extraction
+### All Currently Supported Asset Categories
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 
-# Dynamically fetch all supported instrument classifications
+# Dynamically fetch all currently supported asset categories
 all_assets = b3.get_available_assets()
 
-# Extract every asset class simultaneously
+# Extract every currently supported category simultaneously
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=all_assets,
@@ -305,7 +316,7 @@ result = b3.extract(
     output_filename="complete_market_2023"
 )
 
-print(f"✓ Extracted {result['total_records']:,} rows spanning {len(all_assets)} asset classes")
+print(f"✓ Extracted {result['total_records']:,} rows spanning {len(all_assets)} supported categories")
 ```
 
 ### Year-by-Year Partitioned Ingestion
@@ -340,8 +351,9 @@ for year in range(2020, 2024):
 ### Pre-Execution Integrity & Path Verification
 
 ```python
-from globaldatafinance import HistoricalQuotesB3
 import os
+import re
+from globaldatafinance import HistoricalQuotesB3
 
 b3 = HistoricalQuotesB3()
 path_docs = "/data/cotahist"
@@ -351,22 +363,21 @@ if not os.path.exists(path_docs):
     print(f"✗ Target repository inaccessible: {path_docs}")
     exit(1)
 
-# 2. Confirm COTAHIST naming contract presence
-zip_files = [f for f in os.listdir(path_docs) if f.startswith("COTAHIST") and (f.endswith(".ZIP") or f.endswith(".TXT"))]
-
-if not zip_files:
+# 2. Confirm COTAHIST naming contract presence (ZIP or TXT with 4-digit year)
+pattern = re.compile(r"^COTAHIST_A\d{4}\.(?:ZIP|TXT)$", re.IGNORECASE)
+files = [f for f in os.listdir(path_docs) if pattern.match(f)]
+if not files:
     print(f"✗ Zero compliant COTAHIST archives found within {path_docs}")
     exit(1)
 
-print(f"✓ Discovered {len(zip_files)} COTAHIST candidate archives")
+print(f"✓ Discovered {len(files)} COTAHIST candidate archives")
 
 # 3. Validate requested asset list
 requested_assets = ["ações", "etf"]
 available_assets = b3.get_available_assets()
-
 invalid_assets = [a for a in requested_assets if a not in available_assets]
 if invalid_assets:
-    print(f"✗ Discarding unverified asset strings: {invalid_assets}")
+    print(f"✗ Discarding unverified asset strings: {invalid_assets} (valid: {available_assets})")
     exit(1)
 
 # 4. Trigger extraction pipeline
@@ -390,7 +401,7 @@ ______________________________________________________________________
 | `InvalidFirstYear`    | `initial_year` parameter below 1986 floor | Specify temporal lower bounds >= 1986          |
 | `InvalidLastYear`     | End year prior to start year              | Confirm monotonic temporal ordering            |
 | `EmptyDirectoryError` | Source folder lacks COTAHIST files        | Inspect folder contents prior to invocation    |
-| `ExtractionError`     | Corruption detected in positional layout  | Verify ZIP MD5 hash integrity                  |
+| `ExtractionError`     | Corruption detected in positional layout  | Verify COTAHIST file integrity                 |
 
 ______________________________________________________________________
 
@@ -398,19 +409,7 @@ ______________________________________________________________________
 
 ### File Naming Contract
 
-B3 adheres to a strict historical naming convention:
-
-```
-COTAHIST_AYYYY.(ZIP|TXT)
-```
-
-Where `YYYY` denotes a four-digit fiscal year (e.g., `COTAHIST_A2023.ZIP`).
-
-### Official Data Source
-
-Official COTAHIST market bundles can be downloaded directly from B3:
-
-🔗 **[https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)**
+Official B3 archive downloads adhere to the standard pattern `COTAHIST_A{YYYY}.ZIP` (e.g., `COTAHIST_A2023.ZIP`), where `{YYYY}` denotes a four-digit fiscal year. The local scanner also supports raw uncompressed text files matching `COTAHIST_A{YYYY}.TXT`. If ZIP and TXT for the same year coexist, only ZIP is selected deterministically.
 
 ### Internal Archive Structure
 
@@ -483,34 +482,32 @@ ______________________________________________________________________
 ### 1. Harness Fast Mode for Extensive Datasets
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 # ✅ Highly recommended for processing extensive historical ranges
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
     initial_year=1986,  # Complete historical depth
-    processing_mode="fast"
+    processing_mode="fast",
 )
 ```
 
-### 2. Segment Exports by Asset Class
+### 2. Segment Output Files by Asset Category
 
 ```python
-# ✅ Best practice: maintain dedicated Parquet files per asset category
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+# ✅ Recommended: generate segmented parquet artifacts per asset category
 for asset in ["ações", "etf", "opções"]:
     result = b3.extract(
         path_of_docs="/data/cotahist",
         assets_list=[asset],
         initial_year=2023,
-        output_filename=f"{asset}_2023"
+        output_filename=f"{asset}_2023",
     )
-
-# ❌ Avoid bundling disparate instrument structures into a single monolithic output file
-result = b3.extract(
-    path_of_docs="/data/cotahist",
-    assets_list=["ações", "etf", "opções", "termo", "forward"],
-    initial_year=1986,
-    output_filename="monolith"
-)
 ```
 
 ### 3. Monitor Free Filesystem Capacity
@@ -540,4 +537,4 @@ ______________________________________________________________________
 ______________________________________________________________________
 
 !!! tip "Analytical Best Practice"
-Once historical quotes are compiled into Parquet files, consume them via `polars`. Its lazy evaluation engine and predicate pushdown capabilities significantly outperform pandas when processing multi-year tick ledgers.
+    Once historical quotes are compiled into Parquet files, consume them via `polars`. Its lazy evaluation engine and predicate pushdown capabilities significantly outperform pandas when processing multi-year tick ledgers.

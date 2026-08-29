@@ -160,7 +160,7 @@ class TestFileSystemServiceSecurityValidation:
     def test_validate_path_safety_allows_user_config(
         self, service, tmp_path, monkeypatch
     ):
-        # ~/.config is intentionally NOT blocked: legitimate user configs use it.
+        # ~/.config is intentionally allowed for legitimate user configuration.
         fake_home = tmp_path / 'fake_home'
         fake_home.mkdir()
         config_dir = fake_home / '.config' / 'globaldatafinance' / 'cache'
@@ -307,20 +307,55 @@ class TestFileSystemServiceFindFiles:
         years = range(2023, 2024)
         result = service.find_files_by_years(test_dir, years)
 
-        assert len(result) == 2
-        assert not any('.CSV' in f for f in result)
+        assert result == {str(test_dir / 'COTAHIST_A2023.ZIP')}
+
+    def test_find_files_by_years_uses_txt_when_zip_is_absent(
+        self, service, tmp_path
+    ):
+        test_dir = tmp_path / 'data'
+        test_dir.mkdir()
+        txt_path = test_dir / 'COTAHIST_A2023.TXT'
+        txt_path.write_text('data')
+
+        result = service.find_files_by_years(test_dir, range(2023, 2024))
+
+        assert result == {str(txt_path)}
+
+    def test_find_files_by_years_prefers_zip_for_duplicate_year(
+        self, service, tmp_path, caplog
+    ):
+        test_dir = tmp_path / 'data'
+        test_dir.mkdir()
+        zip_path = test_dir / 'COTAHIST_A2023.ZIP'
+        txt_path = test_dir / 'COTAHIST_A2023.TXT'
+        zip_path.write_text('zip')
+        txt_path.write_text('txt')
+
+        result = service.find_files_by_years(test_dir, range(2023, 2024))
+
+        assert result == {str(zip_path)}
+        assert 'selecting one deterministically' in caplog.text
+        warning = next(
+            record
+            for record in caplog.records
+            if record.levelname == 'WARNING'
+        )
+        assert warning.selected_file == str(zip_path)
+        assert warning.ignored_files == [str(txt_path)]
 
     def test_find_files_by_years_is_case_insensitive(self, service, tmp_path):
         test_dir = tmp_path / 'data'
         test_dir.mkdir()
 
-        (test_dir / 'cotahist_a2023.zip').write_text('data')
-        (test_dir / 'CotaHist_A2023.Zip').write_text('data')
+        lower_case_path = test_dir / 'cotahist_a2023.zip'
+        upper_case_path = test_dir / 'CotaHist_A2024.Zip'
+        lower_case_path.write_text('data')
+        upper_case_path.write_text('data')
 
-        years = range(2023, 2024)
+        years = range(2023, 2025)
         result = service.find_files_by_years(test_dir, years)
 
-        assert len(result) == 2
+        assert result == {str(lower_case_path), str(upper_case_path)}
 
     def test_find_files_by_years_ignores_non_cotahist_files(
         self, service, tmp_path

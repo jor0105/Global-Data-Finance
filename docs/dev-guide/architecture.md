@@ -6,13 +6,19 @@ ______________________________________________________________________
 
 ## Visão Geral
 
-Global-Data-Finance é uma biblioteca Python distribuída via PyPI cuja API pública é deliberadamente estreita — exportando na raiz as classes `FundamentalStocksDataCVM` e `HistoricalQuotesB3`, além do contrato `ExtractionResultB3`. Internamente, cada fonte de dados é implementada em um diretório próprio com **layout plano de módulos nomeados por papel**.
+Global-Data-Finance é uma biblioteca Python cuja API pública é deliberadamente
+estreita — exportando na raiz as classes `FundamentalStocksDataCVM` e
+`HistoricalQuotesB3`, além do contrato `ExtractionResultB3`. As fontes
+implementadas atualmente são os feeds regulatórios brasileiros da CVM e os
+dados históricos de mercado da B3. Internamente, cada fonte fica em sua pasta
+de feature, com módulos focados e subpacotes especializados quando o domínio
+exige.
 
 Esta abordagem privilegia:
 
 - ✅ **Leitura**: poucos arquivos com nomes claros (CVM: `core.py`, `client.py`, `http.py`, `extract.py`, `errors.py`; B3: módulos por papel — `client.py`, `assets.py`, `models.py`, `years.py`, `processing.py`, `filesystem.py`, `errors.py`, mais subpacotes pesados)
 - ✅ **Manutenibilidade**: estrutura limpa, concisa e orientada de forma pragmática às funcionalidades dos módulos
-- ✅ **Extensibilidade**: adicionar nova fonte = adicionar nova pasta-irmã com o mesmo conjunto plano de módulos
+- ✅ **Extensibilidade**: adicionar uma nova fonte suportada significa definir módulos da própria fonte e uma facade pública adequados às suas responsabilidades, reutilizando os limites da CVM ou da B3 quando fizer sentido
 - ✅ **Testabilidade**: uso de duck typing direto e injeção de dependência para isolar e testar componentes de forma simples
 
 ______________________________________________________________________
@@ -41,7 +47,7 @@ globaldatafinance/
 │   │   │       ├── processing.py              # ProcessingModeEnumB3, _ProcessingModeConfig
 │   │   │       ├── filesystem.py              # FileSystemServiceB3.validate_directory_path
 │   │   │       ├── errors.py                  # exceções específicas da fonte
-│   │   │       ├── zip_reader.py              # leitura de COTAHIST ZIP
+│   │   │       ├── zip_reader.py              # leitura de COTAHIST ZIP/TXT
 │   │   │       ├── cotahist_parser.py         # parser posicional (preservado isolado)
 │   │   │       ├── parquet_writer/            # subpacote: writer Parquet
 │   │   │       └── extraction_service/        # subpacote: orquestração streaming/threadpool
@@ -66,7 +72,14 @@ ______________________________________________________________________
 
 ## Padrão de módulos por fonte
 
-Cada `brazil/<país>/<fonte>/` segue o mesmo conjunto de **papéis**. O mapeamento papel ↔ arquivo é fixo na CVM (um arquivo por papel) e mais granular na B3 (papéis "dados puros" e "validação" foram quebrados em módulos por tópico para evitar um único `core.py` gigante). Adicionar uma nova fonte pode seguir qualquer dos dois caminhos — o critério é legibilidade.
+A entrada B3 segue o padrão `COTAHIST_A{YYYY}.ZIP` ou `.TXT`; o leitor faz
+streaming do TXT interno ao ZIP ou do TXT descompactado.
+
+CVM e B3 são as implementações de fonte atuais: CVM pertence a
+`brazil/cvm/fundamental_stocks_data/` e B3 pertence a
+`brazil/b3_data/historical_quotes/`. A organização segue as responsabilidades
+reais, sem prometer que toda fonte futura terá exatamente o mesmo conjunto de
+arquivos. Uma nova fonte pode reutilizar esses limites quando fizer sentido.
 
 | Papel                       | CVM                                                | B3                                                                                     |
 | --------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -85,9 +98,13 @@ Funções/classes auxiliares são internas ao módulo a menos que sejam usadas e
 
 ______________________________________________________________________
 
-## Camadas observáveis
+## Camadas e responsabilidades observáveis
 
-A arquitetura do projeto é estruturada ao redor de **duas camadas explícitas** e bem delineadas:
+O repositório possui uma fronteira pública de aplicação, pacotes de
+implementação por fonte e infraestrutura compartilhada. Dentro desses limites,
+clients e use cases orquestram o trabalho, adapters possuem o I/O de HTTP,
+filesystem e extração, módulos focados possuem validação e transformação, e os
+módulos `*_formatter.py` possuem a apresentação no console.
 
 ### 1. Facade público (`application/`)
 
@@ -119,11 +136,14 @@ class FundamentalStocksDataCVM:
         return result
 ```
 
-O facade importa **diretamente** dos módulos planos da fonte (sem passar por re-exports intermediários em `brazil/__init__.py`).
+O facade importa **diretamente** dos módulos da própria fonte (sem passar por re-exports intermediários em `brazil/__init__.py`).
 
-### 2. Implementação por fonte (`brazil/<país>/<fonte>/`)
+### 2. Implementação por fonte
 
-Cada fonte é autocontida em ~5–8 arquivos. Exemplo CVM:
+As fontes atuais são `brazil/cvm/fundamental_stocks_data/` e
+`brazil/b3_data/historical_quotes/`. A CVM é organizada em módulos focados; a
+B3 também usa `extraction_service/` e `parquet_writer/` para orquestração
+streaming e saída Parquet. Exemplo CVM:
 
 ```python
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/core.py
@@ -155,11 +175,16 @@ class DownloadDocumentsUseCaseCVM:
 # src/globaldatafinance/brazil/cvm/fundamental_stocks_data/http.py
 class AsyncDownloadAdapterCVM:
     def download_docs(self, tasks) -> DownloadResultCVM:
-        # implementação concreta com httpx async, retry, integrity check
+        # implementação concreta com httpx async, retry e validação de
+        # path/tamanho/ZIP legível
         ...
 ```
 
-O orquestrador interage com `AsyncDownloadAdapterCVM` através do seu contrato observável de métodos, permitindo que os testes utilizem stubs de duck typing simples sem complexidade adicional (ver "Testes" mais abaixo).
+O orquestrador interage com `AsyncDownloadAdapterCVM` através do seu contrato
+observável de métodos, permitindo que os testes utilizem stubs de duck typing
+simples sem complexidade adicional (ver "Testes" mais abaixo). A verificação
+por checksum MD5 é uma capacidade planejada e não faz parte do contrato atual
+de download.
 
 ______________________________________________________________________
 
@@ -188,7 +213,10 @@ Os adapters responsáveis por I/O, como `AsyncDownloadAdapterCVM` e `ParquetExtr
 
 ### Result objects
 
-Operações que podem falhar parcialmente retornam um dataclass de resultado com sucessos e erros explícitos, em vez de `raise` em falhas parciais.
+Operações que podem falhar parcialmente retornam objetos de resultado com
+sucessos e erros explícitos, em vez de interromper tudo com `raise` em uma falha
+parcial: a CVM usa o dataclass `DownloadResultCVM`, enquanto a facade B3
+retorna o `TypedDict` público `ExtractionResultB3`.
 
 ```python
 @dataclass
@@ -203,9 +231,10 @@ class DownloadResultCVM:
         return self.error_count_downloads > 0
 ```
 
-### Value objects
+### Objetos de dados e value objects
 
-Tipos imutáveis em `core.py` que encapsulam validação e construção (`DictZipsToDownloadCVM`, `DocsToExtractorB3`, etc.).
+Objetos de dados e value objects focados encapsulam requests validados e limites
+de anos (`AvailableYearsInfoCVM`, `DocsToExtractorB3` e o modelo de anos da B3).
 
 ### Separação de apresentação
 
@@ -243,8 +272,8 @@ graph TD
     B -->|2. validar inputs| C[validadores em assets.py / years.py]
     B -->|3. validar destino| D[validate_directory_path<br/>raise SecurityError em /etc, /sys, ...]
     B -->|4. listar arquivos| E[zip_reader.py]
-    E -->|5. iterar ZIP entries| F[cotahist_parser.py]
-    F -->|6. dataframes parciais| G[extraction_service/]
+    E -->|5. iterar linhas ZIP/TXT| F[cotahist_parser.py]
+    F -->|6. lotes parseados| G[extraction_service/]
     G -->|7. orquestrar threadpool/flush| H[parquet_writer/]
     H -->|8. escrever Parquet| I[Sistema de arquivos]
     B -->|9. retornar resultado| A
@@ -255,7 +284,12 @@ ______________________________________________________________________
 
 ## Como adicionar uma nova fonte
 
-Para uma nova fonte (ex.: SEC dos EUA), crie uma nova pasta-irmã com módulos nomeados por papel. Para fontes pequenas, o conjunto mínimo da CVM funciona bem; para fontes maiores, espelhe a granularidade de B3 e separe os tópicos antes que o `core.py` cresça demais.
+O exemplo abaixo é apenas uma **possibilidade arquitetural futura**; uma fonte
+SEC dos EUA não é implementada pelo runtime atual. Quando uma nova fonte
+regulatória ou de bolsa for aceita, crie uma pasta de implementação com módulos
+adequados às suas responsabilidades. Para fontes pequenas, o padrão compacto
+da CVM é um bom ponto de partida; para fontes complexas, a composição granular
+da B3 ajuda a separar os tópicos antes que um módulo fique grande demais.
 
 ```text
 src/globaldatafinance/usa/sec/fundamental_data/
@@ -270,7 +304,7 @@ Em seguida:
 
 1. **Re-export interno**: adicione `__init__.py` na pasta da fonte (ou deixe vazio se não houver consumidores internos).
 
-2. **Facade público**: crie `src/globaldatafinance/application/sec_docs/fundamental_data.py` com uma classe `FundamentalDataSEC` que importa diretamente dos módulos planos:
+2. **Facade público**: crie `src/globaldatafinance/application/sec_docs/fundamental_data.py` com uma classe `FundamentalDataSEC` que importa diretamente dos módulos da própria fonte:
 
    ```python
    from ...usa.sec.fundamental_data import (
@@ -282,7 +316,7 @@ Em seguida:
 
 3. **API pública**: re-exporte a nova classe em `src/globaldatafinance/__init__.py` e `src/globaldatafinance/application/__init__.py`. Trate como adição **semver-relevante**.
 
-4. **Testes**: crie `tests/usa/sec/fundamental_data/` espelhando módulos por tópico (não por camada). Tests devem importar dos módulos planos.
+4. **Testes**: crie `tests/usa/sec/fundamental_data/` espelhando módulos por tópico (não por camada). Tests devem importar dos módulos da própria fonte.
 
 5. **Docs**: atualize `AGENTS.md` (Repository Map / Architecture Map) e este arquivo. Adicione referência em `docs/reference/`.
 
@@ -321,14 +355,30 @@ Para testar orquestradores e adapters de forma limpa e isolada, os testes substi
 Exemplo (duck typing):
 
 ```python
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
+    DownloadDocumentsUseCaseCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    DownloadResultCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
+    DownloadTaskCVM,
+)
+
+
 class MockRepository:
-    def download_docs(self, tasks):
+    def download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
         return DownloadResultCVM(
-            success_count_downloads=2,
-            error_count_downloads=0,
             successful_downloads=['DFP_2023', 'ITR_2023'],
             failed_downloads={},
+            elapsed_time=0.5,
         )
+
 
 use_case = DownloadDocumentsUseCaseCVM(MockRepository())
 result = use_case.execute(destination_path='/tmp/cvm')

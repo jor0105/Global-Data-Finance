@@ -2,9 +2,9 @@
 
 <div align="center">
 
-**Professional Python library for extracting and processing global financial data with a flat source layout, high performance, and extensible tools.**
+**Python library for extracting, normalizing, and persisting Brazilian regulatory and market data in Parquet.**
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-%3E%3D3.12%2C%3C4.0-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://img.shields.io/pypi/v/globaldatafinance.svg)](https://pypi.org/project/globaldatafinance/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/LICENSE)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -14,20 +14,33 @@
 
 </div>
 
+> **Release status:** This branch targets package version `0.2.0`. The current
+> published PyPI release is still `0.1.4`; this branch has not been published
+> and this update does not create a GitHub release or publish to PyPI. Remove
+> this note after `v0.2.0` is released.
+
 ______________________________________________________________________
 
 ## 🎯 About
 
-**Global-Data-Finance** is a robust, high-performance solution for financial data engineering. Designed for developers, data scientists, and quantitative analysts, the library abstracts the complexity of extracting and normalizing data from regulatory (CVM) and market (B3) sources.
+**Global-Data-Finance** is a Python distribution library for extracting,
+normalizing, and persisting Brazilian financial data. The currently implemented
+sources are regulatory documents from CVM and historical market quotes from B3.
+The public API is designed for developers, data scientists, and quantitative
+analysts who need validated source files and Parquet artifacts.
 
-The public API is deliberately narrow (re-exporting `FundamentalStocksDataCVM` and `HistoricalQuotesB3` at the root, along with the `ExtractionResultB3` type), and each data source is implemented internally in a **flat layout of role-named modules** (`core.py` (or granular models), `client.py`, `http.py`, `extract.py`, `errors.py`). The result is straightforward, easy-to-read code that is easy to extend with a new data source.
+The public API is deliberately narrow: the package root re-exports
+`FundamentalStocksDataCVM`, `HistoricalQuotesB3`, and the public
+`ExtractionResultB3` `TypedDict`. Source-specific implementations live under
+the owning CVM and B3 feature directories, while genuinely shared concerns
+live in `core/`, `macro_infra/`, and `macro_exceptions/`.
 
 ### 🌟 Why Choose Global-Data-Finance?
 
 - **🚀 Performance**: Async downloads with `httpx[http2]`, custom exponential retry/backoff (`core/utils/retry_strategy.py`), and adaptive concurrency monitored by CPU/RAM (`psutil`).
-- **🛡️ Robustness**: Integrity validation after download, atomic rollback during extraction, and path-traversal defense for sensitive paths.
+- **🛡️ Robustness**: Downloaded files are checked for expected size and readable ZIP contents; inputs and paths are validated before extraction or writes, with atomic rollback during extraction.
 - **💾 Columnar Format**: Canonical output in **Parquet** (via `pyarrow`), ready for Pandas/Polars.
-- **🧩 Flat Layout per Source**: Adding a data source simply requires creating a dedicated directory with role-named modules (e.g., client, models, http, extract), resulting in intuitive, modular, and directly maintainable code.
+- **🧩 Source Ownership**: CVM and B3 keep source-specific validation, parsing, orchestration, and I/O in their owning directories; shared behavior is centralized only when it is genuinely generic.
 - **✨ Developer Experience**: Complete type hints, structured logging, strict test markers (`unit`, `integration`, `slow`, `asyncio`).
 
 ______________________________________________________________________
@@ -36,42 +49,80 @@ ______________________________________________________________________
 
 ### 📈 Supported Data Sources
 
-| Source  | Data Type            | Details                                       | Status        |
-| :------ | :------------------- | :-------------------------------------------- | :------------ |
-| **CVM** | Regulatory Documents | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE           | ✅ Production |
-| **B3**  | Historical Quotes    | Stocks, ETFs, BDRs, Options, Forward, Futures | ✅ Production |
+| Source  | Data Type            | Details                                                                   | Status        |
+| :------ | :------------------- | :------------------------------------------------------------------------ | :------------ |
+| **CVM** | Regulatory Documents | DFP, ITR, FRE, FCA, CGVN, VLMO, IPE                                       | ✅ Production |
+| **B3**  | Historical Quotes    | Stocks, ETFs, Options, Term, Option exercise, Forward contracts, Auctions | ✅ Production |
 
 ### ⚙️ Technical Highlights
 
-- **Asymmetric Download Manager**:
+- **Asynchronous Download Manager**:
   - Automatic concurrency management.
   - Exponential backoff for network failures.
-  - File integrity validation (ZIP/MD5).
+  - File path, size, and readable-ZIP validation. MD5 checksum support is **Planned** and is not implemented in the current runtime.
 - **Quotes Processing (B3)**:
   - Optimized parser for legacy positional files.
   - Execution modes: `fast` (in-memory) and `slow` (low-memory).
-  - Advanced filtering by asset type (Stocks, Options, etc.).
+  - Advanced filtering by currently supported asset category.
+
+### B3 asset categories
+
+`HistoricalQuotesB3` accepts the following `assets_list` values:
+
+| Canonical API value | Meaning in English                                   | Status       |
+| :------------------ | :--------------------------------------------------- | :----------- |
+| `ações`             | Stocks, including spot and fractional market records | ✅ Supported |
+| `etf`               | Exchange-traded funds                                | ✅ Supported |
+| `opções`            | Call and put options                                 | ✅ Supported |
+| `termo`             | Term-market contracts                                | ✅ Supported |
+| `exercicio_opcoes`  | Options exercise records                             | ✅ Supported |
+| `forward`           | Forward contracts (TPMERC 050 and 060)               | ✅ Supported |
+| `leilao`            | Auction-market records                               | ✅ Supported |
+| BDRs                | Brazilian Depositary Receipts                        | 🗺️ Planned   |
+| Futures             | Futures contracts                                    | 🗺️ Planned   |
+
+The Portuguese strings above are canonical API values and must be passed
+exactly as shown. Planned features are not supported by the current runtime
+contract and must not be passed to the public API.
 
 ______________________________________________________________________
 
 ## 📊 Measured Performance Baseline
 
-Real-scale measurement on **2026-08-06** (Python 3.13.7, 8 CPUs, 7.55 GB RAM,
-no network calls), processing 17 official COTAHIST ZIPs (2008-2024), all asset
-types:
+These measurements are regression evidence from a reference environment, not a
+fixed-time promise for every machine or dataset.
 
-| Mode                                               |                  Written rows |    Peak RSS |   Time |
-| :------------------------------------------------- | ----------------------------: | ----------: | -----: |
-| **B3 `fast`**                                      |                    15,059,876 | 4,259.35 MB | 20m22s |
-| **B3 `slow`**                                      |                    15,059,876 | 1,570.54 MB | 29m19s |
-| **CVM (All Docs, 2010-2024)** (download + Parquet) | 63,300,208 rows (1,392 files) |   459.18 MB |  8m25s |
+### B3 local benchmark
 
-Reproducible synthetic baseline (250,000 records, 3 runs each, same machine):
+Measured on **2026-08-06** with Python 3.13.7, 8 CPUs, and 7.55 GB RAM. The 17
+official COTAHIST ZIP files for 2008–2024 were already present locally, so no
+network call occurred during the measurement. The scope covered all currently
+supported asset categories.
 
-| Mode   | API time (median) |    Peak RSS | Throughput (median) |
-| :----- | ----------------: | ----------: | ------------------: |
-| `fast` |           11.15 s | 1,111.72 MB |    22,427 records/s |
-| `slow` |           18.05 s | 1,103.01 MB |    13,847 records/s |
+| Mode          | Written rows |    Peak RSS | Elapsed time |
+| :------------ | -----------: | ----------: | -----------: |
+| **B3 `fast`** |   15,059,876 | 4,259.35 MB |   1,224.64 s |
+| **B3 `slow`** |   15,059,876 | 1,570.54 MB |   1,761.91 s |
+
+### CVM end-to-end benchmark
+
+This separate measurement includes CVM downloads, downloaded-file validation,
+CSV extraction, and Parquet generation. It is network-dependent, so elapsed
+time varies with source availability, bandwidth, and latency.
+
+| Scope                              | ZIPs downloaded | Parquet artifacts | Extracted rows |  Peak RSS | Elapsed time |
+| :--------------------------------- | --------------: | ----------------: | -------------: | --------: | -----------: |
+| CVM, all document types, 2010–2024 |              88 |             1,392 |     63,300,208 | 459.18 MB |     505.04 s |
+
+### Reproducible synthetic B3 baseline
+
+The synthetic benchmark used 250,000 records and three local runs per mode; it
+also made no network calls.
+
+| Mode   | Written rows | Elapsed time (median) |    Peak RSS | Throughput (median) |
+| :----- | -----------: | --------------------: | ----------: | ------------------: |
+| `fast` |      250,000 |               12.27 s | 1,111.72 MB |    22,427 records/s |
+| `slow` |      250,000 |               19.04 s | 1,103.01 MB |    13,847 records/s |
 
 See the full [benchmark methodology and reproduction guide](docs/dev-guide/benchmarks.md).
 
@@ -79,7 +130,7 @@ ______________________________________________________________________
 
 ## 🚀 Installation
 
-Requires **Python 3.12+**.
+Requires **Python >=3.12,\<4.0**.
 
 ### Via Pip (consume as dependency)
 
@@ -120,7 +171,7 @@ cvm = FundamentalStocksDataCVM()
 
 # Download and automatically extract to Parquet
 result = cvm.download(
-    destination_path="./dados_cvm",
+    destination_path="./cvm_data",
     list_docs=["DFP", "ITR"],    # Document types
     initial_year=2023,           # Start year
     last_year=2024,              # End year
@@ -131,7 +182,17 @@ print(f"Successful downloads: {result.success_count_downloads}")
 
 ### 2. Historical Quotes (B3)
 
-Process B3 historical series, transforming complex text files into analysis-ready DataFrames.
+Process locally available B3 historical series and persist the filtered records
+as Parquet. The public method returns an `ExtractionResultB3` with operation
+status and artifact metadata; it does not return a DataFrame as its primary
+contract.
+
+Before extraction, download the annual COTAHIST files from the [official B3
+Historical Quotes page](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)
+and place them in the input directory. The accepted names are
+`COTAHIST_A{YYYY}.ZIP` and `COTAHIST_A{YYYY}.TXT`. `path_of_docs` identifies this
+existing input directory; the library does not populate it automatically. If
+both formats exist for the same year, ZIP takes precedence.
 
 ```python
 from globaldatafinance import HistoricalQuotesB3
@@ -141,8 +202,8 @@ b3 = HistoricalQuotesB3()
 
 # Extract Stock and ETF quotes
 result = b3.extract(
-    path_of_docs="./dados_brutos_b3",  # Where B3 ZIP files are located (COTAHIST_A2023.ZIP)
-    destination_path="./dados_processados",
+    path_of_docs="./raw_b3_data",  # Existing B3 ZIP/TXT inputs
+    destination_path="./processed_data",
     assets_list=["ações", "etf"],
     initial_year=2023,
     processing_mode="fast"  # Optimized mode
@@ -160,21 +221,22 @@ Data is saved in **Parquet** format, ideal for analysis with Pandas or Polars.
 import pandas as pd
 
 # Read generated file
-df = pd.read_parquet("./dados_processados/cotahist_extracted.parquet")
+df = pd.read_parquet("./processed_data/cotahist_extracted.parquet")
 
 # Analyze
 print(df.head())
-print(df.groupby("cod_negociacao")["preco_fechamento"].mean())
+print(df.groupby("ticker")["preco_fechamento"].mean())
 ```
 
 ______________________________________________________________________
 
 ## 🏗️ Architecture
 
-Two explicit layers:
+The runtime is organized by ownership and responsibility:
 
-1. **Public Facade (`application/`)** — SemVer-relevant surface. Each source is exposed by a top-level class (`FundamentalStocksDataCVM`, `HistoricalQuotesB3`) and a dedicated formatter.
-2. **Implementation per Source (`brazil/<country>/<source>/`)** — flat layout of role-named modules.
+1. **Public facades and application layer (`application/`)** — the SemVer-sensitive boundary exposed to callers, including the two public source facades and console formatters.
+2. **Source implementations** — CVM lives in `brazil/cvm/fundamental_stocks_data/`; B3 lives in `brazil/b3_data/historical_quotes/`. Clients and use cases orchestrate operations, adapters own HTTP/filesystem/extraction I/O, and focused modules own validation, parsing, and transformation.
+3. **Shared infrastructure** — `core/` contains configuration, logging, path safety, retry, progress, and resource monitoring; `macro_infra/` contains generic HTTP/file adapters; `macro_exceptions/` contains project exception bases.
 
 ```mermaid
 graph TD
@@ -182,7 +244,7 @@ graph TD
 
     subgraph "globaldatafinance"
         Facade["Facade<br/>FundamentalStocksDataCVM<br/>HistoricalQuotesB3"]
-        Facade --> Source["Source (brazil/&lt;country&gt;/&lt;source&gt;/)<br/>flat role-named modules<br/>(client.py, models.py, errors.py...)"]
+        Facade --> Source["Source implementations<br/>brazil/cvm/fundamental_stocks_data/<br/>brazil/b3_data/historical_quotes/"]
         Source --> Cross["Cross-cutting<br/>core/ (logging, config, retry, resource_monitor)<br/>macro_infra/ · macro_exceptions/"]
     end
 
@@ -194,25 +256,25 @@ graph TD
 ```text
 src/
 └── globaldatafinance/
-    ├── application/                       # Public facade
+    ├── application/                       # Public facades and formatters
     │   ├── cvm_docs/fundamental_stocks_data.py
     │   └── b3_docs/historical_quotes.py
     ├── brazil/
     │   ├── cvm/
-    │   │   └── fundamental_stocks_data/   # ~7 flat modules
+    │   │   └── fundamental_stocks_data/   # CVM source implementation
     │   │       ├── core.py · client.py · errors.py
     │   │       ├── http.py · extract.py
     │   │       └── download_validation.py · download_extraction.py
     │   └── b3_data/
-    │       └── historical_quotes/         # ~11 flat modules
+    │       └── historical_quotes/         # B3 source implementation
     │           ├── models.py · filesystem.py · assets.py · processing.py · years.py
     │           ├── client.py · zip_reader.py · errors.py
     │           ├── cotahist_parser.py
     │           ├── parquet_writer/        # subpackage (writer/schema/streaming/...)
     │           └── extraction_service/    # subpackage (service/batch_parser/...)
-    ├── core/                              # logging, config, retry, resource monitor
-    ├── macro_infra/                       # generic HTTP/IO adapters
-    └── macro_exceptions/                  # base exceptions
+    ├── core/                              # shared configuration and runtime utilities
+    ├── macro_infra/                       # generic HTTP and file adapters
+    └── macro_exceptions/                  # project exception bases
 ```
 
 Details in [`docs/dev-guide/architecture.md`](docs/dev-guide/architecture.md) and [`AGENTS.md`](AGENTS.md).
@@ -225,23 +287,29 @@ ______________________________________________________________________
 
 Manager for downloading CVM documents.
 
-| Method                    | Signature                                                                                                                                               | Description                                                 |
-| :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------- |
-| **`download`**            | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Downloads and optionally extracts documents.                |
-| **`async_download`**      | `(destination_path: str, list_docs: list[str]=None, initial_year: int=None, last_year: int=None, automatic_extractor: bool=False) -> DownloadResultCVM` | Asynchronous variant of `download`.                         |
-| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                  | Returns list of available documents and their descriptions. |
-| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                           | Returns range of available years for download.              |
+| Method                    | Signature                                                                                                                                                                               | Description                                                 |
+| :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
+| **`download`**            | `(destination_path: str, list_docs: list[str] \| None = None, initial_year: int \| None = None, last_year: int \| None = None, automatic_extractor: bool = False) -> DownloadResultCVM` | Downloads and optionally extracts documents.                |
+| **`async_download`**      | `(destination_path: str, list_docs: list[str] \| None = None, initial_year: int \| None = None, last_year: int \| None = None, automatic_extractor: bool = False) -> DownloadResultCVM` | Asynchronous variant of `download`.                         |
+| **`get_available_docs`**  | `() -> dict[str, str]`                                                                                                                                                                  | Returns list of available documents and their descriptions. |
+| **`get_available_years`** | `() -> AvailableYearsInfoCVM`                                                                                                                                                           | Returns range of available years for download.              |
 
 ### `HistoricalQuotesB3`
 
 Extractor for B3 historical quotes.
 
-| Method                     | Signature                                                                                                                                                                                                                                | Description                                                       |
-| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
-| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Processes B3 ZIP files and generates a consolidated Parquet file. |
-| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int=None, last_year: int=None, destination_path: str=None, output_filename: str="cotahist_extracted", processing_mode: str="fast", verbose: bool=True) -> ExtractionResultB3` | Asynchronous variant of `extract`.                                |
-| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                        | Returns supported asset types (e.g., 'ações', 'opções').          |
-| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                   | Returns range of available years for historical data.             |
+`extract()` and `extract_async()` return an `ExtractionResultB3` mapping. It
+reports `success`, a human-readable `message`, file and record counts, an
+`errors` mapping, the selected `assets` and `processing_mode`, `elapsed_time`,
+and the `output_file` path. The processed rows are persisted in Parquet; a
+DataFrame is not the primary return contract.
+
+| Method                     | Signature                                                                                                                                                                                                                                                                    | Description                                                                                  |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **`extract`**              | `(path_of_docs: str, assets_list: list[str], initial_year: int \| None = None, last_year: int \| None = None, destination_path: str \| None = None, output_filename: str = "cotahist_extracted", processing_mode: str = "fast", verbose: bool = True) -> ExtractionResultB3` | Processes `COTAHIST_A{YYYY}.ZIP` or `.TXT` inputs and generates a consolidated Parquet file. |
+| **`extract_async`**        | `(path_of_docs: str, assets_list: list[str], initial_year: int \| None = None, last_year: int \| None = None, destination_path: str \| None = None, output_filename: str = "cotahist_extracted", processing_mode: str = "fast", verbose: bool = True) -> ExtractionResultB3` | Asynchronous variant of `extract`.                                                           |
+| **`get_available_assets`** | `() -> list[str]`                                                                                                                                                                                                                                                            | Returns supported asset types (e.g., 'ações', 'opções').                                     |
+| **`get_available_years`**  | `() -> dict[str, int]`                                                                                                                                                                                                                                                       | Returns range of available years for historical data.                                        |
 
 ______________________________________________________________________
 

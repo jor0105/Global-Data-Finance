@@ -1,5 +1,8 @@
+"""Resource-aware batch sizing and throttling for B3 extraction."""
+
 import asyncio
 import gc
+import time
 
 from .....core import ResourceMonitor, ResourceState, get_logger
 from ..processing import ProcessingModeEnumB3
@@ -17,6 +20,7 @@ class ResourcePolicyB3:
     MIN_PARSE_BATCH = 10_000
 
     def __init__(self, processing_mode: ProcessingModeEnumB3) -> None:
+        """Initialize limits from the selected processing mode."""
         self.processing_mode = processing_mode
         self.resource_monitor = ResourceMonitor()
 
@@ -64,7 +68,8 @@ class ResourcePolicyB3:
 
         if new_flush_size != self.flush_batch_size:
             logger.info(
-                f'Adjusted flush batch size: {self.flush_batch_size} -> {new_flush_size} '
+                f'Adjusted flush batch size: {self.flush_batch_size} -> '
+                f'{new_flush_size} '
                 f'(memory state: {memory_state.value})'
             )
             self.flush_batch_size = max(new_flush_size, self.MIN_FLUSH_BATCH)
@@ -94,12 +99,15 @@ class ResourcePolicyB3:
         return should_flush
 
     async def wait_for_resources(self, timeout_seconds: int = 30) -> bool:
-        """Wait for resources to become available, up to timeout."""
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(
-            None,
-            self.resource_monitor.wait_for_resources,
-            ResourceState.WARNING,
-            timeout_seconds,
+        """Wait asynchronously for resources to become available."""
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            state = self.resource_monitor.check_resources()
+            if state in (ResourceState.HEALTHY, ResourceState.WARNING):
+                return True
+            await asyncio.sleep(1)
+
+        logger.warning(
+            'Resource wait timeout after %s seconds', timeout_seconds
         )
-        return bool(result)
+        return False

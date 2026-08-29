@@ -18,7 +18,9 @@ Consult our comprehensive [Installation Guide](installation.md) for deeper instr
 
 ### Which Python version is required?
 
-Global-Data-Finance strictly requires **Python 3.12 or newer**. Python runtime environments prior to version 3.12 lack the required async syntax and standard library typing features and are officially unsupported.
+Global-Data-Finance requires Python **>=3.12,<4.0**. The current CI workflow
+exercises Python 3.12, 3.13, and 3.14; other versions inside the supported range
+are not implied to be CI-tested.
 
 ### Is installing within a virtual environment recommended?
 
@@ -36,11 +38,19 @@ ______________________________________________________________________
 
 ### Where does the library store downloaded files?
 
-Downloaded bundles and extracted Parquet datasets are consistently written into whatever folder path is supplied to the `destination_path` method argument:
+Downloaded bundles and extracted Parquet datasets are saved into the directory specified in `destination_path`, organized into subdirectories by document type and fiscal year (format `{destination_path}/{DOC}/{YEAR}/`). For example:
 
 ```python
-cvm.download(destination_path="/home/user/financial_data")
-# Files persisted directly inside: /home/user/financial_data/
+from globaldatafinance import FundamentalStocksDataCVM
+
+cvm = FundamentalStocksDataCVM()
+cvm.download(
+    destination_path="/home/user/financial_data",
+    list_docs=["DFP"],
+    initial_year=2023,
+    last_year=2023,
+)
+# Files persisted under: /home/user/financial_data/DFP/2023/dfp_cia_aberta_2023.zip
 ```
 
 ### How can I dynamically inspect which documents and asset classes are supported?
@@ -48,6 +58,11 @@ cvm.download(destination_path="/home/user/financial_data")
 Invoke the introspectable public `get_available_*` discovery methods attached to each public facade:
 
 ```python
+from globaldatafinance import (
+    FundamentalStocksDataCVM,
+    HistoricalQuotesB3,
+)
+
 # For CVM Corporate Filings
 cvm = FundamentalStocksDataCVM()
 docs = cvm.get_available_docs()
@@ -92,10 +107,13 @@ cvm.download(
 When specifying `automatic_extractor=True`, downloaded ZIP bundles are automatically decompressed, evaluated, and converted into columnar Apache Parquet files natively optimized for high-speed dataframe analytics:
 
 ```python
-cvm.download(
+from globaldatafinance import FundamentalStocksDataCVM
+
+cvm = FundamentalStocksDataCVM()
+result = cvm.download(
     destination_path="/data",
     list_docs=["DFP"],
-    automatic_extractor=True  # Converts raw accounting CSV ledgers straight into .parquet files
+    automatic_extractor=True,  # Converts raw accounting CSV ledgers straight into .parquet files
 )
 ```
 
@@ -112,30 +130,53 @@ ______________________________________________________________________
 Download raw historical bundles directly from B3's official data portal:
 🔗 [https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)
 
+The API accepts `COTAHIST_A{YYYY}.ZIP` or the uncompressed `COTAHIST_A{YYYY}.TXT`; for the same year, ZIP takes precedence. `path_of_docs`
+is an existing local input directory; the library does not download or populate
+the B3 files. BDRs and Futures are **Planned**, not currently accepted asset
+categories.
+
 ### What is the distinction between `fast` and `slow` processing modes?
 
-| Processing Profile | Performance | CPU Usage | RAM Consumption | Recommended Use                        |
-| ------------------ | ----------- | --------- | --------------- | -------------------------------------- |
-| **fast**           | High        | Intensive | ~2GB            | Standard multi-core machines (Default) |
-| **slow**           | Moderate    | Minimal   | ~500MB          | Constrained RAM or background workers  |
+| Processing Profile | Performance | CPU Usage | Peak RAM (Operational Range)  | Recommended Use                        |
+| ------------------ | ----------- | --------- | ----------------------------- | -------------------------------------- |
+| **fast**           | High        | Intensive | ~2 GB to 4.2 GB (Default)     | Standard multi-core machines (Default) |
+| **slow**           | Moderate    | Minimal   | ~500 MB to 1.5 GB             | Constrained RAM or background workers  |
+
+> Benchmark figures measured on a complete annual dataset (~4,260 MB in `fast` mode and ~1,571 MB in `slow` mode) represent peak load conditions. In typical execution workloads or individual year slices, peak consumption falls within the ranges listed above.
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+
 # Execute using Fast mode (Recommended Default)
-result = b3.extract(..., processing_mode="fast")
+result_fast = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="fast",
+)
 
 # Execute using Slow mode
-result = b3.extract(..., processing_mode="slow")
+result_slow = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="slow",
+)
 ```
 
-### How do I filter extractions strictly for spot market stocks?
+### How do I filter extractions for stock-class records?
 
-Supply `"ações"` inside the required `assets_list` argument:
+Supply `"ações"` inside the required `assets_list` argument. This alias selects
+both spot (010) and fractional (020) market records:
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
-    assets_list=["ações"],  # Isolates equity instruments from options, futures, or ETFs
-    initial_year=2023
+    assets_list=["ações"],  # Selects TPMERC 010 and 020 equity records
+    initial_year=2023,
 )
 ```
 
@@ -144,10 +185,13 @@ result = b3.extract(
 Yes! Include multiple asset keywords within the passed list array:
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações", "etf", "opções"],
-    initial_year=2023
+    initial_year=2023,
 )
 ```
 
@@ -156,10 +200,13 @@ result = b3.extract(
 Provide your preferred base filename string (excluding the `.parquet` extension) via `output_filename`:
 
 ```python
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
 result = b3.extract(
     path_of_docs="/data/cotahist",
     assets_list=["ações"],
-    output_filename="equities_2023"  # Generates an artifact titled: equities_2023.parquet
+    output_filename="equities_2023",  # Generates an artifact titled: equities_2023.parquet
 )
 ```
 
@@ -176,7 +223,14 @@ Global-Data-Finance automatically processes CVM downloads using `AsyncDownloadAd
 Maintain the default `"fast"` processing profile:
 
 ```python
-result = b3.extract(..., processing_mode="fast")
+from globaldatafinance import HistoricalQuotesB3
+
+b3 = HistoricalQuotesB3()
+result = b3.extract(
+    path_of_docs="/data/cotahist",
+    assets_list=["ações"],
+    processing_mode="fast",
+)
 ```
 
 ### Can I spawn parallel worker processes across separate historical years?
@@ -187,19 +241,21 @@ Yes! You can orchestrate multi-threaded or multi-process concurrent extractions 
 from concurrent.futures import ProcessPoolExecutor
 from globaldatafinance import HistoricalQuotesB3
 
-def process_fiscal_year(year):
+
+def process_fiscal_year(year: int) -> dict:
     b3 = HistoricalQuotesB3()
     return b3.extract(
         path_of_docs="/data/cotahist",
         assets_list=["ações"],
         initial_year=year,
         last_year=year,
-        output_filename=f"stocks_year_{year}"
+        output_filename=f"stocks_year_{year}",
     )
 
-# Run concurrent extraction jobs spanning multiple CPU cores
-with ProcessPoolExecutor(max_workers=4) as executor:
-    results = list(executor.map(process_fiscal_year, range(2020, 2024)))
+
+if __name__ == "__main__":
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(process_fiscal_year, range(2020, 2024)))
 ```
 
 ______________________________________________________________________
@@ -258,8 +314,8 @@ pip install globaldatafinance
 
 ### "Python version not supported"
 
-**Cause**: The script is executing under a Python runtime older than 3.12.
-**Solution**: Upgrade your machine interpreter to Python 3.12+.
+**Cause**: The script is executing under a Python runtime outside `>=3.12,<4.0`.
+**Solution**: Install a supported Python release and recreate the environment.
 
 ### "InvalidDocumentName"
 
@@ -273,17 +329,23 @@ print(list(docs.keys()))
 
 ### "EmptyDirectoryError"
 
-**Cause**: The provided target input directory is empty or lacks valid COTAHIST source files.
-**Solution**: Ensure files matching the naming contract `COTAHIST_AYYYY.(ZIP|TXT)` reside inside the target folder.
+**Cause**: `EmptyDirectoryError` is raised only when the input directory is
+physically empty. If the directory is not empty but has no COTAHIST file for
+the requested year, the API returns an empty result with `success=True`,
+`total_files=0`, `total_records=0`, `output_file=""`, and `errors={}`.
+**Solution**: When the directory is empty, place files matching
+`COTAHIST_A{YYYY}.ZIP` or the uncompressed `.TXT` pattern inside it. For a
+non-empty directory, inspect `total_files` and `total_records` to confirm that
+the requested years contain data.
 
-### "NetworkError" or "TimeoutError"
+### Download Failures or Network Timeouts
 
-**Cause**: Remote regulatory web server connection dropouts or rate limitations.
+**Cause**: Intermittent network connection drops or transient unavailability of CVM regulatory servers.
 **Solution**:
 
-1. Verify active internet access and DNS resolution.
-2. Re-attempt execution during non-peak server hours.
-3. Review our [Retry Strategy Architectural Guide](../dev-guide/retry-strategy.md).
+1. The library automatically performs retries with exponential backoff during asynchronous downloads.
+2. Inspect `result.failed_downloads` after execution to determine which individual documents encountered persistent failures.
+3. If necessary, configure network timeout and retry limits via `DATAFINANCE_NETWORK_TIMEOUT` and `DATAFINANCE_NETWORK_MAX_RETRIES` environment variables.
 
 ______________________________________________________________________
 
@@ -291,7 +353,11 @@ ______________________________________________________________________
 
 ### Is Global-Data-Finance ready for production usage?
 
-Yes! The library is extensively verified under comprehensive CI quality gates. Production deployment guidelines:
+The package distribution is classified as **Beta**. The currently implemented
+CVM and B3 workflows are considered **Production** for their documented
+contracts and are exercised by the repository's quality gates. BDRs, Futures,
+and other planned capabilities are not supported. Production deployment
+guidelines:
 
 - Maintain diagnostic logging setups
 - Wrap invocations within robust application-level exception handlers
@@ -318,9 +384,11 @@ Global-Data-Finance integrates cleanly into orchestration engines such as:
 Minimal Airflow Task snippet:
 
 ```python
+from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from globaldatafinance import FundamentalStocksDataCVM
+
 
 def sync_cvm_filings():
     cvm = FundamentalStocksDataCVM()
@@ -328,13 +396,19 @@ def sync_cvm_filings():
         destination_path="/data/cvm",
         list_docs=["DFP"],
         initial_year=2023,
-        automatic_extractor=True
+        automatic_extractor=True,
     )
 
-with DAG('cvm_sync_dag', ...) as dag:
+
+with DAG(
+    dag_id="cvm_sync_dag",
+    start_date=datetime(2024, 1, 1),
+    schedule="@daily",
+    catchup=False,
+) as dag:
     task = PythonOperator(
-        task_id='download_regulatory_filings',
-        python_callable=sync_cvm_filings
+        task_id="download_regulatory_filings",
+        python_callable=sync_cvm_filings,
     )
 ```
 
@@ -391,4 +465,5 @@ For sensitive architectural or security bug reporting, transmit details privatel
 ______________________________________________________________________
 
 !!! tip "Didn't find your answer?"
-Open an inquiry discussion on our GitHub repository or consult the [Technical API Reference](../reference/cvm-api.md).
+
+    Open an inquiry discussion on our GitHub repository or consult the [Technical API Reference](../reference/cvm-api.md).

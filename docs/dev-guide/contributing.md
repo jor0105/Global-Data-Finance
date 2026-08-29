@@ -16,7 +16,9 @@ cd Global-Data-Finance
 
 ### 2. Instalar Dependências
 
-`uv` é o gestor canônico do projeto (`uv.lock` é commitado). Requer **Python 3.12+**.
+`uv` é o gestor canônico do projeto (`uv.lock` é commitado). O desenvolvimento
+usa **Python >=3.12,<4.0**. O workflow atual de CI exercita Python 3.12, 3.13 e
+3.14.
 
 ```bash
 # Sincronizar exatamente o ambiente aprovado pelo lockfile (cria .venv)
@@ -44,6 +46,41 @@ ______________________________________________________________________
 - Docstrings no formato **Google Style**
 - Máximo de 79 caracteres por linha (ruff, Blue-style formatting)
 
+### Perfis Ruff
+
+O Ruff usa uma seleção base explícita para `src/`, `tests/`, `scripts/` e
+`examples/`. O script `scripts/check-ruff-policy.py` é o único entrypoint
+interno para os perfis completos: `base` verifica a seleção base, `docs` aplica
+as regras Google de docstrings em `src/`, `scripts/` e `examples/` (exceto
+`**/__init__.py`) e `security` aplica as regras `S` ao código e aos scripts e
+aos testes com somente `S101` ignorado.
+
+A seleção base preserva as regras de simplificação e correção existentes e
+adiciona dois contratos focados. `C901` limita a complexidade ciclomática
+McCabe a **10 por função**: complexidade 10 é aceita e 11 ou mais falha.
+`BLE001`, `TRY203`, `TRY400` e `TRY401` impedem capturas cegas, relançamentos
+inúteis e logs que descartem ou repitam o contexto da exceção. O grupo `TRY`
+completo e `PLR0912` não fazem parte deste gate.
+
+```bash
+# Verificar todos os perfis e a forma da política no pyproject.toml
+uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all
+
+# Reproduzir somente o gate de complexidade e exceções
+uv run --locked --no-sync ruff check --select C901,BLE001,TRY203,TRY400,TRY401 src tests scripts examples
+
+# Verificar apenas formatação, sem alterar arquivos
+uv run --locked --no-sync ruff format --check src tests scripts examples
+```
+
+Esta é uma política fechada: o checker rejeita qualquer chave Ruff fora da
+forma e dos valores canônicos, inclusive `exclude`, `extend`, `ignore`,
+`extend-ignore`, `extend-select`, `extend-per-file-ignores` e tabelas aninhadas
+inesperadas. A única exceção por arquivo permitida é `S603` em
+`scripts/process_runner.py`, que centraliza a execução de comandos allowlisted,
+resolvidos e sem shell para os scripts de tooling. Esses scripts não devem
+chamar `subprocess` diretamente.
+
 ### Exemplo de Docstring
 
 ```python
@@ -63,7 +100,7 @@ def download_docs(
 
     Raises:
         InvalidDocumentName: Se tipo de documento for inválido.
-        NetworkError: Se houver erro de rede.
+        InvalidDestinationPathError: Se o caminho de destino for inválido ou não seguro.
     """
     pass
 ```
@@ -114,13 +151,32 @@ conteúdo staged durante um commit. O CI executa os mesmos scripts sobre a faixa
 de commits da pull request ou do push, portanto um `SKIP` de diff sem arquivos
 staged não equivale a aprovação de CI.
 
-`check-harness-sync` é manual porque verifica espelhos de clientes de agentes
-que não existem em um checkout limpo. Execute-o apenas ao manter esses
-espelhos:
+`.agents/` permanece rastreado para que cada clone distribua os validadores
+portáteis, mas é uma projeção gerada e mantida pelo repositório separado
+`central-skills`; seus arquivos gerados nunca devem ser editados manualmente.
+Colaboradores comuns e usuários do projeto não precisam instalar
+`central-skills`: o hook portátil `validate-agent-protocols` já valida a
+estrutura rastreada. Um mantenedor que alterar a seleção ou a projeção deve
+corrigir a fonte canônica, regenerar com `harness-sync` e executar os dois
+checks:
 
 ```bash
-uv run --locked --no-sync pre-commit run check-harness-sync --hook-stage manual
+uv run --locked --no-sync python .agents/scripts/validate-agent-protocols.py
+harness-sync --check
 ```
+
+O hook `check-harness-sync` é manual e somente para mantenedores que possuem o
+executável opcional instalado. Ele não participa dos estágios padrão de
+`pre-commit`, `pre-push` ou da CI; se o executável não existir, o check falha
+explicitamente em vez de produzir um `SKIP` enganoso.
+
+Os hooks genéricos recebem uma exclusão explícita para `.agents/`, `.claude/`,
+`.codex/`, `.opencode/` e `.github/prompts/`. Portanto, eles não formatam nem
+analisam essas projeções. Os validadores rastreados dentro de `.agents/` são a
+exceção deliberada: podem ser executados diretamente do clone e não dependem
+de uma instalação externa. A ausência do executável opcional de sincronização
+não bloqueia commits ou pushes normais; falhas reais dos validadores devem ser
+corrigidas, nunca contornadas desativando os hooks.
 
 ### Escrever Testes
 

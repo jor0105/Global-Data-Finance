@@ -1,3 +1,5 @@
+"""Parse B3 COTAHIST fixed-width quote records."""
+
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -10,7 +12,8 @@ logger = get_logger(__name__)
 class CotahistParserB3:
     """Parser for COTAHIST fixed-width format files from B3.
 
-    Each line is 245 bytes. The parser follows the official B3 layout specification.
+    Each line is 245 bytes. The parser follows the official B3 layout
+    specification.
     Includes robust error handling and validation for malformed data.
     """
 
@@ -27,6 +30,7 @@ class CotahistParserB3:
     _max_degradation_warnings_per_category = 3
 
     def __init__(self) -> None:
+        """Initialize parser counters and degraded-value tracking."""
         self._error_count = 0
         self._filtered_count = 0
         self._degradation_counts: dict[str, int] = {}
@@ -38,12 +42,40 @@ class CotahistParserB3:
 
         Args:
             line: A line from COTAHIST file (expected 245 bytes)
-            target_tpmerc_codes: Set of TPMERC codes to filter (e.g., {'010', '020'})
+            target_tpmerc_codes: Set of TPMERC codes to filter, such as
+                ``{'010', '020'}``.
 
         Returns:
-            Dictionary with parsed data if TPMERC matches filter, None otherwise
-            Returns None for header (00), trailer (99), invalid, or malformed records
+            Dictionary with parsed data if TPMERC matches; otherwise ``None``.
+            Returns ``None`` for headers (00), trailers (99), and malformed
+            records.
         """
+        normalized_line = self._normalize_line(line)
+        if normalized_line is None:
+            return None
+
+        try:
+            if normalized_line[0:2] != '01':
+                return None
+            if not self._matches_target_market(
+                normalized_line, target_tpmerc_codes
+            ):
+                return None
+            return self._parse_quote_record(normalized_line)
+        except (IndexError, ValueError, AttributeError) as error:
+            self._log_parse_failure(normalized_line, error)
+            return None
+        except Exception:
+            if self._error_count < self._max_errors_to_log:
+                logger.exception(
+                    'Unexpected error parsing line',
+                    extra={'line_preview': normalized_line[:50]},
+                )
+                self._error_count += 1
+            return None
+
+    def _normalize_line(self, line: str) -> str | None:
+        """Validate the line length and normalize it to the B3 layout."""
         if len(line) > self.MAX_LINE_LENGTH:
             if self._error_count < self._max_errors_to_log:
                 logger.warning(
@@ -52,70 +84,43 @@ class CotahistParserB3:
                 )
                 self._error_count += 1
             return None
-
-        # Ensure line is at least long enough for type check
         if len(line) < 2:
             return None
-
-        # Pad or truncate line to expected length
         if len(line) < self.EXPECTED_LINE_LENGTH:
-            line = line.ljust(self.EXPECTED_LINE_LENGTH)
-        elif len(line) > self.EXPECTED_LINE_LENGTH:
-            line = line[: self.EXPECTED_LINE_LENGTH]
+            return line.ljust(self.EXPECTED_LINE_LENGTH)
+        return line[: self.EXPECTED_LINE_LENGTH]
 
-        try:
-            # Check record type (positions 1-2, Python index 0-2)
-            tipreg = line[0:2]
+    def _matches_target_market(
+        self, line: str, target_tpmerc_codes: set[str]
+    ) -> bool:
+        """Return whether the quote belongs to a requested B3 market."""
+        tpmerc = line[24:27].strip()
+        if tpmerc in target_tpmerc_codes:
+            return True
 
-            # Skip header and trailer
-            if tipreg in ('00', '99'):
-                return None
+        self._filtered_count += 1
+        if self._filtered_count % self._log_filtering_interval == 0:
+            logger.debug(
+                f'Filtered {self._filtered_count:,} lines by TPMERC code',
+                extra={'target_codes': sorted(target_tpmerc_codes)},
+            )
+        return False
 
-            # Only process quote records (type 01)
-            if tipreg != '01':
-                return None
-
-            # Extract TPMERC (positions 25-27, Python index 24-27)
-            tpmerc = line[24:27].strip()
-
-            # Filter by target market types
-            if tpmerc not in target_tpmerc_codes:
-                self._filtered_count += 1
-
-                # Log filtering statistics periodically
-                if self._filtered_count % self._log_filtering_interval == 0:
-                    logger.debug(
-                        f'Filtered {self._filtered_count:,} lines by TPMERC code',
-                        extra={'target_codes': sorted(target_tpmerc_codes)},
-                    )
-
-                return None
-
-            # Parse all fields for matching records
-            return self._parse_quote_record(line)
-
-        except (IndexError, ValueError, AttributeError) as e:
-            if self._error_count < self._max_errors_to_log:
-                logger.warning(
-                    f'Error parsing line (error #{self._error_count + 1}): {type(e).__name__} - {e}',
-                    extra={
-                        'line_preview': line[:50] if len(line) >= 50 else line
-                    },
-                )
-                self._error_count += 1
-            return None
-        except Exception as e:
-            if self._error_count < self._max_errors_to_log:
-                logger.error(
-                    f'Unexpected error parsing line: {e}',
-                    extra={
-                        'line_preview': line[:50] if len(line) >= 50 else line
-                    },
-                    exc_info=True,
-                )
-                self._error_count += 1
-
-            return None
+    def _log_parse_failure(
+        self,
+        line: str,
+        error: Exception,
+    ) -> None:
+        """Log one parsing failure while respecting the existing throttle."""
+        if self._error_count >= self._max_errors_to_log:
+            return
+        extra = {'line_preview': line[:50] if len(line) >= 50 else line}
+        logger.warning(
+            f'Error parsing line (error #{self._error_count + 1}): '
+            f'{type(error).__name__} - {error}',
+            extra=extra,
+        )
+        self._error_count += 1
 
     def _parse_quote_record(self, line: str) -> dict[str, Any] | None:
         """Parse a type 01 (quote) record with safe field extraction.
@@ -306,6 +311,7 @@ class CotahistParserB3:
 
         Args:
             value_str: String representation of the number
+            field_name: Optional field name used in degraded-value warnings.
 
         Returns:
             Decimal value with proper decimal places
@@ -337,6 +343,7 @@ class CotahistParserB3:
 
         Args:
             value_str: String representation of the integer
+            field_name: Optional field name used in degraded-value warnings.
 
         Returns:
             Integer value

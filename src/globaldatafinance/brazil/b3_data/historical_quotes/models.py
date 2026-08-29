@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 @dataclass
 class DocsToExtractorB3:
+    """Validated inputs and resolved files for a B3 extraction run."""
+
     path_of_docs: str
     set_assets: set[str]
     range_years: range

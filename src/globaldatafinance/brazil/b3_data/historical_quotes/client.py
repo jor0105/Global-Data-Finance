@@ -26,6 +26,8 @@ from .zip_reader import ZipFileReaderB3
 
 
 class GetAvailableAssetsUseCaseB3:
+    """Expose the asset classes supported by the B3 source."""
+
     @staticmethod
     def execute() -> list[str]:
         """Get the list of available assets for historical quotes data."""
@@ -33,6 +35,8 @@ class GetAvailableAssetsUseCaseB3:
 
 
 class GetAvailableYearsUseCaseB3:
+    """Expose the current and earliest supported B3 years."""
+
     def get_current_year(self) -> int:
         """Get the current available year for historical quotes data."""
         return YearValidationServiceB3.get_current_year()
@@ -55,6 +59,8 @@ class CreateRangeYearsUseCaseB3:
 
 
 class CreateSetAssetsUseCaseB3:
+    """Validate and normalize the requested B3 asset classes."""
+
     @staticmethod
     def execute(assets_list: list[str]) -> set[str]:
         """Create a set of available assets using AvailableAssetsServiceB3."""
@@ -64,7 +70,7 @@ class CreateSetAssetsUseCaseB3:
 
 
 class CreateSetToDownloadUseCaseB3:
-    """Use case for finding ZIP files in a directory based on year range."""
+    """Use case for finding COTAHIST ZIP or TXT inputs by year range."""
 
     @staticmethod
     def execute(range_years: range, path: str) -> set[str]:
@@ -85,8 +91,11 @@ class CreateSetToDownloadUseCaseB3:
 
 
 class VerifyDestinationPathsUseCaseB3:
+    """Validate and prepare the destination directory for extraction."""
+
     @staticmethod
     def execute(destination_path: str) -> Path:
+        """Return a safe, normalized destination path."""
         return FileSystemServiceB3().prepare_destination_path(destination_path)
 
 
@@ -106,7 +115,7 @@ class ValidateExtractionConfigUseCaseB3:
 
 
 class CreateDocsToExtractUseCaseB3:
-    """Use case for creating a DocsToExtractorB3 entity with validated parameters."""
+    """Create a DocsToExtractorB3 entity with validated parameters."""
 
     def __init__(
         self,
@@ -116,16 +125,19 @@ class CreateDocsToExtractUseCaseB3:
         last_year: int,
         destination_path: str | None = None,
     ):
+        """Store raw inputs before validating them in ``execute``."""
         if not isinstance(path_of_docs, str):
             raise TypeError(
-                f'path_of_docs must be a string, got {type(path_of_docs).__name__}'
+                f'path_of_docs must be a string, got '
+                f'{type(path_of_docs).__name__}'
             )
 
         if destination_path is not None and not isinstance(
             destination_path, str
         ):
             raise TypeError(
-                f'destination_path must be a string, got {type(destination_path).__name__}'
+                f'destination_path must be a string, got '
+                f'{type(destination_path).__name__}'
             )
 
         self.path_of_docs = path_of_docs
@@ -137,7 +149,7 @@ class CreateDocsToExtractUseCaseB3:
         )
 
     def execute(self) -> DocsToExtractorB3:
-        """Execute the use case to create a validated DocsToExtractorB3 entity."""
+        """Create and return a validated DocsToExtractorB3 entity."""
         set_assets = CreateSetAssetsUseCaseB3.execute(self.assets_list)
 
         range_years = CreateRangeYearsUseCaseB3.execute(
@@ -173,6 +185,7 @@ class ExtractHistoricalQuotesUseCaseB3:
     """
 
     def __init__(self) -> None:
+        """Initialize reusable readers, parser, and Parquet writer objects."""
         self.zip_reader = ZipFileReaderB3()
         self.parser = CotahistParserB3()
         self.data_writer = ParquetWriterB3()

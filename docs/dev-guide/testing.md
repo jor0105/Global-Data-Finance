@@ -98,18 +98,30 @@ class TestValidateDocsName:
 Para desacoplar chamadas de I/O de rede ou sistema de arquivos, os testes substituem as dependências via stubs com duck typing ou `monkeypatch.setattr`:
 
 ```python
-class MockRepository:
-    def download_docs(self, tasks):
-        return DownloadResultCVM(
-            success_count_downloads=2,
-            error_count_downloads=0,
-            successful_downloads=["DFP_2023", "ITR_2023"],
-            failed_downloads={},
-        )
-
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
     DownloadDocumentsUseCaseCVM,
 )
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.core import (
+    DownloadResultCVM,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data.http import (
+    DownloadTaskCVM,
+)
+
+
+class MockRepository:
+    def download_docs(
+        self,
+        tasks: list[DownloadTaskCVM],
+        *,
+        automatic_extractor: bool | None = None,
+    ) -> DownloadResultCVM:
+        return DownloadResultCVM(
+            successful_downloads=["DFP_2023", "ITR_2023"],
+            failed_downloads={},
+            elapsed_time=0.5,
+        )
+
 
 use_case = DownloadDocumentsUseCaseCVM(MockRepository())
 result = use_case.execute(destination_path="/tmp/cvm")
@@ -184,7 +196,7 @@ Testes são executados automaticamente em:
 
 ______________________________________________________________________
 
-Veja também:
+## Próximos Passos
 
 - [Como Contribuir](contributing.md)
 - [Arquitetura](architecture.md)

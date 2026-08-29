@@ -1,4 +1,7 @@
+"""Adapt asynchronous HTTP requests and streamed filesystem writes."""
+
 import contextlib
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -12,11 +15,9 @@ from ..macro_exceptions import (
 
 
 class RequestsAdapter:
-    """
-    Adapter that encapsulates the httpx library for asynchronous HTTP requests.
+    """Adapt httpx for asynchronous HTTP requests and streamed downloads.
 
-    Provides methods for making asynchronous HTTP HEAD requests and file downloads
-    with streaming support.
+    Provides asynchronous HTTP HEAD requests and streamed file downloads.
     """
 
     def __init__(
@@ -25,9 +26,9 @@ class RequestsAdapter:
         max_redirects: int = 5,
         verify: bool = True,
         http2: bool = False,
+        default_headers: Mapping[str, str] | None = None,
     ):
-        """
-        Initialize the httpx adapter.
+        """Initialize the httpx adapter.
 
         Args:
             timeout: Default request timeout in seconds
@@ -38,11 +39,36 @@ class RequestsAdapter:
                 redirect-loop attacks. Override for custom transports.
             verify: Verify SSL certificates
             http2: Enable HTTP/2
+            default_headers: Optional headers merged into every request.
+                Headers explicitly supplied to a request take precedence.
         """
         self.timeout = timeout
         self.max_redirects = max_redirects
         self.verify = verify
         self.http2 = http2
+        self.default_headers = (
+            dict(default_headers) if default_headers is not None else None
+        )
+
+    def _merge_headers(
+        self, headers: dict[str, str] | None
+    ) -> dict[str, str] | None:
+        """Merge request headers over the adapter's default headers."""
+        if self.default_headers is None:
+            return headers
+
+        merged_headers = dict(self.default_headers)
+        if headers is None:
+            return merged_headers
+
+        for key, value in headers.items():
+            normalized_key = key.casefold()
+            for existing_key in tuple(merged_headers):
+                if existing_key.casefold() == normalized_key:
+                    del merged_headers[existing_key]
+            merged_headers[key] = value
+
+        return merged_headers
 
     async def async_head(
         self,
@@ -51,8 +77,7 @@ class RequestsAdapter:
         timeout: float | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
-        """
-        Asynchronous HEAD request to get headers without downloading body.
+        """Send a HEAD request to inspect headers without downloading a body.
 
         Useful for checking Content-Length, Content-Type, etc. before download.
 
@@ -65,6 +90,7 @@ class RequestsAdapter:
         Returns:
             httpx.Response: Request response (no body, only headers)
         """
+        request_headers = self._merge_headers(headers)
         async with httpx.AsyncClient(
             timeout=timeout or self.timeout,
             follow_redirects=True,
@@ -72,7 +98,7 @@ class RequestsAdapter:
             verify=self.verify,
             http2=self.http2,
         ) as client:
-            return await client.head(url, headers=headers, **kwargs)
+            return await client.head(url, headers=request_headers, **kwargs)
 
     async def async_download_file(
         self,
@@ -82,8 +108,7 @@ class RequestsAdapter:
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
     ) -> None:
-        """
-        Asynchronous file download with streaming.
+        """Download a file asynchronously with streaming.
 
         Args:
             url: File URL
@@ -98,6 +123,7 @@ class RequestsAdapter:
             OSError: If disk write fails
         """
         target_path = Path(output_path)
+        request_headers = self._merge_headers(headers)
         try:
             async with (
                 httpx.AsyncClient(
@@ -107,7 +133,7 @@ class RequestsAdapter:
                     verify=self.verify,
                     http2=self.http2,
                 ) as client,
-                client.stream('GET', url, headers=headers) as response,
+                client.stream('GET', url, headers=request_headers) as response,
             ):
                 response.raise_for_status()
 

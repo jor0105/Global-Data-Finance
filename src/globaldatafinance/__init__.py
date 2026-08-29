@@ -1,10 +1,6 @@
-import importlib.metadata
+"""Public package exports for Global-Data-Finance."""
 
-try:
-    __version__ = importlib.metadata.version('globaldatafinance')
-except importlib.metadata.PackageNotFoundError:
-    __version__ = '0.2.0'
-
+from ._version import __version__
 from .application import (
     ExtractionResultB3,
     FundamentalStocksDataCVM,

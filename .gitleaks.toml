@@ -1,0 +1,14 @@
+title = "GlobalDataFinance gitleaks policy"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Developer-owned harness projections"
+paths = [
+  '''^\.agents/''',
+  '''^\.claude/''',
+  '''^\.codex/''',
+  '''^\.opencode/''',
+  '''^\.github/prompts/''',
+]

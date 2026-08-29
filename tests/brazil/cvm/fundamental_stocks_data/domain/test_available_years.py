@@ -163,11 +163,12 @@ class TestAvailableYears:
     def test_return_range_years_respects_mocked_current_year(
         self, available_years, monkeypatch
     ):
-        # The AvailableYearsCVM class captures the current year at class-definition time
-        # so patching the datetime.date symbol after import won't change it. Here we
-        # monkeypatch the attribute that holds the current year so the test
-        # can control the value used by the class. Use raising=False to allow
-        # setting even if the exact mangled name differs across Python versions.
+        _ = available_years
+        # AvailableYearsCVM captures the current year at class-definition time,
+        # so patching datetime.date after import does not change it. Patch the
+        # stored attribute so the test controls the class value. The false
+        # raising flag
+        # handles differences in the mangled name across Python versions.
         monkeypatch.setattr(
             AvailableYearsCVM,
             '_AvailableYears__CURRENT_YEAR',
@@ -175,7 +176,7 @@ class TestAvailableYears:
             raising=False,
         )
 
-        # Also set on the instance in case the implementation uses an instance attr
+        # Also set it on the instance in case the implementation uses an attr.
         available_years_mocked = AvailableYearsCVM()
         monkeypatch.setattr(
             available_years_mocked,

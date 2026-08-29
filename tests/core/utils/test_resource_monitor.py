@@ -164,6 +164,25 @@ class TestResourceMonitor:
         )
         assert result is True
 
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
+    def test_wait_for_resources_timeout_when_critical(self, mock_psutil):
+        ResourceMonitor._instance = None
+
+        mock_memory = Mock()
+        mock_memory.total = 8 * 1024**3
+        mock_memory.percent = 90.0
+        mock_memory.available = 200 * 1024**2
+        mock_psutil.virtual_memory.return_value = mock_memory
+        mock_psutil.cpu_percent.return_value = 50.0
+
+        monitor = ResourceMonitor()
+
+        with patch('time.sleep', return_value=None):
+            result = monitor.wait_for_resources(
+                required_state=ResourceState.WARNING, timeout_seconds=1
+            )
+        assert result is False
+
     @patch('globaldatafinance.core.utils.resource_monitor.psutil', None)
     def test_no_psutil_fallback(self):
         ResourceMonitor._instance = None

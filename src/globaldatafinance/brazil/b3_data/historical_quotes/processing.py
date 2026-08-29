@@ -18,23 +18,29 @@ class _ProcessingModeConfig:
 
 
 class ProcessingModeEnumB3(StrEnum):
+    """Supported extraction modes and their resource policies."""
+
     FAST = 'fast'
     SLOW = 'slow'
 
     @property
     def desired_concurrent_files(self) -> int:
+        """Return the desired number of files processed concurrently."""
         return _PROCESSING_MODE_CONFIGS[self].desired_concurrent_files
 
     @property
     def desired_workers(self) -> int:
+        """Return the desired parser worker count."""
         return _PROCESSING_MODE_CONFIGS[self].desired_workers
 
     @property
     def use_parallel_parsing(self) -> bool:
+        """Return whether this mode enables parallel line parsing."""
         return _PROCESSING_MODE_CONFIGS[self].use_parallel_parsing
 
     @property
     def memory_threshold_mb(self) -> int:
+        """Return the process-memory threshold used by this mode."""
         return _PROCESSING_MODE_CONFIGS[self].memory_threshold_mb
 
 

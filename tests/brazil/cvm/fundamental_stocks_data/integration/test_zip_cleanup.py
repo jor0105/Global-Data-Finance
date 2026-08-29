@@ -63,7 +63,7 @@ class TestZipCleanup:
         from globaldatafinance.macro_exceptions import CorruptedZipError
 
         corrupted_zip = tmp_path / 'corrupted.zip'
-        with open(corrupted_zip, 'wb') as f:
+        with corrupted_zip.open('wb') as f:
             f.write(b'PK\x03\x04' + b'\x00' * 50)
 
         print(f'✓ Corrupted ZIP created: {corrupted_zip.name}')
@@ -75,7 +75,8 @@ class TestZipCleanup:
             )
 
         assert corrupted_zip.exists(), (
-            'Corrupted ZIP was deleted prematurely! It should be kept for retry or investigation.'
+            'Corrupted ZIP was deleted prematurely! It should be kept for '
+            'retry or investigation.'
         )
 
         print('✅ ZIP kept after extraction failure')
@@ -133,7 +134,8 @@ class TestZipCleanup:
 
             assert not downloaded_zip.exists(), 'ZIP was not deleted'
             print(
-                f'✅ ZIP deleted after creating {len(parquet_files)} parquet(s)'
+                f'✅ ZIP deleted after creating {len(parquet_files)} '
+                'parquet(s)'
             )
         else:
             assert downloaded_zip.exists(), (

@@ -1,3 +1,5 @@
+"""Monitor process resources for extraction workloads."""
+
 import gc
 import os
 import platform
@@ -29,27 +31,26 @@ class ResourceState(Enum):
     EXHAUSTED = 'exhausted'
 
 
+_STATE_SEVERITY: dict[ResourceState, int] = {
+    ResourceState.HEALTHY: 0,
+    ResourceState.WARNING: 1,
+    ResourceState.CRITICAL: 2,
+    ResourceState.EXHAUSTED: 3,
+}
+
+
 @dataclass
 class ResourceLimits:
     """Configuration for resource limits and thresholds."""
 
-    # Memory thresholds (percentage of available RAM)
-    memory_warning_threshold: float = 70.0  # Warn at 70% usage
-    memory_critical_threshold: float = 85.0  # Critical at 85% usage
-    memory_exhausted_threshold: float = 95.0  # Circuit breaker at 95%
-
-    # CPU thresholds (percentage)
-    cpu_warning_threshold: float = 80.0  # Warn at 80% usage
-    cpu_critical_threshold: float = 90.0  # Critical at 90% usage
-
-    # Minimum free memory required (MB)
-    min_free_memory_mb: int = 100  # Always keep at least 100MB free
-
-    # Automatic GC trigger
-    auto_gc_on_warning: bool = True  # Force GC when memory warning
-
-    # Circuit breaker settings
-    circuit_breaker_cooldown_seconds: int = 10  # Wait 10s after exhaustion
+    memory_warning_threshold: float = 70.0
+    memory_critical_threshold: float = 85.0
+    memory_exhausted_threshold: float = 95.0
+    cpu_warning_threshold: float = 80.0
+    cpu_critical_threshold: float = 90.0
+    min_free_memory_mb: int = 100
+    auto_gc_on_warning: bool = True
+    circuit_breaker_cooldown_seconds: int = 10
     circuit_breaker_enabled: bool = True
 
 
@@ -376,12 +377,16 @@ class ResourceMonitor:
         while time.time() - start_time < timeout_seconds:
             current_state = self.check_resources()
 
-            # Check if state is acceptable
-            if current_state.value <= required_state.value:
+            # Check if state is acceptable (lower or equal severity)
+            if (
+                _STATE_SEVERITY[current_state]
+                <= _STATE_SEVERITY[required_state]
+            ):
                 return True
 
             logger.debug(
-                f'Waiting for resources... Current state: {current_state.value}, '
+                f'Waiting for resources... Current state: '
+                f'{current_state.value}, '
                 f'Required: {required_state.value}'
             )
 

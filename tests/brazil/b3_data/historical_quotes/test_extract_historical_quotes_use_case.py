@@ -324,6 +324,7 @@ class TestExecuteSyncMethod:
         result = use_case.execute_sync(docs)
         assert result['total_files'] == 0
         assert result['output_file'] == ''
+        mock_extraction_service.return_value.close.assert_called_once()
 
 
 class TestOutputPathGeneration:

@@ -31,7 +31,7 @@ ______________________________________________________________________
 ### ResourceLimits
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceLimits
+from globaldatafinance.core import ResourceLimits
 
 limits = ResourceLimits(
     memory_warning_threshold=70.0,      # % de memória para WARNING
@@ -53,19 +53,23 @@ ______________________________________________________________________
 ### Criar Instância (Singleton)
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceMonitor
+from globaldatafinance.core import ResourceLimits, ResourceMonitor
 
-# Obter instância (sempre a mesma)
-monitor = ResourceMonitor()
-
-# Ou com limites customizados
+# Os limites da primeira inicialização tornam-se os limites ativos.
 limits = ResourceLimits(memory_warning_threshold=60.0)
 monitor = ResourceMonitor(limits)
+# Chamadas posteriores devolvem o mesmo objeto e não substituem os limites.
+same_monitor = ResourceMonitor(ResourceLimits(memory_warning_threshold=50.0))
+assert same_monitor is monitor
+assert monitor.limits.memory_warning_threshold == 60.0
 ```
 
 ### Verificar Estado atual
 
 ```python
+from globaldatafinance.core import ResourceMonitor
+
+monitor = ResourceMonitor()
 state = monitor.check_resources()
 print(state)  # HEALTHY, WARNING, CRITICAL, ou EXHAUSTED
 ```
@@ -89,9 +93,9 @@ print(f"Batch size: {safe_batch}")
 ### Aguardar Recursos Disponíveis
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import ResourceState
+from globaldatafinance.core import ResourceMonitor, ResourceState
 
-# Aguardar até que recursos melhorem
+monitor = ResourceMonitor()
 success = monitor.wait_for_resources(
     required_state=ResourceState.WARNING,
     timeout_seconds=60
@@ -106,35 +110,32 @@ else:
 ### Memória do Processo Atual
 
 ```python
+from globaldatafinance.core import ResourceMonitor
+
+monitor = ResourceMonitor()
 memory_mb = monitor.get_process_memory_mb()
 print(f"Processo usando {memory_mb:.2f} MB")
 ```
 
 ______________________________________________________________________
 
-## Uso Automático nos Adapters
+## Política por Fonte
 
-O `ResourceMonitor` é usado automaticamente pelos adapters de download:
+O fluxo CVM usa um semáforo estático de concorrência no
+`AsyncDownloadAdapterCVM`; ele não consulta o `ResourceMonitor` para redimensionar
+workers durante downloads. O limite é definido por `max_concurrent` na
+construção do adapter.
 
-```python
-# AsyncDownloadAdapterCVM usa ResourceMonitor para:
-# - Ajustar número de workers dinamicamente
-# - Reduzir batch size quando memória está alta
-# - Pausar downloads quando recursos críticos
-
-cvm = FundamentalStocksDataCVM()
-cvm.download(...)  # Resource monitoring automático
-```
+O fluxo B3 usa `ResourceMonitor` por meio de `ResourcePolicyB3`. Essa política
+consulta o singleton para limitar arquivos concorrentes, workers de parsing e
+tamanhos de batch conforme a pressão de CPU e memória.
 
 ______________________________________________________________________
 
 ## Exemplo Manual
 
 ```python
-from globaldatafinance.core.utils.resource_monitor import (
-    ResourceMonitor,
-    ResourceState
-)
+from globaldatafinance.core import ResourceMonitor, ResourceState
 
 monitor = ResourceMonitor()
 
@@ -164,7 +165,7 @@ Caso o `psutil` não esteja disponível ou seja restrito no ambiente de execuç�
 
 ______________________________________________________________________
 
-Veja também:
+## Documentação Relacionada
 
 - [Retry Strategy](retry-strategy.md)
 - [Advanced Usage](advanced-usage.md)

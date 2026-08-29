@@ -22,6 +22,94 @@ import grimp
 PACKAGE = 'globaldatafinance'
 
 
+class _TarjanState:
+    """Mutable state shared by the iterative Tarjan traversal."""
+
+    def __init__(self) -> None:
+        self.index: dict[str, int] = {}
+        self.low: dict[str, int] = {}
+        self.on_stack: set[str] = set()
+        self.stack: list[str] = []
+        self.cycles: list[list[str]] = []
+        self.counter = 0
+
+
+def _enter_node(node: str, state: _TarjanState) -> None:
+    """Assign a Tarjan index and push one newly discovered node."""
+    state.index[node] = state.low[node] = state.counter
+    state.counter += 1
+    state.stack.append(node)
+    state.on_stack.add(node)
+
+
+def _advance_frame(
+    adjacency: dict[str, list[str]],
+    state: _TarjanState,
+    work: list[tuple[str, int]],
+) -> bool:
+    """Advance one DFS frame, pushing an unvisited child when present."""
+    node, child_index = work[-1]
+    children = adjacency[node]
+    for index in range(child_index, len(children)):
+        child = children[index]
+        if child not in state.index:
+            work[-1] = (node, index + 1)
+            work.append((child, 0))
+            return True
+        if child in state.on_stack:
+            state.low[node] = min(state.low[node], state.index[child])
+    return False
+
+
+def _close_component(
+    node: str,
+    adjacency: dict[str, list[str]],
+    state: _TarjanState,
+) -> None:
+    """Close and record the strongly connected component rooted at a node."""
+    if state.low[node] != state.index[node]:
+        return
+    component: list[str] = []
+    while True:
+        member = state.stack.pop()
+        state.on_stack.discard(member)
+        component.append(member)
+        if member == node:
+            break
+    if len(component) > 1 or component[0] in adjacency[component[0]]:
+        state.cycles.append(sorted(component))
+
+
+def _finish_frame(
+    adjacency: dict[str, list[str]],
+    state: _TarjanState,
+    work: list[tuple[str, int]],
+) -> None:
+    """Close one DFS frame and propagate its low link to the parent."""
+    node = work[-1][0]
+    _close_component(node, adjacency, state)
+    work.pop()
+    if work:
+        parent = work[-1][0]
+        state.low[parent] = min(state.low[parent], state.low[node])
+
+
+def _walk_component(
+    root: str,
+    adjacency: dict[str, list[str]],
+    state: _TarjanState,
+) -> None:
+    """Traverse one connected region without recursive Python calls."""
+    work: list[tuple[str, int]] = [(root, 0)]
+    while work:
+        node = work[-1][0]
+        if node not in state.index:
+            _enter_node(node, state)
+        if _advance_frame(adjacency, state, work):
+            continue
+        _finish_frame(adjacency, state, work)
+
+
 def find_cycles(graph: grimp.ImportGraph) -> list[list[str]]:
     """Return every strongly connected component that contains a cycle.
 
@@ -36,62 +124,17 @@ def find_cycles(graph: grimp.ImportGraph) -> list[list[str]]:
         m: sorted(graph.find_modules_directly_imported_by(m)) for m in modules
     }
 
-    index: dict[str, int] = {}
-    low: dict[str, int] = {}
-    on_stack: set[str] = set()
-    stack: list[str] = []
-    cycles: list[list[str]] = []
-    counter = 0
+    state = _TarjanState()
 
     for root in modules:
-        if root in index:
-            continue
-        work: list[tuple[str, int]] = [(root, 0)]
-        while work:
-            node, child_i = work[-1]
-            if child_i == 0:
-                index[node] = low[node] = counter
-                counter += 1
-                stack.append(node)
-                on_stack.add(node)
+        if root not in state.index:
+            _walk_component(root, adjacency, state)
 
-            recursed = False
-            children = adjacency.get(node, ())
-            for i in range(child_i, len(children)):
-                child = children[i]
-                if child not in index:
-                    work[-1] = (node, i + 1)
-                    work.append((child, 0))
-                    recursed = True
-                    break
-                if child in on_stack:
-                    low[node] = min(low[node], index[child])
-            if recursed:
-                continue
-
-            if low[node] == index[node]:
-                component = []
-                while True:
-                    member = stack.pop()
-                    on_stack.discard(member)
-                    component.append(member)
-                    if member == node:
-                        break
-                if (
-                    len(component) > 1
-                    or component[0] in adjacency[component[0]]
-                ):
-                    cycles.append(sorted(component))
-
-            work.pop()
-            if work:
-                parent = work[-1][0]
-                low[parent] = min(low[parent], low[node])
-
-    return cycles
+    return state.cycles
 
 
 def main() -> int:
+    """Check the package import graph for circular dependencies."""
     graph = grimp.build_graph(
         PACKAGE,
         exclude_type_checking_imports=True,

@@ -1,22 +1,19 @@
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
 
-from globaldatafinance.brazil.b3_data.historical_quotes.cotahist_parser import (
+from globaldatafinance.brazil.b3_data.historical_quotes import (
     CotahistParserB3,
-)
-from globaldatafinance.brazil.b3_data.historical_quotes.extraction_service import (
     ExtractionServiceB3,
-    temp_parquet_merge,
-)
-from globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.batch_parser import (
-    parse_lines_batch,
-)
-from globaldatafinance.brazil.b3_data.historical_quotes.processing import (
     ProcessingModeEnumB3,
+    extraction_service,
 )
 from globaldatafinance.core import ResourceState
+
+temp_parquet_merge = extraction_service.temp_parquet_merge
+parse_lines_batch = extraction_service.batch_parser.parse_lines_batch
 
 pytestmark = pytest.mark.unit
 
@@ -28,17 +25,14 @@ class FakeResourceMonitor:
         safe_worker_cap: int = 8,
         safe_batch_size: int | None = None,
         states: list[ResourceState] | None = None,
-        wait_result: bool = True,
         process_memory_mb: float = 100.0,
     ) -> None:
         self.safe_worker_cap = safe_worker_cap
         self.safe_batch_size = safe_batch_size
         self.states = list(states or [ResourceState.HEALTHY])
-        self.wait_result = wait_result
         self.process_memory_mb = process_memory_mb
         self.worker_calls: list[int | None] = []
         self.batch_calls: list[int] = []
-        self.wait_calls: list[tuple[ResourceState, int]] = []
         self.check_calls = 0
         self._state_index = 0
 
@@ -63,14 +57,20 @@ class FakeResourceMonitor:
             return desired_batch_size
         return self.safe_batch_size
 
-    def wait_for_resources(
-        self, required_state: ResourceState, timeout_seconds: int
-    ) -> bool:
-        self.wait_calls.append((required_state, timeout_seconds))
-        return self.wait_result
-
     def get_process_memory_mb(self) -> float:
         return self.process_memory_mb
+
+
+class DummyLoop:
+    def __init__(self, result):
+        self.result = result
+        self.calls: list[tuple] = []
+
+    async def run_in_executor(self, executor, func, *args):
+        self.calls.append((executor, func, args))
+        if self.result is None:
+            return func(*args)
+        return self.result
 
 
 class FakeZipReader:
@@ -120,19 +120,8 @@ class DummyPool:
     def shutdown(
         self, wait: bool = False, cancel_futures: bool = False
     ) -> None:
+        _ = wait, cancel_futures
         self.shutdown_called = True
-
-
-class DummyLoop:
-    def __init__(self, result):
-        self.result = result
-        self.calls: list[tuple] = []
-
-    async def run_in_executor(self, executor, func, *args):
-        self.calls.append((executor, func, args))
-        if self.result is None:
-            return func(*args)
-        return self.result
 
 
 def build_cotahist_line(tpmerc: str) -> str:
@@ -144,6 +133,12 @@ def build_cotahist_line(tpmerc: str) -> str:
     line[12:24] = list(ticker)
     line[24:27] = list(tpmerc)
     return ''.join(line)
+
+
+async def resources_available(timeout_seconds: int = 30) -> bool:
+    """Return a deterministic successful resource wait for service tests."""
+    _ = timeout_seconds
+    return True
 
 
 @pytest.fixture(autouse=True)
@@ -200,6 +195,7 @@ def test_extraction_service_initialization_fast_mode(
 def test_extraction_service_initialization_slow_mode(
     monkeypatch, process_pool_spy
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor(safe_worker_cap=4)
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -224,7 +220,10 @@ def test_extraction_service_initialization_slow_mode(
 async def test_extraction_service_wait_for_resources(
     monkeypatch, process_pool_spy
 ):
-    monitor = FakeResourceMonitor(wait_result=False)
+    _ = process_pool_spy
+    monitor = FakeResourceMonitor(
+        states=[ResourceState.CRITICAL, ResourceState.HEALTHY]
+    )
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
         lambda: monitor,
@@ -237,25 +236,27 @@ async def test_extraction_service_wait_for_resources(
         processing_mode=ProcessingModeEnumB3.FAST,
     )
 
-    dummy_loop = DummyLoop(result=None)
+    async def no_sleep(_delay: float) -> None:
+        return None
+
     monkeypatch.setattr(
-        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.asyncio.get_running_loop',
-        lambda: dummy_loop,
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.asyncio.sleep',
+        no_sleep,
     )
 
     result = await service.resource_policy.wait_for_resources(
         timeout_seconds=7
     )
 
-    assert result is False
-    assert monitor.wait_calls == [(ResourceState.WARNING, 7)]
-    assert dummy_loop.calls
+    assert result is True
+    assert monitor.check_calls == 2
 
 
 @pytest.mark.asyncio
 async def test_extraction_service_write_buffer_to_disk(
     monkeypatch, process_pool_spy, tmp_path
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -320,6 +321,45 @@ async def test_process_and_write_zip_slow_mode(monkeypatch, tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_processor_temp_paths_include_input_extension(
+    monkeypatch, tmp_path
+):
+    monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
+        lambda: monitor,
+    )
+
+    zip_path = 'COTAHIST_A2023.ZIP'
+    txt_path = 'COTAHIST_A2023.TXT'
+    service = ExtractionServiceB3(
+        zip_reader=FakeZipReader({zip_path: ['keep'], txt_path: ['keep']}),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnumB3.SLOW,
+    )
+
+    zip_result = await service.zip_processor.process(
+        zip_file=zip_path,
+        target_tpmerc_codes={'010'},
+        output_path=tmp_path / 'data.parquet',
+    )
+    txt_result = await service.zip_processor.process(
+        zip_file=txt_path,
+        target_tpmerc_codes={'010'},
+        output_path=tmp_path / 'data.parquet',
+    )
+
+    assert zip_result['temp_file'] != txt_result['temp_file']
+    assert zip_result['temp_file'].endswith(
+        'data_COTAHIST_A2023.ZIP_temp.parquet'
+    )
+    assert txt_result['temp_file'].endswith(
+        'data_COTAHIST_A2023.TXT_temp.parquet'
+    )
+
+
+@pytest.mark.asyncio
 async def test_slow_mode_throttles_flush_checks(monkeypatch, tmp_path):
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
@@ -346,6 +386,7 @@ async def test_slow_mode_throttles_flush_checks(monkeypatch, tmp_path):
         *,
         is_first_write: bool,
     ):
+        _ = temp_output
         flush_buffer_sizes.append(len(buffer))
         return 0, is_first_write
 
@@ -366,6 +407,7 @@ async def test_slow_mode_throttles_flush_checks(monkeypatch, tmp_path):
 async def test_process_and_write_zip_fast_mode(
     monkeypatch, process_pool_spy, tmp_path
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY])
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -385,6 +427,7 @@ async def test_process_and_write_zip_fast_mode(
     batch_calls: list[list[str]] = []
 
     async def fake_batch(lines, target_codes):
+        _ = target_codes
         batch_calls.append(list(lines))
         return [{'value': line} for line in lines if 'keep' in line]
 
@@ -406,6 +449,7 @@ async def test_process_and_write_zip_fast_mode(
 async def test_process_and_write_zip_propagates_errors(
     monkeypatch, process_pool_spy, tmp_path
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -437,6 +481,7 @@ async def test_process_and_write_zip_propagates_errors(
 async def test_parse_lines_batch_parallel_filters_none(
     monkeypatch, process_pool_spy
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor()
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -510,7 +555,7 @@ async def test_merge_single_temp_file_replaces_existing_output(
     monkeypatch.setattr(
         temp_parquet_merge,
         'count_parquet_rows',
-        lambda path: 42,
+        lambda _path: 42,
     )
 
     async def fail_if_called():
@@ -531,6 +576,7 @@ async def test_merge_single_temp_file_replaces_existing_output(
 async def test_extract_from_zip_files_success(
     monkeypatch, tmp_path, process_pool_spy
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -557,6 +603,7 @@ async def test_extract_from_zip_files_success(
     async def fake_process(
         zip_file: str, target_tpmerc_codes: set[str], output_path: Path
     ):
+        _ = output_path
         process_calls.append((zip_file, target_tpmerc_codes))
         if zip_file == 'file_a.zip':
             (tmp_path / 'temp_a.parquet').touch()
@@ -570,6 +617,7 @@ async def test_extract_from_zip_files_success(
     service.zip_processor.process = fake_process  # type: ignore
 
     async def fake_merge(temp_files, final_output, **kwargs) -> int:
+        _ = temp_files, kwargs
         final_output.touch()
         return 3
 
@@ -599,6 +647,7 @@ async def test_extract_from_zip_files_success(
 async def test_extract_from_zip_files_reports_merge_failure(
     monkeypatch, tmp_path, process_pool_spy
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -613,11 +662,13 @@ async def test_extract_from_zip_files_reports_merge_failure(
     )
 
     async def fake_wait(timeout_seconds: int = 30) -> bool:
+        _ = timeout_seconds
         return True
 
     async def fake_process(
         zip_file: str, target_tpmerc_codes: set[str], output_path: Path
     ):
+        _ = target_tpmerc_codes, output_path
         temp_file = tmp_path / f'{zip_file}.parquet'
         temp_file.touch()
         return {'records': 1, 'temp_file': str(temp_file)}
@@ -648,6 +699,7 @@ async def test_extract_from_zip_files_reports_merge_failure(
 async def test_extract_from_zip_files_handles_errors(
     monkeypatch, tmp_path, process_pool_spy
 ):
+    _ = process_pool_spy
     monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 5)
     monkeypatch.setattr(
         'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
@@ -670,6 +722,161 @@ async def test_extract_from_zip_files_handles_errors(
     assert result['total_files'] == 0
     assert result['success_count'] == 0
     assert result['error_count'] == 0
+
+
+@pytest.mark.asyncio
+async def test_extract_from_zip_files_preserves_partial_success(
+    monkeypatch, tmp_path, process_pool_spy
+):
+    _ = process_pool_spy
+    monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
+        lambda: monitor,
+    )
+    service = ExtractionServiceB3(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnumB3.FAST,
+    )
+    monkeypatch.setattr(
+        service.resource_policy,
+        'wait_for_resources',
+        resources_available,
+    )
+
+    async def fake_process(
+        zip_file: str, target_tpmerc_codes: set[str], output_path: Path
+    ):
+        _ = target_tpmerc_codes, output_path
+        if zip_file == 'broken.zip':
+            raise OSError('input failed')
+        temp_file = tmp_path / 'valid.parquet'
+        temp_file.touch()
+        return {'records': 4, 'temp_file': str(temp_file)}
+
+    async def fake_merge(temp_files, final_output, **kwargs) -> int:
+        _ = temp_files, kwargs
+        final_output.touch()
+        return 4
+
+    monkeypatch.setattr(service.zip_processor, 'process', fake_process)
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.service.merge_temp_files_streaming',
+        fake_merge,
+    )
+
+    result = await service.extract_from_zip_files(
+        {'valid.zip', 'broken.zip'}, {'010'}, tmp_path / 'out.parquet'
+    )
+
+    assert result['success_count'] == 1
+    assert result['error_count'] == 1
+    assert result['total_records'] == 4
+    assert result['errors']['broken.zip'] == 'input failed'
+
+
+@pytest.mark.asyncio
+async def test_extract_updates_progress_once_per_file_when_resources_exhaust(
+    monkeypatch, tmp_path, process_pool_spy
+):
+    _ = process_pool_spy
+    monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 4)
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
+        lambda: monitor,
+    )
+
+    class ProgressSpy:
+        def __init__(self, total: int, desc: str) -> None:
+            self.total = total
+            self.desc = desc
+            self.updates: list[int] = []
+            self.closed = False
+            progress_instances.append(self)
+
+        def update(self, amount: int) -> None:
+            self.updates.append(amount)
+
+        def close(self) -> None:
+            self.closed = True
+
+    progress_instances: list[ProgressSpy] = []
+
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.service.SimpleProgressBar',
+        ProgressSpy,
+    )
+    service = ExtractionServiceB3(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnumB3.FAST,
+    )
+    availability: Iterator[bool] = iter((False, False))
+
+    async def fake_wait(timeout_seconds: int = 30) -> bool:
+        _ = timeout_seconds
+        return next(availability)
+
+    monkeypatch.setattr(
+        service.resource_policy, 'wait_for_resources', fake_wait
+    )
+
+    result = await service.extract_from_zip_files(
+        {'file_a.zip', 'file_b.zip'}, {'010'}, tmp_path / 'out.parquet'
+    )
+
+    progress = progress_instances[0]
+    assert progress.updates == [1, 1]
+    assert progress.closed is True
+    assert result['error_count'] == 2
+    assert set(result['errors']) == {'file_a.zip', 'file_b.zip'}
+
+
+@pytest.mark.asyncio
+async def test_extract_keeps_record_count_when_temp_file_is_missing(
+    monkeypatch, tmp_path, process_pool_spy, caplog
+):
+    _ = process_pool_spy
+    monitor = FakeResourceMonitor(states=[ResourceState.HEALTHY] * 2)
+    monkeypatch.setattr(
+        'globaldatafinance.brazil.b3_data.historical_quotes.extraction_service.resource_policy.ResourceMonitor',
+        lambda: monitor,
+    )
+    service = ExtractionServiceB3(
+        zip_reader=FakeZipReader(),
+        parser=FakeParser(),
+        data_writer=FakeWriter(),
+        processing_mode=ProcessingModeEnumB3.FAST,
+    )
+    monkeypatch.setattr(
+        service.resource_policy,
+        'wait_for_resources',
+        resources_available,
+    )
+
+    async def fake_process(**_kwargs):
+        return {
+            'records': 5,
+            'temp_file': str(tmp_path / 'missing.parquet'),
+        }
+
+    monkeypatch.setattr(service.zip_processor, 'process', fake_process)
+
+    with caplog.at_level('WARNING'):
+        result = await service.extract_from_zip_files(
+            {'file.zip'}, {'010'}, tmp_path / 'out.parquet'
+        )
+
+    assert result['success_count'] == 1
+    assert result['error_count'] == 0
+    assert result['total_records'] == 5
+    assert result['output_file'] == ''
+    assert any(
+        'Temp file not found' in record.message for record in caplog.records
+    )
 
 
 def test_extraction_service_close_graceful_shutdown(
@@ -737,11 +944,9 @@ def test_extraction_service_cleanup_handles_shutdown_errors(
     )
 
     def shutdown_with_error(wait: bool = False, cancel_futures: bool = False):
+        _ = wait, cancel_futures
         raise RuntimeError('Shutdown error during interpreter cleanup')
 
     process_pool_spy[0].shutdown = shutdown_with_error
 
-    try:
-        service.__del__()
-    except Exception as e:
-        pytest.fail(f'__del__ should handle shutdown errors gracefully: {e}')
+    service.__del__()

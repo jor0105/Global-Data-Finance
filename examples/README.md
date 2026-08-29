@@ -7,7 +7,7 @@ ______________________________________________________________________
 ## 📌 Diferença Entre as Fontes
 
 - **CVM (`FundamentalStocksDataCVM`)**: Realiza o **download automático** (via HTTP assíncrono) das Demonstrações Financeiras diretamente dos servidores da CVM e converte em arquivos Parquet.
-- **B3 (`HistoricalQuotesB3`)**: Faz a **leitura, filtragem e conversão** de arquivos oficiais de cotações históricas (`COTAHIST_AYYYY.ZIP` ou `.TXT`) armazenados em uma pasta local (`path_of_docs`) e consolida em Parquet. *(Nota: A biblioteca não baixa os arquivos COTAHIST da B3, ela processa os arquivos locais existentes).*
+- **B3 (`HistoricalQuotesB3`)**: Faz a **leitura, filtragem e conversão** de arquivos oficiais de cotações históricas (`COTAHIST_AYYYY.ZIP` ou `.TXT`) armazenados em uma pasta local (`path_of_docs`) e consolida em Parquet. A API aceita os formatos locais ZIP e TXT; o download oficial da B3 continua sendo distribuído em ZIP. *(Nota: A biblioteca não baixa os arquivos COTAHIST da B3, ela processa os arquivos locais existentes).*
 
 ______________________________________________________________________
 
@@ -37,7 +37,7 @@ ______________________________________________________________________
 
 ### 3. Extração Avançada da B3 (`03_advanced_options_b3.py`)
 
-Demonstra a extração de múltiplos ativos simultâneos (**Ações, ETFs e FIIs**) a partir dos arquivos COTAHIST locais de 2022 e 2023, utilizando o **modo de alto desempenho (`processing_mode="fast"`)**.
+Demonstra a extração de múltiplos ativos simultâneos (**Ações, ETFs e Opções**) a partir dos arquivos COTAHIST locais de 2022 e 2023, utilizando o **modo de alto desempenho (`processing_mode="fast"`)**.
 
 ```bash
 uv run python examples/03_advanced_options_b3.py

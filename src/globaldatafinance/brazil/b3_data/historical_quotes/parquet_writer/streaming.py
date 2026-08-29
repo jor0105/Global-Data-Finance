@@ -1,3 +1,5 @@
+"""PyArrow streaming helpers for bounded B3 Parquet operations."""
+
 import contextlib
 from collections.abc import Callable
 from pathlib import Path
@@ -37,6 +39,7 @@ def _cleanup_temp_file(temp_path: Path) -> None:
 
 
 def create_pyarrow_writer(path: Path, schema: Any) -> Any:
+    """Create a compressed PyArrow writer for one Parquet output path."""
     _require_pyarrow('Parquet streaming operations')
     return pq.ParquetWriter(
         str(path),
@@ -47,6 +50,7 @@ def create_pyarrow_writer(path: Path, schema: Any) -> Any:
 
 
 def copy_parquet_batches(parquet_file: Any, writer: Any) -> int:
+    """Copy bounded record batches and return the number of rows written."""
     total_rows = 0
     for batch in parquet_file.iter_batches(batch_size=STREAM_BATCH_SIZE):
         writer.write_batch(batch)
@@ -55,6 +59,7 @@ def copy_parquet_batches(parquet_file: Any, writer: Any) -> int:
 
 
 def write_table_batches(table: Any, writer: Any) -> int:
+    """Write bounded table batches and return the number of rows written."""
     total_rows = 0
     for batch in table.to_batches(max_chunksize=STREAM_BATCH_SIZE):
         writer.write_batch(batch)
@@ -63,6 +68,7 @@ def write_table_batches(table: Any, writer: Any) -> int:
 
 
 def cast_table_to_schema(table: Any, schema: Any) -> Any:
+    """Cast a table to the existing output schema with column fallback."""
     _require_pyarrow('schema casting')
 
     try:
@@ -87,7 +93,8 @@ def cast_table_to_schema(table: Any, schema: Any) -> Any:
                 )
                 raise ParquetWriteError(
                     'schema_cast',
-                    f"Could not cast column '{field.name}' to '{field.type}': {col_err}",
+                    f"Could not cast column '{field.name}' to "
+                    f"'{field.type}': {col_err}",
                 ) from col_err
         return pa.table(arrays, schema=schema)
 
@@ -101,6 +108,7 @@ async def append_with_streaming(
     copy_parquet_batches_fn: Callable[[Any, Any], int],
     write_table_batches_fn: Callable[[Any, Any], int],
 ) -> None:
+    """Append a new table to an existing Parquet file through a temp file."""
     _require_pyarrow('streaming append')
 
     logger.debug(
@@ -162,6 +170,7 @@ async def merge_parquet_files_streaming(
     create_pyarrow_writer_fn: Callable[[Path, Any], Any],
     copy_parquet_batches_fn: Callable[[Any, Any], int],
 ) -> None:
+    """Merge source Parquet files into one output using bounded batches."""
     _require_pyarrow('streaming merge')
 
     if not source_paths:

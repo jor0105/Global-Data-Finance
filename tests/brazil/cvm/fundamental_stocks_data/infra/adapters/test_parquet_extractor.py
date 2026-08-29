@@ -42,7 +42,7 @@ class TestParquetExtractorErrorHandling:
         with zipfile.ZipFile(zip_path, 'w') as zf:
             zf.writestr('test.csv', 'col1;col2\n1;2\n')
 
-        def mock_extract(*args):
+        def mock_extract(*_args):
             raise RuntimeError('Unexpected error')
 
         monkeypatch.setattr(
@@ -181,7 +181,7 @@ class TestParquetExtractorRollbackAndTransactionalBehavior:
         with zipfile.ZipFile(zip_path, 'w') as zf:
             zf.writestr('doc.csv', 'a;b\n1;2\n')
 
-        def mock_extract_disk_full(*args, **kwargs):
+        def mock_extract_disk_full(*_args, **_kwargs):
             raise DiskFullError('No space left on device')
 
         monkeypatch.setattr(

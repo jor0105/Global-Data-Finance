@@ -3,22 +3,22 @@
 > [!NOTE]
 > Este módulo faz parte da suíte `Global-Data-Finance` e é especializado na extração de alta performance de dados históricos da B3.
 
-O módulo `historical_quotes` implementa uma solução robusta para processar arquivos da série histórica (COTAHIST) da B3. Ele abstrai a complexidade do layout posicional de arquivos legados, oferecendo uma interface moderna e tipada para extração de dados financeiros. Internamente segue o **padrão de módulos planos por fonte** (sem subcamadas `domain`/`application`/`infra`).
+O módulo `historical_quotes` implementa uma solução robusta para processar arquivos da série histórica (COTAHIST) da B3. Ele abstrai a complexidade do layout posicional de arquivos legados, oferecendo uma interface moderna e tipada para extração de dados financeiros. Internamente combina módulos focados por responsabilidade com subpacotes especializados para orquestração do streaming e escrita em Parquet, sem reproduzir camadas genéricas `domain`/`application`/`infra`.
 
 ## 🎯 Objetivos e Valor
 
 - **Abstração de Layout**: Remove a necessidade de conhecer o layout posicional (bytes/offsets) dos arquivos da B3.
 - **Performance**: Utiliza estratégias de leitura otimizada e escrita em formato colunar (Parquet).
 - **Integridade**: Validação estrita de parâmetros de entrada e tratamento de erros específico de domínio.
-- **Filtragem por Tipo de Ativo**: Capacidade de filtrar a extração por tipos de ativos (ações, ETF, opções, etc.).
+- **Filtragem por Classe de Ativo**: Capacidade de filtrar a extração por classes de ativos (ações, ETF, opções, etc.).
 
 ## 🏗️ Arquitetura
 
-Layout plano de ~7–8 módulos:
+Módulos focados e subpacotes especializados:
 
 ```text
 brazil/b3_data/historical_quotes/
-├── models.py              # DocsToExtractorB3 (Value Object)
+├── models.py              # DocsToExtractorB3 (data object)
 ├── filesystem.py          # FileSystemServiceB3 (validação de caminhos e arquivos COTAHIST)
 ├── assets.py              # AvailableAssetsServiceB3
 ├── processing.py          # ExtractionConfigServiceB3, ProcessingModeEnumB3
@@ -27,7 +27,7 @@ brazil/b3_data/historical_quotes/
 ├── cotahist_parser.py     # Parsing posicional COTAHIST (preservado — complexidade legítima)
 ├── parquet_writer/        # Subpacote de escrita Parquet (writer, schema, streaming, disk, constants)
 ├── extraction_service/    # Subpacote de orquestração (service, batch_parser, zip_processor, buffered_writer, resource_policy, temp_parquet_merge, types)
-├── zip_reader.py          # Leitura streaming de ZIP
+├── zip_reader.py          # Leitura streaming de ZIP ou TXT
 └── errors.py              # InvalidFirstYear, InvalidLastYear, InvalidAssetsName, EmptyAssetListError, InvalidProcessingMode, etc.
 ```
 
@@ -39,9 +39,9 @@ brazil/b3_data/historical_quotes/
 | --------------------- | ---------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `client.py`           | `ExtractHistoricalQuotesUseCaseB3` | Orquestrador (classe) | Conecta parser, leitor e escritor. Mantém estado entre chamadas.                                                                                                     |
 | `client.py`           | `CreateDocsToExtractUseCaseB3`     | Use case              | Constrói `DocsToExtractorB3` validado a partir dos parâmetros públicos do facade.                                                                                    |
-| `models.py`           | `DocsToExtractorB3`                | Value object          | Encapsula e valida parâmetros de configuração da extração (anos, assets, paths).                                                                                     |
+| `models.py`           | `DocsToExtractorB3`                | Data object           | Representa a configuração de extração já preparada; não executa validação ao ser construído diretamente.                                                             |
 | `filesystem.py`       | `FileSystemServiceB3`              | Service               | Valida paths (`SecurityError`/`PathPermissionError` antes de I/O) e resolve regex de arquivos oficiais.                                                              |
-| `assets.py`           | `AvailableAssetsServiceB3`         | Service               | Fornece lista de ativos disponíveis e validação de nomes de ativos (tickers).                                                                                        |
+| `assets.py`           | `AvailableAssetsServiceB3`         | Service               | Fornece aliases de classes de ativos e valida os nomes dessas classes (não códigos de negociação individuais como PETR4).                                            |
 | `processing.py`       | `ExtractionConfigServiceB3`        | Service               | Valida modo de processamento (`fast`, `slow`) e sanitiza/formata `output_filename`.                                                                                  |
 | `years.py`            | `YearValidationServiceB3`          | Service               | Implementa validação e lógica de limite temporal para o `range_years`.                                                                                               |
 | `cotahist_parser.py`  | `CotahistParserB3`                 | Parser concreto       | Traduz linhas de texto posicional em dicionários Python estruturados.                                                                                                |
@@ -52,31 +52,28 @@ brazil/b3_data/historical_quotes/
 
 ### Pré-requisitos
 
-Certifique-se de ter os arquivos `COTAHIST_A{ANO}.ZIP` baixados em um diretório acessível.
+Certifique-se de ter os arquivos `COTAHIST_A{ANO}.ZIP` baixados, ou os respectivos arquivos `COTAHIST_A{ANO}.TXT` descompactados, em um diretório acessível. Se os dois formatos do mesmo ano estiverem presentes, o ZIP terá precedência determinística.
 
 ### Exemplo Completo
 
 ```python
 import asyncio
 from globaldatafinance.brazil.b3_data.historical_quotes import (
-    DocsToExtractorB3,
+    CreateDocsToExtractUseCaseB3,
     ExtractHistoricalQuotesUseCaseB3,
 )
 
 
 async def run_extraction():
-    # 1. Configuração da Extração
-    # DocsToExtractorB3 valida automaticamente os tipos e caminhos
-    config = DocsToExtractorB3(
-        path_of_docs='/dados/brutos/b3',  # Onde estão os ZIPs
-        destination_path='/dados/processados',  # Onde salvar o Parquet
-        range_years=range(2023, 2024),  # Anos a considerar
-        set_assets={
-            'ações',
-            'etf',
-        },  # Tipos de ativos (ações, etf, opções, etc.)
-        documents_to_download={'COTAHIST_A2023.ZIP'},  # Arquivos específicos
-    )
+    # 1. Validar a entrada e preparar a configuração
+    # O use case valida os parâmetros e resolve os inputs para caminhos absolutos.
+    config = CreateDocsToExtractUseCaseB3(
+        path_of_docs='/dados/brutos/b3',  # Onde estão os inputs ZIP/TXT
+        destination_path='/dados/processados',
+        assets_list=['ações', 'etf'],
+        initial_year=2023,
+        last_year=2023,
+    ).execute()
 
     # 2. Execução
     use_case = ExtractHistoricalQuotesUseCaseB3()
@@ -100,22 +97,26 @@ if __name__ == '__main__':
 
 ## ⚙️ Referência da API
 
-### `DocsToExtractorB3` (Configuração)
+### `DocsToExtractorB3` (Configuração preparada)
 
-| Campo                   | Tipo       | Descrição                                                                                                                                                                 |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path_of_docs`          | `str`      | Caminho absoluto para o diretório contendo os arquivos ZIP.                                                                                                               |
-| `destination_path`      | `str`      | Caminho absoluto onde o arquivo Parquet será salvo.                                                                                                                       |
-| `range_years`           | `range`    | Intervalo de anos para validação (ex: `range(2020, 2024)`).                                                                                                               |
-| `set_assets`            | `set[str]` | Conjunto de tipos de ativos para filtrar (ex: `{"ações", "etf", "opções"}`). Valores válidos: `ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`. |
-| `documents_to_download` | `set[str]` | Nomes exatos dos arquivos ZIP a serem processados.                                                                                                                        |
+`DocsToExtractorB3` é um objeto de dados e não valida a construção direta. Use
+`CreateDocsToExtractUseCaseB3` para validar os parâmetros públicos e preencher
+`documents_to_download` com os caminhos absolutos encontrados no diretório.
+
+| Campo                   | Tipo       | Descrição                                                                                                                                                                                       |
+| ----------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path_of_docs`          | `str`      | Caminho absoluto para o diretório contendo arquivos COTAHIST ZIP ou TXT.                                                                                                                        |
+| `destination_path`      | `str`      | Caminho absoluto onde o arquivo Parquet será salvo.                                                                                                                                             |
+| `range_years`           | `range`    | Intervalo de anos para validação (ex: `range(2020, 2024)`).                                                                                                                                     |
+| `set_assets`            | `set[str]` | Conjunto de tipos de ativos para filtrar (ex: `{"ações", "etf", "opções"}`). Valores válidos: `ações`, `etf`, `opções`, `termo`, `exercicio_opcoes`, `forward`, `leilao`.                       |
+| `documents_to_download` | `set[str]` | Caminhos absolutos dos arquivos COTAHIST ZIP/TXT selecionados pelo `FileSystemServiceB3`; o `CreateDocsToExtractUseCaseB3` preenche este campo. Construção direta exige caminhos já resolvidos. |
 
 ### Tratamento de Erros
 
 O módulo expõe exceções específicas em `globaldatafinance.brazil.b3_data.historical_quotes.errors` (re-exportadas pelo `__init__.py` da fonte):
 
 - `InvalidFirstYear` / `InvalidLastYear`: erros de validação de intervalo temporal.
-- `InvalidAssetsName`: ticker fornecido não segue o padrão esperado.
+- `InvalidAssetsName`: alias de classe de ativo não é reconhecido.
 - `EmptyAssetListError`: tentativa de processamento com lista de ativos inválida.
 - `InvalidProcessingMode`: `processing_mode` fora de `{'fast', 'slow'}`.
 - `InvalidOutputFilename`: tentativa de uso de nome de arquivo de saída inválido (vazio/somente espaços).
@@ -123,8 +124,10 @@ O módulo expõe exceções específicas em `globaldatafinance.brazil.b3_data.hi
 
 ## 🔧 Troubleshooting
 
-> [!WARNING] > **Erro: Arquivo não encontrado**
-> Verifique se o nome do arquivo em `documents_to_download` corresponde exatamente ao arquivo no disco (case-sensitive no Linux).
+> [!WARNING]
+> **Erro: Arquivo não encontrado**
+> Verifique se cada caminho absoluto em `documents_to_download` aponta para um arquivo COTAHIST existente; para obter essa configuração com segurança, use `CreateDocsToExtractUseCaseB3`.
 
-> [!TIP] > **Performance**
+> [!TIP]
+> **Performance**
 > Para grandes volumes de dados (todos os ativos de vários anos), prefira processar ano a ano ou utilizar máquinas com mais memória RAM se usar o modo `fast`.

@@ -1,3 +1,5 @@
+"""Read CSV members from ZIP archives using a compatible text encoding."""
+
 import zipfile
 from io import BytesIO
 from typing import IO
@@ -11,6 +13,8 @@ logger = get_logger(__name__)
 
 
 class ReadFilesAdapter:
+    """Provide low-level CSV reading helpers for archive adapters."""
+
     @staticmethod
     def read_csv_test_encoding(
         zip_file: zipfile.ZipFile, csv_filename: str
@@ -46,9 +50,17 @@ class ReadFilesAdapter:
             except (UnicodeDecodeError, LookupError) as err:
                 last_error = err
                 continue
-            except Exception as e:
-                last_error = e
-                logger.debug(f'Test read failed for {csv_filename}: {e}')
+            except (
+                OSError,
+                KeyError,
+                EOFError,
+                zipfile.BadZipFile,
+                zipfile.LargeZipFile,
+                pd.errors.ParserError,
+                pd.errors.EmptyDataError,
+            ) as err:
+                last_error = err
+                logger.debug('Test read failed for %s: %s', csv_filename, err)
                 continue
         raise ExtractionError(
             csv_filename,
@@ -60,6 +72,7 @@ class ReadFilesAdapter:
     def read_csv_chunk_size(
         text_wrapper: IO[str], chunk_size: int
     ) -> pd.DataFrame:
+        """Read a CSV stream in pandas chunks using the project delimiter."""
         return pd.read_csv(
             text_wrapper,
             sep=';',

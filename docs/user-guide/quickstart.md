@@ -9,7 +9,7 @@ ______________________________________________________________________
 Antes de começar, certifique-se de que você:
 
 - ✅ Instalou o Global-Data-Finance ([ver guia de instalação](installation.md))
-- ✅ Possui Python 3.12 ou superior
+- ✅ Possui Python >=3.12,<4.0
 - ✅ Tem acesso à internet para downloads
 
 ______________________________________________________________________
@@ -43,18 +43,18 @@ cvm.download(
 
 ### Saída Esperada
 
-```
-📥 Download de Documentos CVM
+```text
+📥 CVM Documents Download
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Documentos baixados com sucesso!
+✓ Documents downloaded successfully!
 
-📊 Resumo:
-  • Total de arquivos: 2
-  • Sucesso: 2
-  • Erros: 0
-  • Tempo decorrido: 45.3s
+📊 Summary:
+  • Total files: 2
+  • Success: 2
+  • Errors: 0
+  • Elapsed time: 45.3s
 
-📁 Arquivos baixados:
+📁 Downloaded files:
   ✓ DFP - 2022
   ✓ DFP - 2023
 ```
@@ -64,6 +64,11 @@ ______________________________________________________________________
 ## Segundo Exemplo: Cotações Históricas B3
 
 Agora vamos extrair cotações históricas da B3 (Bolsa de Valores do Brasil).
+
+!!! note "Obtenção dos Arquivos COTAHIST da B3"
+
+    Diferente dos dados CVM que são baixados via HTTP pela biblioteca, as cotações históricas da B3 são fornecidas em arquivos anuais no portal oficial da B3 ([Cotações Históricas B3](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/)).
+    Baixe os arquivos anuais no formato oficial `COTAHIST_A{YYYY}.ZIP` (por exemplo, `COTAHIST_A2023.ZIP` e `COTAHIST_A2024.ZIP`) e coloque-os no diretório de entrada desejado (ex: `/home/usuario/cotahist_zips`). `path_of_docs` é esse diretório de entrada existente; a biblioteca não baixa nem o preenche automaticamente. O extrator também aceita o TXT descompactado `COTAHIST_A{YYYY}.TXT`; quando ZIP e TXT do mesmo ano coexistem, o ZIP é escolhido.
 
 ### Código Básico
 
@@ -86,25 +91,25 @@ result = b3.extract(
 ### O que acontece?
 
 1. **Criação do cliente**: Inicializa o cliente B3
-2. **Extração**: Processa arquivos COTAHIST ZIP e extrai dados de ações
-3. **Conversão**: Converte para formato Parquet otimizado
-4. **Resultado**: Arquivo `.parquet` com todas as cotações
+1. **Extração**: Processa arquivos COTAHIST (ZIP ou TXT) e extrai dados da classe de ações nos mercados à vista (010) e fracionário (020)
+2. **Conversão**: Converte para formato Parquet otimizado
+3. **Resultado**: Arquivo `.parquet` com todas as cotações
 
 ### Saída Esperada
 
-```
-📊 Extração de Cotações B3
+```text
+📊 B3 Historical Quotes Extraction
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ Extração concluída com sucesso!
+✓ Extraction completed successfully!
 
-📈 Resumo:
-  • Arquivos processados: 2
-  • Total de registros: 836,978
-  • Classes de ativos: ações
-  • Modo de processamento: fast
-  • Tempo decorrido: 77.9s
+📈 Summary:
+  • Processed files: 2
+  • Total records: 836,978
+  • Asset classes: ações
+  • Processing mode: fast
+  • Elapsed time: 77.9s
 
-💾 Arquivo gerado:
+💾 Generated file:
   /home/usuario/cotacoes_extraidas/cotahist_extracted.parquet
 ```
 
@@ -128,7 +133,7 @@ for code, description in docs.items():
 
 # Verificar anos disponíveis
 years = cvm.get_available_years()
-print(f"\nDados disponíveis de {years['General Document Years']} até {years['Current Year']}")
+print(f"\nDados disponíveis de {years.general_min_year} até {years.current_year}")
 ```
 
 **Saída**:
@@ -226,9 +231,9 @@ if result['success']:
     print(f"✓ Arquivo de cotações: {result['output_file']}")
 else:
     print(f"✗ Houve erros durante a extração")
-    if 'errors' in result:
-        for error in result['errors']:
-            print(f"  • {error}")
+    if 'errors' in result and result['errors']:
+        for file_name, message in result['errors'].items():
+            print(f"  • {file_name}: {message}")
 ```
 
 ______________________________________________________________________
@@ -251,7 +256,7 @@ print(df.head())
 # Informações sobre o dataset
 print(f"\nTotal de registros: {len(df):,}")
 print(f"Colunas: {list(df.columns)}")
-print(f"Período: {df['data'].min()} a {df['data'].max()}")
+print(f"Período: {df['data_pregao'].min()} a {df['data_pregao'].max()}")
 ```
 
 ### Com Polars (Mais Rápido)
@@ -273,13 +278,16 @@ ______________________________________________________________________
 ## Dicas para Iniciantes
 
 !!! tip "Comece Pequeno"
-Ao testar pela primeira vez, use intervalos de anos pequenos (ex: 1-2 anos) para entender o comportamento da biblioteca antes de fazer downloads grandes.
+
+    Ao testar pela primeira vez, use intervalos de anos pequenos (ex: 1-2 anos) para entender o comportamento da biblioteca antes de fazer downloads grandes.
 
 !!! tip "Use Modo Fast"
-Para extração de cotações B3, o modo `"fast"` é recomendado na maioria dos casos, oferecendo melhor performance.
+
+    Para extração de cotações B3, o modo `"fast"` é recomendado na maioria dos casos, oferecendo melhor performance.
 
 !!! tip "Verifique Espaço em Disco"
-Documentos CVM e cotações históricas podem ocupar bastante espaço. Certifique-se de ter espaço suficiente antes de baixar muitos anos.
+
+    Documentos CVM e cotações históricas podem ocupar bastante espaço. Certifique-se de ter espaço suficiente antes de baixar muitos anos.
 
 ______________________________________________________________________
 
@@ -295,4 +303,5 @@ Agora que você conhece o básico, explore:
 ______________________________________________________________________
 
 !!! success "Parabéns!"
-Você completou o guia de início rápido! Agora você está pronto para explorar todo o potencial do Global-Data-Finance. 🚀
+
+    Você completou o guia de início rápido! Agora você está pronto para explorar todo o potencial do Global-Data-Finance. 🚀

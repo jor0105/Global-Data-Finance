@@ -1,3 +1,5 @@
+"""High-level Parquet writer for B3 historical quote records."""
+
 import gc
 import tempfile
 from pathlib import Path
@@ -36,6 +38,7 @@ class ParquetWriterB3:
     MIN_FREE_SPACE_MB = 100
 
     def __init__(self, resource_monitor: ResourceMonitor | None = None):
+        """Initialize the writer with an optional resource monitor."""
         if pl is None:
             raise ImportError(
                 'polars is required for ParquetWriterB3. '
@@ -65,6 +68,7 @@ class ParquetWriterB3:
         output_path: Path,
         mode: str = 'overwrite',
     ) -> None:
+        """Write records using overwrite or append semantics as requested."""
         if not data:
             logger.warning('No data to write to Parquet')
             return
