@@ -9,11 +9,6 @@
 
 ______________________________________________________________________
 
-> **Status do release:** Esta documentação descreve o alvo local de
-> desenvolvimento/release `0.2.0`. A versão atualmente publicada no PyPI ainda
-> é `0.1.4`; esta branch não foi publicada. Remova esta nota após o release de
-> `v0.2.0`.
-
 ## 🎯 O que este sistema oferece?
 
 **Global-Data-Finance** é uma biblioteca Python que permite extrair e processar dados financeiros de forma profissional e escalável:
@@ -401,6 +396,9 @@ Quer adicionar uma nova fonte suportada ou melhorar a performance?
 
 [Guia completo de contribuição →](dev-guide/contributing.md)
 
+Para o ponto de entrada rápido, consulte o
+[CONTRIBUTING.md no repositório](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/CONTRIBUTING.md).
+
 ______________________________________________________________________
 
 ## 📞 Suporte
@@ -408,6 +406,8 @@ ______________________________________________________________________
 - 📧 **Email**: estraliotojordan@gmail.com
 - 🐛 **Bugs**: [GitHub Issues](https://github.com/jordanestralioto/Global-Data-Finance/issues)
 - 💬 **Discussões**: [GitHub Discussions](https://github.com/jordanestralioto/Global-Data-Finance/discussions)
+- 🔒 **Segurança**: consulte a [Política de Segurança](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/SECURITY.md) e não publique vulnerabilidades em issues.
+- 🤝 **Comunidade**: siga o [Código de Conduta](https://github.com/jordanestralioto/Global-Data-Finance/blob/develop/CODE_OF_CONDUCT.md).
 - 📖 **Documentação**: [https://jordanestralioto.github.io/Global-Data-Finance/](https://jordanestralioto.github.io/Global-Data-Finance/)
 
 ______________________________________________________________________

@@ -1,11 +1,10 @@
-"""Tests for the package's public exports and version resolution."""
+"""Tests for the package's public exports."""
 
 from __future__ import annotations
 
-import ast
+# allow-assertion-reduction: Remove assertions for the intentionally deleted
+# runtime version contract.
 import importlib
-import importlib.metadata
-import importlib.util
 import runpy
 import sys
 from pathlib import Path
@@ -18,11 +17,9 @@ EXPECTED_ROOT_EXPORTS = [
     'ExtractionResultB3',
     'FundamentalStocksDataCVM',
     'HistoricalQuotesB3',
-    '__version__',
 ]
 EXPORT_MODULES = (
     'globaldatafinance',
-    'globaldatafinance._version',
     'globaldatafinance.application',
     'globaldatafinance.application.b3_docs',
     'globaldatafinance.application.b3_docs.result_formatters',
@@ -95,35 +92,6 @@ def test_root_all_and_facade_identities() -> None:
     assert package.HistoricalQuotesB3 is application.HistoricalQuotesB3
 
 
-def test_root_version_matches_installed_metadata() -> None:
-    package = importlib.import_module('globaldatafinance')
-
-    assert package.__version__ == importlib.metadata.version(
-        'globaldatafinance'
-    )
-
-
-def test_version_module_uses_source_tree_fallback(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    version_path = SOURCE_ROOT / 'globaldatafinance' / '_version.py'
-
-    def missing_distribution(_: str) -> str:
-        raise importlib.metadata.PackageNotFoundError('globaldatafinance')
-
-    monkeypatch.setattr(importlib.metadata, 'version', missing_distribution)
-    spec = importlib.util.spec_from_file_location(
-        'globaldatafinance_test_version', version_path
-    )
-    if spec is None or spec.loader is None:
-        pytest.fail(f'Unable to load version module from {version_path}')
-
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-    assert module.__version__ == '0.2.0'
-
-
 def test_root_import_works_without_dotenv(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -173,26 +141,3 @@ def test_star_import_exposes_only_declared_names(
         if not name.startswith('__') or name in module.__all__
     }
     assert imported_names == set(module.__all__)
-
-
-def test_version_module_has_no_application_imports() -> None:
-    version_source = (
-        SOURCE_ROOT / 'globaldatafinance' / '_version.py'
-    ).read_text(encoding='utf-8')
-    tree = ast.parse(version_source)
-    imported_modules = [
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module is not None
-    ]
-    imported_modules.extend(
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Import)
-        for alias in node.names
-    )
-
-    assert all(
-        not module_name.startswith('globaldatafinance')
-        for module_name in imported_modules
-    )

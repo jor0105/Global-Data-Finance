@@ -1,6 +1,6 @@
 [project]
 name = "globaldatafinance"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Library for extracting, normalizing and persisting Brazilian CVM regulatory filings and B3 historical market quotes in Parquet."
 readme = "README.md"
 license = "Apache-2.0"
@@ -64,8 +64,15 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^v(?P<version>.+)$"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/globaldatafinance"]
@@ -163,6 +170,12 @@ quote-style = "single"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { git = { commit = true, tags = true } },
+]
 
 [tool.uv.sources]
 globaldatafinance = { workspace = true }

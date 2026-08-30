@@ -148,17 +148,14 @@ Após a instalação, verifique se tudo está funcionando corretamente:
 ✓ Global-Data-Finance instalado com sucesso!
 ```
 
-### 2. Verificar Versão
+### 2. Consultar a Versão Instalada
 
 ```pycon
->>> import globaldatafinance
->>> print(globaldatafinance.__version__)
-0.2.0
+>>> from importlib.metadata import version
+>>> print(version("globaldatafinance"))
 ```
 
-O valor `0.2.0` acima é o alvo local de desenvolvimento/release documentado
-por esta branch. A versão atualmente publicada no PyPI ainda é `0.1.4`, então
-uma instalação via PyPI pode informar `0.1.4` até o release de `v0.2.0`.
+A saída reflete a metadata da distribuição efetivamente instalada.
 
 ### 3. Teste Básico
 

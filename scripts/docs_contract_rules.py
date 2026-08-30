@@ -16,7 +16,6 @@ KNOWN_IMPORTS: dict[str, set[str]] = {
         'FundamentalStocksDataCVM',
         'HistoricalQuotesB3',
         'ExtractionResultB3',
-        '__version__',
     },
     'globaldatafinance.core': {
         'ResourceLimits',

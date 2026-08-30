@@ -137,11 +137,17 @@ ou atualização de versões: `uv lock --check` apenas comprova a coerência atu
 do lockfile. O hook `pre-push` executa as verificações mais caras de tipos,
 cobertura e vulnerabilidades antes de publicar uma branch.
 
+O hook local do Gitleaks verifica somente o conteúdo staged para manter o
+feedback de commit rápido. A CI executa uma varredura adicional em modo de
+diretório sobre um checkout limpo, portanto ela não depende de haver arquivos
+staged. O `pip-audit` permanece fora do estágio `pre-commit` rápido e é
+executado na validação mais pesada de `pre-push` e da CI.
+
 Quando uma dependência precisar mudar, faça isso explicitamente, revise o
 diff de `uv.lock`, sincronize o ambiente e só então faça o commit:
 
 ```bash
-uv lock
+uv lock --upgrade
 uv sync --locked --all-extras --dev
 git add pyproject.toml uv.lock
 ```

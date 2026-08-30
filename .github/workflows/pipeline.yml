@@ -16,6 +16,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gitleaks-checkout:
+    name: Gitleaks Checkout Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803  # v6
+        with:
+          persist-credentials: false
+
+      # Gitleaks v8.30.0 source tag object:
+      # 2ca41cc1372d1e939a6a879f18cdc19fc1cac1ce (the frozen local hook pin).
+      # The published OCI image is pinned by digest, not by a mutable tag.
+      - name: Scan clean checkout with Gitleaks
+        uses: >-
+          docker://ghcr.io/gitleaks/gitleaks@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9
+        with:
+          args: >-
+            dir . --config=.gitleaks.toml --redact --no-banner
+            --log-level=error
+
   quality:
     name: Lint, format, tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest

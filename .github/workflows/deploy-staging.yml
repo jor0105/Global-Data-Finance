@@ -29,6 +29,7 @@ jobs:
         with:
           persist-credentials: false
           ref: ${{ github.event.inputs.git_ref || github.sha }}
+          fetch-depth: 0
 
       # v7
       - name: Set up Python 3.12

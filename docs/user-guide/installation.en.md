@@ -149,17 +149,15 @@ After installation completes, run these quick smoke tests to confirm functional 
 ✓ Global-Data-Finance successfully installed and imported!
 ```
 
-### 2. Check Package Version
+### 2. Check the Installed Version
 
 ```pycon
->>> import globaldatafinance
->>> print(globaldatafinance.__version__)
-0.2.0
+>>> from importlib.metadata import version
+>>> print(version("globaldatafinance"))
 ```
 
-The `0.2.0` value above is the local development/release target documented by
-this branch. The currently published PyPI release is still `0.1.4`, so an
-installation from PyPI may report `0.1.4` until `v0.2.0` is released.
+The output reflects the metadata of the distribution that is actually
+installed.
 
 ### 3. Basic Inspection Test
 

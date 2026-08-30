@@ -561,7 +561,6 @@ wheels = [
 
 [[package]]
 name = "globaldatafinance"
-version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx", extra = ["http2"] },

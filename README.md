@@ -10,14 +10,9 @@
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 
-[Official Documentation](https://jordanestralioto.github.io/Global-Data-Finance/) • [Installation](#-installation) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [Contributing](#-contributing)
+[Official Documentation](https://jordanestralioto.github.io/Global-Data-Finance/) • [Installation](#-installation) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md) • [Code of Conduct](CODE_OF_CONDUCT.md)
 
 </div>
-
-> **Release status:** This branch targets package version `0.2.0`. The current
-> published PyPI release is still `0.1.4`; this branch has not been published
-> and this update does not create a GitHub release or publish to PyPI. Remove
-> this note after `v0.2.0` is released.
 
 ______________________________________________________________________
 
@@ -329,6 +324,11 @@ Contributions are very welcome! If you wish to add new data sources, improve per
 
 See the [Contributing Guide](https://jordanestralioto.github.io/Global-Data-Finance/dev-guide/contributing/) for more details.
 
+The repository's quick contribution entry point is
+[CONTRIBUTING.md](CONTRIBUTING.md). Security reports must follow
+[SECURITY.md](SECURITY.md), and community participation follows the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
 ______________________________________________________________________
 
 ## 📄 License
@@ -343,6 +343,8 @@ ______________________________________________________________________
 - **GitHub**: [@jordanestralioto](https://github.com/jordanestralioto)
 - **Email**: estraliotojordan@gmail.com
 - **Issues**: [Report Bug](https://github.com/jordanestralioto/Global-Data-Finance/issues)
+- **Security**: [Security Policy](SECURITY.md)
+- **Community**: [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ______________________________________________________________________
 
