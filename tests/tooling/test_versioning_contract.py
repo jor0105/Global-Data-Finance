@@ -6,8 +6,13 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 REPOSITORY_ROOT = Path(__file__).parents[2]
 PYPROJECT_PATH = REPOSITORY_ROOT / 'pyproject.toml'
+
+
+pytestmark = pytest.mark.unit
 
 
 def _load_project_configuration() -> dict[str, Any]:

@@ -3,6 +3,8 @@ import importlib
 import pytest
 from pydantic import ValidationError
 
+pytestmark = pytest.mark.unit
+
 
 def test_defaults_imported_settings():
     from globaldatafinance.core import config
@@ -143,3 +145,68 @@ def test_settings_loads_dotenv_when_requested_explicitly(
     assert settings.debug is True
     assert settings.network.timeout == 240
     assert settings.network.max_retries == 4
+
+
+def test_archive_and_unc_defaults_are_safe() -> None:
+    """Global archive limits and the UNC allowlist start from safe defaults."""
+    from globaldatafinance.core.config import Settings
+
+    settings = Settings()
+
+    assert settings.path_safety.allowed_unc_roots == []
+    assert settings.archive.max_archive_bytes == 2 * 1024**3
+    assert settings.archive.max_members == 10_000
+    assert settings.archive.max_member_uncompressed_bytes == 2 * 1024**3
+    assert settings.archive.max_total_uncompressed_bytes == 8 * 1024**3
+    assert settings.archive.max_compression_ratio == 200.0
+
+
+def test_archive_and_unc_environment_values_are_typed(monkeypatch) -> None:
+    """Configured archive caps and UNC roots are parsed without dotenv use."""
+    from globaldatafinance.core.config import Settings
+
+    monkeypatch.setenv('DATAFINANCE_ARCHIVE_MAX_MEMBERS', '7')
+    monkeypatch.setenv('DATAFINANCE_ARCHIVE_MAX_COMPRESSION_RATIO', '17.5')
+    monkeypatch.setenv(
+        'DATAFINANCE_PATH_SAFETY_ALLOWED_UNC_ROOTS',
+        '["\\\\\\\\fileserver\\\\finance\\\\trusted"]',
+    )
+
+    settings = Settings()
+
+    assert settings.archive.max_members == 7
+    assert settings.archive.max_compression_ratio == 17.5
+    assert settings.path_safety.allowed_unc_roots == [
+        r'\\fileserver\finance\trusted'
+    ]
+
+
+@pytest.mark.parametrize(
+    ('settings_type', 'kwargs'),
+    [
+        ('ArchiveSafetySettings', {'max_members': 0}),
+        (
+            'ArchiveSafetySettings',
+            {
+                'max_member_uncompressed_bytes': 10,
+                'max_total_uncompressed_bytes': 9,
+            },
+        ),
+        ('PathSafetySettings', {'allowed_unc_roots': ['C:/safe']}),
+        ('PathSafetySettings', {'allowed_unc_roots': [r'\\server\C$']}),
+        (
+            'PathSafetySettings',
+            {'allowed_unc_roots': [r'\\server\share\trusted\..\other']},
+        ),
+    ],
+)
+def test_archive_and_unc_settings_reject_unsafe_values(
+    settings_type: str, kwargs: dict[str, object]
+) -> None:
+    """Invalid resource limits and privilege-bearing UNC roots fail closed."""
+    from globaldatafinance.core import config
+
+    configured_type = getattr(config, settings_type)
+
+    with pytest.raises(ValidationError):
+        configured_type(**kwargs)

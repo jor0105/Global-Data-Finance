@@ -16,7 +16,7 @@ ______________________________________________________________________
 ✅ **Fontes atuais**: documentos regulatórios brasileiros da CVM e cotações históricas da B3
 ✅ **Processamento otimizado**: Downloads assíncronos (`httpx[http2]`) com concorrência adaptativa por CPU/RAM
 ✅ **Formato eficiente**: Extração nativa para Parquet (Pandas/Polars ready)
-✅ **Robustez integrada**: Retries com back-off, validação de integridade e rollback atômico
+✅ **Robustez integrada**: Retries com back-off, validação de integridade e commit em lote CVM tolerante a falhas
 ✅ **Ownership claro por fonte**: módulos específicos permanecem nas pastas de CVM e B3, enquanto preocupações genéricas ficam em `core/`, `macro_infra/` e `macro_exceptions/`.
 
 As verificações atuais de arquivos baixados cobrem segurança do path, tamanho
@@ -229,6 +229,7 @@ ______________________________________________________________________
 - **[Como Contribuir](dev-guide/contributing.md)** - Guia de contribuição
 - **[Testes](dev-guide/testing.md)** - Estratégias de teste e cobertura
 - **[Benchmarks](dev-guide/benchmarks.md)** - Métricas reproduzíveis de tempo, memória e volume
+- **[Decisões técnicas](decisions/test-execution-tiers.md)** - Contrato de tiers de execução e validação local do COTAHIST
 - **[Uso Avançado](dev-guide/advanced-usage.md)** - Técnicas avançadas e otimizações
 - **[Sistema de Logging](dev-guide/logging-system.md)** - Configurações e práticas de logs estruturados
 - **[Monitoramento de Recursos](dev-guide/resource-monitoring.md)** - Monitoramento adaptativo de CPU e memória

@@ -48,19 +48,21 @@ globaldatafinance/
 │   │   │       ├── filesystem.py              # FileSystemServiceB3.validate_directory_path
 │   │   │       ├── errors.py                  # source-specific exception definitions
 │   │   │       ├── zip_reader.py              # COTAHIST ZIP/TXT discovery and streaming
+│   │   │       ├── catalog.py                 # strict caller-owned input catalog
 │   │   │       ├── cotahist_parser.py         # fixed-width positional parser (isolated domain module)
 │   │   │       ├── parquet_writer/            # subpackage: Parquet compiler and writer
 │   │   │       └── extraction_service/        # subpackage: thread-pool streaming orchestration
 │   │   └── cvm/
-│   │       └── fundamental_stocks_data/   # flat module layout (5 core modules + 2 helpers)
+│   │       └── fundamental_stocks_data/   # focused modules by responsibility
 │   │           ├── core.py                    # AvailableYearsCVM, AvailableYearsInfoCVM, DictZipsToDownloadCVM, DownloadResultCVM, validate_docs_name
-│   │           ├── client.py                  # DownloadDocumentsUseCaseCVM, GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM
+│   │           ├── client.py                  # public queries, orchestration, and destination validation
 │   │           ├── http.py                    # AsyncDownloadAdapterCVM (async httpx + retry + integrity check)
 │   │           ├── extract.py                 # ParquetExtractorAdapterCVM
+│   │           ├── transaction.py             # failure-atomic CVM batch commit
 │   │           ├── download_validation.py     # validate_downloaded_file, validate_parquet_files, find_parquet_files
 │   │           ├── download_extraction.py     # extract_downloaded_file (orchestrates extraction + validation)
 │   │           └── errors.py                  # source-specific exception definitions
-│   ├── core/                        # cross-cutting infrastructure utilities
+│   ├── core/                        # config, ZIP/path safety, and shared utilities
 │   ├── macro_infra/                 # shared generic HTTP and filesystem adapters
 │   └── macro_exceptions/            # root project exception hierarchy
 ├── tests/                           # pytest suites mirroring src structure
@@ -72,8 +74,11 @@ ______________________________________________________________________
 
 ## Source Module Patterns
 
-B3 input follows the `COTAHIST_A{YYYY}.ZIP` or `.TXT` naming contract; the
-reader streams the TXT entry inside a ZIP or the uncompressed TXT file.
+B3 input follows the external `COTAHIST_A{YYYY}.ZIP` or `.TXT` naming
+contract; the reader streams the TXT entry inside a ZIP or the uncompressed
+TXT file. The internal member accepts modern `COTAHIST_A{YYYY}.TXT`,
+historical `COTAHIST.A{YYYY}`, and extensionless historical
+`COTAHIST_A{YYYY}` layouts, and must match the external year.
 
 CVM and B3 are the current source implementations: CVM is owned by
 `brazil/cvm/fundamental_stocks_data/`, and B3 is owned by
@@ -90,8 +95,23 @@ match them.
 | HTTP network adaptation      | `http.py` (`AsyncDownloadAdapterCVM`)              | (N/A — COTAHIST ingestion operates on localized ZIP/TXT files via `zip_reader.py`)     |
 | Extraction / Parquet writer  | `extract.py` (`ParquetExtractorAdapterCVM`)        | `parquet_writer/` (subpackage)                                                         |
 | Format schema parser         | —                                                  | `cotahist_parser.py`                                                                   |
+| Input catalog                | —                                                  | `catalog.py`                                                                           |
 | Validation helpers           | `download_validation.py`, `download_extraction.py` | Embedded inside `filesystem.py` / `client.py`                                          |
 | Exception definitions        | `errors.py`                                        | `errors.py`                                                                            |
+
+### Shared safety and source commits
+
+`core/archive_safety.py` owns the generic ZIP policy used by both sources:
+configurable limits, central-directory validation, and a count of bytes
+actually decompressed. `core/utils/path_safety.py` validates a caller-provided
+destination before directories are created. Naming rules remain in their
+owners: CSV in CVM and COTAHIST in B3.
+
+CVM keeps `transaction.py` as an internal extraction detail. It stages work on
+the same filesystem, validates every staged Parquet, prepares backups for
+existing targets, and applies or restores replacements in deterministic order.
+The result is a **failure-atomic, recoverable batch commit**, not an instantly
+atomic replacement of a caller-owned directory.
 
 Auxiliary utility classes or helper functions remain internal to their module unless explicitly consumed across boundaries — the true unit of extensibility in the codebase is the *source implementation*, not abstract object hierarchies.
 
@@ -121,12 +141,21 @@ from ...brazil.cvm.fundamental_stocks_data import (
     # ...
 )
 
+
 class FundamentalStocksDataCVM:
     def __init__(self):
         self.download_adapter = AsyncDownloadAdapterCVM(...)
-        self.__download_use_case = DownloadDocumentsUseCaseCVM(self.download_adapter)
+        self.__download_use_case = DownloadDocumentsUseCaseCVM(
+            self.download_adapter
+        )
 
-    def download(self, destination_path, list_docs=None, initial_year=None, last_year=None):
+    def download(
+        self,
+        destination_path,
+        list_docs=None,
+        initial_year=None,
+        last_year=None,
+    ):
         result = self.__download_use_case.execute(
             destination_path=destination_path,
             list_docs=list_docs,
@@ -164,7 +193,13 @@ class DownloadDocumentsUseCaseCVM:
         self.__repository: AsyncDownloadAdapterCVM = repository
         # ...
 
-    def execute(self, destination_path, list_docs=None, initial_year=None, last_year=None) -> DownloadResultCVM:
+    def execute(
+        self,
+        destination_path,
+        list_docs=None,
+        initial_year=None,
+        last_year=None,
+    ) -> DownloadResultCVM:
         start_time = time.time()
         # ... orchestration tasks ...
         result = self.__repository.download_docs(tasks)
@@ -197,15 +232,15 @@ Most operations are modeled as clean module-level functions or concise classes f
 
 ```python
 # Pure operational helper in client.py
-def generate_range_years(initial_year: int | None, last_year: int | None) -> list[int]:
-    ...
+def generate_range_years(
+    initial_year: int | None, last_year: int | None
+) -> list[int]: ...
+
 
 # Stateful orchestration use case
 class ExtractHistoricalQuotesUseCaseB3:
-    def __init__(self, zip_reader, parser, writer, processing_mode):
-        ...
-    def execute(self, paths_of_docs, docs_to_extract):
-        ...
+    def __init__(self, zip_reader, parser, writer, processing_mode): ...
+    def execute(self, paths_of_docs, docs_to_extract): ...
 ```
 
 ### Direct and Concrete Adapters
@@ -336,14 +371,22 @@ tests/
 │   │   ├── infra/adapters/           # unit tests for concrete I/O adapters (http.py, extract.py)
 │   │   ├── exceptions/               # test suites verifying custom exception triggers (errors.py)
 │   │   └── integration/              # integration test markers
-│   └── b3_data/historical_quotes/    # flat test layout: test_*.py scripts within folder
+│   └── b3_data/historical_quotes/
+│       ├── test_*.py                  # domain and facade topics
+│       ├── extraction_service/        # service, parser, resources, merge
+│       ├── parquet_writer/            # Parquet writing and streaming
+│       └── integration/               # opt-in local COTAHIST
 └── application/
     ├── cvm_docs/   # unit tests covering public facades
     └── b3_docs/
         └── result_formatters/
 ```
 
-Subdirectories inside the CVM testing hierarchy are strictly **organizational** (grouping files by topic to maximize scannability) rather than strict architectural assertions—test routines import directly from source modules via `from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import ...`.
+Test subdirectories are organizational and source-shaped; they do not create
+runtime layers. B3 separates the extraction service, Parquet writer, and local
+integration because those topics have different contracts and operational
+costs. Deterministic integrations create their own files; `real_data`
+integration uses caller-owned COTAHIST only and is opt-in.
 
 ### Mock and Stub Strategies
 

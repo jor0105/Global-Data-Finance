@@ -8,8 +8,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-from git_changes import GitInspectionError, get_changed_paths, read_git_file
-from process_runner import ProcessRunnerError, run_process
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.git_changes import (
+    GitInspectionError,
+    get_changed_paths,
+    read_git_file,
+)
+from scripts.process_runner import ProcessRunnerError, run_process
 
 SHELL_SUFFIXES = frozenset({'.bash', '.sh'})
 SHELL_INTERPRETERS = frozenset({'bash', 'sh', 'dash'})

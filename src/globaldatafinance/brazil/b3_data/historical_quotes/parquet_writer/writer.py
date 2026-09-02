@@ -1,18 +1,17 @@
 """High-level Parquet writer for B3 historical quote records."""
 
+import contextlib
 import gc
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
-try:
-    import polars as pl
-except ImportError:
-    pl = None  # type: ignore[assignment]
+import polars as pl
 
 from .....core import ResourceMonitor, ResourceState, get_logger
 from .....macro_exceptions import DiskFullError, ParquetWriteError
 from .constants import (
+    APPEND_TEMP_SUFFIX,
     CHUNK_RECORD_COUNT,
     MEMORY_SPLIT_RECORD_THRESHOLD,
     PARQUET_COMPRESSION,
@@ -32,19 +31,22 @@ from .streaming import (
 logger = get_logger(__name__)
 
 
+class _ResourceMonitorLike(Protocol):
+    """Structural dependency used by the writer's resource policy."""
+
+    def check_resources(self) -> ResourceState:
+        """Return the current resource state before a write phase."""
+
+
 class ParquetWriterB3:
     """Writer for saving B3 historical quotes in Parquet format."""
 
     MIN_FREE_SPACE_MB = 100
 
-    def __init__(self, resource_monitor: ResourceMonitor | None = None):
+    def __init__(
+        self, resource_monitor: _ResourceMonitorLike | None = None
+    ) -> None:
         """Initialize the writer with an optional resource monitor."""
-        if pl is None:
-            raise ImportError(
-                'polars is required for ParquetWriterB3. '
-                'Install it with: pip install polars'
-            )
-
         self.resource_monitor = resource_monitor or ResourceMonitor()
         logger.debug(
             'ParquetWriterB3 initialized with memory-safe optimizations'
@@ -272,7 +274,13 @@ class ParquetWriterB3:
             await self._append_with_streaming(df, output_path)
             return
 
-        self._write_dataframe(df, output_path)
+        temporary_output = output_path.with_suffix(APPEND_TEMP_SUFFIX)
+        try:
+            self._write_dataframe(df, temporary_output)
+            temporary_output.replace(output_path)
+        finally:
+            with contextlib.suppress(OSError):
+                temporary_output.unlink(missing_ok=True)
 
     @staticmethod
     def _estimate_memory_needed_mb(record_count: int) -> float:

@@ -106,6 +106,8 @@ repos:
           - --allow-print-file
           - scripts/check-ruff-policy.py
           - --allow-print-file
+          - scripts/check_test_quality.py
+          - --allow-print-file
           - src/globaldatafinance/application/b3_docs/extraction_result_formatter.py
           - --allow-print-file
           - src/globaldatafinance/application/cvm_docs/download_result_formatter.py
@@ -129,6 +131,16 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+
+      - id: test-quality
+        name: test-quality
+        entry: >-
+          uv run --locked --no-sync python
+          scripts/check_test_quality.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, pre-push]
 
       - id: shell-syntax
         name: shell-syntax
@@ -201,6 +213,8 @@ repos:
       - id: forbid-submodules
       - id: name-tests-test
         args: ["--pytest-test-first"]
+        # Shared builders are import-only test support, not pytest modules.
+        exclude: ^tests/support/
 
   # --------------------------------------------------------------------------
   # 3. Security Checks
@@ -414,7 +428,41 @@ repos:
         name: pytest-unit
         entry: >-
           uv run --locked --no-sync pytest -q
-          -m "not integration and not slow" --cov
+          -m "not slow and not real_data and not perf" --cov
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      # The product coverage gate intentionally measures only `src`. Keep the
+      # opt-in campaign executor on its own deterministic floor so its process
+      # and evidence lifecycle cannot regress unnoticed.
+      - id: real-validation-coverage
+        name: real-validation-coverage
+        entry: >-
+          uv run --locked --no-sync pytest -q
+          tests/tooling/test_real_validation.py
+          tests/tooling/test_real_validation_b3.py
+          tests/tooling/test_real_validation_cases.py
+          tests/tooling/test_real_validation_cvm.py
+          tests/tooling/test_real_validation_matrix.py
+          tests/tooling/test_real_validation_report.py
+          tests/tooling/test_real_validation_resume.py
+          tests/tooling/test_real_validation_runner.py
+          tests/tooling/test_real_validation_types.py
+          tests/tooling/test_real_validation_utils.py
+          --cov=scripts.real_validation
+          --cov=scripts.real_validation_b3
+          --cov=scripts.real_validation_cases
+          --cov=scripts.real_validation_cvm
+          --cov=scripts.real_validation_matrix
+          --cov=scripts.real_validation_report
+          --cov=scripts.real_validation_resume
+          --cov=scripts.real_validation_runner
+          --cov=scripts.real_validation_types
+          --cov=scripts.real_validation_utils
+          --cov-report=term-missing
+          --cov-fail-under=85
         language: system
         pass_filenames: false
         always_run: true

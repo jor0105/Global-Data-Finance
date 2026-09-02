@@ -6,6 +6,8 @@ import pytest
 from globaldatafinance.brazil.cvm.fundamental_stocks_data.extract import (
     ParquetExtractorAdapterCVM,
 )
+from globaldatafinance.macro_exceptions import ExtractionError
+from tests.support.builders import csv_bytes, write_zip
 
 
 @pytest.mark.integration
@@ -52,7 +54,6 @@ class TestDataIntegrity:
             assert df_result[col].equals(sample_data[col]), (
                 f"DATA CORRUPTION in column '{col}'!"
             )
-        print(f'✅ Integrity 100%: {len(df_result)} rows preserved')
 
     def test_no_data_loss_with_special_characters(self, tmp_path):
         special_data = pd.DataFrame(
@@ -87,7 +88,6 @@ class TestDataIntegrity:
                     f"Corrupted character at line {i}, column '{col}': "
                     f"'{original}' -> '{result}'"
                 )
-        print(f'✅ Special characters preserved: {len(df_result)} rows')
 
     def test_no_data_loss_with_large_numbers(self, tmp_path):
         numeric_data = pd.DataFrame(
@@ -124,9 +124,10 @@ class TestDataIntegrity:
                 assert (numeric_data[col] == df_result[col]).all(), (
                     f"Integer corruption in column '{col}'"
                 )
-        print(f'✅ Numeric precision preserved: {len(df_result)} rows')
 
-    def test_empty_csv_does_not_cause_data_loss(self, tmp_path):
+    def test_empty_csv_aborts_the_batch_without_partial_outputs(
+        self, tmp_path
+    ):
         zip_path = tmp_path / 'mixed.zip'
         with zipfile.ZipFile(zip_path, 'w') as z:
             z.writestr('empty.csv', b'col1;col2\n')
@@ -134,15 +135,13 @@ class TestDataIntegrity:
             csv_content = valid_data.to_csv(sep=';', index=False)
             z.writestr('valid.csv', csv_content.encode('latin-1'))
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(
-            source_path=str(zip_path), destination_path=str(tmp_path)
-        )
+        with pytest.raises(ExtractionError, match='Staged Parquet validation'):
+            extractor.extract(
+                source_path=str(zip_path), destination_path=str(tmp_path)
+            )
 
-        valid_parquet = tmp_path / 'valid.parquet'
-        assert valid_parquet.exists(), 'Valid CSV was not processed'
-        df_result = pd.read_parquet(valid_parquet)
-        assert len(df_result) == 2, 'Valid CSV data was lost'
-        print('✅ Empty CSV did not affect other data')
+        assert not (tmp_path / 'empty.parquet').exists()
+        assert not (tmp_path / 'valid.parquet').exists()
 
     def test_extracted_parquet_matches_csv_content(self, tmp_path):
         df_original = pd.DataFrame(
@@ -218,3 +217,69 @@ class TestDataIntegrity:
 
         df = pd.read_parquet(tmp_path / 'data.parquet')
         assert df.iloc[0, 0] == special_text
+
+    @pytest.mark.parametrize(
+        ('encoding', 'bom'),
+        [
+            ('utf-8', False),
+            ('utf-8', True),
+            ('cp1252', False),
+            ('latin-1', False),
+        ],
+    )
+    def test_csv_encoding_round_trip_preserves_financial_text(
+        self,
+        tmp_path,
+        encoding: str,
+        bom: bool,
+    ):
+        """ZIP CSV text survives exact decoding and a Parquet round trip."""
+        archive_path = write_zip(
+            tmp_path / f'{encoding}-{bom}.zip',
+            {
+                'text.csv': csv_bytes(
+                    [
+                        'nome;acao;cidade',
+                        'Mãe;Ação;São Paulo',
+                        'José;Preferencial;Brasília',
+                    ],
+                    encoding=encoding,
+                    bom=bom,
+                )
+            },
+        )
+
+        ParquetExtractorAdapterCVM().extract(
+            source_path=str(archive_path), destination_path=str(tmp_path)
+        )
+
+        frame = pd.read_parquet(tmp_path / 'text.parquet')
+        assert list(frame.columns) == ['nome', 'acao', 'cidade']
+        assert frame.to_dict('records') == [
+            {'nome': 'Mãe', 'acao': 'Ação', 'cidade': 'São Paulo'},
+            {
+                'nome': 'José',
+                'acao': 'Preferencial',
+                'cidade': 'Brasília',
+            },
+        ]
+
+    def test_structurally_malformed_csv_aborts_without_silent_row_loss(
+        self, tmp_path
+    ):
+        """A malformed member leaves no final output after its parser error."""
+        archive_path = write_zip(
+            tmp_path / 'malformed.zip',
+            {
+                'first.csv': csv_bytes(['id;name', '1;valid']),
+                'second.csv': csv_bytes(['id;name', '2;valid', '3;"unclosed']),
+            },
+        )
+
+        with pytest.raises(ExtractionError):
+            ParquetExtractorAdapterCVM().extract(
+                source_path=str(archive_path), destination_path=str(tmp_path)
+            )
+
+        assert not (tmp_path / 'first.parquet').exists()
+        assert not (tmp_path / 'second.parquet').exists()

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > Owner: Library Engineering
-> Last reviewed: 2026-08-29
+> Last reviewed: 2026-08-30
 > Status: Confirmed
 > Knowledge class: Agent policy
 
@@ -53,12 +53,17 @@ configuration, safety, logging, I/O, and base exceptions live in
 orchestration separate from validation and transformation. Tests mirror these
 public, source, and shared boundaries.
 
-For a safe first change, read [README.md](README.md) and
-[docs/index.md](docs/index.md), then
-[docs/dev-guide/architecture.md](docs/dev-guide/architecture.md). After
-identifying the affected source and public boundary, open only its owner guide,
-implementation, and matching tests. The architecture and reference documents
-own module-level flow, adapters, formats, schemas, and result details.
+Use task-driven progressive disclosure. For a new task, start with the smallest
+relevant source: when repository context is unfamiliar or the scope is unclear,
+use [README.md](README.md) and [docs/index.md](docs/index.md) for orientation;
+consult [docs/dev-guide/architecture.md](docs/dev-guide/architecture.md) when
+the task touches ownership, boundaries, runtime flow, or cross-cutting concerns.
+After identifying the affected source and public boundary, open only its owner
+guide, implementation, matching tests, and canonical reference needed by the
+task. Do not treat this route as a per-turn checklist or reopen files already
+inspected unless the task scope or repository state changes, or a conflict
+requires revalidation. Detailed module flow, adapters, formats, schemas, and
+result contracts belong to the owning architecture and reference documents.
 
 ## Configuration & Runtime
 
@@ -75,28 +80,39 @@ own module-level flow, adapters, formats, schemas, and result details.
 
 ### Commands
 
-| Action                        | Command                                                                                                               |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Bootstrap locked dependencies | `uv sync --locked --all-extras --dev`                                                                                 |
-| Install repository hooks      | `uv run --locked --no-sync pre-commit install --install-hooks`                                                        |
-| Run the aggregate local gate  | `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`                                         |
-| Run safe tests and coverage   | `uv run --locked --no-sync pytest -m "not integration and not slow" --cov --cov-report=xml --cov-report=term-missing` |
-| Type-check product code       | `uv run --locked --no-sync mypy src --pretty`                                                                         |
-| Run the repository Ruff gate  | `uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all`                                         |
-| Check formatting              | `uv run --locked --no-sync ruff format --check src tests scripts examples`                                            |
-| Audit dependencies            | `uv run --locked --no-sync pip-audit --timeout 60`                                                                    |
-| Build documentation strictly  | `uv run --locked --no-sync mkdocs build --strict`                                                                     |
-| Build the distribution        | `uv build`                                                                                                            |
+| Action                               | Command                                                                                                                          |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Bootstrap locked dependencies        | `uv sync --locked --all-extras --dev`                                                                                            |
+| Install repository hooks             | `uv run --locked --no-sync pre-commit install --install-hooks`                                                                   |
+| Run the aggregate local gate         | `uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure`                                                    |
+| Run deterministic tests and coverage | `uv run --locked --no-sync pytest -m "not slow and not real_data and not perf" --cov --cov-report=xml --cov-report=term-missing` |
+| Run the structural test-quality gate | `uv run --locked --no-sync python scripts/check_test_quality.py`                                                                 |
+| Run local COTAHIST fast tests        | `COTAHIST_PATH=./cotahist_b3 COTAHIST_TEST_YEAR=2023 uv run --locked --no-sync pytest -m "real_data and not slow"`               |
+| Type-check product code              | `uv run --locked --no-sync mypy src --pretty`                                                                                    |
+| Run the repository Ruff gate         | `uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all`                                                    |
+| Check formatting                     | `uv run --locked --no-sync ruff format --check src tests scripts examples`                                                       |
+| Audit dependencies                   | `uv run --locked --no-sync pip-audit --timeout 60`                                                                               |
+| Build documentation strictly         | `uv run --locked --no-sync mkdocs build --strict`                                                                                |
+| Build the distribution               | `uv build`                                                                                                                       |
 
 Run Python tooling through `uv run --locked --no-sync`. Use
 `uv sync --locked --all-extras --dev` only for deliberate environment bootstrap
-or dependency work. Do not introduce pip, Poetry, or another lockfile.
+or dependency work.
 
 Runtime configuration and logging sources own public variable names, values,
-defaults, and behavior. Never read, print, copy, or commit real `.env` values,
-credentials, or other secret-bearing configuration. Integration and slow tests
+defaults, and behavior. Integration and slow tests
 can require external sources or large local data; select them deliberately
 according to the testing guide.
+
+Test execution has one primary tier per test: `unit`, `integration`, or `perf`.
+The `slow`, `asyncio`, and `real_data` markers are orthogonal qualifiers;
+`real_data` must accompany `integration`, is excluded from deterministic CI,
+and is selected only when the caller provides a local COTAHIST dataset. The
+`perf` tier is opt-in and is not part of the normal test discovery contract.
+Deterministic integration tests use repository-created ZIP, CSV, Parquet, and
+temporary-directory inputs. A future official annual COTAHIST fixture is a
+release decision: it must be versioned or published as a licensed CI artifact
+before becoming mandatory in CI.
 
 ## Technical Stack
 
@@ -128,8 +144,11 @@ single file-scoped exception.
 - Deliver only what is necessary to satisfy the request end-to-end; do not
   bundle unrequested changes or mix structural refactors with bug fixes.
 - Tests must prove relevant behavior, edge cases, and regressions, not merely
-  nominal line coverage. Keep external-source tests marked as integration and
-  slow tests marked as slow; use the safe local gate by default.
+  nominal line coverage. Keep every test on exactly one primary tier; use
+  `real_data` only with `integration`, and use `slow`, `asyncio`, and `perf` as
+  explicit qualifiers according to their contracts. Keep external-source
+  tests marked as integration and slow tests marked as slow; use the
+  deterministic local gate by default.
 - Always act as a skeptic: verify hypotheses empirically instead of accepting
   them, whether they came from the user or from you. Never flatter the user or
   engage in sycophantic agreement.
@@ -139,15 +158,13 @@ single file-scoped exception.
   logic.
 - Never edit generated mirrors or generated files directly; change the
   canonical source and run the documented generation or synchronization step.
-- Chat is Portuguese or adapted to the user's preferred language. Code,
-  comments, Git branches, commits, pull requests, and planning artifacts are
+- Code, comments, Git branches, commits, pull requests, and planning artifacts are
   English. Maintain product documentation in Portuguese and English
   counterparts and use Conventional Commits.
 - Follow the repository's established naming, formatting, ownership, and module
   boundaries.
 - Use uv for dependency operations and `uv run --locked --no-sync` for Python
-  tools and tests. Do not mix managers or regenerate another lockfile unless the
-  task explicitly includes that migration.
+  tools and tests.
 - Preserve the current library shape and established abstractions. Do not add a
   web framework, deployment runtime, competing framework, or parallel
   architectural path without an explicit decision.
@@ -172,7 +189,7 @@ single file-scoped exception.
 - Add a data source as one complete vertical slice: source implementation under
   `src/globaldatafinance/brazil/`, facade under
   `src/globaldatafinance/application/`, root public export, mirrored behavior
-  tests, and canonical Portuguese and English documentation. Reuse existing
+  tests, and canonical documentation. Reuse existing
   source boundaries where they fit; do not create abstraction layers merely to
   make two sources look symmetrical.
 - Type-annotate public surfaces and run
@@ -181,16 +198,20 @@ single file-scoped exception.
   is the sole subprocess boundary and its scoped `S603` exception is not
   precedent for other modules.
 - Update tests, contracts, and canonical documentation when behavior or a
-  public boundary changes. Keep Portuguese pages and their English counterparts
-  aligned.
+  public boundary changes.
+- Keep intentional test deletions, relocations, and consolidations documented
+  with a scoped reason in `.test-integrity-policy.json`; never weaken the
+  integrity gate globally.
 - Do not leave dead code, unused compatibility paths, duplicated ownership, or
   stale documentation after a completed clean cutover unless compatibility is
   an explicit requirement.
 - Treat runtime code, manifests, tests, accepted decisions, and current
   documentation as current state. Treat proposals and unimplemented material in
   `openspec/` as planned state.
-- Start architecture, operations, testing, and governance questions at the
-  canonical documentation listed below; open only what the task needs.
+- Use the `Related Documentation` table as a task-driven routing map. Open only
+  the smallest relevant source; do not read every linked document or repeat a
+  read on every turn unless the task scope or repository state changes, or a
+  conflict requires revalidation.
 - Keep this file focused on durable policy, macro boundaries, and navigation.
   Put detailed contracts in their canonical owner documents and link to them.
 - Do not silently change public contracts, persisted formats, authentication
@@ -281,20 +302,25 @@ evidence, and the safest next step.
 
 ## Related Documentation
 
-Read only what the task needs, in this progressive-disclosure order:
+Open only what the current task needs. This table is a routing map, not a
+mandatory reading sequence. Start with the smallest source that can answer the
+question, use orientation documents only when context is unfamiliar or
+insufficient, and follow the owner document for the affected boundary. Do not
+reopen previously inspected files on every turn or continuation unless the
+scope or repository state changes, or a conflict requires revalidation.
 
-| Doc                                                                                                                                                                                                                                                          | Knowledge class        | Purpose                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- | ------------------------------------------------------------------------------------------ |
-| [README.md](README.md) and [docs/index.md](docs/index.md)                                                                                                                                                                                                    | Orientation            | Product identity, supported sources, installation route, and documentation map; open first |
-| [docs/user-guide/installation.md](docs/user-guide/installation.md), [docs/user-guide/quickstart.md](docs/user-guide/quickstart.md), [docs/user-guide/cvm-docs.md](docs/user-guide/cvm-docs.md), and [docs/user-guide/b3-docs.md](docs/user-guide/b3-docs.md) | User guide             | Consumer setup and source-specific inputs, outputs, and usage                              |
-| [docs/dev-guide/architecture.md](docs/dev-guide/architecture.md) and [docs/dev-guide/contributing.md](docs/dev-guide/contributing.md)                                                                                                                        | Development            | Ownership, boundaries, commands, quality policy, and contribution workflow                 |
-| [docs/dev-guide/testing.md](docs/dev-guide/testing.md) and [tests/](tests/)                                                                                                                                                                                  | Tests                  | Markers, test organization, fixtures, and executable behavior proof                        |
-| [docs/dev-guide/api-reference.md](docs/dev-guide/api-reference.md) and [docs/reference/](docs/reference/)                                                                                                                                                    | Reference              | Public API, data, result, and exception contracts                                          |
-| [docs/dev-guide/logging-system.md](docs/dev-guide/logging-system.md), [docs/dev-guide/retry-strategy.md](docs/dev-guide/retry-strategy.md), and [docs/dev-guide/resource-monitoring.md](docs/dev-guide/resource-monitoring.md)                               | Operations             | Logging, retry, and resource-management behavior                                           |
-| [pyproject.toml](pyproject.toml), [uv.lock](uv.lock), [pytest.ini](pytest.ini), [.pre-commit-config.yaml](.pre-commit-config.yaml), and [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml)                                                     | Tooling                | Authoritative package, dependency, test, local-gate, and CI configuration                  |
-| [examples/README.md](examples/README.md) and [examples/](examples/)                                                                                                                                                                                          | Examples               | Runnable onboarding; open only when the task needs an execution example                    |
-| [.agents/harness.json](.agents/harness.json)                                                                                                                                                                                                                 | Agent harness manifest | Internal development harness; open only for harness work                                   |
-| [openspec/](openspec/)                                                                                                                                                                                                                                       | Planned                | Planning material; it does not govern runtime or policy until implemented and accepted     |
+| Doc                                                                                                                                                                                                                                                          | Knowledge class        | Purpose                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [README.md](README.md) and [docs/index.md](docs/index.md)                                                                                                                                                                                                    | Orientation            | Use when repository or product context is unfamiliar or insufficient; README covers identity and docs/index maps the documentation |
+| [docs/user-guide/installation.md](docs/user-guide/installation.md), [docs/user-guide/quickstart.md](docs/user-guide/quickstart.md), [docs/user-guide/cvm-docs.md](docs/user-guide/cvm-docs.md), and [docs/user-guide/b3-docs.md](docs/user-guide/b3-docs.md) | User guide             | Consumer setup and source-specific inputs, outputs, and usage                                                                      |
+| [docs/dev-guide/architecture.md](docs/dev-guide/architecture.md) and [docs/dev-guide/contributing.md](docs/dev-guide/contributing.md)                                                                                                                        | Development            | Ownership, boundaries, commands, quality policy, and contribution workflow                                                         |
+| [docs/dev-guide/testing.md](docs/dev-guide/testing.md) and [tests/](tests/)                                                                                                                                                                                  | Tests                  | Markers, test organization, fixtures, and executable behavior proof                                                                |
+| [docs/dev-guide/api-reference.md](docs/dev-guide/api-reference.md) and [docs/reference/](docs/reference/)                                                                                                                                                    | Reference              | Public API, data, result, and exception contracts                                                                                  |
+| [docs/dev-guide/logging-system.md](docs/dev-guide/logging-system.md), [docs/dev-guide/retry-strategy.md](docs/dev-guide/retry-strategy.md), and [docs/dev-guide/resource-monitoring.md](docs/dev-guide/resource-monitoring.md)                               | Operations             | Logging, retry, and resource-management behavior                                                                                   |
+| [pyproject.toml](pyproject.toml), [uv.lock](uv.lock), [pytest.ini](pytest.ini), [.pre-commit-config.yaml](.pre-commit-config.yaml), and [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml)                                                     | Tooling                | Authoritative package, dependency, test, local-gate, and CI configuration                                                          |
+| [examples/README.md](examples/README.md) and [examples/](examples/)                                                                                                                                                                                          | Examples               | Runnable onboarding; open only when the task needs an execution example                                                            |
+| [.agents/harness.json](.agents/harness.json)                                                                                                                                                                                                                 | Agent harness manifest | Internal development harness; open only for harness work                                                                           |
+| [openspec/](openspec/)                                                                                                                                                                                                                                       | Planned                | Planning material; it does not govern runtime or policy until implemented and accepted                                             |
 
 Portuguese pages are the default documentation. Matching English `*.en.md` pages
 are translation counterparts. Generated, mirrored, exploratory, archived, and

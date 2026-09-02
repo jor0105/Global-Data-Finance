@@ -1,12 +1,13 @@
-"""Read CSV members from ZIP archives using a compatible text encoding."""
+"""Read CSV members from ZIP archives using a deterministic encoding policy."""
 
+import codecs
 import zipfile
-from io import BytesIO
 from typing import IO
 
 import pandas as pd  # type: ignore
 
 from ..core import get_logger
+from ..core.archive_safety import open_limited_zip_member
 from ..macro_exceptions import ExtractionError
 
 logger = get_logger(__name__)
@@ -14,6 +15,10 @@ logger = get_logger(__name__)
 
 class ReadFilesAdapter:
     """Provide low-level CSV reading helpers for archive adapters."""
+
+    _ENCODING_CHUNK_SIZE = 64 * 1024
+    _UTF8_BOM = codecs.BOM_UTF8
+    _SUPPORTED_ENCODINGS = ('utf-8', 'cp1252', 'latin-1')
 
     @staticmethod
     def read_csv_test_encoding(
@@ -31,42 +36,61 @@ class ReadFilesAdapter:
         Raises:
             ExtractionError: If no encoding works
         """
-        encoding_csv = ['latin-1', 'utf-8', 'iso-8859-1', 'cp1252']
-        last_error: Exception | None = None
-        for encoding in encoding_csv:
+        if ReadFilesAdapter._has_utf8_bom(zip_file, csv_filename):
             try:
-                with zip_file.open(csv_filename) as csv_file:
-                    pd.read_csv(
-                        BytesIO(csv_file.read(10000)),
-                        encoding=encoding,
-                        sep=';',
-                        on_bad_lines='skip',
-                        nrows=100,
-                    )
-                    logger.debug(
-                        f'Validated {csv_filename} with encoding {encoding}'
-                    )
-                    return encoding
-            except (UnicodeDecodeError, LookupError) as err:
-                last_error = err
+                ReadFilesAdapter._validate_full_member_encoding(
+                    zip_file, csv_filename, 'utf-8-sig'
+                )
+            except (UnicodeDecodeError, LookupError) as error:
+                raise ExtractionError(
+                    csv_filename,
+                    'UTF-8 BOM is present but the complete member is not '
+                    'valid UTF-8',
+                ) from error
+            logger.debug('Validated %s with encoding utf-8-sig', csv_filename)
+            return 'utf-8-sig'
+
+        last_error: Exception | None = None
+        for encoding in ReadFilesAdapter._SUPPORTED_ENCODINGS:
+            try:
+                ReadFilesAdapter._validate_full_member_encoding(
+                    zip_file, csv_filename, encoding
+                )
+            except (UnicodeDecodeError, LookupError) as error:
+                last_error = error
                 continue
-            except (
-                OSError,
-                KeyError,
-                EOFError,
-                zipfile.BadZipFile,
-                zipfile.LargeZipFile,
-                pd.errors.ParserError,
-                pd.errors.EmptyDataError,
-            ) as err:
-                last_error = err
-                logger.debug('Test read failed for %s: %s', csv_filename, err)
-                continue
+            logger.debug(
+                'Validated %s with encoding %s', csv_filename, encoding
+            )
+            return encoding
         raise ExtractionError(
             csv_filename,
             f'Could not read {csv_filename} with any encoding '
-            f'(tried {", ".join(encoding_csv)})',
+            f'(tried {", ".join(ReadFilesAdapter._SUPPORTED_ENCODINGS)})',
         ) from last_error
+
+    @staticmethod
+    def _has_utf8_bom(zip_file: zipfile.ZipFile, csv_filename: str) -> bool:
+        """Inspect a bounded stream without consuming later processing."""
+        with open_limited_zip_member(zip_file, csv_filename) as csv_file:
+            return csv_file.read(len(ReadFilesAdapter._UTF8_BOM)) == (
+                ReadFilesAdapter._UTF8_BOM
+            )
+
+    @staticmethod
+    def _validate_full_member_encoding(
+        zip_file: zipfile.ZipFile,
+        csv_filename: str,
+        encoding: str,
+    ) -> None:
+        """Decode every byte of a member in constant-size streaming chunks."""
+        decoder = codecs.getincrementaldecoder(encoding)(errors='strict')
+        with open_limited_zip_member(zip_file, csv_filename) as csv_file:
+            while chunk := csv_file.read(
+                ReadFilesAdapter._ENCODING_CHUNK_SIZE
+            ):
+                decoder.decode(chunk, final=False)
+        decoder.decode(b'', final=True)
 
     @staticmethod
     def read_csv_chunk_size(
@@ -76,6 +100,6 @@ class ReadFilesAdapter:
         return pd.read_csv(
             text_wrapper,
             sep=';',
-            on_bad_lines='skip',
+            on_bad_lines='error',
             chunksize=chunk_size,
         )

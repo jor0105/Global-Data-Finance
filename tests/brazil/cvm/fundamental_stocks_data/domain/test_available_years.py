@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import Mock
 
 import pytest
 
@@ -6,6 +7,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     AvailableYearsCVM,
     InvalidFirstYear,
     InvalidLastYear,
+    core,
 )
 
 
@@ -163,30 +165,13 @@ class TestAvailableYears:
     def test_return_range_years_respects_mocked_current_year(
         self, available_years, monkeypatch
     ):
-        _ = available_years
-        # AvailableYearsCVM captures the current year at class-definition time,
-        # so patching datetime.date after import does not change it. Patch the
-        # stored attribute so the test controls the class value. The false
-        # raising flag
-        # handles differences in the mangled name across Python versions.
-        monkeypatch.setattr(
-            AvailableYearsCVM,
-            '_AvailableYears__CURRENT_YEAR',
-            2023,
-            raising=False,
-        )
+        fake_date = Mock()
+        fake_date.today.return_value = date(2023, 7, 1)
+        monkeypatch.setattr(core, 'date', fake_date)
 
-        # Also set it on the instance in case the implementation uses an attr.
-        available_years_mocked = AvailableYearsCVM()
-        monkeypatch.setattr(
-            available_years_mocked,
-            '_AvailableYears__CURRENT_YEAR',
-            2023,
-            raising=False,
-        )
-
-        years_range = available_years_mocked.return_range_years()
-        assert isinstance(years_range, range)
+        assert available_years.get_current_year() == 2023
+        years_range = available_years.return_range_years()
+        assert list(years_range)[-1] == 2023
 
     def test_return_range_years_with_year_2009_raises_invalid_first_year(
         self, available_years

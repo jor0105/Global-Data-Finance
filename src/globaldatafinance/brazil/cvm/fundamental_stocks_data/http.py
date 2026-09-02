@@ -11,6 +11,7 @@ from ....core import (
     get_logger,
     remove_file,
 )
+from ....core.archive_safety import get_archive_safety_limits
 from ....macro_exceptions import NetworkError
 from ....macro_exceptions import TimeoutError as MacroTimeoutError
 from ....macro_infra import RequestsAdapter
@@ -41,6 +42,7 @@ class AsyncDownloadAdapterCVM:
         http2: bool = True,
         automatic_extractor: bool = False,
         user_agent: str | None = None,
+        follow_redirects: bool = True,
     ):
         """Initialize the adapter and preserve httpx defaults."""
         self.file_extractor_repository = file_extractor_repository
@@ -53,6 +55,7 @@ class AsyncDownloadAdapterCVM:
             http2=http2,
             verify=True,
             max_redirects=5,
+            follow_redirects=follow_redirects,
             default_headers=None
             if user_agent is None
             else {'User-Agent': user_agent},
@@ -76,18 +79,7 @@ class AsyncDownloadAdapterCVM:
         *,
         automatic_extractor: bool | None = None,
     ) -> DownloadResultCVM:
-        """Synchronously download documents.
-
-        Thin wrapper that owns the event loop via ``asyncio.run``. Call
-        :meth:`async_download_docs` directly to compose downloads into
-        already-async code.
-
-        Args:
-            tasks: List of download tasks to execute.
-            automatic_extractor: If ``True``, extract downloaded ZIPs
-                to Parquet after download.  When ``None`` (the default),
-                falls back to ``self.automatic_extractor``.
-        """
+        """Synchronously download documents using an owned event loop."""
         return asyncio.run(
             self.async_download_docs(
                 tasks,
@@ -101,14 +93,7 @@ class AsyncDownloadAdapterCVM:
         *,
         automatic_extractor: bool | None = None,
     ) -> DownloadResultCVM:
-        """Asynchronously download documents in the current event loop.
-
-        Args:
-            tasks: List of download tasks to execute.
-            automatic_extractor: If ``True``, extract downloaded ZIPs
-                to Parquet after download.  When ``None`` (the default),
-                falls back to ``self.automatic_extractor``.
-        """
+        """Asynchronously download documents in the current event loop."""
         effective_extractor = (
             automatic_extractor
             if automatic_extractor is not None
@@ -213,31 +198,60 @@ class AsyncDownloadAdapterCVM:
         *,
         automatic_extractor: bool = False,
     ) -> None:
-        success, error_msg = await self._download_with_retry(
+        success, staged_path_or_error = await self._download_with_retry(
             url, filepath, doc_name, year
         )
-        document_key = self._document_key(doc_name, year)
+        document_key = f'{doc_name}_{year}'
 
         if not success:
-            self._add_download_error(
-                result, document_key, error_msg or 'Unknown download error'
+            result.add_error_downloads(
+                document_key,
+                staged_path_or_error or 'Unknown download error',
             )
             return
 
-        expected_size = await self._get_content_length(url)
-        if not self._validate_downloaded_file(filepath, expected_size):
-            logger.error(
-                'Downloaded file validation failed for %s: %s',
-                document_key,
-                filepath,
-            )
-            self._add_download_error(
-                result,
-                document_key,
-                'Downloaded file corrupted, incomplete, or invalid ZIP',
-            )
-            remove_file(filepath, log_on_error=True)
-            return
+        staging_path = Path(staged_path_or_error or filepath)
+        owns_staging = staged_path_or_error is not None
+        promoted = False
+
+        try:
+            expected_size = await self._get_content_length(url)
+            if not self._validate_downloaded_file(
+                str(staging_path), expected_size
+            ):
+                logger.error(
+                    'Downloaded file validation failed for %s: %s',
+                    document_key,
+                    staging_path,
+                )
+                result.add_error_downloads(
+                    document_key,
+                    'Downloaded file corrupted, incomplete, or invalid ZIP',
+                )
+                return
+
+            try:
+                staging_path.replace(Path(filepath))
+            except OSError as promotion_error:
+                logger.error(
+                    'Failed to promote downloaded file for %s: %s',
+                    document_key,
+                    promotion_error,
+                    exc_info=True,
+                )
+                result.add_error_downloads(
+                    document_key,
+                    'Downloaded file promotion failed: '
+                    f'{type(promotion_error).__name__}: '
+                    f'{promotion_error}',
+                )
+                return
+
+            promoted = True
+
+        finally:
+            if owns_staging and not promoted:
+                remove_file(str(staging_path), log_on_error=True)
 
         if automatic_extractor:
             self._extract_downloaded_file(
@@ -249,7 +263,7 @@ class AsyncDownloadAdapterCVM:
             )
             return
 
-        self._add_download_success(result, document_key)
+        result.add_success_downloads(document_key)
         logger.info('✓ Downloaded %s (extraction disabled)', document_key)
 
     def _extract_downloaded_file(
@@ -277,7 +291,6 @@ class AsyncDownloadAdapterCVM:
         doc_name: str,
         year: str,
     ) -> DownloadAttemptResultCVM:
-        """Download a file with retry logic."""
         last_exception: Exception | None = None
 
         for attempt in range(self.max_retries + 1):
@@ -298,9 +311,11 @@ class AsyncDownloadAdapterCVM:
 
                 logger.debug('Downloading %s_%s (async)', doc_name, year)
 
-                await self._stream_download(url, filepath)
+                staging_path = await self._stream_download(url, filepath)
                 logger.info('Successfully downloaded %s_%s', doc_name, year)
-                return True, None
+                return True, (
+                    str(staging_path) if staging_path is not None else None
+                )
 
             except Exception as e:
                 timeouts = (
@@ -340,8 +355,6 @@ class AsyncDownloadAdapterCVM:
                     e,
                 )
 
-        remove_file(filepath, log_on_error=False)
-
         error_msg = (
             f'{type(last_exception).__name__}: {last_exception}'
             if last_exception
@@ -349,20 +362,15 @@ class AsyncDownloadAdapterCVM:
         )
         return False, error_msg
 
-    async def _stream_download(self, url: str, filepath: str) -> None:
-        """Perform asynchronous streaming download."""
-        try:
-            await self.requests_adapter.async_download_file(
-                url=url,
-                output_path=filepath,
-                chunk_size=self.chunk_size,
-            )
-        except Exception:
-            remove_file(filepath, log_on_error=False)
-            raise
+    async def _stream_download(self, url: str, filepath: str) -> Path:
+        return await self.requests_adapter.async_download_to_staging_file(
+            url=url,
+            output_path=filepath,
+            chunk_size=self.chunk_size,
+            max_bytes=get_archive_safety_limits().max_archive_bytes,
+        )
 
     async def _get_content_length(self, url: str) -> int | None:
-        """Get Content-Length from HTTP headers before downloading."""
         try:
             response = await self.requests_adapter.async_head(url)
             content_length = response.headers.get('content-length')
@@ -387,14 +395,3 @@ class AsyncDownloadAdapterCVM:
         self, filepath: str, expected_size: int | None = None
     ) -> bool:
         return validate_downloaded_file(filepath, expected_size)
-
-    def _add_download_success(self, res: DownloadResultCVM, key: str) -> None:
-        res.add_success_downloads(key)
-
-    def _add_download_error(
-        self, res: DownloadResultCVM, key: str, msg: str
-    ) -> None:
-        res.add_error_downloads(key, msg)
-
-    def _document_key(self, doc_name: str, year: str) -> str:
-        return f'{doc_name}_{year}'

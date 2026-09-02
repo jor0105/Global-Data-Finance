@@ -5,6 +5,9 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pyarrow as pa
+import pyarrow.parquet as pq
+
 from .....core import get_logger
 from .....macro_exceptions import ParquetWriteError
 from .constants import (
@@ -14,22 +17,7 @@ from .constants import (
     STREAM_BATCH_SIZE,
 )
 
-try:
-    import pyarrow as pa
-    import pyarrow.parquet as pq
-except ImportError:
-    pa = None  # type: ignore[assignment]
-    pq = None  # type: ignore[assignment]
-
 logger = get_logger(__name__)
-
-
-def _require_pyarrow(feature: str) -> None:
-    if pa is None or pq is None:
-        raise ImportError(
-            f'pyarrow is required for {feature}. '
-            'Install it with: pip install pyarrow'
-        )
 
 
 def _cleanup_temp_file(temp_path: Path) -> None:
@@ -40,7 +28,6 @@ def _cleanup_temp_file(temp_path: Path) -> None:
 
 def create_pyarrow_writer(path: Path, schema: Any) -> Any:
     """Create a compressed PyArrow writer for one Parquet output path."""
-    _require_pyarrow('Parquet streaming operations')
     return pq.ParquetWriter(
         str(path),
         schema,
@@ -69,8 +56,6 @@ def write_table_batches(table: Any, writer: Any) -> int:
 
 def cast_table_to_schema(table: Any, schema: Any) -> Any:
     """Cast a table to the existing output schema with column fallback."""
-    _require_pyarrow('schema casting')
-
     try:
         return table.cast(schema)
     except (pa.ArrowException, TypeError, ValueError) as cast_error:
@@ -109,8 +94,6 @@ async def append_with_streaming(
     write_table_batches_fn: Callable[[Any, Any], int],
 ) -> None:
     """Append a new table to an existing Parquet file through a temp file."""
-    _require_pyarrow('streaming append')
-
     logger.debug(
         'Using streaming append for memory efficiency',
         extra={
@@ -171,8 +154,6 @@ async def merge_parquet_files_streaming(
     copy_parquet_batches_fn: Callable[[Any, Any], int],
 ) -> None:
     """Merge source Parquet files into one output using bounded batches."""
-    _require_pyarrow('streaming merge')
-
     if not source_paths:
         logger.warning('No parquet chunk files to merge')
         return

@@ -10,12 +10,16 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     AsyncDownloadAdapterCVM,
     DownloadResultCVM,
 )
+from globaldatafinance.core.archive_safety import get_archive_safety_limits
 from globaldatafinance.macro_exceptions import (
     DiskFullError,
     ExtractionError,
     NetworkError,
     TimeoutError,
 )
+
+pytestmark = pytest.mark.unit
+
 
 _TEST_DATA_ALPHABET = string.ascii_letters + string.digits
 
@@ -84,6 +88,13 @@ class TestHttpxAsyncDownloadAdapterInitialization:
 
         assert adapter.requests_adapter is not None
         assert hasattr(adapter.requests_adapter, 'async_download_file')
+
+    def test_init_can_disable_redirect_following(self):
+        adapter = AsyncDownloadAdapterCVM(
+            file_extractor_repository=MagicMock(), follow_redirects=False
+        )
+
+        assert adapter.requests_adapter.follow_redirects is False
 
     def test_init_creates_retry_strategy(self):
         mock_extractor = MagicMock()
@@ -261,7 +272,9 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
     @patch(
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
-    async def test_download_with_retry_cleans_up_on_failure(self, mock_remove):
+    async def test_download_with_retry_does_not_clean_final_path_on_failure(
+        self, mock_remove
+    ):
         mock_extractor = MagicMock()
         adapter = AsyncDownloadAdapterCVM(
             file_extractor_repository=mock_extractor, max_retries=1
@@ -279,9 +292,7 @@ class TestHttpxAsyncDownloadAdapterAsyncMethods:
             '2023',
         )
 
-        mock_remove.assert_called_once_with(
-            'test-data/file.zip', log_on_error=False
-        )
+        mock_remove.assert_not_called()
 
     @patch(
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.asyncio.sleep'
@@ -353,14 +364,16 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
     @patch(
         'globaldatafinance.brazil.cvm.fundamental_stocks_data.http.remove_file'
     )
-    async def test_stream_download_cleans_up_on_error(self, mock_remove):
+    async def test_stream_download_does_not_clean_final_path_on_error(
+        self, mock_remove
+    ):
         mock_extractor = MagicMock()
         adapter = AsyncDownloadAdapterCVM(
             file_extractor_repository=mock_extractor
         )
 
         adapter.requests_adapter = MagicMock()
-        adapter.requests_adapter.async_download_file = AsyncMock(
+        adapter.requests_adapter.async_download_to_staging_file = AsyncMock(
             side_effect=NetworkError('DRE', 'Error')
         )
 
@@ -369,9 +382,7 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
                 'https://example.com/file.zip', 'test-data/file.zip'
             )
 
-        mock_remove.assert_called_once_with(
-            'test-data/file.zip', log_on_error=False
-        )
+        mock_remove.assert_not_called()
 
     async def test_stream_download_calls_requests_adapter(self):
         mock_extractor = MagicMock()
@@ -380,16 +391,17 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
         )
 
         adapter.requests_adapter = MagicMock()
-        adapter.requests_adapter.async_download_file = AsyncMock()
+        adapter.requests_adapter.async_download_to_staging_file = AsyncMock()
 
         await adapter._stream_download(
             'https://example.com/file.zip', 'test-data/file.zip'
         )
 
-        adapter.requests_adapter.async_download_file.assert_called_once_with(
+        adapter.requests_adapter.async_download_to_staging_file.assert_called_once_with(
             url='https://example.com/file.zip',
             output_path='test-data/file.zip',
             chunk_size=8192,
+            max_bytes=get_archive_safety_limits().max_archive_bytes,
         )
 
     async def test_stream_download_uses_custom_chunk_size(self):
@@ -399,16 +411,17 @@ class TestHttpxAsyncDownloadAdapterStreamDownload:
         )
 
         adapter.requests_adapter = MagicMock()
-        adapter.requests_adapter.async_download_file = AsyncMock()
+        adapter.requests_adapter.async_download_to_staging_file = AsyncMock()
 
         await adapter._stream_download(
             'https://example.com/file.zip', 'test-data/file.zip'
         )
 
-        adapter.requests_adapter.async_download_file.assert_called_once_with(
+        adapter.requests_adapter.async_download_to_staging_file.assert_called_once_with(
             url='https://example.com/file.zip',
             output_path='test-data/file.zip',
             chunk_size=16384,
+            max_bytes=get_archive_safety_limits().max_archive_bytes,
         )
 
 

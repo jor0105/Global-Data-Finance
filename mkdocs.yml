@@ -112,6 +112,11 @@ plugins:
             Sistema de Logging: Logging System
             Monitoramento de Recursos: Resource Monitoring
             Estratégia de Retry: Retry Strategy
+            Decisões Técnicas: Technical Decisions
+            Níveis de Execução de Testes: Test Execution Tiers
+            Campanha Real Auditável: Auditable Real-Data Campaign
+            Limites ZIP e Destinos UNC: ZIP Limits and UNC Destinations
+            Commit CVM Tolerante a Falhas: Failure-Atomic CVM Batch Commit
             API CVM: CVM API
             API B3: B3 API
             Exceções: Exceptions
@@ -164,6 +169,11 @@ nav:
       - Como Contribuir: dev-guide/contributing.md
       - Testes: dev-guide/testing.md
       - Benchmarks: dev-guide/benchmarks.md
+      - Decisões Técnicas:
+          - Níveis de Execução de Testes: decisions/test-execution-tiers.md
+          - Campanha Real Auditável: decisions/real-validation-campaign.md
+          - Limites ZIP e Destinos UNC: decisions/archive-safety-and-unc.md
+          - Commit CVM Tolerante a Falhas: decisions/cvm-failure-atomic-batch-commit.md
       - Uso Avançado: dev-guide/advanced-usage.md
       - Sistema de Logging: dev-guide/logging-system.md
       - Monitoramento de Recursos: dev-guide/resource-monitoring.md

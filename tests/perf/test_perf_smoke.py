@@ -28,6 +28,8 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data.client import (
     generate_urls,
 )
 
+pytestmark = [pytest.mark.perf, pytest.mark.slow]
+
 
 def _synthetic_cotahist_line() -> str:
     """Build a synthetic but valid-looking COTAHIST type-01 record.
@@ -69,7 +71,6 @@ def _synthetic_cotahist_line() -> str:
     return line
 
 
-@pytest.mark.perf
 def test_benchmark_cvm_url_generation(benchmark) -> None:
     """Benchmark generating CVM download URLs for a 3-year DFP range.
 
@@ -89,7 +90,6 @@ def test_benchmark_cvm_url_generation(benchmark) -> None:
     assert total_urls > 0
 
 
-@pytest.mark.perf
 def test_benchmark_b3_cotahist_parse_line(benchmark) -> None:
     """Benchmark parsing a single COTAHIST line through the full pipeline.
 

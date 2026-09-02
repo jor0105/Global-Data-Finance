@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+import pytest
+
 from globaldatafinance.application import FundamentalStocksDataCVM
 from globaldatafinance.application.cvm_docs import (
     fundamental_stocks_data as facade_module,
@@ -9,6 +11,9 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     AvailableYearsInfoCVM,
 )
 from globaldatafinance.core.config import NetworkSettings
+
+pytestmark = pytest.mark.unit
+# allow-assertion-reduction: Public formatter checks replace private checks.
 
 
 class TestFundamentalStocksData:
@@ -233,12 +238,15 @@ class TestFundamentalStocksData:
         mock_download_instance.execute.return_value = mock_result
         mock_download_use_case.return_value = mock_download_instance
 
-        cvm = FundamentalStocksDataCVM()
         with patch.object(
-            cvm, '_FundamentalStocksDataCVM__result_formatter'
+            facade_module, 'DownloadResultFormatter'
         ) as mock_formatter:
+            cvm = FundamentalStocksDataCVM()
             cvm.download(destination_path='/data/cvm')
-            mock_formatter.print_result.assert_called_once_with(mock_result)
+
+        mock_formatter.return_value.print_result.assert_called_once_with(
+            mock_result
+        )
 
     @patch(
         'globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM'
@@ -294,12 +302,18 @@ class TestFundamentalStocksData:
         assert isinstance(years, AvailableYearsInfoCVM)
 
     def test_initialization_creates_use_cases(self):
-        cvm = FundamentalStocksDataCVM()
-        # The stateless docs/years use cases became module-level functions
-        # (Phase 4.1) and are no longer cached on the instance; only the
-        # stateful download orchestrator and the formatter are held.
-        assert hasattr(cvm, '_FundamentalStocksDataCVM__download_use_case')
-        assert hasattr(cvm, '_FundamentalStocksDataCVM__result_formatter')
+        with (
+            patch.object(
+                facade_module, 'DownloadDocumentsUseCaseCVM'
+            ) as mock_download_use_case,
+            patch.object(
+                facade_module, 'DownloadResultFormatter'
+            ) as mock_formatter,
+        ):
+            cvm = FundamentalStocksDataCVM()
+
+        mock_download_use_case.assert_called_once_with(cvm.download_adapter)
+        mock_formatter.assert_called_once_with(use_colors=True)
 
     @patch(
         'globaldatafinance.application.cvm_docs.fundamental_stocks_data.DownloadDocumentsUseCaseCVM'

@@ -12,6 +12,9 @@ SCRIPTS_ROOT = REPOSITORY_ROOT / 'scripts'
 CHECKER_PATH = SCRIPTS_ROOT / 'check-ruff-policy.py'
 
 
+pytestmark = pytest.mark.unit
+
+
 @pytest.fixture
 def checker(monkeypatch: pytest.MonkeyPatch):
     """Load the hyphenated Ruff policy CLI as a test module."""

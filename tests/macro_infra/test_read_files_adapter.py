@@ -1,147 +1,102 @@
+"""Encoding and strict CSV parsing regressions for ZIP members."""
+
+from __future__ import annotations
+
 import io
 import zipfile
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
+from globaldatafinance.macro_exceptions import ExtractionError
 from globaldatafinance.macro_infra import ReadFilesAdapter
+from tests.support.builders import csv_bytes, write_zip
+
+pytestmark = pytest.mark.integration
+# allow-assertion-reduction: Codec cases are consolidated.
 
 
-@pytest.mark.unit
-class TestReadFilesAdapter:
-    @pytest.mark.parametrize(
-        'content',
-        [
-            b'col1;col2\n1;2\n3;4\n',
-            'col1;col2\n1;2\n3;4\n'.encode('latin-1'),
-            'col1;col2\n1;2\n3;4\n'.encode('iso-8859-1'),
-            'col1;col2\n1;2\n3;4\n'.encode('cp1252'),
-        ],
+@pytest.mark.parametrize(
+    ('content', 'expected_encoding'),
+    [
+        (csv_bytes(['texto', 'Mãe'], encoding='utf-8'), 'utf-8'),
+        (
+            csv_bytes(['texto', 'Mãe'], encoding='utf-8', bom=True),
+            'utf-8-sig',
+        ),
+        (csv_bytes(['texto', 'Preço €'], encoding='cp1252'), 'cp1252'),
+        (b'texto\nA\x81\n', 'latin-1'),
+    ],
+)
+def test_encoding_detection_validates_complete_member_with_precedence(
+    tmp_path: Path,
+    content: bytes,
+    expected_encoding: str,
+) -> None:
+    """The supported codecs preserve the intended deterministic precedence."""
+    archive_path = write_zip(tmp_path / 'encoding.zip', {'data.csv': content})
+
+    with zipfile.ZipFile(archive_path) as archive:
+        detected = ReadFilesAdapter.read_csv_test_encoding(archive, 'data.csv')
+
+    assert detected == expected_encoding
+
+
+def test_encoding_detection_scans_beyond_the_historical_ten_kib_sample(
+    tmp_path: Path,
+) -> None:
+    """Late UTF-8 text cannot become Latin-1 after an ASCII prefix."""
+    ascii_prefix = 'x' * 11_000
+    content = csv_bytes(['texto', f'{ascii_prefix} Mãe São Paulo'])
+    archive_path = write_zip(
+        tmp_path / 'late-accent.zip', {'data.csv': content}
     )
-    def test_read_csv_test_encoding_detects_any_supported_encoding(
-        self, tmp_path, content
+
+    with zipfile.ZipFile(archive_path) as archive:
+        detected = ReadFilesAdapter.read_csv_test_encoding(archive, 'data.csv')
+
+    assert detected == 'utf-8'
+
+
+def test_encoding_detection_does_not_use_csv_parser_as_a_codec_oracle(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A parser failure cannot trigger a fallback encoding choice."""
+    archive_path = write_zip(
+        tmp_path / 'separate-concerns.zip',
+        {'data.csv': csv_bytes(['a;b', '1;2;3'])},
+    )
+
+    def fail_parser(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError('encoding detection must not parse CSV rows')
+
+    monkeypatch.setattr(pd, 'read_csv', fail_parser)
+
+    with zipfile.ZipFile(archive_path) as archive:
+        detected = ReadFilesAdapter.read_csv_test_encoding(archive, 'data.csv')
+
+    assert detected == 'utf-8'
+
+
+def test_utf8_bom_with_invalid_bytes_fails_closed(tmp_path: Path) -> None:
+    """A BOM asserts UTF-8 and cannot be silently reinterpreted as Latin-1."""
+    archive_path = write_zip(
+        tmp_path / 'invalid-bom.zip',
+        {'data.csv': b'\xef\xbb\xbftexto\n\xff\n'},
+    )
+
+    with (
+        zipfile.ZipFile(archive_path) as archive,
+        pytest.raises(ExtractionError, match='BOM is present'),
     ):
-        csv_name = 'test.csv'
-        zip_path = tmp_path / 'test.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, content)
-        with zipfile.ZipFile(zip_path, 'r') as zf:
-            detected = ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
-        assert detected in ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
+        ReadFilesAdapter.read_csv_test_encoding(archive, 'data.csv')
 
-    def test_read_csv_test_encoding_detects_supported_encoding_with_non_ascii(
-        self, tmp_path
-    ):
-        csv_content = 'col1;col2\n1;2\n3;á\n'.encode()
-        csv_name = 'test.csv'
-        zip_path = tmp_path / 'test.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, csv_content)
-        with zipfile.ZipFile(zip_path, 'r') as zf:
-            detected = ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
-        assert detected in ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
 
-    def test_read_csv_test_encoding_logs_and_skips_bad_encoding(
-        self, tmp_path, caplog
-    ):
-        csv_name = 'test.csv'
-        zip_path = tmp_path / 'test.zip'
-        content = 'col1;col2\n1;2\n3;á\n'.encode()
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, content)
-        with (
-            zipfile.ZipFile(zip_path, 'r') as zf,
-            caplog.at_level('DEBUG'),
-        ):
-            detected = ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
-        assert detected in ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
-        assert any(
-            'Validated' in r.message or 'Test read failed' in r.message
-            for r in caplog.records
-        )
+def test_csv_chunk_reader_fails_on_structurally_malformed_rows() -> None:
+    """Malformed CSV rows abort extraction instead of being skipped."""
+    malformed = io.StringIO('first;second\n1;2\n3;"unclosed\n')
 
-    def test_read_csv_chunk_size_yields_correct_chunks(self):
-        csv_content = 'col1;col2\n1;2\n3;4\n'
-        wrapper = io.StringIO(csv_content)
-        chunks = list(
-            ReadFilesAdapter.read_csv_chunk_size(wrapper, chunk_size=1)
-        )
-        assert len(chunks) == 2
-        assert all(isinstance(chunk, pd.DataFrame) for chunk in chunks)
-
-    def test_read_csv_test_encoding_raises_when_all_fail(
-        self, tmp_path, monkeypatch
-    ):
-        import globaldatafinance.macro_infra.read_files as read_files_mod
-        from globaldatafinance.macro_exceptions import ExtractionError
-
-        csv_name = 'unreadable.csv'
-        zip_path = tmp_path / 'bad.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, b'some content')
-
-        def mock_failing_read_csv(*_args, **_kwargs):
-            raise UnicodeDecodeError('utf-8', b'', 0, 1, 'decoding failed')
-
-        monkeypatch.setattr(
-            read_files_mod.pd, 'read_csv', mock_failing_read_csv
-        )
-
-        with (
-            zipfile.ZipFile(zip_path, 'r') as zf,
-            pytest.raises(ExtractionError) as exc_info,
-        ):
-            ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
-
-        assert 'Could not read unreadable.csv with any encoding' in str(
-            exc_info.value
-        )
-        assert isinstance(exc_info.value.__cause__, UnicodeDecodeError)
-
-    def test_read_csv_test_encoding_continues_after_expected_parser_error(
-        self, tmp_path, monkeypatch
-    ):
-        import globaldatafinance.macro_infra.read_files as read_files_mod
-
-        csv_name = 'retry.csv'
-        zip_path = tmp_path / 'retry.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, b'col1;col2\n1;2\n')
-
-        calls = 0
-
-        def parse_after_retry(*_args, **_kwargs):
-            nonlocal calls
-            calls += 1
-            if calls == 1:
-                raise pd.errors.ParserError('malformed row')
-            return pd.DataFrame({'col1': [1]})
-
-        monkeypatch.setattr(read_files_mod.pd, 'read_csv', parse_after_retry)
-
-        with zipfile.ZipFile(zip_path, 'r') as zf:
-            encoding = ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
-
-        assert encoding == 'utf-8'
-        assert calls == 2
-
-    def test_read_csv_test_encoding_propagates_unexpected_error(
-        self, tmp_path, monkeypatch
-    ):
-        import globaldatafinance.macro_infra.read_files as read_files_mod
-
-        csv_name = 'unexpected.csv'
-        zip_path = tmp_path / 'unexpected.zip'
-        with zipfile.ZipFile(zip_path, 'w') as zf:
-            zf.writestr(csv_name, b'col1;col2\n1;2\n')
-
-        def fail_unexpectedly(*_args, **_kwargs):
-            raise RuntimeError('unexpected parser defect')
-
-        monkeypatch.setattr(read_files_mod.pd, 'read_csv', fail_unexpectedly)
-
-        with (
-            zipfile.ZipFile(zip_path, 'r') as zf,
-            pytest.raises(RuntimeError, match='unexpected parser defect'),
-        ):
-            ReadFilesAdapter.read_csv_test_encoding(zf, csv_name)
+    with pytest.raises(pd.errors.ParserError):
+        list(ReadFilesAdapter.read_csv_chunk_size(malformed, chunk_size=1))

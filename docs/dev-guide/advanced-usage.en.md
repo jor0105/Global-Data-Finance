@@ -68,6 +68,31 @@ print(f"Active network timeout: {settings.network.timeout}s")
 print(f"Max configured retries: {settings.network.max_retries}")
 ```
 
+### ZIP limits and UNC destinations
+
+Archive limits also belong to `Settings`, apply to both CVM and B3, and are
+validated before extraction begins. Defaults are 2 GiB for the compressed ZIP
+and each member, 8 GiB total uncompressed data, 10,000 members, and a maximum
+compression ratio of 200. Invalid values fail during configuration startup,
+not during a partial write.
+
+```bash
+export DATAFINANCE_ARCHIVE_MAX_ARCHIVE_BYTES=2147483648
+export DATAFINANCE_ARCHIVE_MAX_MEMBERS=10000
+export DATAFINANCE_ARCHIVE_MAX_MEMBER_UNCOMPRESSED_BYTES=2147483648
+export DATAFINANCE_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES=8589934592
+export DATAFINANCE_ARCHIVE_MAX_COMPRESSION_RATIO=200
+
+# UNC is denied by default. The JSON list may contain only trusted roots.
+export DATAFINANCE_PATH_SAFETY_ALLOWED_UNC_ROOTS='["\\\\fileserver\\finance\\exports"]'
+```
+
+POSIX roots, Windows drive roots, Windows system directories, and unauthorized
+UNC shares are rejected before a directory is created. Even with an allowlist,
+administrative shares ending in `$` remain forbidden. This policy reduces
+accidental writing to sensitive destinations; it does not constrain a caller
+that already has the process's privileges.
+
 ### Resource Monitoring Engine
 
 Autonomously evaluate system telemetry to dynamically constrain concurrency patterns:

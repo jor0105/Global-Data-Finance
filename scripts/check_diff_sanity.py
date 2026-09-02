@@ -23,7 +23,10 @@ import re
 import sys
 from pathlib import Path
 
-from diff_sanity_policy import (
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.diff_sanity_policy import (
     NOQA_LABEL,
     check_debug_violations,
     check_security_violations,
@@ -31,7 +34,11 @@ from diff_sanity_policy import (
     is_inspectable_file,
     is_security_inspectable_file,
 )
-from git_changes import GitInspectionError, get_diff, is_external_harness_path
+from scripts.git_changes import (
+    GitInspectionError,
+    get_diff,
+    is_external_harness_path,
+)
 
 
 def get_staged_diff(target_files: list[str] | None = None) -> str:

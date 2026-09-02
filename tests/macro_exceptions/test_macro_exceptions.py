@@ -16,6 +16,8 @@ from globaldatafinance.macro_exceptions import (
     TimeoutError,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestEmptyDirectoryError:
     def test_initialization_with_path(self):

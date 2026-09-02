@@ -44,24 +44,20 @@ class TestAvailableDocs:
             assert key.isupper()
 
     def test_validate_docs_name_with_valid_doc_uppercase(self):
-        validate_docs_name('DFP')
-        validate_docs_name('ITR')
-        validate_docs_name('FRE')
+        for doc_name in ('DFP', 'ITR', 'FRE'):
+            assert validate_docs_name(doc_name) is None
 
     def test_validate_docs_name_with_valid_doc_lowercase(self):
-        validate_docs_name('dfp')
-        validate_docs_name('itr')
-        validate_docs_name('fre')
+        for doc_name in ('dfp', 'itr', 'fre'):
+            assert validate_docs_name(doc_name) is None
 
     def test_validate_docs_name_with_valid_doc_mixed_case(self):
-        validate_docs_name('DfP')
-        validate_docs_name('ItR')
-        validate_docs_name('FrE')
+        for doc_name in ('DfP', 'ItR', 'FrE'):
+            assert validate_docs_name(doc_name) is None
 
     def test_validate_docs_name_with_spaces(self):
-        validate_docs_name('  DFP  ')
-        validate_docs_name(' ITR ')
-        validate_docs_name('FRE   ')
+        for doc_name in ('  DFP  ', ' ITR ', 'FRE   '):
+            assert validate_docs_name(doc_name) is None
 
     def test_validate_docs_name_with_invalid_doc_name(self):
         with pytest.raises(InvalidDocumentName) as exc_info:
@@ -101,8 +97,11 @@ class TestAvailableDocs:
 
     def test_validate_all_available_docs(self):
         docs = get_available_docs()
-        for doc_name in docs:
-            validate_docs_name(doc_name)
+        validation_results = [
+            validate_docs_name(doc_name) for doc_name in docs
+        ]
+
+        assert validation_results == [None] * len(docs)
 
     def test_doc_descriptions_not_empty(self):
         docs = get_available_docs()

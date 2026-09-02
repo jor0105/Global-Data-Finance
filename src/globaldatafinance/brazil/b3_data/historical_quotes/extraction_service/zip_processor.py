@@ -237,10 +237,11 @@ class ZipProcessorB3:
     ) -> list[ParsedRecord]:
         """Parse a batch of lines in parallel using ThreadPoolExecutor."""
         loop = asyncio.get_running_loop()
-        parsed_batch = await loop.run_in_executor(
+        future = loop.run_in_executor(
             self.executor_pool,
             parse_lines_batch,
             lines,
             target_tpmerc_codes,
         )
+        parsed_batch = await future
         return [record for record in parsed_batch if record is not None]

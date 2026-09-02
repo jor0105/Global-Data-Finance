@@ -6,9 +6,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from git_changes import is_external_harness_path
-from process_runner import ProcessRunnerError, run_process
-from workspace_members import GitInspectionError, normalize_path
+from scripts.git_changes import is_external_harness_path
+from scripts.process_runner import ProcessRunnerError, run_process
+from scripts.workspace_members import GitInspectionError, normalize_path
 
 
 @dataclass(frozen=True)

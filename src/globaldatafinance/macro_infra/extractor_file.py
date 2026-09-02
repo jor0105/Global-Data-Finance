@@ -13,6 +13,11 @@ import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
 
 from ..core import get_logger
+from ..core.archive_safety import (
+    ArchiveSafetyLimits,
+    open_limited_zip_member,
+    validate_zip_archive,
+)
 from ..macro_exceptions import (
     CorruptedZipError,
     DiskFullError,
@@ -36,12 +41,18 @@ class ExtractorAdapter:
     CHUNK_SIZE_PARQUET = 50000
 
     @staticmethod
-    def list_files_in_zip(zip_path: str, extension: str) -> list[str]:
+    def list_files_in_zip(
+        zip_path: str,
+        extension: str,
+        *,
+        archive_limits: ArchiveSafetyLimits | None = None,
+    ) -> list[str]:
         """List files in ZIP archive with optional extension filter.
 
         Args:
             zip_path: Path to the ZIP file
             extension: File extension to filter (e.g., '.csv', '.txt')
+            archive_limits: Optional ZIP resource limits for this operation.
 
         Returns:
             List of filenames in the ZIP
@@ -56,16 +67,22 @@ class ExtractorAdapter:
 
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
-                names = z.namelist()
+                infos = validate_zip_archive(path, z, limits=archive_limits)
                 return [
-                    name for name in names if name.lower().endswith(extension)
+                    info.filename
+                    for info in infos
+                    if not info.is_dir()
+                    and info.filename.lower().endswith(extension)
                 ]
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e)) from e
 
     @staticmethod
     def open_file_from_zip(
-        zip_file: zipfile.ZipFile, filename: str
+        zip_file: zipfile.ZipFile,
+        filename: str,
+        *,
+        archive_limits: ArchiveSafetyLimits | None = None,
     ) -> IO[bytes]:
         """Open a file handle from an already-opened ZIP archive.
 
@@ -75,6 +92,7 @@ class ExtractorAdapter:
         Args:
             zip_file: Already opened ZipFile object
             filename: Name of the file inside the ZIP to open
+            archive_limits: Optional ZIP resource limits for this operation.
 
         Returns:
             File handle that can be read in chunks
@@ -82,16 +100,27 @@ class ExtractorAdapter:
         Raises:
             ExtractionError: If file not found in ZIP
         """
+        archive_path = zip_file.filename or 'unknown.zip'
+        if zip_file.filename is not None:
+            validate_zip_archive(archive_path, zip_file, limits=archive_limits)
         if filename not in zip_file.namelist():
             raise ExtractionError(
-                zip_file.filename or 'unknown',
-                f"File '{filename}' not found in ZIP",
+                archive_path, f"File '{filename}' not found in ZIP"
             )
 
-        return zip_file.open(filename)
+        return open_limited_zip_member(
+            zip_file,
+            filename,
+            archive_path=archive_path,
+            limits=archive_limits,
+        )
 
     async def extract_txt_from_zip_async(
-        self, zip_path: str
+        self,
+        zip_path: str,
+        member_name: str | None = None,
+        *,
+        archive_limits: ArchiveSafetyLimits | None = None,
     ) -> AsyncIterator[str]:
         """Read ZIP TXT lines asynchronously with true streaming.
 
@@ -100,6 +129,8 @@ class ExtractorAdapter:
 
         Args:
             zip_path: Path to the ZIP file
+            member_name: Explicit TXT member selected by a source adapter.
+            archive_limits: Optional ZIP resource limits for this operation.
 
         Yields:
             Lines from the TXT file (decoded as latin-1)
@@ -110,21 +141,38 @@ class ExtractorAdapter:
             ExtractionError: If no TXT file found in ZIP
         """
         try:
-            txt_files = ExtractorAdapter.list_files_in_zip(zip_path, '.txt')
-            if not txt_files:
-                raise ExtractionError(zip_path, 'No .TXT file found in ZIP')
+            with zipfile.ZipFile(zip_path, 'r') as zip_file:
+                infos = validate_zip_archive(
+                    zip_path, zip_file, limits=archive_limits
+                )
+                selected_member = member_name
+                if selected_member is None:
+                    txt_files = [
+                        info.filename
+                        for info in infos
+                        if not info.is_dir()
+                        and info.filename.lower().endswith('.txt')
+                    ]
+                    if not txt_files:
+                        raise ExtractionError(
+                            zip_path, 'No .TXT file found in ZIP'
+                        )
+                    selected_member = txt_files[0]
 
-            with (
-                zipfile.ZipFile(zip_path, 'r') as zip_file,
-                ExtractorAdapter.open_file_from_zip(
-                    zip_file, txt_files[0]
-                ) as txt_file_handle,
-            ):
-                for raw_line in txt_file_handle:
-                    line = raw_line.decode('latin-1', errors='replace').strip()
-                    if line:
+                with ExtractorAdapter.open_file_from_zip(
+                    zip_file,
+                    selected_member,
+                    archive_limits=archive_limits,
+                ) as txt_file_handle:
+                    for line_count, raw_line in enumerate(
+                        txt_file_handle, start=1
+                    ):
+                        line = raw_line.decode(
+                            'latin-1', errors='replace'
+                        ).rstrip('\r\n')
                         yield line
-                    await asyncio.sleep(0)
+                        if line_count % self.CHUNK_SIZE_TXT == 0:
+                            await asyncio.sleep(0)
         except zipfile.BadZipFile as e:
             raise CorruptedZipError(zip_path, str(e)) from e
         except Exception as e:
@@ -174,7 +222,7 @@ class ExtractorAdapter:
                 zip_file, csv_filename, parquet_path, encoding
             )
 
-        except DiskFullError:
+        except (DiskFullError, CorruptedZipError):
             self.__safe_delete_file(parquet_path)
             raise
 
@@ -209,7 +257,7 @@ class ExtractorAdapter:
         total_rows = 0
 
         try:
-            with zip_file.open(csv_filename) as csv_file:
+            with self.open_file_from_zip(zip_file, csv_filename) as csv_file:
                 text_wrapper = io.TextIOWrapper(
                     csv_file,
                     encoding=encoding,

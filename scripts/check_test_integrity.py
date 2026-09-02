@@ -1,28 +1,25 @@
 #!/usr/bin/env python3
-"""Detect weakened, skipped, or deleted tests in staged or ranged Git diffs.
+"""Detect test erosion in staged or ranged Git diffs.
 
-Detects common test erosion patterns:
-  - Focused/isolated tests (.only, fit, fdescribe) - strictly prohibited
-  - Skipped or xfailed tests (@pytest.mark.skip, it.skip, xit) - fail unless
-    justified with a reason
-  - Unjustified net removal of assertion lines in test files
-  - Deleted test files without staged policy authorization
-    (.test-deletions.json)
-
-Fail-closed: Exits with code 2 on git errors, code 1 on violations, and code 0
-on a clean pass.
-Zero external dependencies (Python 3.10+ standard library only).
+The gate rejects focused/skipped tests, assertion loss, unauthorized test
+deletions, and stale deletion-policy entries.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
 
-from git_changes import GitInspectionError, get_diff, read_git_file
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.git_changes import GitInspectionError, get_diff, read_git_file
+from scripts.integrity_policy import (
+    read_policy_entries,
+    stale_deletion_policy_errors,
+)
 
 # Focused tests are strictly prohibited in pre-commit (no bypass allowed)
 STRICT_FOCUS_PATTERNS = [
@@ -104,29 +101,14 @@ def is_test_deletion_approved(
     revision_range: str | None = None,
 ) -> bool:
     """Check whether a test deletion has approval in inspected Git state."""
-    policy_names = ('.test-deletions.json', '.test-integrity-policy.json')
-    for policy_name in policy_names:
-        content = read_git_file(
-            policy_name,
-            repo_root=repo_root,
-            revision_range=revision_range,
-        )
-        if content is not None:
-            try:
-                data = json.loads(content)
-                if isinstance(data, dict):
-                    allowed = data.get('allowed_deletions')
-                    if isinstance(allowed, dict) and file_path in allowed:
-                        reason = allowed[file_path]
-                        if isinstance(reason, str) and reason.strip():
-                            return True
-                        if (
-                            isinstance(reason, dict)
-                            and str(reason.get('reason', '')).strip()
-                        ):
-                            return True
-            except (OSError, json.JSONDecodeError):
-                pass
+    for policy_name in ('.test-deletions.json', '.test-integrity-policy.json'):
+        reason = read_policy_entries(
+            policy_name, repo_root=repo_root, revision_range=revision_range
+        ).get(file_path)
+        if isinstance(reason, str) and reason.strip():
+            return True
+        if isinstance(reason, dict) and str(reason.get('reason', '')).strip():
+            return True
     return False
 
 
@@ -149,7 +131,6 @@ def _evaluate_file_assertions(
     repo_root: Path | None = None,
     revision_range: str | None = None,
 ) -> list[str]:
-    """Evaluate whether changes to a test file violate integrity."""
     errors: list[str] = []
     if not (file_path and is_test_file(file_path)):
         return errors
@@ -166,7 +147,7 @@ def _evaluate_file_assertions(
             errors.append(
                 f'{file_path}: [TEST_DELETION] Test file deleted in staged '
                 f'changes. To authorize, pass {_ALLOW_DELETED_FLAG} '
-                'or stage a policy entry in .test-deletions.json.'
+                'or stage a policy entry in .test-integrity-policy.json.'
             )
     elif removed_assertions > added_assertions and not has_reduction_allow:
         errors.append(
@@ -181,7 +162,6 @@ def _evaluate_file_assertions(
 def _check_focus_or_skip_line(
     content: str, file_path: str, line_num: int
 ) -> list[str]:
-    """Check an added line for focus or skip markers."""
     errors: list[str] = []
     for pattern, desc in STRICT_FOCUS_PATTERNS:
         if pattern.search(content):
@@ -199,8 +179,6 @@ def _check_focus_or_skip_line(
 
 
 class _FileDiffState:
-    """Track assertion and skip counts for a file during diff scanning."""
-
     def __init__(self) -> None:
         self.current_file: str = ''
         self.prev_file: str = ''
@@ -235,7 +213,6 @@ class _FileDiffState:
         )
 
     def track_previous_file(self, line: str) -> bool:
-        """Record an old-file header and report whether it was consumed."""
         if not line.startswith('--- a/'):
             return False
         self.prev_file = line[6:]
@@ -248,7 +225,6 @@ class _FileDiffState:
         repo_root: Path | None,
         revision_range: str | None,
     ) -> list[str] | None:
-        """Finish the prior file and initialize a new or deleted file."""
         if line.startswith('+++ b/'):
             errors = self.evaluate(allow_deleted, repo_root, revision_range)
             self.reset_for_file(line[6:], is_deleted=False)
@@ -260,7 +236,6 @@ class _FileDiffState:
         return None
 
     def handle_hunk(self, line: str) -> bool:
-        """Initialize the added-side line number from a hunk header."""
         if not line.startswith('@@ '):
             return False
         match = re.search(r'\+(\d+)', line)
@@ -269,7 +244,6 @@ class _FileDiffState:
         return True
 
     def handle_removal(self, line: str) -> bool:
-        """Count an assertion removed from the current test file."""
         if not line.startswith('-') or line.startswith('---'):
             return False
         if ASSERTION_PATTERNS.search(line[1:].strip()):
@@ -277,7 +251,6 @@ class _FileDiffState:
         return True
 
     def handle_addition(self, line: str) -> list[str] | None:
-        """Inspect and count an added line from the current test file."""
         if not line.startswith('+') or line.startswith('+++'):
             return None
         self.line_num += 1
@@ -293,7 +266,6 @@ class _FileDiffState:
         )
 
     def inspect_test_line(self, line: str) -> list[str]:
-        """Dispatch one diff line for the active test file."""
         if self.handle_hunk(line) or self.handle_removal(line):
             return []
         return self.handle_addition(line) or []
@@ -324,6 +296,14 @@ def scan_test_integrity(
             errors.extend(state.inspect_test_line(line))
 
     errors.extend(state.evaluate(allow_deleted, repo_root, revision_range))
+    errors.extend(
+        stale_deletion_policy_errors(
+            diff_text,
+            repo_root=repo_root,
+            revision_range=revision_range,
+            is_test_file=is_test_file,
+        )
+    )
     return errors
 
 

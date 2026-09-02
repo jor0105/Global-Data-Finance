@@ -3,12 +3,14 @@
 import zipfile
 from pathlib import Path
 
-try:
-    import pyarrow.parquet as pq
-except ImportError:
-    pq = None  # type: ignore[assignment]
+import pyarrow.parquet as pq
 
 from ....core import get_logger
+from ....core.archive_safety import (
+    validate_zip_archive,
+    validate_zip_crc_with_limits,
+)
+from ....macro_exceptions import CorruptedZipError
 
 logger = get_logger(__name__)
 
@@ -47,12 +49,11 @@ def validate_parquet_files(
     parquet_files: list[Path], doc_name: str, year: str
 ) -> bool:
     """Validate that parquet files are readable and contain data."""
-    if pq is None:
-        logger.warning(
-            'pyarrow not available for parquet validation, '
-            'skipping content check'
+    if not parquet_files:
+        logger.error(
+            'No parquet files were provided for %s_%s', doc_name, year
         )
-        return True
+        return False
 
     try:
         valid_files = 0
@@ -68,21 +69,30 @@ def validate_parquet_files(
                     )
                     return False
 
-                table = pq.read_table(str(parquet_file))
+                parquet_metadata = pq.ParquetFile(parquet_file).metadata
+                if parquet_metadata is None:
+                    logger.error(
+                        'Parquet metadata is unavailable: %s for %s_%s',
+                        parquet_file,
+                        doc_name,
+                        year,
+                    )
+                    return False
 
-                if table.num_rows == 0:
-                    logger.warning(
+                if parquet_metadata.num_rows == 0:
+                    logger.error(
                         'Parquet file has no data rows: %s for %s_%s',
                         parquet_file,
                         doc_name,
                         year,
                     )
+                    return False
 
                 valid_files += 1
                 logger.debug(
                     'Parquet validated: %s (%d rows, %d bytes)',
                     parquet_file.name,
-                    table.num_rows,
+                    parquet_metadata.num_rows,
                     file_size,
                 )
 
@@ -143,29 +153,29 @@ def _has_valid_size(path: Path, expected_size: int) -> bool:
 def _has_valid_zip_contents(filepath: str) -> bool:
     try:
         with zipfile.ZipFile(filepath, 'r') as zip_file:
-            bad_file = zip_file.testzip()
-            if bad_file:
-                logger.error(
-                    'Corrupted file in ZIP: %s (%s)', bad_file, filepath
-                )
-                return False
-
-            namelist = zip_file.namelist()
-            if not namelist:
+            infos = validate_zip_archive(filepath, zip_file)
+            if not infos:
                 logger.error('Empty ZIP file: %s', filepath)
                 return False
 
-            csv_files = [n for n in namelist if n.lower().endswith('.csv')]
+            validate_zip_crc_with_limits(filepath, zip_file, infos=infos)
+
+            csv_files = [
+                info.filename
+                for info in infos
+                if not info.is_dir() and info.filename.lower().endswith('.csv')
+            ]
             if not csv_files:
-                logger.warning(
+                logger.error(
                     'No CSV files in ZIP: %s. Files found: %s%s',
                     filepath,
-                    ', '.join(namelist[:5]),
-                    '...' if len(namelist) > 5 else '',
+                    ', '.join(info.filename for info in infos[:5]),
+                    '...' if len(infos) > 5 else '',
                 )
+                return False
 
-    except zipfile.BadZipFile:
-        logger.exception('Invalid ZIP file: %s', filepath)
+    except (CorruptedZipError, OSError, zipfile.BadZipFile):
+        logger.exception('Invalid or unsafe ZIP file %s', filepath)
         return False
 
     logger.debug('File validation passed: %s', filepath)

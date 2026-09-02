@@ -380,6 +380,25 @@ destination_path/
 └── ...
 ```
 
+### Extraction integrity and recovery
+
+Every ZIP is validated before its contents are consumed. CSV reading selects
+encoding through deterministic full-member validation (`utf-8-sig`, UTF-8,
+CP1252, and Latin-1) and fails closed for invalid CSV structure: no rows are
+silently discarded.
+
+One ZIP can produce several Parquets. Extraction stages work inside the
+destination directory, validates every staged artifact, and only then replaces
+targets in deterministic order with backups of pre-existing files. A normal
+failure restores pre-existing targets and removes temporary state. This is a
+**failure-atomic batch commit**, not an instantly atomic transaction for
+concurrent readers; simultaneous writes to the same destination are not
+supported.
+
+When a raw file already exists, an update replaces it only after the new file
+has completed transfer and validation; if either step fails, the previous ZIP
+remains byte-for-byte unchanged.
+
 ______________________________________________________________________
 
 ## Best Practices

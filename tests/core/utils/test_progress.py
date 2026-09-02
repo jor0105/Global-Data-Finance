@@ -1,7 +1,11 @@
 import io
 from unittest.mock import patch
 
+import pytest
+
 from globaldatafinance.core.utils import SimpleProgressBar
+
+pytestmark = pytest.mark.unit
 
 
 class TestSimpleProgressBar:

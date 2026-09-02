@@ -9,8 +9,9 @@ import pytest
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     download_validation,
 )
+from tests.support.builders import write_zip
 
-pytestmark = pytest.mark.unit
+pytestmark = pytest.mark.integration
 
 
 def test_find_parquet_files(tmp_path: Path) -> None:
@@ -54,14 +55,14 @@ def test_validate_parquet_files_empty_zero_bytes(tmp_path: Path) -> None:
     )
 
 
-def test_validate_parquet_files_zero_rows_logs_warning_and_returns_true(
+def test_validate_parquet_files_zero_rows_returns_false(
     tmp_path: Path,
 ) -> None:
     p = tmp_path / 'zero_rows.parquet'
     pq.write_table(pa.table({'col': pa.array([], type=pa.int64())}), str(p))
 
     assert (
-        download_validation.validate_parquet_files([p], 'dfp', '2023') is True
+        download_validation.validate_parquet_files([p], 'dfp', '2023') is False
     )
 
 
@@ -75,17 +76,18 @@ def test_validate_parquet_files_corrupted_file(tmp_path: Path) -> None:
     )
 
 
-def test_validate_parquet_files_when_pyarrow_none(
+def test_validate_parquet_files_never_accepts_missing_validation_engine(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(download_validation, 'pq', None)
     file = tmp_path / 'dummy.parquet'
     file.touch()
 
-    # When pq is None, content validation is skipped and returns True
+    # A supported installation imports PyArrow directly; a broken runtime
+    # must not turn validation into a positive result.
     assert (
         download_validation.validate_parquet_files([file], 'dfp', '2023')
-        is True
+        is False
     )
 
 
@@ -115,7 +117,10 @@ def test_has_valid_zip_contents_corrupt_zip(
         result = download_validation._has_valid_zip_contents(str(corrupt_zip))
 
     assert result is False
-    assert any(record.exc_info is not None for record in caplog.records)
+    assert any(
+        'Invalid or unsafe ZIP file' in record.message
+        for record in caplog.records
+    )
 
 
 def test_has_valid_zip_contents_empty_zip(tmp_path: Path) -> None:
@@ -131,8 +136,49 @@ def test_has_valid_zip_contents_no_csv(tmp_path: Path) -> None:
     with zipfile.ZipFile(no_csv_zip, 'w') as zf:
         zf.writestr('doc.txt', 'hello')
 
-    # Logs warning but returns True because it is a valid zip
-    assert download_validation._has_valid_zip_contents(str(no_csv_zip)) is True
+    assert (
+        download_validation._has_valid_zip_contents(str(no_csv_zip)) is False
+    )
+
+
+def test_has_valid_zip_contents_rejects_unsafe_member_before_crc(
+    tmp_path: Path,
+) -> None:
+    """Download validation shares ZIP policy rather than accepting Zip Slip."""
+    unsafe_zip = write_zip(
+        tmp_path / 'unsafe.zip', {'../outside.csv': 'a;b\n1;2\n'}
+    )
+
+    assert (
+        download_validation._has_valid_zip_contents(str(unsafe_zip)) is False
+    )
+
+
+def test_validate_parquet_files_empty_list_returns_false() -> None:
+    """No generated artifacts cannot count as a successful extraction."""
+    assert (
+        download_validation.validate_parquet_files([], 'dfp', '2023') is False
+    )
+
+
+def test_validate_parquet_files_uses_footer_metadata_not_full_table_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Validation reads Parquet metadata, keeping large artifacts bounded."""
+    parquet_path = tmp_path / 'metadata.parquet'
+    pq.write_table(pa.table({'col': [1]}), str(parquet_path))
+
+    def fail_table_read(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError('full table reads are not part of validation')
+
+    monkeypatch.setattr(download_validation.pq, 'read_table', fail_table_read)
+
+    assert (
+        download_validation.validate_parquet_files(
+            [parquet_path], 'dfp', '2023'
+        )
+        is True
+    )
 
 
 def test_validate_downloaded_file_nonexistent() -> None:

@@ -1,9 +1,11 @@
 import logging
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
+import globaldatafinance.core.logging_config as logging_config_module
 from globaldatafinance.core.logging_config import (
     StructuredFormatter,
     get_logger,
@@ -14,6 +16,30 @@ from globaldatafinance.core.logging_config import (
     setup_logging,
 )
 from globaldatafinance.core.utils.files import remove_file
+
+pytestmark = pytest.mark.unit
+
+
+@pytest.fixture(autouse=True)
+def restore_logging_state():
+    """Restore root handlers and library logging state after each test."""
+    root_logger = logging.getLogger()
+    original_handlers = list(root_logger.handlers)
+    original_level = root_logger.level
+    original_configured = logging_config_module._logging_configured
+    original_settings = logging_config_module.get_logging_settings()
+    original_settings = original_settings.model_copy(deep=True)
+
+    yield
+
+    for handler in list(root_logger.handlers):
+        if handler not in original_handlers:
+            root_logger.removeHandler(handler)
+            handler.close()
+    root_logger.handlers[:] = original_handlers
+    root_logger.setLevel(original_level)
+    logging_config_module._settings = original_settings
+    logging_config_module._logging_configured = original_configured
 
 
 class TestLoggingConfiguration:
@@ -45,16 +71,24 @@ class TestLoggingConfiguration:
             assert 'Debug message' in content
             assert 'Info message' in content
 
-    def test_log_with_context_executes(self):
+    def test_log_with_context_emits_context_and_level(self, caplog):
         logger = get_logger('test_module')
 
-        log_with_context(
-            logger,
-            'info',
-            'Processing file',
-            file_path='data.csv',
-            records=1000,
-        )
+        with caplog.at_level(logging.INFO, logger='test_module'):
+            log_with_context(
+                logger,
+                'warning',
+                'Processing file',
+                file_path='data.csv',
+                records=1000,
+            )
+
+        assert len(caplog.records) == 1
+        record = caplog.records[0]
+        assert record.levelno == logging.WARNING
+        assert record.message == 'Processing file'
+        assert record.file_path == 'data.csv'
+        assert record.records == 1000
 
     def test_structured_formatter_renders_extra_data_and_safe_context(self):
         formatter = StructuredFormatter('%(message)s')
@@ -78,32 +112,98 @@ class TestLoggingConfiguration:
 
     def test_filename_remains_reserved_by_standard_logging(self):
         logger = get_logger('test_reserved_logrecord_attribute')
+        original_level = logger.level
+        logger.setLevel(logging.INFO)
 
-        with pytest.raises(KeyError, match='filename'):
-            logger.info('Invalid context', extra={'filename': 'data.csv'})
+        try:
+            with pytest.raises(KeyError, match='filename'):
+                logger.info('Invalid context', extra={'filename': 'data.csv'})
+        finally:
+            logger.setLevel(original_level)
 
-    def test_log_execution_time_success_executes(self):
-        logger = get_logger('test_module')
-
-        with log_execution_time(logger, 'Test operation'):
-            pass
-
-    def test_log_execution_time_failure_raises(self):
+    @patch(
+        'globaldatafinance.core.logging_config.time.perf_counter',
+        side_effect=[10.0, 12.5],
+    )
+    def test_log_execution_time_success_emits_timing(
+        self, mock_perf_counter, caplog
+    ):
         logger = get_logger('test_module')
 
         with (
+            caplog.at_level(logging.INFO, logger='test_module'),
+            log_execution_time(logger, 'Test operation', file_path='data.csv'),
+        ):
+            pass
+
+        assert mock_perf_counter.call_count == 2
+        assert [record.message for record in caplog.records] == [
+            'Starting: Test operation',
+            'Completed: Test operation',
+        ]
+        completed = caplog.records[-1]
+        assert completed.levelno == logging.INFO
+        assert completed.operation == 'Test operation'
+        assert completed.elapsed_seconds == '2.50'
+        assert completed.file_path == 'data.csv'
+
+    @patch(
+        'globaldatafinance.core.logging_config.time.perf_counter',
+        side_effect=[10.0, 11.25],
+    )
+    def test_log_execution_time_failure_emits_error_and_reraises(
+        self, _mock_perf_counter, caplog
+    ):
+        logger = get_logger('test_module')
+
+        with (
+            caplog.at_level(logging.INFO, logger='test_module'),
             pytest.raises(ValueError, match='Test error'),
             log_execution_time(logger, 'Failing operation'),
         ):
             raise ValueError('Test error')
 
-    def test_different_log_levels_execute(self):
+        failed = caplog.records[-1]
+        assert failed.levelno == logging.ERROR
+        assert failed.message == 'Failed: Failing operation'
+        assert failed.operation == 'Failing operation'
+        assert failed.elapsed_seconds == '1.25'
+        assert failed.error == 'Test error'
+
+    def test_different_log_levels_emit_exact_levels(self, caplog):
         logger = get_logger('test_module')
 
-        logger.debug('Debug message')
-        logger.info('Info message')
-        logger.warning('Warning message')
-        logger.error('Error message')
+        with caplog.at_level(logging.DEBUG, logger='test_module'):
+            logger.debug('Debug message')
+            logger.info('Info message')
+            logger.warning('Warning message')
+            logger.error('Error message')
+
+        assert [record.levelno for record in caplog.records] == [
+            logging.DEBUG,
+            logging.INFO,
+            logging.WARNING,
+            logging.ERROR,
+        ]
+        assert [record.message for record in caplog.records] == [
+            'Debug message',
+            'Info message',
+            'Warning message',
+            'Error message',
+        ]
+
+    def test_log_execution_time_success_body_is_observed(self, caplog):
+        logger = get_logger('test_module')
+
+        with (
+            caplog.at_level(logging.INFO, logger='test_module'),
+            log_execution_time(logger, 'Observed operation'),
+        ):
+            logger.info('operation body')
+
+        assert any(
+            record.message == 'operation body' for record in caplog.records
+        )
 
     def test_setup_logging_with_detailed_format(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -154,7 +254,25 @@ class TestLoggingConfiguration:
             for record in caplog.records
         )
 
-    def test_is_logging_configured_and_get_logging_settings(self):
-        assert isinstance(is_logging_configured(), bool)
-        settings = get_logging_settings()
-        assert hasattr(settings, 'level')
+    def test_setup_logging_marks_configuration_and_applies_level(
+        self, monkeypatch
+    ):
+        root_logger = logging.getLogger()
+        monkeypatch.setattr(
+            logging_config_module, '_logging_configured', False
+        )
+
+        assert is_logging_configured() is False
+
+        setup_logging(level='WARNING')
+
+        console_handlers = [
+            handler
+            for handler in root_logger.handlers
+            if type(handler) is logging.StreamHandler
+        ]
+        assert is_logging_configured() is True
+        assert get_logging_settings().level == 'WARNING'
+        assert root_logger.level == logging.WARNING
+        assert len(console_handlers) == 1
+        assert console_handlers[0].level == logging.WARNING

@@ -5,7 +5,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from process_runner import ProcessResult, ProcessRunnerError, run_process
+from scripts.process_runner import (
+    ProcessResult,
+    ProcessRunnerError,
+    run_process,
+)
 
 EXTERNAL_HARNESS_ROOTS = (
     '.agents/',

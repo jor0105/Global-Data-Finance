@@ -140,6 +140,7 @@ jobs:
             --allow-print-file scripts/check-shell-syntax.py \
             --allow-print-file scripts/check-docs-contracts.py \
             --allow-print-file scripts/check-ruff-policy.py \
+            --allow-print-file scripts/check_test_quality.py \
             --allow-print-file \
             "$app_dir/b3_docs/extraction_result_formatter.py" \
             --allow-print-file \
@@ -151,6 +152,9 @@ jobs:
             --range "$QUALITY_GATE_RANGE"
           uv run --locked --no-sync python scripts/check-shell-syntax.py \
             --range "$QUALITY_GATE_RANGE"
+
+      - name: Check structural test quality
+        run: uv run --locked --no-sync python scripts/check_test_quality.py
 
       # The heavy pre-push contracts have dedicated steps below/above so CI
       # preserves focused type and coverage reports without duplicate runs.
@@ -169,12 +173,39 @@ jobs:
       # --------------------------------------------------------------------------
       # 4. Tests
       # --------------------------------------------------------------------------
-      - name: Run tests (excluding integration and slow tests)
+      - name: Run deterministic tests (excluding slow and real-data tests)
         env:
           PYTHONPATH: .
         run: |
-          uv run --locked --no-sync pytest -m "not integration and not slow" \
-                 --cov --cov-report=xml --cov-report=term-missing
+          uv run --locked --no-sync pytest \
+            -m "not slow and not real_data and not perf" \
+            --cov --cov-report=xml --cov-report=term-missing
+
+      - name: Run real-validation executor coverage
+        run: >-
+          uv run --locked --no-sync pytest -q
+          tests/tooling/test_real_validation.py
+          tests/tooling/test_real_validation_b3.py
+          tests/tooling/test_real_validation_cases.py
+          tests/tooling/test_real_validation_cvm.py
+          tests/tooling/test_real_validation_matrix.py
+          tests/tooling/test_real_validation_report.py
+          tests/tooling/test_real_validation_resume.py
+          tests/tooling/test_real_validation_runner.py
+          tests/tooling/test_real_validation_types.py
+          tests/tooling/test_real_validation_utils.py
+          --cov=scripts.real_validation
+          --cov=scripts.real_validation_b3
+          --cov=scripts.real_validation_cases
+          --cov=scripts.real_validation_cvm
+          --cov=scripts.real_validation_matrix
+          --cov=scripts.real_validation_report
+          --cov=scripts.real_validation_resume
+          --cov=scripts.real_validation_runner
+          --cov=scripts.real_validation_types
+          --cov=scripts.real_validation_utils
+          --cov-report=term-missing
+          --cov-fail-under=85
 
       # v7
       - name: Upload coverage to Codecov

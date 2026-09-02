@@ -19,6 +19,8 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     InvalidDocumentName,
 )
 
+pytestmark = pytest.mark.unit
+
 
 def _make_adapter() -> AsyncDownloadAdapterCVM:
     return AsyncDownloadAdapterCVM(file_extractor_repository=MagicMock())

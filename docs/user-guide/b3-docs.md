@@ -47,9 +47,8 @@ ______________________________________________________________________
 ## Uso Básico
 
 Antes de chamar `extract()`, coloque arquivos oficiais `COTAHIST_A{YYYY}.ZIP` ou
-`COTAHIST_A{YYYY}.TXT` no diretório existente de `path_of_docs`; a biblioteca
-não baixa nem preenche esse diretório. Obtenha os arquivos na [página oficial de
-Cotações Históricas da B3](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/); o ZIP prevalece quando os dois formatos existem para o mesmo ano.
+`COTAHIST_A{YYYY}.TXT` no diretório existente de `path_of_docs`; a biblioteca não baixa nem preenche esse diretório. Obtenha-os na [página oficial de Cotações Históricas da B3](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/); o ZIP prevalece quando ambos existem.
+Um arquivo selecionado precisa conter ao menos um registro `01`; arquivo vazio ou somente com header/trailer não é uma extração válida.
 
 ### Exemplo de Início Rápido
 
@@ -121,6 +120,8 @@ def extract(
 | `assets`          | `list[str]`      | Lista de classes de ativos extraídas                  |
 | `processing_mode` | `str`            | Modo de processamento utilizado                       |
 | `elapsed_time`    | `float`          | Tempo total de execução em segundos                   |
+
+Para um arquivo COTAHIST selecionado, `success=True` também exige um Parquet gerado. Se não houver registro `01`, artefato temporário ou registro compatível com as classes solicitadas, o retorno tem `success=False`, `error_count` positivo, `output_file=""` e a causa em `errors`; um diretório não vazio sem COTAHIST selecionável continua retornando o resultado vazio documentado.
 
 #### Exemplos
 
@@ -420,7 +421,15 @@ COTAHIST_A2023.ZIP
 └── COTAHIST_A2023.TXT  (arquivo de texto com largura fixa)
 ```
 
-O Global-Data-Finance processa automaticamente este formato e converte para Parquet.
+Arquivos históricos também podem conter `COTAHIST.A{YYYY}` (`COTAHIST.A2000`) ou
+`COTAHIST_A{YYYY}` sem extensão (`COTAHIST_A2001`). O leitor exige exatamente um
+membro candidato não aninhado, com ano interno igual ao nome externo; membro ausente,
+ambíguo ou divergente é rejeitado. Registros `01` precisam ter 245 caracteres,
+com espaços finais preservados; TXT e o membro selecionado precisam ter ao menos
+um registro `01`, pois header/trailer isolado falha antes do parser. Antes de
+consumir um ZIP, a biblioteca valida metadados e limites de tamanho, membros,
+expansão e compressão; formato inseguro ou corrompido falha com
+`ExtractionError`/`CorruptedZipError`, sem produzir resultado de sucesso.
 
 ______________________________________________________________________
 

@@ -2,8 +2,6 @@
 
 Complete user documentation guide for employing the `HistoricalQuotesB3` API to parse and process official historical market exchange COTAHIST archives from B3 (Brazilian Stock Exchange).
 
-______________________________________________________________________
-
 ## Overview
 
 The `HistoricalQuotesB3` class provides a high-performance engine capable of ingesting official COTAHIST bundle archives from B3, extracting precise historical transactions across diverse market asset classes, and compiling them directly into columnar Apache Parquet storage.
@@ -16,8 +14,6 @@ The `HistoricalQuotesB3` class provides a high-performance engine capable of ing
 - ✅ Deep historical compatibility dating back to fiscal year **1986**
 - ✅ Granular asset filtering syntax to exclude unnecessary instrument types
 - ✅ Comprehensive execution tracking and diagnostic console outputs
-
-______________________________________________________________________
 
 ## Supported Asset Categories
 
@@ -42,14 +38,14 @@ canonical API values and must be passed exactly as shown.
 !!! info "Historical Depth"
     B3 COTAHIST historical quote archives cover market transaction activity continuously from **1986** through the present day.
 
-______________________________________________________________________
-
 ## Basic Usage
 
 Before calling `extract()`, place official `COTAHIST_A{YYYY}.ZIP` or
 `COTAHIST_A{YYYY}.TXT` files in the existing `path_of_docs` directory; the
 library does not download or populate it. Obtain files from the [official B3
 Historical Quotes page](https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/); ZIP takes precedence when both formats exist for one year.
+A selected input must contain at least one type-`01` quote record; an empty
+file or one containing only a header/trailer is not a valid extraction.
 
 ### Quickstart Example
 
@@ -67,8 +63,6 @@ result = b3.extract(
 
 print(f"✓ Successfully processed {result['total_records']:,} transaction records")
 ```
-
-______________________________________________________________________
 
 ## Core Public Methods
 
@@ -121,6 +115,13 @@ def extract(
 | `assets`          | `list[str]`      | Asset category strings included during extraction    |
 | `processing_mode` | `str`            | Processing mode utilized (`"fast"` or `"slow"`)      |
 | `elapsed_time`    | `float`          | Elapsed execution duration in seconds                |
+
+For a selected COTAHIST input, `success=True` also requires a generated
+Parquet artifact. If the input contains no type-`01` record, produces no
+temporary artifact, or has no records matching the requested asset classes,
+the result has `success=False`, a positive `error_count`, `output_file=""`,
+and its cause in `errors`. This differs from a nonempty directory with no
+selectable COTAHIST file, which retains the documented empty result.
 
 #### Usage Examples
 
@@ -187,8 +188,6 @@ result = b3.extract(
 # Resulting artifact persisted at: /data/processed_quotes/stocks_etf_2023.parquet
 ```
 
-______________________________________________________________________
-
 ### `get_available_assets()`
 
 Returns an exhaustive list of valid asset string identifiers supported by the extraction filters.
@@ -215,8 +214,6 @@ assets = b3.get_available_assets()
 print(f"Available {len(assets)} asset classes")
 ```
 
-______________________________________________________________________
-
 ### `get_available_years()`
 
 Returns dictionary containing extreme boundaries of supported historical time horizons.
@@ -242,8 +239,6 @@ years = b3.get_available_years()
 # `current_year` is the current execution year.
 print(f"B3 data from {years['minimal_year']} through {years['current_year']}")
 ```
-
-______________________________________________________________________
 
 ## Processing Execution Modes
 
@@ -293,8 +288,6 @@ result = b3.extract(
 | ------------------ | ------------------- | ---------- | -------------------- | -------------------------- |
 | **fast**           | ~12,317 rows/s      | High       | ~4,260 MB            | ✅ Recommended Default     |
 | **slow**           | ~8,557 rows/s       | Low        | ~1,571 MB            | Memory-Constrained Servers |
-
-______________________________________________________________________
 
 ## Advanced Recipes & Implementations
 
@@ -388,8 +381,6 @@ result = b3.extract(
 )
 ```
 
-______________________________________________________________________
-
 ## Error Handling & Exceptions
 
 ### Custom Exception Hierarchy
@@ -402,8 +393,6 @@ ______________________________________________________________________
 | `InvalidLastYear`     | End year prior to start year              | Confirm monotonic temporal ordering            |
 | `EmptyDirectoryError` | Source folder lacks COTAHIST files        | Inspect folder contents prior to invocation    |
 | `ExtractionError`     | Corruption detected in positional layout  | Verify COTAHIST file integrity                 |
-
-______________________________________________________________________
 
 ## Official COTAHIST File Formats
 
@@ -420,7 +409,20 @@ COTAHIST_A2023.ZIP
 └── COTAHIST_A2023.TXT  (Fixed-width positional historical transaction ledger)
 ```
 
-______________________________________________________________________
+Historical archives may also contain `COTAHIST.A{YYYY}` (for example,
+`COTAHIST.A2000`) or the extensionless historical member `COTAHIST_A{YYYY}`
+(for example, `COTAHIST_A2001`). The reader requires exactly one non-nested
+candidate member whose internal year matches the external filename; missing,
+ambiguous, or wrong-year members are rejected. Quote record `01` must be
+exactly 245 characters, and fixed-width trailing spaces are preserved.
+TXT inputs and a ZIP's selected member must contain at least one `01` record;
+header/trailer-only content is rejected before parsing.
+
+Before consuming a ZIP, the library validates its metadata and limits for size,
+members, expansion, and compression. Global-Data-Finance processes accepted
+layouts and converts them to Parquet; a structurally unsafe or corrupted
+archive fails with `ExtractionError`/`CorruptedZipError` rather than yielding a
+successful result.
 
 ## Extracted Parquet Schema
 
@@ -475,8 +477,6 @@ print(f"\nDataframe shape: {df.shape}")
 print(f"In-memory estimation: {df.estimated_size('mb'):.2f} MB")
 ```
 
-______________________________________________________________________
-
 ## Best Practices
 
 ### 1. Harness Fast Mode for Extensive Datasets
@@ -525,16 +525,12 @@ else:
     pass
 ```
 
-______________________________________________________________________
-
 ## Next Steps
 
 - 📄 **[CVM Documents](cvm-docs.md)** - Guide to downloading CVM regulatory financial statements
 - 💻 **[Practical Examples](examples.md)** - Explore actionable quantitative analytics workflows
 - 🔧 **[API Reference](../reference/b3-api.md)** - Review comprehensive structural API definitions
 - ❓ **[FAQ](faq.md)** - Answers to common installation and architectural inquiries
-
-______________________________________________________________________
 
 !!! tip "Analytical Best Practice"
     Once historical quotes are compiled into Parquet files, consume them via `polars`. Its lazy evaluation engine and predicate pushdown capabilities significantly outperform pandas when processing multi-year tick ledgers.

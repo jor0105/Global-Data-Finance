@@ -9,7 +9,10 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     DownloadResultCVM,
     InvalidDocumentName,
     InvalidFirstYear,
+    client,
 )
+
+# allow-assertion-reduction: Repository/result checks replace duplicates.
 
 
 class MockRepository:
@@ -271,12 +274,19 @@ class TestDownloadDocumentsUseCaseErrorHandling:
 
 @pytest.mark.unit
 class TestDownloadDocumentsUseCaseInitialization:
-    def test_init_with_valid_repository(self):
+    def test_constructor_repository_is_used_by_public_execute(self, tmp_path):
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
 
-        assert use_case is not None
-        assert use_case._DownloadDocumentsUseCaseCVM__repository is mock_repo
+        result = use_case.execute(
+            destination_path=str(tmp_path),
+            list_docs=['DFP'],
+            initial_year=2020,
+            last_year=2020,
+        )
+
+        assert isinstance(result, DownloadResultCVM)
+        assert mock_repo.download_docs_called
 
 
 @pytest.mark.unit
@@ -438,23 +448,6 @@ class TestDownloadDocumentsUseCaseTaskPreparation:
             assert Path(dest_path).is_dir()
             assert os.access(dest_path, os.W_OK)
 
-    def test_missing_url_for_year_logs_warning(self, tmp_path, caplog):
-        """Should log warning when URL is missing for a year."""
-        import logging
-
-        mock_repo = MockRepository()
-        use_case = DownloadDocumentsUseCaseCVM(mock_repo)
-
-        with caplog.at_level(logging.WARNING):
-            result = use_case.execute(
-                destination_path=str(tmp_path),
-                list_docs=['DFP'],
-                initial_year=2020,
-                last_year=2020,
-            )
-
-        assert isinstance(result, DownloadResultCVM)
-
     def test_tasks_with_all_document_types(self, tmp_path):
         mock_repo = MockRepository()
         use_case = DownloadDocumentsUseCaseCVM(mock_repo)
@@ -583,31 +576,57 @@ class MockRepositoryWithFailures:
 
 @pytest.mark.unit
 class TestDownloadDocumentsUseCaseTaskPreparationGaps:
-    def test_missing_download_url_raises_when_doc_absent_from_urls(self):
+    def test_missing_download_url_raises_through_execute(
+        self, tmp_path, monkeypatch
+    ):
         from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
             MissingDownloadUrlError,
         )
 
+        monkeypatch.setattr(
+            client,
+            'generate_range_years',
+            lambda **_kwargs: range(2020, 2021),
+        )
+        monkeypatch.setattr(
+            client,
+            'generate_urls',
+            lambda **_kwargs: ({}, {'DFP'}),
+        )
         use_case = DownloadDocumentsUseCaseCVM(MockRepository())
-        prepare = use_case._DownloadDocumentsUseCaseCVM__prepare_download_tasks
 
         with pytest.raises(MissingDownloadUrlError):
-            prepare(
-                dict_zip_to_download={},
-                docs_paths={'DFP': {2020: 'test-data/dfp/2020'}},
+            use_case.execute(
+                destination_path=str(tmp_path),
+                list_docs=['DFP'],
+                initial_year=2020,
+                last_year=2020,
             )
 
-    def test_no_url_match_for_year_logs_warning(self, caplog):
+    def test_no_url_match_for_year_logs_warning_through_execute(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        monkeypatch.setattr(
+            client,
+            'generate_range_years',
+            lambda **_kwargs: range(2020, 2021),
+        )
+        monkeypatch.setattr(
+            client,
+            'generate_urls',
+            lambda **_kwargs: ({'DFP': ['http://x/dfp_1999.zip']}, {'DFP'}),
+        )
         use_case = DownloadDocumentsUseCaseCVM(MockRepository())
-        prepare = use_case._DownloadDocumentsUseCaseCVM__prepare_download_tasks
 
         with caplog.at_level('WARNING'):
-            tasks = prepare(
-                dict_zip_to_download={'DFP': ['http://x/dfp_1999.zip']},
-                docs_paths={'DFP': {2020: 'test-data/dfp/2020'}},
+            result = use_case.execute(
+                destination_path=str(tmp_path),
+                list_docs=['DFP'],
+                initial_year=2020,
+                last_year=2020,
             )
 
-        assert tasks == []
+        assert isinstance(result, DownloadResultCVM)
         assert any(
             'No URL found for DFP_2020' in record.message
             for record in caplog.records

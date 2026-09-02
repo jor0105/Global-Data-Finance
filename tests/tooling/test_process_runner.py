@@ -11,6 +11,9 @@ import pytest
 process_runner = import_module('scripts.process_runner')
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_resolve_python_uses_the_current_interpreter() -> None:
     """Python resolution must not depend on a mutable PATH entry."""
     assert (

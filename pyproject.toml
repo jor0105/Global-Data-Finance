@@ -111,6 +111,7 @@ ignore_missing_imports = true
 # on the command line.
 [tool.coverage.run]
 source = ["src"]
+branch = true
 omit = [
     "*/tests/*",
     "*/__pycache__/*",

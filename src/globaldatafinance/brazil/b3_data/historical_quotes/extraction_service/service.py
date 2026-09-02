@@ -172,13 +172,24 @@ class ExtractionServiceB3:
             state.errors[zip_file] = str(result_data)
             return
 
+        if result_data['records'] == 0:
+            state.error_count += 1
+            state.errors[zip_file] = (
+                'No COTAHIST records matched the requested assets'
+            )
+            return
+
+        temp_file = Path(result_data['temp_file'])
+        if not temp_file.exists():
+            state.error_count += 1
+            state.errors[zip_file] = (
+                f'COTAHIST temporary Parquet was not created: {temp_file}'
+            )
+            return
+
         state.success_count += 1
         state.total_records += result_data['records']
-        temp_file = Path(result_data['temp_file'])
-        if temp_file.exists():
-            state.temp_files.append(temp_file)
-        else:
-            logger.warning(f'Temp file not found: {temp_file}')
+        state.temp_files.append(temp_file)
 
     async def _merge_temp_files(
         self, state: _ExtractionState, output_path: Path

@@ -5,8 +5,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from docs_contract_ast import SourceContracts
-from docs_contract_rules import DISALLOWED_SYMBOLS, KNOWN_IMPORTS
+from scripts.docs_contract_ast import SourceContracts
+from scripts.docs_contract_rules import DISALLOWED_SYMBOLS, KNOWN_IMPORTS
 
 
 class _AstBlockState:

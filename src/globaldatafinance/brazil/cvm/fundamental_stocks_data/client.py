@@ -1,11 +1,4 @@
-"""Orchestration layer for CVM fundamental_stocks_data.
-
-Consolidates the prior `application/use_cases/` modules into one file.
-The stateless use cases are module-level functions (Phase 4.1). The
-download orchestrator and the path-traversal verifier remain full classes:
-the first holds state across calls (D3), the second preserves the R11
-security boundary bit-identically.
-"""
+"""CVM download orchestration and caller-destination safety boundary."""
 
 import os
 import time
@@ -122,6 +115,7 @@ class VerifyPathsUseCasesCVM:
 
     def execute(self) -> dict[str, dict[int, str]]:
         """Create and verify directory structure for documents and years."""
+        self.__normalize_and_assert_safe(self.destination_path)
         docs_paths: dict[str, dict[int, str]] = {}
         for doc in self.new_set_docs:
             doc_path = str(Path(self.destination_path) / doc)
@@ -169,19 +163,9 @@ class VerifyPathsUseCasesCVM:
 
     @staticmethod
     def __validate_and_create_paths(path: str) -> str:
-        if not isinstance(path, str):
-            raise TypeError(
-                f'Destination path must be a string, got {type(path).__name__}'
-            )
-
-        if not path or path.isspace():
-            raise InvalidDestinationPathError(
-                'path cannot be empty or whitespace'
-            )
-
-        normalized_path = Path(path).expanduser().resolve()
-
-        assert_path_not_sensitive(normalized_path, raw_input=path)
+        normalized_path = VerifyPathsUseCasesCVM.__normalize_and_assert_safe(
+            path
+        )
 
         if normalized_path.exists():
             if not normalized_path.is_dir():
@@ -209,13 +193,29 @@ class VerifyPathsUseCasesCVM:
         )
         return str(normalized_path)
 
+    @staticmethod
+    def __normalize_and_assert_safe(path: str) -> Path:
+        """Validate raw destination syntax before a child path is composed."""
+        if not isinstance(path, str):
+            raise TypeError(
+                f'Destination path must be a string, got {type(path).__name__}'
+            )
+
+        if not path or path.isspace():
+            raise InvalidDestinationPathError(
+                'path cannot be empty or whitespace'
+            )
+
+        normalized_path = Path(path).expanduser().resolve()
+
+        assert_path_not_sensitive(normalized_path, raw_input=path)
+        return normalized_path
+
 
 class DownloadDocumentsUseCaseCVM:
     """Orchestrator use case for downloading CVM documents.
 
-    Maintains collaborator references across executions. Tests inspect the
-    private mangled attributes (`_DownloadDocumentsUseCaseCVM__repository`
-    etc.), so the constructor preserves this attribute structure. Collaborators
+    Maintains its repository collaborator across executions. Collaborators
     interact directly via duck typing and static type checking.
     """
 

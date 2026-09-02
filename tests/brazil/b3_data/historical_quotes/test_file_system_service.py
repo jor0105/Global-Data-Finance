@@ -166,7 +166,7 @@ class TestFileSystemServiceSecurityValidation:
         config_dir = fake_home / '.config' / 'globaldatafinance' / 'cache'
         config_dir.mkdir(parents=True)
         monkeypatch.setenv('HOME', str(fake_home))
-        service._validate_path_safety(config_dir.resolve())
+        assert service._validate_path_safety(config_dir.resolve()) is None
 
     def test_validate_directory_path_blocks_windows_system(self, service):
         # Cross-platform: even on POSIX, a Windows system path must be
@@ -188,13 +188,13 @@ class TestFileSystemServiceSecurityValidation:
         # helper must allow such directories.
         etcd_like = tmp_path / 'etcd_data'
         etcd_like.mkdir()
-        service._validate_path_safety(etcd_like.resolve())
+        assert service._validate_path_safety(etcd_like.resolve()) is None
 
     def test_validate_path_safety_allows_safe_paths(self, service, tmp_path):
         safe_dir = tmp_path / 'safe_directory'
         safe_dir.mkdir()
 
-        service._validate_path_safety(safe_dir.resolve())
+        assert service._validate_path_safety(safe_dir.resolve()) is None
 
     def test_validate_path_safety_allows_home_directory(
         self, service, tmp_path
@@ -202,7 +202,7 @@ class TestFileSystemServiceSecurityValidation:
         home_like = tmp_path / 'home' / 'user' / 'data'
         home_like.mkdir(parents=True)
 
-        service._validate_path_safety(home_like.resolve())
+        assert service._validate_path_safety(home_like.resolve()) is None
 
     def test_validate_directory_with_path_traversal_attempt(
         self, service, tmp_path

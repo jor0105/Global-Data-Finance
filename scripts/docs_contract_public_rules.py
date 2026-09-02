@@ -5,11 +5,11 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from docs_contract_ast import (
+from scripts.docs_contract_ast import (
     SourceContracts,
     compare_documented_extract_signature,
 )
-from docs_contract_rules import (
+from scripts.docs_contract_rules import (
     B3_MODULE_README,
     PUBLIC_B3_PATHS,
     _matches_public_path,

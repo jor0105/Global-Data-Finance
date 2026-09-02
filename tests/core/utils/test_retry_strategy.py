@@ -1,3 +1,4 @@
+import pytest
 import requests  # type: ignore
 
 from globaldatafinance.core.utils import RetryStrategy
@@ -7,6 +8,8 @@ from globaldatafinance.macro_exceptions import (
     PathPermissionError,
     TimeoutError,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestRetryStrategy:

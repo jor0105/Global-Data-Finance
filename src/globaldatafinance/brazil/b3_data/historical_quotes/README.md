@@ -27,11 +27,18 @@ brazil/b3_data/historical_quotes/
 ├── cotahist_parser.py     # Parsing posicional COTAHIST (preservado — complexidade legítima)
 ├── parquet_writer/        # Subpacote de escrita Parquet (writer, schema, streaming, disk, constants)
 ├── extraction_service/    # Subpacote de orquestração (service, batch_parser, zip_processor, buffered_writer, resource_policy, temp_parquet_merge, types)
+├── catalog.py              # Catálogo estrito e precedência dos inputs COTAHIST
 ├── zip_reader.py          # Leitura streaming de ZIP ou TXT
 └── errors.py              # InvalidFirstYear, InvalidLastYear, InvalidAssetsName, EmptyAssetListError, InvalidProcessingMode, etc.
 ```
 
 `ExtractHistoricalQuotesUseCaseB3` permanece como classe (D3) porque mantém estado: `zip_reader + parser + writer + processing_mode` são reutilizados entre chamadas.
+
+`catalog.py` pertence ao owner B3 e é usado por validações opt-in que precisam
+auditar um diretório caller-owned antes de processar dados reais. Ele aceita
+somente os nomes externos `COTAHIST_A{ANO}.ZIP` e `COTAHIST_A{ANO}.TXT`, valida
+metadados/CRC e o membro interno root, rejeita conflitos no mesmo formato e
+mantém precedência ZIP quando ZIP e TXT coexistem para o mesmo ano.
 
 ### Componentes Chave
 
@@ -52,7 +59,14 @@ brazil/b3_data/historical_quotes/
 
 ### Pré-requisitos
 
-Certifique-se de ter os arquivos `COTAHIST_A{ANO}.ZIP` baixados, ou os respectivos arquivos `COTAHIST_A{ANO}.TXT` descompactados, em um diretório acessível. Se os dois formatos do mesmo ano estiverem presentes, o ZIP terá precedência determinística.
+Certifique-se de ter os arquivos `COTAHIST_A{ANO}.ZIP` baixados, ou os
+respectivos arquivos `COTAHIST_A{ANO}.TXT` descompactados, em um diretório
+acessível. Se os dois formatos do mesmo ano estiverem presentes, o ZIP terá
+precedência determinística. Em ZIPs, o membro interno pode ser o moderno
+`COTAHIST_A{ANO}.TXT`, o histórico `COTAHIST.A{ANO}` ou o histórico sem
+extensão `COTAHIST_A{ANO}`; deve haver exatamente um membro compatível com o
+ano externo. Registros de cotação `01` têm largura exata de 245 caracteres, e
+ZIPs estruturalmente inseguros são rejeitados antes do streaming.
 
 ### Exemplo Completo
 

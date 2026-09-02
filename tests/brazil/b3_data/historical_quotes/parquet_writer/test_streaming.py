@@ -12,21 +12,9 @@ from globaldatafinance.brazil.b3_data.historical_quotes.parquet_writer import (
 )
 from globaldatafinance.macro_exceptions import ParquetWriteError
 
-pytestmark = pytest.mark.unit
+pytestmark = pytest.mark.integration
 
 APPEND_TEMP_SUFFIX = constants.APPEND_TEMP_SUFFIX
-
-
-def test_require_pyarrow_raises_when_missing(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(streaming, 'pa', None)
-    monkeypatch.setattr(streaming, 'pq', None)
-
-    with pytest.raises(ImportError) as exc_info:
-        streaming._require_pyarrow('test feature')
-
-    assert 'pyarrow is required for test feature' in str(exc_info.value)
 
 
 def test_cleanup_temp_file_handles_existing_and_missing(

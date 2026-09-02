@@ -35,6 +35,9 @@ EXPORT_MODULES = (
 )
 
 
+pytestmark = pytest.mark.unit
+
+
 def _load_settings_from_directory(
     directory: Path, monkeypatch: pytest.MonkeyPatch
 ) -> tuple[int, bool]:

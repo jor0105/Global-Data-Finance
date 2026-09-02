@@ -20,9 +20,6 @@ class CotahistParserB3:
     # Expected line length for COTAHIST format
     EXPECTED_LINE_LENGTH = 245
 
-    # Maximum allowed line length (safety limit)
-    MAX_LINE_LENGTH = 1000
-
     _error_count = 0
     _max_errors_to_log = 10  # Only log first 10 errors to avoid spam
     _filtered_count = 0  # Track lines filtered out by TPMERC
@@ -75,20 +72,31 @@ class CotahistParserB3:
             return None
 
     def _normalize_line(self, line: str) -> str | None:
-        """Validate the line length and normalize it to the B3 layout."""
-        if len(line) > self.MAX_LINE_LENGTH:
-            if self._error_count < self._max_errors_to_log:
-                logger.warning(
-                    f'Discarding COTAHIST line that exceeds maximum length '
-                    f'({len(line)} > {self.MAX_LINE_LENGTH})'
-                )
-                self._error_count += 1
-            return None
+        """Accept exact-width quote records without altering their data."""
         if len(line) < 2:
             return None
-        if len(line) < self.EXPECTED_LINE_LENGTH:
-            return line.ljust(self.EXPECTED_LINE_LENGTH)
-        return line[: self.EXPECTED_LINE_LENGTH]
+        record_type = line[:2]
+        if record_type != '01':
+            return line
+        if len(line) != self.EXPECTED_LINE_LENGTH:
+            self._log_invalid_record_layout(line, record_type)
+            return None
+        return line
+
+    def _log_invalid_record_layout(self, line: str, record_type: str) -> None:
+        """Warn about malformed quote records without flooding the logs."""
+        if self._error_count >= self._max_errors_to_log:
+            return
+        logger.warning(
+            'Discarding malformed COTAHIST quote record',
+            extra={
+                'line_length': len(line),
+                'record_type': record_type,
+                'line_preview': line[:80],
+                'error_count': self._error_count + 1,
+            },
+        )
+        self._error_count += 1
 
     def _matches_target_market(
         self, line: str, target_tpmerc_codes: set[str]

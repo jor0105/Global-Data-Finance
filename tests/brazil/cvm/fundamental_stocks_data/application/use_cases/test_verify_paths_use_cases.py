@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -8,6 +9,7 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     EmptyDocumentListError,
     VerifyPathsUseCasesCVM,
 )
+from globaldatafinance.macro_exceptions import SecurityError
 
 
 @pytest.mark.unit
@@ -62,6 +64,29 @@ class TestVerifyPathsUseCasesInitialization:
 
 @pytest.mark.unit
 class TestVerifyPathsUseCasesExecute:
+    @pytest.mark.parametrize(
+        'blocked_path',
+        ['/', 'D:\\', 'D:\\Windows', '\\\\server\\share\\output'],
+    )
+    def test_execute_blocks_unsafe_destination_before_directory_creation(
+        self,
+        blocked_path,
+    ):
+        """The CVM entrypoint rejects dangerous raw destinations first."""
+        use_case = VerifyPathsUseCasesCVM(
+            destination_path=blocked_path,
+            new_set_docs={'DFP'},
+            range_years=range(2024, 2025),
+        )
+
+        with (
+            patch.object(Path, 'mkdir') as mkdir,
+            pytest.raises(SecurityError),
+        ):
+            use_case.execute()
+
+        mkdir.assert_not_called()
+
     def test_execute_creates_doc_subdirectories(self, tmp_path):
         new_set_docs = {'DFP', 'ITR'}
         range_years = range(2020, 2022)

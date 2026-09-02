@@ -15,17 +15,20 @@ import re
 import sys
 from pathlib import Path
 
-from docs_contract_ast import SourceContracts, load_source_contracts
-from docs_contract_code_blocks import check_ast_nodes
-from docs_contract_public_rules import (
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.docs_contract_ast import SourceContracts, load_source_contracts
+from scripts.docs_contract_code_blocks import check_ast_nodes
+from scripts.docs_contract_public_rules import (
     check_b3_internal_readme_contract,
     check_public_b3_api_contract,
     check_public_b3_asset_semantics,
     check_public_b3_signature_contract,
     check_public_cvm_api_contract,
 )
-from docs_contract_rules import KNOWN_IMPORTS as KNOWN_IMPORTS
-from docs_contract_rules import (
+from scripts.docs_contract_rules import KNOWN_IMPORTS as KNOWN_IMPORTS
+from scripts.docs_contract_rules import (
     check_bilingual_contract_markers,
     check_logging_contract,
     check_public_b3_contract,

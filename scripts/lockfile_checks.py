@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from process_runner import ProcessRunnerError, run_process
+from scripts.process_runner import ProcessRunnerError, run_process
 
 UV_LOCK_CHECK = ('uv', 'lock', '--check')
 

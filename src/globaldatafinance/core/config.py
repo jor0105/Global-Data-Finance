@@ -18,8 +18,12 @@ Example:
     >>> # export DATAFINANCE_NETWORK_TIMEOUT=600
 """
 
-from pydantic import Field
+from pathlib import PureWindowsPath
+
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_GIBIBYTE = 1024**3
 
 
 class NetworkSettings(BaseSettings):
@@ -61,6 +65,100 @@ class NetworkSettings(BaseSettings):
     )
 
 
+class PathSafetySettings(BaseSettings):
+    """Global allowlist configuration for caller-provided UNC destinations."""
+
+    allowed_unc_roots: list[str] = Field(
+        default_factory=list,
+        description=(
+            'JSON list of trusted UNC roots allowed as caller destinations'
+        ),
+    )
+
+    model_config = SettingsConfigDict(
+        env_prefix='DATAFINANCE_PATH_SAFETY_',
+        case_sensitive=False,
+        extra='ignore',
+    )
+
+    @field_validator('allowed_unc_roots')
+    @classmethod
+    def validate_allowed_unc_roots(cls, roots: list[str]) -> list[str]:
+        """Require absolute, non-administrative UNC roots in the allowlist."""
+        normalized_roots: list[str] = []
+        for root in roots:
+            if not isinstance(root, str):
+                raise ValueError('Each allowed UNC root must be a UNC path')
+            unc_path = PureWindowsPath(root)
+            if not unc_path.drive.startswith('\\\\'):
+                raise ValueError('Each allowed UNC root must be a UNC path')
+            if not unc_path.is_absolute():
+                raise ValueError('Each allowed UNC root must be absolute')
+            if '..' in unc_path.parts:
+                raise ValueError(
+                    'Allowed UNC roots cannot contain parent components'
+                )
+            share_name = unc_path.drive.rsplit('\\', maxsplit=1)[-1]
+            if share_name.rstrip(' .').endswith('$'):
+                raise ValueError('Administrative UNC shares cannot be allowed')
+            normalized_roots.append(str(unc_path))
+        return normalized_roots
+
+
+class ArchiveSafetySettings(BaseSettings):
+    """Bounded limits applied before and while consuming ZIP archives."""
+
+    max_archive_bytes: int = Field(
+        default=2 * _GIBIBYTE,
+        ge=1,
+        le=32 * _GIBIBYTE,
+        description='Maximum compressed ZIP archive size in bytes',
+    )
+    max_members: int = Field(
+        default=10_000,
+        ge=1,
+        le=100_000,
+        description='Maximum number of ZIP members',
+    )
+    max_member_uncompressed_bytes: int = Field(
+        default=2 * _GIBIBYTE,
+        ge=1,
+        le=32 * _GIBIBYTE,
+        description='Maximum uncompressed size of one ZIP member in bytes',
+    )
+    max_total_uncompressed_bytes: int = Field(
+        default=8 * _GIBIBYTE,
+        ge=1,
+        le=64 * _GIBIBYTE,
+        description='Maximum total uncompressed ZIP payload in bytes',
+    )
+    max_compression_ratio: float = Field(
+        default=200.0,
+        gt=0.0,
+        le=10_000.0,
+        description='Maximum allowed ZIP member expansion ratio',
+    )
+
+    model_config = SettingsConfigDict(
+        env_prefix='DATAFINANCE_ARCHIVE_',
+        case_sensitive=False,
+        extra='ignore',
+    )
+
+    @model_validator(mode='after')
+    def validate_cross_field_limits(self) -> 'ArchiveSafetySettings':
+        """Reject a total archive limit smaller than one allowed member."""
+        if (
+            self.max_total_uncompressed_bytes
+            < self.max_member_uncompressed_bytes
+        ):
+            raise ValueError(
+                'max_total_uncompressed_bytes must be at least '
+                'max_member_uncompressed_bytes'
+            )
+        return self
+
+
 class Settings(BaseSettings):
     """Main settings container for global configurations.
 
@@ -72,6 +170,10 @@ class Settings(BaseSettings):
     """
 
     network: NetworkSettings = Field(default_factory=NetworkSettings)
+    path_safety: PathSafetySettings = Field(default_factory=PathSafetySettings)
+    archive: ArchiveSafetySettings = Field(
+        default_factory=ArchiveSafetySettings
+    )
 
     debug: bool = Field(
         default=False, description='Enable debug mode globally'

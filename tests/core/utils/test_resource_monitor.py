@@ -1,11 +1,15 @@
 import time
 from unittest.mock import Mock, patch
 
+import pytest
+
 from globaldatafinance.core.utils import (
     ResourceLimits,
     ResourceMonitor,
     ResourceState,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestResourceMonitor:
@@ -220,8 +224,31 @@ class TestResourceMonitor:
         assert isinstance(result, float)
         assert result > 0
 
-    def test_maybe_force_gc_runs_without_error(self):
+    @patch('globaldatafinance.core.utils.resource_monitor.gc.collect')
+    @patch(
+        'globaldatafinance.core.utils.resource_monitor.time.time',
+        side_effect=[100.0, 102.0, 106.0],
+    )
+    @patch('globaldatafinance.core.utils.resource_monitor.psutil')
+    def test_warning_path_triggers_gc_after_public_cooldown(
+        self, mock_psutil, mock_time, mock_collect
+    ):
+        mock_memory = Mock()
+        mock_memory.total = 8 * 1024**3
+        mock_memory.percent = 75.0
+        mock_memory.available = 500 * 1024**2
+        mock_psutil.virtual_memory.return_value = mock_memory
+        mock_psutil.cpu_percent.return_value = 50.0
+
         ResourceMonitor._instance = None
         monitor = ResourceMonitor()
-        monitor._last_gc_time = 0
-        monitor._maybe_force_gc()
+
+        assert monitor.check_resources() == ResourceState.WARNING
+        assert mock_collect.call_count == 1
+
+        assert monitor.check_resources() == ResourceState.WARNING
+        assert mock_collect.call_count == 1
+
+        assert monitor.check_resources() == ResourceState.WARNING
+        assert mock_collect.call_count == 2
+        assert mock_time.call_count == 3

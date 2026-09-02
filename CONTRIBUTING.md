@@ -34,14 +34,16 @@ requirements, are available in both supported documentation languages:
    safety contracts.
 
 5. Add or update tests that prove the changed behavior, relevant edge cases,
-   and regressions. Keep external-source tests marked as `integration` and
-   resource-intensive tests marked as `slow`.
+   and regressions. Give every test exactly one primary tier (`unit`,
+   `integration`, or `perf`); use `slow`, `asyncio`, and `real_data` only as
+   explicit qualifiers. Keep caller-owned COTAHIST tests opt-in.
 
 6. Run the safe local validation relevant to the change:
 
    ```bash
    uv run --locked --no-sync pre-commit run --all-files --show-diff-on-failure
-   uv run --locked --no-sync pytest -m "not integration and not slow" \
+   uv run --locked --no-sync python scripts/check_test_quality.py
+   uv run --locked --no-sync pytest -m "not slow and not real_data and not perf" \
        --cov --cov-report=term-missing
    uv run --locked --no-sync mypy src --pretty
    uv run --locked --no-sync python scripts/check-ruff-policy.py --profile all

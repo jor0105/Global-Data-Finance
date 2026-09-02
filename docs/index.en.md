@@ -16,7 +16,7 @@ ______________________________________________________________________
 ✅ **Current data sources**: Brazilian CVM regulatory filings and B3 historical market quotes.
 ✅ **Optimized processing**: Asynchronous downloads (`httpx[http2]`) with adaptive concurrency monitored by CPU and memory.
 ✅ **Efficient format**: Native Parquet extraction (ready for Pandas/Polars).
-✅ **Integrated robustness**: Retries with exponential back-off, data integrity validation, and atomic rollback.
+✅ **Integrated robustness**: Retries with exponential back-off, data integrity validation, and a failure-atomic CVM batch commit.
 ✅ **Clear source ownership**: Source-specific modules remain under the CVM and B3 feature directories, while generic concerns live in `core/`, `macro_infra/`, and `macro_exceptions/`.
 
 Current downloaded-file checks cover path safety, expected size, and readable
@@ -227,6 +227,7 @@ ______________________________________________________________________
 - **[Contributing](dev-guide/contributing.md)** - Contribution guidelines and validation practices
 - **[Testing](dev-guide/testing.md)** - Test suites, markers, and coverage gate strategy
 - **[Benchmarks](dev-guide/benchmarks.md)** - Reproducible time, memory, and volume measurements
+- **[Technical Decisions](decisions/test-execution-tiers.md)** - Test execution tiers and local COTAHIST validation contract
 - **[Advanced Usage](dev-guide/advanced-usage.md)** - Optimization patterns and programmatic customization
 - **[Logging System](dev-guide/logging-system.md)** - Structured log formatting and diagnostic setup
 - **[Resource Monitoring](dev-guide/resource-monitoring.md)** - Adaptive memory and CPU resource throttling

@@ -7,6 +7,8 @@ from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     generate_urls,
 )
 
+# allow-assertion-reduction: Consolidated URL result checks.
+
 
 @pytest.mark.unit
 class TestGenerateUrlsUseCaseSuccess:
@@ -134,8 +136,22 @@ class TestGenerateUrlsUseCaseDocTypeErrors:
                 last_year=2023,
             )
 
-    def test_generate_urls_with_empty_doc_list_raises_error(self):
-        pass
+    def test_generate_urls_with_empty_doc_list_uses_all_docs(self):
+        urls, new_set_docs = generate_urls(
+            list_docs=[], initial_year=2020, last_year=2020
+        )
+
+        assert set(urls) == new_set_docs
+        assert set(urls) == {
+            'CGVN',
+            'FRE',
+            'FCA',
+            'DFP',
+            'ITR',
+            'IPE',
+            'VLMO',
+        }
+        assert all(len(doc_urls) == 1 for doc_urls in urls.values())
 
     def test_generate_urls_with_none_doc_type_uses_all_docs(self):
         generator = generate_urls
@@ -240,7 +256,7 @@ class TestGenerateUrlsUseCaseEdgeCases:
 
 
 @pytest.mark.unit
-class TestGenerateUrlsUseCaseIntegration:
+class TestGenerateUrlsUseCaseObservability:
     def test_generate_urls_uses_dict_zips_to_download(self):
         generator = generate_urls
 
@@ -275,46 +291,3 @@ class TestGenerateUrlsUseCaseIntegration:
 
         # Check that info log was generated
         assert any('Generated' in record.message for record in caplog.records)
-
-
-@pytest.mark.unit
-class TestGenerateUrlsUseCasePerformance:
-    def test_generate_urls_performance_many_docs_and_years(self):
-        import time
-
-        generator = generate_urls
-
-        start_time = time.time()
-        urls, _ = generator(
-            list_docs=['DFP', 'ITR', 'FRE', 'FCA', 'CGVN'],
-            initial_year=2010,
-            last_year=2024,
-        )
-        elapsed = time.time() - start_time
-
-        # Should complete in reasonable time (< 1 second)
-        assert elapsed < 1.0
-
-        # Should generate correct number of URLs
-        total_urls = sum(len(url_list) for url_list in urls.values())
-        assert total_urls == 5 * 15  # 5 docs * 15 years
-
-    def test_generate_urls_memory_efficiency(self):
-        import sys
-
-        generator = generate_urls
-
-        # Generate many URLs
-        urls, _ = generator(
-            list_docs=['DFP', 'ITR', 'FRE', 'FCA'],
-            initial_year=2010,
-            last_year=2024,
-        )
-
-        # Check memory usage is reasonable
-        total_urls = sum(len(url_list) for url_list in urls.values())
-        assert total_urls > 0
-
-        # URLs should be strings, not heavy objects
-        sample_url = urls['DFP'][0]
-        assert sys.getsizeof(sample_url) < 1000  # Less than 1KB per URL

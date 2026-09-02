@@ -7,16 +7,19 @@ import argparse
 import sys
 from pathlib import Path
 
-import lockfile_checks
-from staged_changes import (
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts import lockfile_checks
+from scripts.staged_changes import (
     StagedChange,
     get_staged_changes,
     status_for_path,
 )
-from staged_changes import (
+from scripts.staged_changes import (
     _parse_name_status as _parse_staged_name_status,
 )
-from workspace_members import (
+from scripts.workspace_members import (
     GitInspectionError,
     index_file_exists,
     is_manifest_member_of_workspace,

@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import re
-import sys
 from collections.abc import Callable
 from importlib import import_module
 from pathlib import Path
@@ -15,6 +13,7 @@ import pytest
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 PRE_COMMIT_CONFIG = REPOSITORY_ROOT / '.pre-commit-config.yaml'
+PIPELINE_CONFIG = REPOSITORY_ROOT / '.github' / 'workflows' / 'pipeline.yml'
 GITLEAKS_CONFIG = REPOSITORY_ROOT / '.gitleaks.toml'
 AGENTS_VALIDATOR = (
     REPOSITORY_ROOT
@@ -45,18 +44,8 @@ LOCKFILE_SYNC = REPOSITORY_ROOT / 'scripts' / 'check_lockfile_sync.py'
 SHELL_SYNTAX = REPOSITORY_ROOT / 'scripts' / 'check-shell-syntax.py'
 
 
-@pytest.fixture
-def shell_syntax_module(monkeypatch: pytest.MonkeyPatch):
-    """Load the hyphenated shell syntax gate as a test module."""
-    monkeypatch.syspath_prepend(str(REPOSITORY_ROOT / 'scripts'))
-    spec = importlib.util.spec_from_file_location(
-        'check_shell_syntax', SHELL_SYNTAX
-    )
-    if spec is None or spec.loader is None:
-        raise AssertionError('Unable to load check-shell-syntax.py')
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+pytestmark = pytest.mark.unit
+# allow-assertion-reduction: Shell cases moved to the dedicated gate module.
 
 
 def run_git(repo: Path, *args: str) -> ProcessResult:
@@ -91,6 +80,33 @@ def hook_block(content: str, hook_id: str) -> str:
     return match.group(0)
 
 
+def configured_print_files(content: str) -> set[str]:
+    """Extract file-scoped raw-output permissions from YAML or shell text."""
+    marker = '--allow-print-file'
+    lines = content.splitlines()
+    paths: set[str] = set()
+    for index, line in enumerate(lines):
+        if marker not in line:
+            continue
+        candidate = line.split(marker, maxsplit=1)[1].strip()
+        if candidate in {'', '\\'}:
+            for following in lines[index + 1 :]:
+                candidate = following.strip()
+                if not candidate or candidate.startswith('#'):
+                    continue
+                if candidate.startswith('- '):
+                    candidate = candidate[2:].strip()
+                break
+        candidate = candidate.rstrip('\\').strip().strip('"\'')
+        if candidate:
+            paths.add(
+                candidate.replace(
+                    '$app_dir/', 'src/globaldatafinance/application/'
+                )
+            )
+    return paths
+
+
 def test_precommit_configuration_preserves_the_quality_gate_contract() -> None:
     """The hook file must keep the staged, manual, and pre-push boundaries."""
     content = PRE_COMMIT_CONFIG.read_text(encoding='utf-8')
@@ -109,17 +125,36 @@ def test_precommit_configuration_preserves_the_quality_gate_contract() -> None:
     assert 'validate_agents_md.py' in content
     assert 'files: ^AGENTS\\.md$' in content
     assert 'stages: [manual]' in content
+    assert 'id: test-quality' in content
+    assert 'scripts/check_test_quality.py' in content
+    assert 'stages: [pre-commit, pre-push]' in hook_block(
+        content, 'test-quality'
+    )
     assert 'entry: harness-sync --check' in content
     assert 'entry: uv lock --check' in content
     assert 'id: validate-agent-protocols' in content
     assert 'id: import-cycles' in content
     assert 'id: import-linter' in content
+    assert 'exclude: ^tests/support/' in hook_block(content, 'name-tests-test')
     assert 'entry: uv run --locked --no-sync pip-audit --timeout 60' in content
     assert (
         'files: ^(?:src|tests|scripts|examples)/.*\\.(?:py|pyi|pyw|sh|bash)$'
         in content
     )
     assert 'args: [--redact, --config=.gitleaks.toml]' in content
+
+
+def test_diff_sanity_print_allowlist_matches_ci() -> None:
+    """Pre-commit and CI must authorize exactly the same CLI output files."""
+    pre_commit = configured_print_files(
+        hook_block(
+            PRE_COMMIT_CONFIG.read_text(encoding='utf-8'), 'diff-sanity'
+        )
+    )
+    ci = configured_print_files(PIPELINE_CONFIG.read_text(encoding='utf-8'))
+
+    assert pre_commit == ci
+    assert 'scripts/check_test_quality.py' in pre_commit
 
 
 def test_mutating_hooks_keep_projection_exclusions() -> None:
@@ -726,6 +761,34 @@ def test_test_integrity_requires_authorization_for_deleted_tests(
     assert approved.returncode == 0
 
 
+def test_test_integrity_rejects_stale_deletion_policy_entries(
+    tmp_path: Path,
+) -> None:
+    """A policy entry must describe a deletion in the inspected diff."""
+    initialize_git_repository(tmp_path)
+    policy = {
+        'allowed_deletions': {
+            'tests/test_removed.py': 'The replacement suite is canonical.'
+        }
+    }
+    (tmp_path / '.test-integrity-policy.json').write_text(
+        json.dumps(policy), encoding='utf-8'
+    )
+    run_git(tmp_path, 'add', '--', '.test-integrity-policy.json')
+    run_git(tmp_path, 'commit', '--quiet', '-m', 'baseline policy')
+
+    (tmp_path / 'README.md').write_text(
+        'Unrelated change.\n', encoding='utf-8'
+    )
+    run_git(tmp_path, 'add', '--', 'README.md')
+
+    result = run_gate(TEST_INTEGRITY, tmp_path)
+
+    assert result.returncode == 1
+    assert '[TEST_POLICY]' in result.stderr
+    assert 'stale deletion authorization' in result.stderr
+
+
 def test_lockfile_sync_requires_uv_lock_for_a_pyproject_change(
     tmp_path: Path,
 ) -> None:
@@ -754,231 +817,6 @@ def test_lockfile_sync_skips_unrelated_staged_changes(tmp_path: Path) -> None:
 
     assert result.returncode == 0
     assert 'SKIP' in result.stdout
-
-
-def test_shell_syntax_rejects_then_accepts_staged_shell_script(
-    tmp_path: Path,
-) -> None:
-    """The shell gate must fail on invalid Bash and pass after the fix."""
-    initialize_git_repository(tmp_path)
-    shell_file = tmp_path / 'scripts' / 'broken.sh'
-    shell_file.parent.mkdir()
-    shell_file.write_text(
-        '#!/usr/bin/env bash\nif true; then\n  echo "missing fi"\n',
-        encoding='utf-8',
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/broken.sh')
-
-    failed = run_gate(SHELL_SYNTAX, tmp_path)
-
-    assert failed.returncode == 1
-    assert '[SHELL_SYNTAX]' in failed.stderr
-    assert 'broken.sh' in failed.stderr
-
-    shell_file.write_text(
-        '#!/usr/bin/env bash\nif true; then\n  echo "valid"\nfi\n',
-        encoding='utf-8',
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/broken.sh')
-
-    passed = run_gate(SHELL_SYNTAX, tmp_path)
-
-    assert passed.returncode == 0
-
-
-def test_shell_syntax_rejects_an_extensionless_bash_script(
-    tmp_path: Path,
-) -> None:
-    """A shell shebang must be enough to include an extensionless script."""
-    initialize_git_repository(tmp_path)
-    shell_file = tmp_path / 'scripts' / 'check'
-    shell_file.parent.mkdir()
-    shell_file.write_text(
-        '#!/usr/bin/env bash\nif true; then\n  echo "missing fi"\n',
-        encoding='utf-8',
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/check')
-
-    result = run_gate(SHELL_SYNTAX, tmp_path)
-
-    assert result.returncode == 1
-    assert '[SHELL_SYNTAX]' in result.stderr
-
-
-def test_shell_syntax_uses_staged_content_not_the_worktree(
-    tmp_path: Path,
-) -> None:
-    """An unstaged edit cannot alter the shell syntax result for a commit."""
-    initialize_git_repository(tmp_path)
-    shell_file = tmp_path / 'scripts' / 'check.sh'
-    shell_file.parent.mkdir()
-    shell_file.write_text(
-        '#!/usr/bin/env bash\necho "valid"\n', encoding='utf-8'
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/check.sh')
-
-    shell_file.write_text(
-        '#!/usr/bin/env bash\nif true; then\n  echo "missing fi"\n',
-        encoding='utf-8',
-    )
-    result = run_gate(SHELL_SYNTAX, tmp_path)
-
-    assert result.returncode == 0
-
-
-def test_shell_syntax_scans_an_explicit_commit_range(tmp_path: Path) -> None:
-    """Range mode must validate committed shell content, not the index."""
-    initialize_git_repository(tmp_path)
-    shell_file = tmp_path / 'scripts' / 'check.sh'
-    shell_file.parent.mkdir()
-    shell_file.write_text(
-        '#!/usr/bin/env bash\necho "valid"\n', encoding='utf-8'
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/check.sh')
-    run_git(tmp_path, 'commit', '--quiet', '-m', 'baseline')
-
-    shell_file.write_text(
-        '#!/usr/bin/env bash\nif true; then\n  echo "missing fi"\n',
-        encoding='utf-8',
-    )
-    run_git(tmp_path, 'add', '--', 'scripts/check.sh')
-    run_git(tmp_path, 'commit', '--quiet', '-m', 'break shell syntax')
-
-    result = run_gate(SHELL_SYNTAX, tmp_path, '--range', 'HEAD~1...HEAD')
-
-    assert result.returncode == 1
-    assert '[SHELL_SYNTAX]' in result.stderr
-
-
-def test_shell_syntax_allocation_failure_returns_gate_error(
-    shell_syntax_module,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """Temporary-file allocation failures must return the gate error status."""
-    monkeypatch.setattr(sys, 'argv', ['check-shell-syntax.py'])
-    monkeypatch.setattr(
-        shell_syntax_module,
-        'staged_shell_files',
-        lambda _revision_range=None: [
-            ('scripts/check.sh', 'echo valid\n', ('sh', '-n'))
-        ],
-    )
-
-    def fail_allocation(*_args: object, **_kwargs: object) -> object:
-        raise OSError('temporary directory unavailable')
-
-    monkeypatch.setattr(
-        shell_syntax_module.tempfile,
-        'NamedTemporaryFile',
-        fail_allocation,
-    )
-
-    assert shell_syntax_module.main() == 2
-    assert 'ERROR [SHELL_SYNTAX]' in capsys.readouterr().err
-
-
-def test_shell_syntax_write_failure_is_translated_and_cleaned(
-    shell_syntax_module,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    """A failed Unicode write must not leave a temporary validation file."""
-    temporary_path = tmp_path / 'failed-write.sh'
-
-    class FailingTemporaryFile:
-        """Context manager that exposes a real path and fails on write."""
-
-        def __init__(self) -> None:
-            self.name = str(temporary_path)
-
-        def __enter__(self) -> FailingTemporaryFile:
-            temporary_path.touch()
-            return self
-
-        def __exit__(self, *_args: object) -> None:
-            return None
-
-        def write(self, _content: str) -> int:
-            raise UnicodeError('cannot encode shell content')
-
-    monkeypatch.setattr(
-        shell_syntax_module.tempfile,
-        'NamedTemporaryFile',
-        lambda **_kwargs: FailingTemporaryFile(),
-    )
-
-    with pytest.raises(shell_syntax_module.ShellInspectionError) as caught:
-        shell_syntax_module.validate_shell_file(
-            'scripts/check.sh', 'echo valid\n', ('sh', '-n')
-        )
-
-    assert isinstance(caught.value.__cause__, UnicodeError)
-    assert not temporary_path.exists()
-
-
-def test_shell_syntax_process_runner_failure_preserves_its_cause(
-    shell_syntax_module,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A process adapter failure must become a contextual shell error."""
-    process_error = shell_syntax_module.ProcessRunnerError('runner failed')
-    monkeypatch.setattr(
-        shell_syntax_module,
-        'run_process',
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(process_error),
-    )
-
-    with pytest.raises(shell_syntax_module.ShellInspectionError) as caught:
-        shell_syntax_module.validate_shell_file(
-            'scripts/check.sh', 'echo valid\n', ('sh', '-n')
-        )
-
-    assert caught.value.__cause__ is process_error
-
-
-def test_shell_syntax_cleanup_failure_is_translated(
-    shell_syntax_module,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    """A cleanup failure must also fail closed with its original cause."""
-    temporary_path = tmp_path / 'cleanup-failure.sh'
-
-    class TemporaryFile:
-        """Context manager used to make cleanup deterministic."""
-
-        def __init__(self) -> None:
-            self.name = str(temporary_path)
-
-        def __enter__(self) -> TemporaryFile:
-            temporary_path.touch()
-            return self
-
-        def __exit__(self, *_args: object) -> None:
-            return None
-
-        def write(self, content: str) -> int:
-            return len(content)
-
-    monkeypatch.setattr(
-        shell_syntax_module.tempfile,
-        'NamedTemporaryFile',
-        lambda **_kwargs: TemporaryFile(),
-    )
-
-    def fail_cleanup(_path: Path, *, missing_ok: bool = False) -> None:
-        del missing_ok
-        raise OSError('cleanup unavailable')
-
-    monkeypatch.setattr(Path, 'unlink', fail_cleanup)
-
-    with pytest.raises(shell_syntax_module.ShellInspectionError) as caught:
-        shell_syntax_module.validate_shell_file(
-            'scripts/check.sh', 'echo valid\n', ('sh', '-n')
-        )
-
-    assert isinstance(caught.value.__cause__, OSError)
 
 
 @pytest.mark.parametrize('script', [DIFF_SANITY, TEST_INTEGRITY, SHELL_SYNTAX])

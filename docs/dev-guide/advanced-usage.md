@@ -69,6 +69,31 @@ print(f"Timeout: {settings.network.timeout}s")
 print(f"Max retries: {settings.network.max_retries}")
 ```
 
+### Limites de ZIP e destinos UNC
+
+Os limites de arquivos também pertencem a `Settings`, aplicam-se tanto à CVM
+quanto à B3 e são validados antes de qualquer extração. Os defaults são 2 GiB
+para o ZIP compactado e para cada membro, 8 GiB descompactados no total, 10.000
+membros e razão máxima de compressão de 200. Valores inválidos falham na
+inicialização da configuração, não durante uma escrita parcial.
+
+```bash
+export DATAFINANCE_ARCHIVE_MAX_ARCHIVE_BYTES=2147483648
+export DATAFINANCE_ARCHIVE_MAX_MEMBERS=10000
+export DATAFINANCE_ARCHIVE_MAX_MEMBER_UNCOMPRESSED_BYTES=2147483648
+export DATAFINANCE_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES=8589934592
+export DATAFINANCE_ARCHIVE_MAX_COMPRESSION_RATIO=200
+
+# UNC permanece negado por padrão. A lista JSON só deve conter raízes confiáveis.
+export DATAFINANCE_PATH_SAFETY_ALLOWED_UNC_ROOTS='["\\\\fileserver\\finance\\exports"]'
+```
+
+Raízes POSIX, roots de drive Windows, diretórios Windows de sistema e shares
+UNC não autorizados são recusados antes de criar diretórios. Mesmo com uma
+allowlist, shares administrativos terminados em `$` continuam proibidos. Essa
+política reduz escrita acidental em destinos sensíveis; não limita um chamador
+que já possui os privilégios do processo.
+
 ### Resource Monitoring
 
 Monitore e gerencie recursos automaticamente:

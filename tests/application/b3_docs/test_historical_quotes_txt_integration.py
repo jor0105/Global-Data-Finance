@@ -2,80 +2,39 @@
 
 from __future__ import annotations
 
-import zipfile
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
 import polars as pl
 import pytest
+from polars.testing import assert_frame_equal
 
 from globaldatafinance import HistoricalQuotesB3
+from tests.support.builders import (
+    build_cotahist_record,
+    write_cotahist_txt,
+    write_cotahist_zip,
+)
 
 pytestmark = pytest.mark.integration
-
-
-def _put_field(line: list[str], start: int, end: int, value: str) -> None:
-    width = end - start
-    assert len(value) <= width
-    line[start:end] = list(value.ljust(width))
-
-
-def _put_number(line: list[str], start: int, end: int, value: int) -> None:
-    width = end - start
-    _put_field(line, start, end, str(value).rjust(width, '0'))
-
-
-def _build_cotahist_record(ticker: str) -> str:
-    """Build one valid 245-character type-01 COTAHIST record."""
-    line = [' '] * 245
-    _put_field(line, 0, 2, '01')
-    _put_field(line, 2, 10, '20240115')
-    _put_field(line, 10, 12, '02')
-    _put_field(line, 12, 24, ticker)
-    _put_field(line, 24, 27, '010')
-    _put_field(line, 27, 39, 'PETROBRAS')
-    _put_field(line, 39, 49, 'ON')
-    for start, end in (
-        (56, 69),
-        (69, 82),
-        (82, 95),
-        (95, 108),
-        (108, 121),
-        (121, 134),
-        (134, 147),
-    ):
-        _put_number(line, start, end, 12345)
-    _put_number(line, 147, 152, 1)
-    _put_number(line, 152, 170, 100)
-    _put_number(line, 170, 188, 123456)
-    _put_field(line, 202, 210, '20241231')
-    _put_number(line, 210, 217, 1)
-    _put_field(line, 230, 242, 'BRPETRACNPR6')
-    _put_number(line, 242, 245, 1)
-    record = ''.join(line)
-    assert len(record) == 245
-    assert record[0:2] == '01'
-    assert record[2:10] == '20240115'
-    assert record[12:24].strip() == ticker
-    assert record[24:27] == '010'
-    return record
+# allow-assertion-reduction: Shared builders own record-shape checks.
 
 
 def _write_plain_txt(directory: Path, ticker: str) -> Path:
-    path = directory / 'COTAHIST_A2024.TXT'
-    path.write_text(_build_cotahist_record(ticker) + '\n', encoding='latin-1')
-    return path
+    return write_cotahist_txt(
+        directory,
+        year=2024,
+        records=[build_cotahist_record(ticker=ticker)],
+    )
 
 
 def _write_zip(directory: Path, ticker: str) -> Path:
-    path = directory / 'COTAHIST_A2024.ZIP'
-    with zipfile.ZipFile(path, 'w') as archive:
-        archive.writestr(
-            'COTAHIST_A2024.TXT',
-            (_build_cotahist_record(ticker) + '\n').encode('latin-1'),
-        )
-    return path
+    return write_cotahist_zip(
+        directory,
+        year=2024,
+        records=[build_cotahist_record(ticker=ticker)],
+    )
 
 
 @pytest.mark.parametrize('processing_mode', ['fast', 'slow'])
@@ -212,6 +171,81 @@ def test_public_extract_returns_empty_for_nonmatching_directory(
     assert result['errors'] == {}
 
 
+@pytest.mark.parametrize(
+    ('payload', 'reason'),
+    [
+        (b'', 'empty'),
+        (b'00HEADER\n99TRAILER\n', 'no type-01 quote data record'),
+    ],
+)
+def test_public_extract_rejects_selected_txt_without_quote_records(
+    tmp_path: Path, payload: bytes, reason: str
+) -> None:
+    """A selected TXT cannot report success when it has no quote records."""
+    input_directory = tmp_path / 'input'
+    output_directory = tmp_path / 'output'
+    input_directory.mkdir()
+    (input_directory / 'COTAHIST_A2024.TXT').write_bytes(payload)
+
+    result = HistoricalQuotesB3().extract(
+        path_of_docs=str(input_directory),
+        assets_list=['ações'],
+        initial_year=2024,
+        last_year=2024,
+        destination_path=str(output_directory),
+        output_filename='quotes',
+        verbose=False,
+    )
+
+    assert result['success'] is False
+    assert result['total_files'] == 1
+    assert result['success_count'] == 0
+    assert result['error_count'] == 1
+    assert result['total_records'] == 0
+    assert result['output_file'] == ''
+    assert (
+        reason in result['errors'][str(input_directory / 'COTAHIST_A2024.TXT')]
+    )
+    assert list(output_directory.glob('*.parquet')) == []
+
+
+def test_public_extract_reports_selected_input_without_matching_assets(
+    tmp_path: Path,
+) -> None:
+    """Valid inputs with no requested assets have explicit no-data results."""
+    input_directory = tmp_path / 'input'
+    output_directory = tmp_path / 'output'
+    input_directory.mkdir()
+    write_cotahist_txt(
+        input_directory,
+        year=2024,
+        records=[build_cotahist_record(market='070')],
+    )
+
+    result = HistoricalQuotesB3().extract(
+        path_of_docs=str(input_directory),
+        assets_list=['ações'],
+        initial_year=2024,
+        last_year=2024,
+        destination_path=str(output_directory),
+        output_filename='quotes',
+        verbose=False,
+    )
+
+    assert result['success'] is False
+    assert result['total_files'] == 1
+    assert result['success_count'] == 0
+    assert result['error_count'] == 1
+    assert result['total_records'] == 0
+    assert result['output_file'] == ''
+    assert result['errors'] == {
+        str(input_directory / 'COTAHIST_A2024.TXT'): (
+            'No COTAHIST records matched the requested assets'
+        )
+    }
+    assert list(output_directory.glob('*.parquet')) == []
+
+
 def test_public_extract_accepts_explicit_parquet_suffix_without_duplication(
     tmp_path: Path,
 ) -> None:
@@ -266,3 +300,80 @@ def test_public_extract_prefers_zip_when_zip_and_txt_share_a_year(
 
     frame = pl.read_parquet(result['output_file'])
     assert frame['ticker'].to_list() == ['ZIPPETR4']
+
+
+def test_public_extract_accepts_historical_cotahist_member(
+    tmp_path: Path,
+) -> None:
+    """The public B3 flow accepts the extensionless historical layout."""
+    input_directory = tmp_path / 'input'
+    output_directory = tmp_path / 'output'
+    input_directory.mkdir()
+    write_cotahist_zip(
+        input_directory,
+        year=2001,
+        records=[build_cotahist_record(year=2001, ticker='HIST2001')],
+        member_name='COTAHIST_A2001',
+    )
+
+    result = HistoricalQuotesB3().extract(
+        path_of_docs=str(input_directory),
+        assets_list=['ações'],
+        initial_year=2001,
+        last_year=2001,
+        destination_path=str(output_directory),
+        output_filename='historical',
+        verbose=False,
+    )
+
+    frame = pl.read_parquet(result['output_file'])
+    assert result['success'] is True
+    assert result['total_records'] == 1
+    assert frame['ticker'].to_list() == ['HIST2001']
+
+
+def test_public_fast_and_slow_are_equal_for_all_parquet_columns(
+    tmp_path: Path,
+) -> None:
+    """Synthetic integration compares all 20 fields, not a projection."""
+    input_directory = tmp_path / 'input'
+    input_directory.mkdir()
+    write_cotahist_zip(
+        input_directory,
+        year=2024,
+        records=[
+            build_cotahist_record(ticker='FASTSLOW1'),
+            build_cotahist_record(ticker='FASTSLOW2', market='020'),
+        ],
+    )
+
+    fast_result = HistoricalQuotesB3().extract(
+        path_of_docs=str(input_directory),
+        assets_list=['ações'],
+        initial_year=2024,
+        last_year=2024,
+        destination_path=str(tmp_path / 'fast'),
+        output_filename='quotes',
+        processing_mode='fast',
+        verbose=False,
+    )
+    slow_result = HistoricalQuotesB3().extract(
+        path_of_docs=str(input_directory),
+        assets_list=['ações'],
+        initial_year=2024,
+        last_year=2024,
+        destination_path=str(tmp_path / 'slow'),
+        output_filename='quotes',
+        processing_mode='slow',
+        verbose=False,
+    )
+
+    fast_frame = pl.read_parquet(fast_result['output_file']).sort(
+        pl.all(), nulls_last=True
+    )
+    slow_frame = pl.read_parquet(slow_result['output_file']).sort(
+        pl.all(), nulls_last=True
+    )
+    assert fast_result['success'] is True
+    assert slow_result['success'] is True
+    assert_frame_equal(fast_frame, slow_frame, check_dtypes=True)

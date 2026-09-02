@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 
 from globaldatafinance.brazil.b3_data.historical_quotes import CotahistParserB3
+from tests.support.builders import build_cotahist_record
 
 pytestmark = pytest.mark.unit
 
@@ -20,7 +21,6 @@ class TestCotahistParserB3:
     def test_initialization(self, parser):
         assert parser is not None
         assert parser.EXPECTED_LINE_LENGTH == 245
-        assert parser.MAX_LINE_LENGTH == 1000
         assert parser._error_count == 0
         assert parser._max_errors_to_log == 10
 
@@ -35,7 +35,7 @@ class TestCotahistParserB3:
         assert result is None
 
     def test_parse_valid_quote_record(self, parser, target_codes):
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
 
         result = parser.parse_line(line, target_codes)
 
@@ -79,12 +79,33 @@ class TestCotahistParserB3:
             '01' + '20230615' + '02' + 'PETR4       ' + '010' + 'X' * 500
         )
         result = parser.parse_line(long_line, target_codes)
-        assert isinstance(result, dict)
+        assert result is None
 
     def test_parse_extremely_long_line(self, parser, target_codes):
         extremely_long_line = '01' + 'X' * 1500
         result = parser.parse_line(extremely_long_line, target_codes)
         assert result is None
+
+    @pytest.mark.parametrize('length', [244, 246, 1001])
+    def test_quote_record_requires_exact_fixed_width(
+        self, parser, target_codes, length
+    ):
+        """No short or long type-01 record may become a financial quote."""
+        record = build_cotahist_record()
+        if length < len(record):
+            candidate = record[:length]
+        else:
+            candidate = record + ('X' * (length - len(record)))
+
+        assert parser.parse_line(candidate, target_codes) is None
+
+    def test_truncated_record_with_valid_market_is_not_emitted(
+        self, parser, target_codes
+    ):
+        """The old ljust behavior could fabricate a valid market-010 quote."""
+        truncated = build_cotahist_record(ticker='TRUNCATED')[:40]
+
+        assert parser.parse_line(truncated, target_codes) is None
 
     def test_parse_empty_line(self, parser, target_codes):
         result = parser.parse_line('', target_codes)
@@ -106,7 +127,7 @@ class TestCotahistParserB3:
         assert parser._error_count >= initial_count
 
     def test_parse_line_with_unicode_characters(self, parser, target_codes):
-        line = '01' + '20230615' + '02' + 'AÇÚCAR      ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'AÇÚCAR      ' + '010' + ' ' * 218
         result = parser.parse_line(line, target_codes)
         assert isinstance(result, dict)
 
@@ -162,7 +183,7 @@ class TestCotahistParserB3:
     def test_parse_line_logs_and_drops_unexpected_parser_failure(
         self, parser, target_codes, monkeypatch, caplog
     ):
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
 
         def fail_unexpectedly(_line):
             raise RuntimeError('unexpected parser failure')
@@ -328,8 +349,8 @@ class TestCotahistParserB3EdgeCases:
     def test_multiple_lines_parsing(self, parser, target_codes):
         lines = [
             '00HEADER' + ' ' * 237,
-            '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217,
-            '01' + '20230616' + '02' + 'VALE3       ' + '010' + ' ' * 217,
+            '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218,
+            '01' + '20230616' + '02' + 'VALE3       ' + '010' + ' ' * 218,
             '99TRAILER' + ' ' * 235,
         ]
 
@@ -352,12 +373,12 @@ class TestCotahistParserB3EdgeCases:
 
     def test_parse_line_with_boundary_dates(self, parser, target_codes):
         line_min = (
-            '01' + '19000101' + '02' + 'TEST        ' + '010' + ' ' * 217
+            '01' + '19000101' + '02' + 'TEST        ' + '010' + ' ' * 218
         )
         result_min = parser.parse_line(line_min, target_codes)
 
         line_max = (
-            '01' + '20991231' + '02' + 'TEST        ' + '010' + ' ' * 217
+            '01' + '20991231' + '02' + 'TEST        ' + '010' + ' ' * 218
         )
         result_max = parser.parse_line(line_max, target_codes)
 
@@ -365,17 +386,18 @@ class TestCotahistParserB3EdgeCases:
         assert isinstance(result_max, dict)
 
     def test_parse_line_preserves_immutability(self, parser, target_codes):
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
 
         result1 = parser.parse_line(line, target_codes)
         result2 = parser.parse_line(line, target_codes)
 
-        if result1 and result2:
-            assert result1 == result2
-            assert result1 is not result2
+        assert result1 is not None
+        assert result2 is not None
+        assert result1 == result2
+        assert result1 is not result2
 
     def test_empty_target_codes_set(self, parser):
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
         result = parser.parse_line(line, set())
 
         assert result is None
@@ -399,7 +421,7 @@ class TestCotahistParserB3EdgeCases:
             raise RuntimeError('unexpected parse failure')
 
         parser._parse_int = _boom  # type: ignore[assignment]
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
 
         with caplog.at_level('ERROR'):
             result = parser._parse_quote_record(line)
@@ -417,14 +439,14 @@ class TestCotahistParserB3EdgeCases:
             raise RuntimeError('unexpected parse failure')
 
         parser._parse_int = _boom  # type: ignore[assignment]
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
 
         result = parser.parse_line(line, target_codes)
 
         assert result is None
 
 
-class TestCotahistParserB3Integration:
+class TestCotahistParserB3Records:
     @pytest.fixture
     def parser(self):
         return CotahistParserB3()
@@ -432,9 +454,9 @@ class TestCotahistParserB3Integration:
     def test_parse_complete_cotahist_sample(self, parser):
         lines = [
             '00COTAHIST' + ' ' * 235,
-            '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217,
-            '01' + '20230615' + '02' + 'VALE3       ' + '020' + ' ' * 217,
-            '01' + '20230615' + '02' + 'BBAS3       ' + '030' + ' ' * 217,
+            '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218,
+            '01' + '20230615' + '02' + 'VALE3       ' + '020' + ' ' * 218,
+            '01' + '20230615' + '02' + 'BBAS3       ' + '030' + ' ' * 218,
             '99' + '0000000003' + ' ' * 233,
         ]
 
@@ -448,27 +470,50 @@ class TestCotahistParserB3Integration:
 
         assert len(results) == 2
 
-    def test_parser_handles_real_world_variations(self, parser):
+    @pytest.mark.parametrize(
+        ('line', 'expected_result'),
+        [
+            pytest.param(
+                '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218,
+                'record',
+                id='valid-type-01-record',
+            ),
+            pytest.param(
+                '00COTAHIST' + ' ' * 235,
+                None,
+                id='header-record',
+            ),
+            pytest.param(
+                '99TOTAL RECORDS' + ' ' * 228,
+                None,
+                id='trailer-record',
+            ),
+            pytest.param('01', None, id='malformed-short-record'),
+            pytest.param(
+                '01' + '20230615' + '02' + 'PETR4       ' + '030' + ' ' * 218,
+                None,
+                id='filtered-market-record',
+            ),
+        ],
+    )
+    def test_parse_line_returns_explicit_record_result(
+        self, parser, line, expected_result
+    ):
+        result = parser.parse_line(line, {'010'})
+
+        if expected_result == 'record':
+            assert isinstance(result, dict)
+            assert result['ticker'] == 'PETR4'
+            assert result['tipo_mercado'] == '010'
+        else:
+            assert result is None
+
+    def test_repeated_parsing_is_deterministic(self, parser):
+        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 218
         target_codes = {'010'}
 
-        test_cases = [
-            '01' + '20230615' + '  ' + '            ' + '010' + ' ' * 217,
-            '01' + '20230615' + '99' + 'TEST123     ' + '010' + ' ' * 217,
-            '01' + '00000000' + '02' + 'INVALID     ' + '010' + ' ' * 217,
-        ]
-
-        for line in test_cases:
-            result = parser.parse_line(line, target_codes)
-            assert result is None or isinstance(result, dict)
-
-    def test_concurrent_parsing_safety(self, parser):
-        line = '01' + '20230615' + '02' + 'PETR4       ' + '010' + ' ' * 217
-        target_codes = {'010'}
-
+        expected = parser.parse_line(line, target_codes)
         results = [parser.parse_line(line, target_codes) for _ in range(100)]
 
-        non_none_results = [r for r in results if r is not None]
-        if non_none_results:
-            first_result = non_none_results[0]
-            for result in non_none_results:
-                assert result == first_result
+        assert expected is not None
+        assert results == [expected] * 100

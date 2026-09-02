@@ -33,7 +33,7 @@ live in `core/`, `macro_infra/`, and `macro_exceptions/`.
 ### 🌟 Why Choose Global-Data-Finance?
 
 - **🚀 Performance**: Async downloads with `httpx[http2]`, custom exponential retry/backoff (`core/utils/retry_strategy.py`), and adaptive concurrency monitored by CPU/RAM (`psutil`).
-- **🛡️ Robustness**: Downloaded files are checked for expected size and readable ZIP contents; inputs and paths are validated before extraction or writes, with atomic rollback during extraction.
+- **🛡️ Robustness**: Downloaded files are checked for expected size and readable ZIP contents; inputs and paths are validated before extraction or writes, with a failure-atomic CVM batch commit during automatic extraction.
 - **💾 Columnar Format**: Canonical output in **Parquet** (via `pyarrow`), ready for Pandas/Polars.
 - **🧩 Source Ownership**: CVM and B3 keep source-specific validation, parsing, orchestration, and I/O in their owning directories; shared behavior is centralized only when it is genuinely generic.
 - **✨ Developer Experience**: Complete type hints, structured logging, strict test markers (`unit`, `integration`, `slow`, `asyncio`).

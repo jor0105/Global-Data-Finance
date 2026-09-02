@@ -1,13 +1,22 @@
 import zipfile
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
     ParquetExtractorAdapterCVM,
 )
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    extract as extract_module,
+)
+from globaldatafinance.brazil.cvm.fundamental_stocks_data import (
+    transaction as transaction_module,
+)
 from globaldatafinance.macro_exceptions import (
     CorruptedZipError,
     ExtractionError,
+    SecurityError,
 )
 
 
@@ -18,7 +27,7 @@ class TestParquetExtractorInitialization:
         assert extractor.extractor_adapter is not None
 
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestParquetExtractorErrorHandling:
     def test_extract_raises_error_on_nonexistent_zip(self, tmp_path):
         extractor = ParquetExtractorAdapterCVM()
@@ -35,6 +44,72 @@ class TestParquetExtractorErrorHandling:
         with pytest.raises(CorruptedZipError):
             extractor.extract(str(zip_path), str(tmp_path))
 
+    @pytest.mark.parametrize(
+        'destination_path', ['/', 'D:\\', '\\\\server\\share\\output']
+    )
+    def test_extract_rejects_unsafe_destination_before_staging(
+        self, tmp_path, destination_path
+    ):
+        """Direct extraction never creates unsafe staging paths."""
+        zip_path = tmp_path / 'input.zip'
+        with zipfile.ZipFile(zip_path, 'w') as archive:
+            archive.writestr('input.csv', 'first;second\n1;2\n')
+
+        with (
+            patch.object(Path, 'mkdir') as mkdir,
+            pytest.raises(SecurityError),
+        ):
+            ParquetExtractorAdapterCVM().extract(
+                str(zip_path), destination_path
+            )
+
+        mkdir.assert_not_called()
+
+    @pytest.mark.parametrize(
+        'member_name',
+        [
+            'dir/payload:secret.csv',
+            'dir/CON.csv',
+            'dir/file.csv.',
+        ],
+    )
+    def test_extract_rejects_win32_member_before_staging(
+        self, tmp_path, member_name
+    ):
+        """Unsafe Win32 names are rejected before staging or output writes."""
+        zip_path = tmp_path / 'unsafe-member.zip'
+        with zipfile.ZipFile(zip_path, 'w') as archive:
+            archive.writestr(member_name, 'first;second\n1;2\n')
+
+        with (
+            patch.object(transaction_module.tempfile, 'mkdtemp') as mkdtemp,
+            pytest.raises(
+                CorruptedZipError, match='unsafe Windows ZIP member'
+            ),
+        ):
+            ParquetExtractorAdapterCVM().extract(str(zip_path), str(tmp_path))
+
+        mkdtemp.assert_not_called()
+        assert not list(tmp_path.glob('*.parquet'))
+
+    def test_extract_rejects_file_ancestor_before_staging(self, tmp_path):
+        """An archive file cannot also be a parent of another member."""
+        zip_path = tmp_path / 'ancestor-member.zip'
+        with zipfile.ZipFile(zip_path, 'w') as archive:
+            archive.writestr('dir', 'not a directory')
+            archive.writestr('dir/file.csv', 'first;second\n1;2\n')
+
+        with (
+            patch.object(transaction_module.tempfile, 'mkdtemp') as mkdtemp,
+            pytest.raises(
+                CorruptedZipError, match='file ZIP member is an ancestor'
+            ),
+        ):
+            ParquetExtractorAdapterCVM().extract(str(zip_path), str(tmp_path))
+
+        mkdtemp.assert_not_called()
+        assert not list(tmp_path.glob('*.parquet'))
+
     def test_extract_wraps_unexpected_exception(self, tmp_path, monkeypatch):
         extractor = ParquetExtractorAdapterCVM()
         zip_path = tmp_path / 'test.zip'
@@ -42,23 +117,23 @@ class TestParquetExtractorErrorHandling:
         with zipfile.ZipFile(zip_path, 'w') as zf:
             zf.writestr('test.csv', 'col1;col2\n1;2\n')
 
-        def mock_extract(*_args):
+        def fail_transaction(*_args, **_kwargs):
             raise RuntimeError('Unexpected error')
 
         monkeypatch.setattr(
-            extractor,
-            '_ParquetExtractorAdapterCVM__extract_with_transaction',
-            mock_extract,
+            extract_module,
+            'CvmFailureAtomicBatchCommit',
+            fail_transaction,
         )
 
         with pytest.raises(ExtractionError) as exc_info:
             extractor.extract(str(zip_path), str(tmp_path))
 
         assert 'Unexpected extraction error' in str(exc_info.value)
-        assert 'RuntimeError' in str(exc_info.value)
+        assert 'Unexpected error' in str(exc_info.value)
 
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestParquetExtractorSuccessfulExtraction:
     def test_extract_real_zip_file(self, tmp_path):
         zip_path = tmp_path / 'test_data.zip'
@@ -96,14 +171,15 @@ class TestParquetExtractorSuccessfulExtraction:
         with pytest.raises(ExtractionError):
             extractor.extract(str(nonexistent_zip), str(tmp_path))
 
-    def test_extract_empty_zip(self, tmp_path):
+    def test_extract_empty_zip_is_rejected_without_outputs(self, tmp_path):
         zip_path = tmp_path / 'empty.zip'
 
         with zipfile.ZipFile(zip_path, 'w'):
             pass
 
         extractor = ParquetExtractorAdapterCVM()
-        extractor.extract(str(zip_path), str(tmp_path))
+        with pytest.raises(ExtractionError, match='does not contain any CSV'):
+            extractor.extract(str(zip_path), str(tmp_path))
 
         parquet_files = list(tmp_path.glob('*.parquet'))
         assert len(parquet_files) == 0
@@ -132,7 +208,7 @@ class TestParquetExtractorFileExtractorInterface:
         assert callable(extractor.extract)
 
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestParquetExtractorRollbackAndTransactionalBehavior:
     def test_extract_partial_failure_triggers_atomic_rollback(
         self, tmp_path, monkeypatch
@@ -164,7 +240,7 @@ class TestParquetExtractorRollbackAndTransactionalBehavior:
         with pytest.raises(ExtractionError) as exc_info:
             extractor.extract(str(zip_path), str(tmp_path))
 
-        assert 'Atomic extraction failed' in str(exc_info.value)
+        assert 'Unexpected extraction error' in str(exc_info.value)
         assert 'bad.csv' in str(exc_info.value)
         # Ensure that good.parquet was rolled back and deleted
         remaining_parquets = list(tmp_path.glob('*.parquet'))
@@ -195,13 +271,12 @@ class TestParquetExtractorRollbackAndTransactionalBehavior:
 
         assert len(list(tmp_path.glob('*.parquet'))) == 0
 
-    def test_extract_rollback_reports_unlink_cleanup_errors(
+    def test_extract_staging_failure_cleans_transaction_directory(
         self, tmp_path, monkeypatch
     ):
-        from pathlib import Path
-
+        """The public adapter does not leak hidden staging after failure."""
         extractor = ParquetExtractorAdapterCVM()
-        zip_path = tmp_path / 'cleanup_fail.zip'
+        zip_path = tmp_path / 'staging_cleanup.zip'
 
         with zipfile.ZipFile(zip_path, 'w') as zf:
             zf.writestr('good.csv', 'col1;col2\n1;2\n')
@@ -224,17 +299,10 @@ class TestParquetExtractorRollbackAndTransactionalBehavior:
             mock_extract_csv,
         )
 
-        # Make unlink fail during rollback cleanup
-        orig_unlink = Path.unlink
-
-        def mock_unlink(self, *args, **kwargs):
-            if self.name.endswith('.parquet'):
-                raise PermissionError('Simulated permission denied on unlink')
-            return orig_unlink(self, *args, **kwargs)
-
-        monkeypatch.setattr(Path, 'unlink', mock_unlink)
-
         with pytest.raises(ExtractionError) as exc_info:
             extractor.extract(str(zip_path), str(tmp_path))
 
-        assert 'Atomic extraction failed' in str(exc_info.value)
+        assert 'Unexpected extraction error' in str(exc_info.value)
+        assert 'Forced error on bad.csv' in str(exc_info.value)
+        assert list(tmp_path.glob('*.parquet')) == []
+        assert list(tmp_path.glob('.globaldatafinance-cvm-staging-*')) == []

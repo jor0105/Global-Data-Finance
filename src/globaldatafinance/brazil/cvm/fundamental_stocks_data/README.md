@@ -14,33 +14,37 @@ O módulo `fundamental_stocks_data` foi projetado para simplificar a aquisição
 
 ## 🏗️ Arquitetura
 
-Layout plano de 7 módulos:
+Layout plano de módulos focados:
 
 ```text
 brazil/cvm/fundamental_stocks_data/
 ├── core.py                   # AvailableDocsCVM, AvailableYearsCVM, DictZipsToDownloadCVM, DownloadResultCVM, UrlDocsCVM
-├── client.py                 # DownloadDocumentsUseCaseCVM (orquestrador), GenerateUrlsUseCaseCVM, VerifyPathsUseCasesCVM, etc.
+├── client.py                 # consultas públicas, orquestração e validação de paths
 ├── http.py                   # AsyncDownloadAdapterCVM (httpx async + retry/back-off + integrity check)
-├── extract.py                # ParquetExtractorAdapterCVM (CSV → Parquet com rollback atômico)
+├── extract.py                # ParquetExtractorAdapterCVM (limite de extração)
+├── transaction.py            # staging, backup e commit recuperável em lote
 ├── errors.py                 # InvalidDocumentName, InvalidFirstYear, InvalidLastYear, MissingDownloadUrlError, etc.
 ├── download_validation.py    # Validação de ZIPs e Parquets gerados (integridade estrutural e de dados)
 └── download_extraction.py    # Delegação de extração e rastreamento de artefatos para rollback
 ```
 
-`DownloadDocumentsUseCaseCVM` orquestra: geração de URLs (`GenerateUrlsUseCaseCVM`), validação de paths (`VerifyPathsUseCasesCVM` — raise `SecurityError` em `/etc`, `/sys`, `/proc`, `/dev`, `/boot`, `/root`) e o download via `AsyncDownloadAdapterCVM` injetado.
+`DownloadDocumentsUseCaseCVM` orquestra a geração de URLs, a validação de
+paths (`VerifyPathsUseCasesCVM` — `SecurityError` para destinos sensíveis) e o
+download via `AsyncDownloadAdapterCVM` injetado.
 
 ### Componentes Chave
 
 | Módulo                   | Componente                    | Tipo                  | Responsabilidade                                                                    |
 | ------------------------ | ----------------------------- | --------------------- | ----------------------------------------------------------------------------------- |
 | `client.py`              | `DownloadDocumentsUseCaseCVM` | Orquestrador (classe) | Coordena geração de URLs, validação de paths e execução de download. Stateful.      |
-| `client.py`              | `GenerateUrlsUseCaseCVM`      | Use case              | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.                      |
+| `client.py`              | `generate_urls`               | Função de aplicação   | Constrói URLs de download a partir de `DictZipsToDownloadCVM`.                      |
 | `client.py`              | `VerifyPathsUseCasesCVM`      | Use case              | Cria estrutura de diretórios de destino. Raise `SecurityError` em paths sensíveis.  |
 | `core.py`                | `DownloadResultCVM`           | Result object         | Resultado agregado contendo sucessos, falhas e contadores (`elapsed_time` incluso). |
 | `core.py`                | `DictZipsToDownloadCVM`       | Value object          | Mapeamento documento → URLs por ano.                                                |
 | `http.py`                | `AsyncDownloadAdapterCVM`     | Adapter concreto      | Downloads assíncronos com retry/back‑off e delegação de extração.                   |
-| `extract.py`             | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Converte CSVs dentro do ZIP para Parquet com transação atômica (rollback no erro).  |
-| `download_extraction.py` | `extract_downloaded_file`     | Helper / Use case     | Gerencia atomicidade da extração, rastreando parquets gerados para rollback.        |
+| `extract.py`             | `ParquetExtractorAdapterCVM`  | Adapter concreto      | Abre o ZIP e delega o commit recuperável da conversão.                              |
+| `transaction.py`         | `CvmFailureAtomicBatchCommit` | Detalhe de extração   | Faz staging, validação, backup e restauração determinística por lote.               |
+| `download_extraction.py` | `extract_downloaded_file`     | Helper / Use case     | Rastreia os artefatos publicados e valida o resultado do download.                  |
 | `download_validation.py` | `validate_downloaded_file`    | Helper                | Valida integridade e completude de ZIPs e arquivos Parquet extraídos.               |
 
 ## 🚀 Guia de Uso
@@ -148,28 +152,29 @@ Exceções definidas em `globaldatafinance.brazil.cvm.fundamental_stocks_data.er
 
 ## 🔎 Como funciona a extração dos arquivos da CVM
 
-A extração é orquestrada pelo **`download_extraction.py`** e executada pelo **`ParquetExtractorAdapterCVM`** (adapter concreto em `extract.py`). O fluxo é acionado de forma automática quando `automatic_extractor=True`. O fluxo completo é:
+A extração é orquestrada por **`download_extraction.py`**, iniciada pelo
+**`ParquetExtractorAdapterCVM`** em `extract.py`, e concretizada por
+`transaction.py` quando `automatic_extractor=True`. O fluxo completo é:
 
-1. **Listagem dos CSVs dentro do ZIP**
-   - O adaptador delega a `ExtractorAdapter.list_files_in_zip` para obter a lista de arquivos com extensão `.csv` presentes no ZIP.
-2. **Conversão individual para Parquet**
-   - Para cada CSV, o método `extract_csv_from_zip_to_parquet` converte o conteúdo para Parquet usando o `ExtractorAdapter`. O caminho de destino é construído a partir do nome do CSV (`<nome>.parquet`).
-3. **Rastreamento de arquivos criados**
-   - Só após a verificação de existência (`parquet_path.exists()`) o caminho é adicionado à lista `created_files`. Isso garante que apenas arquivos realmente gravados sejam considerados para rollback.
-4. **Transação atômica (all‑or‑nothing)**
-   - Internamente em `extract.py`, se qualquer arquivo falhar, o método `__rollback_extraction` é acionado, removendo todos os arquivos parciais.
-5. **Rastreamento de Artefatos e Validação**
-   - Em `download_extraction.py`, um snapshot do diretório é feito antes da extração. Após a conclusão, os arquivos recém-criados são identificados e passam pela validação (`download_validation.py`) para garantir que não estejam vazios ou corrompidos.
-6. **Tratamento de exceções específicas**
-   - `CorruptedZipError` – ZIP inválido ou corrompido.
-   - `DiskFullError` – Falta de espaço em disco (propagado imediatamente).
-   - `ExtractionError` – Qualquer erro durante a conversão, que dispara o rollback.
-7. **Limpeza e logging**
-   - O método `__cleanup_files` centraliza a remoção de arquivos, registrando sucessos e erros. O logger fornece detalhes de cada etapa, facilitando a depuração.
+1. **Validação do ZIP e dos membros CSV** antes de qualquer escrita: limites,
+   integridade, nomes e colisões de basename são rejeitados.
+2. **Conversão em staging no mesmo filesystem**: cada CSV vira Parquet em um
+   diretório oculto; nenhum destino final muda nesta fase.
+3. **Validação dos Parquets staged**: todos precisam ter conteúdo e footer
+   válido antes do commit.
+4. **Backup e substituição determinística**: alvos existentes são preservados
+   e os Parquets staged são publicados em ordem estável.
+5. **Restauração recuperável em caso de falha**: os alvos já modificados são
+   restaurados em ordem reversa. Se a restauração também falhar, o diretório de
+   recovery é mantido e informado para intervenção manual.
+6. **Rastreamento e validação pós-extração** em `download_extraction.py`:
+   apenas os artefatos publicados entram no resultado do download.
 
 ### Por que essa abordagem?
 
-- **Atomicidade**: garante que o diretório de destino nunca fique em estado parcial, essencial para pipelines de dados que dependem de consistência.
+- **Commit recuperável por lote**: protege os alvos existentes contra uma
+  falha parcial; não promete visibilidade instantaneamente atômica para todos
+  os leitores concorrentes.
 - **Escalabilidade**: o processamento em chunks (`chunk_size`) permite lidar com arquivos CSV de grande porte sem esgotar a memória.
 - **Resiliência**: back‑off e retries são implementados no adaptador de download; na extração, falhas são capturadas e revertidas de forma controlada.
 

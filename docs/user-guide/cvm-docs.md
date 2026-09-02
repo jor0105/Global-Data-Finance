@@ -372,7 +372,6 @@ dfp_cia_aberta_2023.zip
 Quando `automatic_extractor=True`, os arquivos são convertidos para Parquet:
 
 ```
-
 destination_path/
 ├── DFP/
     2023/
@@ -383,6 +382,23 @@ destination_path/
 └── ...
 
 ```
+
+### Integridade e recuperação da extração
+
+Cada ZIP é validado antes de consumir seu conteúdo. A leitura CSV escolhe o
+encoding por validação determinística do membro inteiro (`utf-8-sig`, UTF-8,
+CP1252 e Latin-1) e falha fechada para estrutura CSV inválida: nenhuma linha é
+silenciosamente descartada.
+
+Um ZIP pode originar vários Parquets. A extração usa staging dentro do
+diretório de destino, valida todos os artefatos staged e só então substitui os
+alvos em ordem determinística, com backups dos arquivos já existentes. Em
+falha normal, restaura os alvos preexistentes e remove os temporários. Este é
+um **commit em lote tolerante a falhas**, não uma transação instantaneamente
+atômica para leitores concorrentes; escritas simultâneas no mesmo destino não
+são suportadas.
+
+Quando um arquivo bruto já existe, ele só é substituído após concluir a transferência e validação; se qualquer etapa falhar, o ZIP anterior permanece byte a byte inalterado.
 
 ______________________________________________________________________
 

@@ -13,7 +13,7 @@ from globaldatafinance.macro_exceptions import (
     ParquetWriteError,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = pytest.mark.integration
 
 temp_parquet_merge = extraction_service.temp_parquet_merge
 
@@ -219,3 +219,30 @@ async def test_merge_temp_files_streaming_failure_cleans_up_and_raises(
     assert not temp2.exists()
     temp_merge = final_output.with_suffix('.parquet.merge_tmp')
     assert not temp_merge.exists()
+
+
+@pytest.mark.asyncio
+async def test_merge_single_temp_file_replaces_existing_output(
+    monkeypatch, tmp_path: Path
+) -> None:
+    temp_file = tmp_path / 'temp.parquet'
+    final_output = tmp_path / 'final.parquet'
+    temp_file.write_text('new content')
+    final_output.write_text('old content')
+
+    monkeypatch.setattr(
+        temp_parquet_merge,
+        'count_parquet_rows',
+        lambda _path: 42,
+    )
+
+    async def fail_if_called() -> None:
+        raise AssertionError('single-file merge should not check resources')
+
+    rows = await temp_parquet_merge.merge_temp_files_streaming(
+        [temp_file], final_output, check_resources=fail_if_called
+    )
+
+    assert rows == 42
+    assert final_output.read_text() == 'new content'
+    assert not temp_file.exists()

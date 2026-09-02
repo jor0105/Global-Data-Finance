@@ -9,7 +9,10 @@ import tomllib
 from pathlib import Path
 from typing import Final, NamedTuple
 
-from process_runner import ProcessRunnerError, run_process
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.process_runner import ProcessRunnerError, run_process
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUFF_PATHS: Final[tuple[str, ...]] = ('src', 'tests', 'scripts', 'examples')
